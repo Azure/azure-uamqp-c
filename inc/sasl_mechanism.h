@@ -4,9 +4,6 @@
 #ifndef SASL_MECHANISM_H
 #define SASL_MECHANISM_H
 
-#include "link.h"
-#include "message.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -14,7 +11,7 @@ extern "C" {
 	typedef struct SASL_MECHANISM_INSTANCE_TAG* SASL_MECHANISM_HANDLE;
 	typedef void* CONCRETE_SASL_MECHANISM_HANDLE;
 
-	typedef struct INIT_BYTES_TAG
+	typedef struct SASL_MECHANISM_BYTES_TAG
 	{
 		const void* bytes;
 		size_t length;

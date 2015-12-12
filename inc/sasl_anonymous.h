@@ -15,6 +15,7 @@ extern "C" {
 	extern void saslanonymous_destroy(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism);
 	extern int saslanonymous_get_init_bytes(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism, SASL_MECHANISM_BYTES* init_bytes);
 	extern const char* saslanonymous_get_mechanism_name(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism);
+	extern int saslanonymous_challenge(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism, const SASL_MECHANISM_BYTES* challenge_bytes, SASL_MECHANISM_BYTES* response_bytes);
 	extern const SASL_MECHANISM_INTERFACE_DESCRIPTION* saslanonymous_get_interface(void);
 
 #ifdef __cplusplus

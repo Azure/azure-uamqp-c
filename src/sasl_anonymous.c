@@ -15,12 +15,14 @@ typedef struct SASL_ANONYMOUS_INSTANCE_TAG
 	unsigned char dummy : 1;
 } SASL_ANONYMOUS_INSTANCE;
 
+/* Codes_SRS_SASL_ANONYMOUS_01_010: [saslanonymous_get_interface shall return a pointer to a SASL_MECHANISM_INTERFACE_DESCRIPTION  structure that contains pointers to the functions: saslanonymous_create, saslanonymous_destroy, saslanonymous_get_init_bytes, saslanonymous_get_mechanism_name, saslanonymous_challenge.] */
 static const SASL_MECHANISM_INTERFACE_DESCRIPTION saslanonymous_interface =
 {
 	saslanonymous_create,
 	saslanonymous_destroy,
 	saslanonymous_get_init_bytes,
-	saslanonymous_get_mechanism_name
+	saslanonymous_get_mechanism_name,
+	saslanonymous_challenge
 };
 
 /* Codes_SRS_SASL_ANONYMOUS_01_001: [saslanonymous_create shall return on success a non-NULL handle to a new SASL anonymous mechanism.] */
@@ -80,6 +82,31 @@ const char* saslanonymous_get_mechanism_name(CONCRETE_SASL_MECHANISM_HANDLE sasl
 	{
 		/* Codes_SRS_SASL_ANONYMOUS_01_008: [saslanonymous_get_mechanism_name shall validate the argument concrete_sasl_mechanism and on success it shall return a pointer to the string “ANONYMOUS”.] */
 		result = "ANONYMOUS";
+	}
+
+	return result;
+}
+
+int saslanonymous_challenge(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism, const SASL_MECHANISM_BYTES* challenge_bytes, SASL_MECHANISM_BYTES* response_bytes)
+{
+	int result;
+
+	(void)challenge_bytes;
+
+	/* Codes_SRS_SASL_ANONYMOUS_01_015: [If the concrete_sasl_mechanism or response_bytes argument is NULL then saslanonymous_challenge shall fail and return a non-zero value.] */
+	if ((concrete_sasl_mechanism == NULL) ||
+		(response_bytes == NULL))
+	{
+		result = __LINE__;
+	}
+	else
+	{
+		/* Codes_SRS_SASL_ANONYMOUS_01_013: [saslanonymous_challenge shall set the response_bytes buffer to NULL and 0 size as the ANONYMOUS SASL mechanism does not implement challenge/response.] */
+		response_bytes->bytes = NULL;
+		response_bytes->length = 0;
+
+		/* Codes_SRS_SASL_ANONYMOUS_01_014: [On success, saslanonymous_challenge shall return 0.] */
+		result = 0;
 	}
 
 	return result;

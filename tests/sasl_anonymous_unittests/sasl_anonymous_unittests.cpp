@@ -239,9 +239,92 @@ TEST_FUNCTION(saslanonymous_get_mechanism_name_with_NULL_concrete_sasl_mechanism
 	ASSERT_IS_NULL(result);
 }
 
+/* saslanonymous_challenge */
+
+/* Tests_SRS_SASL_ANONYMOUS_01_013: [saslanonymous_challenge shall set the response_bytes buffer to NULL and 0 size as the ANONYMOUS SASL mechanism does not implement challenge/response.] */
+/* Tests_SRS_SASL_ANONYMOUS_01_014: [On success, saslanonymous_challenge shall return 0.] */
+TEST_FUNCTION(saslanonymous_challenge_returns_a_NULL_response_bytes_buffer)
+{
+	// arrange
+	amqp_frame_codec_mocks mocks;
+	CONCRETE_SASL_MECHANISM_HANDLE saslanonymous = saslanonymous_create(NULL);
+	SASL_MECHANISM_BYTES challenge_bytes;
+	SASL_MECHANISM_BYTES response_bytes;
+	mocks.ResetAllCalls();
+
+	// act
+	int result = saslanonymous_challenge(saslanonymous, &challenge_bytes, &response_bytes);
+
+	// assert
+	ASSERT_ARE_EQUAL(int, 0, result);
+	ASSERT_IS_NULL(response_bytes.bytes);
+	ASSERT_ARE_EQUAL(size_t, 0, response_bytes.length);
+	mocks.AssertActualAndExpectedCalls();
+
+	// cleanup
+	saslanonymous_destroy(saslanonymous);
+}
+
+/* Tests_SRS_SASL_ANONYMOUS_01_014: [On success, saslanonymous_challenge shall return 0.] */
+TEST_FUNCTION(saslanonymous_with_NULL_challenge_bytes_returns_a_NULL_response_bytes_buffer)
+{
+	// arrange
+	amqp_frame_codec_mocks mocks;
+	CONCRETE_SASL_MECHANISM_HANDLE saslanonymous = saslanonymous_create(NULL);
+	SASL_MECHANISM_BYTES response_bytes;
+	mocks.ResetAllCalls();
+
+	// act
+	int result = saslanonymous_challenge(saslanonymous, NULL, &response_bytes);
+
+	// assert
+	ASSERT_ARE_EQUAL(int, 0, result);
+	ASSERT_IS_NULL(response_bytes.bytes);
+	ASSERT_ARE_EQUAL(size_t, 0, response_bytes.length);
+	mocks.AssertActualAndExpectedCalls();
+
+	// cleanup
+	saslanonymous_destroy(saslanonymous);
+}
+
+/* Tests_SRS_SASL_ANONYMOUS_01_015: [If the concrete_sasl_mechanism or response_bytes argument is NULL then saslanonymous_challenge shall fail and return a non-zero value.] */
+TEST_FUNCTION(saslanonymous_challenge_with_NULL_handle_fails)
+{
+	// arrange
+	amqp_frame_codec_mocks mocks;
+	SASL_MECHANISM_BYTES challenge_bytes;
+	SASL_MECHANISM_BYTES response_bytes;
+
+	// act
+	int result = saslanonymous_challenge(NULL, &challenge_bytes, &response_bytes);
+
+	// assert
+	ASSERT_ARE_NOT_EQUAL(int, 0, result);
+}
+
+/* Tests_SRS_SASL_ANONYMOUS_01_015: [If the concrete_sasl_mechanism or response_bytes argument is NULL then saslanonymous_challenge shall fail and return a non-zero value.] */
+TEST_FUNCTION(saslanonymous_challenge_with_NULL_response_bytes_fails)
+{
+	// arrange
+	amqp_frame_codec_mocks mocks;
+	CONCRETE_SASL_MECHANISM_HANDLE saslanonymous = saslanonymous_create(NULL);
+	SASL_MECHANISM_BYTES challenge_bytes;
+	mocks.ResetAllCalls();
+
+	// act
+	int result = saslanonymous_challenge(saslanonymous, &challenge_bytes, NULL);
+
+	// assert
+	ASSERT_ARE_NOT_EQUAL(int, 0, result);
+	mocks.AssertActualAndExpectedCalls();
+
+	// cleanup
+	saslanonymous_destroy(saslanonymous);
+}
+
 /* saslanonymous_get_interface */
 
-/* Tests_SRS_SASL_ANONYMOUS_01_010: [saslanonymous_get_interface shall return a pointer to a SASL_MECHANISM_INTERFACE_DESCRIPTION  structure that contains pointers to the functions: saslanonymous_create, saslanonymous_destroy, saslanonymous_get_init_bytes, saslanonymous_get_mechanism_name.] */
+/* Tests_SRS_SASL_ANONYMOUS_01_010: [saslanonymous_get_interface shall return a pointer to a SASL_MECHANISM_INTERFACE_DESCRIPTION  structure that contains pointers to the functions: saslanonymous_create, saslanonymous_destroy, saslanonymous_get_init_bytes, saslanonymous_get_mechanism_name, saslanonymous_challenge.] */
 TEST_FUNCTION(saslanonymous_get_interface_returns_the_sasl_anonymous_mechanism_interface)
 {
 	// arrange

@@ -10,7 +10,7 @@ sasl_mechanism is a module that implements a SASL mechanism interface, abstracti
 	typedef struct SASL_MECHANISM_INSTANCE_TAG* SASL_MECHANISM_HANDLE;
 	typedef void* CONCRETE_SASL_MECHANISM_HANDLE;
 
-	typedef struct INIT_BYTES_TAG
+	typedef struct SASL_MECHANISM_BYTES_TAG
 	{
 		const void* bytes;
 		size_t length;
@@ -20,7 +20,7 @@ sasl_mechanism is a module that implements a SASL mechanism interface, abstracti
 	typedef void(*SASL_MECHANISM_DESTROY)(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism);
 	typedef int(*SASL_MECHANISM_GET_INIT_BYTES)(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism, SASL_MECHANISM_BYTES* init_bytes);
 	typedef const char*(*SASL_MECHANISM_GET_MECHANISM_NAME)(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism);
-	typedef const char*(*SASL_MECHANISM_CHALLENGE)(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism, const SASL_MECHANISM_BYTES* challenge_bytes, SASL_MECHANISM_BYTES* response_bytes);
+	typedef int(*SASL_MECHANISM_CHALLENGE)(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism, const SASL_MECHANISM_BYTES* challenge_bytes, SASL_MECHANISM_BYTES* response_bytes);
 
 	typedef struct SASL_MECHANISM_INTERFACE_TAG
 	{

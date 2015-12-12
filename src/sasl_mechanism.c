@@ -118,5 +118,27 @@ const char* saslmechanism_get_mechanism_name(SASL_MECHANISM_HANDLE sasl_mechanis
 
 int saslmechanism_challenge(SASL_MECHANISM_HANDLE sasl_mechanism, const SASL_MECHANISM_BYTES* challenge_bytes, SASL_MECHANISM_BYTES* response_bytes)
 {
-	return 0;
+	int result;
+
+	/* Codes_SRS_SASL_MECHANISM_01_020: [If the argument sasl_mechanism is NULL, saslmechanism_challenge shall fail and return a non-zero value.] */
+	if (sasl_mechanism == NULL)
+	{
+		result = __LINE__;
+	}
+	else
+	{
+		/* Codes_SRS_SASL_MECHANISM_01_018: [saslmechanism_challenge shall call the specific concrete_sasl_mechanism_challenge function specified in saslmechanism_create, while passing the challenge_bytes and response_bytes arguments to it.] */
+		if (sasl_mechanism->sasl_mechanism_interface_description->concrete_sasl_mechanism_challenge(sasl_mechanism->concrete_sasl_mechanism_handle, challenge_bytes, response_bytes) != 0)
+		{
+			/* Codes_SRS_SASL_MECHANISM_01_021: [If the underlying concrete_sasl_mechanism_challenge fails, saslmechanism_challenge shall fail and return a non-zero value.] */
+			result = __LINE__;
+		}
+		else
+		{
+			/* Codes_SRS_SASL_MECHANISM_01_019: [On success, saslmechanism_challenge shall return 0.] */
+			result = 0;
+		}
+	}
+
+	return result;
 }

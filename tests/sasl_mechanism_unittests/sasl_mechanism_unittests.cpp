@@ -30,6 +30,8 @@ public:
 	MOCK_METHOD_END(int, 0);
 	MOCK_STATIC_METHOD_1(, const char*, test_saslmechanism_get_mechanism_name, CONCRETE_SASL_MECHANISM_HANDLE, concrete_sasl_mechanism);
 	MOCK_METHOD_END(const char*, test_mechanism_name);
+	MOCK_STATIC_METHOD_3(, int, test_saslmechanism_challenge, CONCRETE_SASL_MECHANISM_HANDLE, concrete_sasl_mechanism, const SASL_MECHANISM_BYTES*, challenge_bytes, SASL_MECHANISM_BYTES*, response_bytes)
+	MOCK_METHOD_END(int, 0);
 };
 
 extern "C"
@@ -41,6 +43,7 @@ extern "C"
 	DECLARE_GLOBAL_MOCK_METHOD_1(saslmechanism_mocks, , void, test_saslmechanism_destroy, CONCRETE_SASL_MECHANISM_HANDLE, concrete_sasl_mechanism);
 	DECLARE_GLOBAL_MOCK_METHOD_2(saslmechanism_mocks, , int, test_saslmechanism_get_init_bytes, CONCRETE_SASL_MECHANISM_HANDLE, concrete_sasl_mechanism, SASL_MECHANISM_BYTES*, init_bytes);
 	DECLARE_GLOBAL_MOCK_METHOD_1(saslmechanism_mocks, , const char*, test_saslmechanism_get_mechanism_name, CONCRETE_SASL_MECHANISM_HANDLE, concrete_sasl_mechanism);
+	DECLARE_GLOBAL_MOCK_METHOD_3(saslmechanism_mocks, , int, test_saslmechanism_challenge, CONCRETE_SASL_MECHANISM_HANDLE, concrete_sasl_mechanism, const SASL_MECHANISM_BYTES*, challenge_bytes, SASL_MECHANISM_BYTES*, response_bytes);
 }
 
 MICROMOCK_MUTEX_HANDLE test_serialize_mutex;
@@ -50,7 +53,8 @@ const SASL_MECHANISM_INTERFACE_DESCRIPTION test_io_description =
 	test_saslmechanism_create,
 	test_saslmechanism_destroy,
 	test_saslmechanism_get_init_bytes,
-	test_saslmechanism_get_mechanism_name
+	test_saslmechanism_get_mechanism_name,
+	test_saslmechanism_challenge
 };
 
 
@@ -434,6 +438,71 @@ TEST_FUNCTION(when_the_underlying_mechanism_returns_NULL_saslmechanism_get_mecha
 
 	// assert
 	ASSERT_IS_NULL(result);
+	mocks.AssertActualAndExpectedCalls();
+
+	// cleanup
+	saslmechanism_destroy(sasl_mechanism);
+}
+
+/* saslmechanism_challenge */
+
+/* Tests_SRS_SASL_MECHANISM_01_018: [saslmechanism_challenge shall call the specific concrete_sasl_mechanism_challenge function specified in saslmechanism_create, while passing the challenge_bytes and response_bytes arguments to it.] */
+/* Tests_SRS_SASL_MECHANISM_01_019: [On success, saslmechanism_challenge shall return 0.] */
+TEST_FUNCTION(saslmechanism_challenge_calls_the_concrete_implementation_and_passes_the_proper_arguments)
+{
+	// arrange
+	saslmechanism_mocks mocks;
+	SASL_MECHANISM_HANDLE sasl_mechanism = saslmechanism_create(&test_io_description, (void*)0x4242);
+	SASL_MECHANISM_BYTES challenge_bytes = { NULL, 0 };
+	SASL_MECHANISM_BYTES response_bytes = { NULL, 0 };
+	mocks.ResetAllCalls();
+
+	STRICT_EXPECTED_CALL(mocks, test_saslmechanism_challenge(test_concrete_sasl_mechanism_handle, &challenge_bytes, &response_bytes));
+
+	// act
+	int result = saslmechanism_challenge(sasl_mechanism, &challenge_bytes, &response_bytes);
+
+	// assert
+	ASSERT_ARE_EQUAL(int, 0, result);
+	mocks.AssertActualAndExpectedCalls();
+
+	// cleanup
+	saslmechanism_destroy(sasl_mechanism);
+}
+
+/* Tests_SRS_SASL_MECHANISM_01_020: [If the argument sasl_mechanism is NULL, saslmechanism_challenge shall fail and return a non-zero value.] */
+TEST_FUNCTION(saslmechanism_challenge_with_NULL_sasl_mechanism_fails)
+{
+	// arrange
+	saslmechanism_mocks mocks;
+	SASL_MECHANISM_BYTES challenge_bytes = { NULL, 0 };
+	SASL_MECHANISM_BYTES response_bytes = { NULL, 0 };
+
+	// act
+	int result = saslmechanism_challenge(NULL, &challenge_bytes, &response_bytes);
+
+	// assert
+	ASSERT_ARE_NOT_EQUAL(int, 0, result);
+}
+
+/* Tests_SRS_SASL_MECHANISM_01_021: [If the underlying concrete_sasl_mechanism_challenge fails, saslmechanism_challenge shall fail and return a non-zero value.] */
+TEST_FUNCTION(when_the_underlying_concrete_challenge_fails_then_saslmechanism_challenge_fails)
+{
+	// arrange
+	saslmechanism_mocks mocks;
+	SASL_MECHANISM_HANDLE sasl_mechanism = saslmechanism_create(&test_io_description, (void*)0x4242);
+	SASL_MECHANISM_BYTES challenge_bytes = { NULL, 0 };
+	SASL_MECHANISM_BYTES response_bytes = { NULL, 0 };
+	mocks.ResetAllCalls();
+
+	STRICT_EXPECTED_CALL(mocks, test_saslmechanism_challenge(test_concrete_sasl_mechanism_handle, &challenge_bytes, &response_bytes))
+		.SetReturn(1);
+
+	// act
+	int result = saslmechanism_challenge(sasl_mechanism, &challenge_bytes, &response_bytes);
+
+	// assert
+	ASSERT_ARE_NOT_EQUAL(int, 0, result);
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup

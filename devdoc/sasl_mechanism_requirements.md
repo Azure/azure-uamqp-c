@@ -7,19 +7,20 @@ sasl_mechanism is a module that implements a SASL mechanism interface, abstracti
 ##Exposed API
 
 ```C
-	typedef void* SASL_MECHANISM_HANDLE;
+	typedef struct SASL_MECHANISM_INSTANCE_TAG* SASL_MECHANISM_HANDLE;
 	typedef void* CONCRETE_SASL_MECHANISM_HANDLE;
 
 	typedef struct INIT_BYTES_TAG
 	{
 		const void* bytes;
 		size_t length;
-	} INIT_BYTES;
+	} SASL_MECHANISM_BYTES;
 
 	typedef CONCRETE_SASL_MECHANISM_HANDLE(*SASL_MECHANISM_CREATE)(void* config);
 	typedef void(*SASL_MECHANISM_DESTROY)(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism);
-	typedef int(*SASL_MECHANISM_GET_INIT_BYTES)(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism, INIT_BYTES* init_bytes);
+	typedef int(*SASL_MECHANISM_GET_INIT_BYTES)(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism, SASL_MECHANISM_BYTES* init_bytes);
 	typedef const char*(*SASL_MECHANISM_GET_MECHANISM_NAME)(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism);
+	typedef const char*(*SASL_MECHANISM_CHALLENGE)(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism, const SASL_MECHANISM_BYTES* challenge_bytes, SASL_MECHANISM_BYTES* response_bytes);
 
 	typedef struct SASL_MECHANISM_INTERFACE_TAG
 	{
@@ -27,12 +28,14 @@ sasl_mechanism is a module that implements a SASL mechanism interface, abstracti
 		SASL_MECHANISM_DESTROY concrete_sasl_mechanism_destroy;
 		SASL_MECHANISM_GET_INIT_BYTES concrete_sasl_mechanism_get_init_bytes;
 		SASL_MECHANISM_GET_MECHANISM_NAME concrete_sasl_mechanism_get_mechanism_name;
+		SASL_MECHANISM_CHALLENGE concrete_sasl_mechanism_challenge;
 	} SASL_MECHANISM_INTERFACE_DESCRIPTION;
 
-	extern SASL_MECHANISM_HANDLE saslmechanism_create(const SASL_MECHANISM_INTERFACE_DESCRIPTION* sasl_mechanism_interface_description, void* sasl_mechanism_create_parameters, LOGGER_LOG logger_log);
+	extern SASL_MECHANISM_HANDLE saslmechanism_create(const SASL_MECHANISM_INTERFACE_DESCRIPTION* sasl_mechanism_interface_description, void* sasl_mechanism_create_parameters);
 	extern void saslmechanism_destroy(SASL_MECHANISM_HANDLE sasl_mechanism);
-	extern int saslmechanism_get_init_bytes(SASL_MECHANISM_HANDLE sasl_mechanism, INIT_BYTES* init_bytes);
+	extern int saslmechanism_get_init_bytes(SASL_MECHANISM_HANDLE sasl_mechanism, SASL_MECHANISM_BYTES* init_bytes);
 	extern const char* saslmechanism_get_mechanism_name(SASL_MECHANISM_HANDLE sasl_mechanism);
+	extern int saslmechanism_challenge(SASL_MECHANISM_HANDLE sasl_mechanism, const SASL_MECHANISM_BYTES* challenge_bytes, SASL_MECHANISM_BYTES* response_bytes);
 ```
 
 ###saslmechanism_create
@@ -79,3 +82,14 @@ extern const char* saslmechanism_get_mechanism_name(SASL_MECHANISM_HANDLE sasl_m
 **SRS_SASL_MECHANISM_01_015: [**On success, saslmechanism_get_mechanism_name shall return a pointer to a string with the mechanism name.**]** 
 **SRS_SASL_MECHANISM_01_016: [**If the argument sasl_mechanism is NULL, saslmechanism_get_mechanism_name shall fail and return a non-zero value.**]** 
 **SRS_SASL_MECHANISM_01_017: [**If the underlying concrete_sasl_mechanism_get_mechanism_name fails, saslmechanism_get_mechanism_name shall return NULL.**]** 
+
+###saslmechanism_challenge
+
+```C
+	extern int saslmechanism_challenge(SASL_MECHANISM_HANDLE sasl_mechanism, const SASL_MECHANISM_BYTES* challenge_bytes, SASL_MECHANISM_BYTES* response_bytes);
+```
+
+**SRS_SASL_MECHANISM_01_018: [**saslmechanism_challenge shall call the specific concrete_sasl_mechanism_challenge function specified in saslmechanism_create, while passing the challenge_bytes and response_bytes arguments to it.**]** 
+**SRS_SASL_MECHANISM_01_019: [**On success, saslmechanism_challenge shall return 0.**]** 
+**SRS_SASL_MECHANISM_01_020: [**If the argument sasl_mechanism is NULL, saslmechanism_challenge shall fail and return a non-zero value.**]** 
+**SRS_SASL_MECHANISM_01_021: [**If the underlying concrete_sasl_mechanism_challenge fails, saslmechanism_challenge shall fail and return a non-zero value.**]** 

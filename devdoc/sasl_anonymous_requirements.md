@@ -31,8 +31,8 @@ extern CONCRETE_SASL_MECHANISM_HANDLE saslanonymous_create(void* config);
 extern void saslanonymous_destroy(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism);
 ```
 
-**SRS_SASL_ANONYMOUS_01_004: [**saslannymous_destroy shall free all resources associated with the SASL mechanism.**]** 
-**SRS_SASL_ANONYMOUS_01_005: [**If the argument concrete_sasl_mechanism is NULL, saslannymous_destroy shall do nothing.**]**
+**SRS_SASL_ANONYMOUS_01_004: [**saslanonymous_destroy shall free all resources associated with the SASL mechanism.**]** 
+**SRS_SASL_ANONYMOUS_01_005: [**If the argument concrete_sasl_mechanism is NULL, saslanonymous_destroy shall do nothing.**]**
 
 ###saslanonymous_get_init_bytes
 

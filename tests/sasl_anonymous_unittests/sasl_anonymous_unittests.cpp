@@ -115,8 +115,8 @@ TEST_FUNCTION(saslanonymous_create_with_NULL_config_succeeds)
 
 /* saslanonymous_destroy */
 
-/* Tests_SRS_SASL_ANONYMOUS_01_004: [saslannymous_destroy shall free all resources associated with the SASL mechanism.] */
-TEST_FUNCTION(saslannymous_destroy_frees_the_allocated_resources)
+/* Tests_SRS_SASL_ANONYMOUS_01_004: [saslanonymous_destroy shall free all resources associated with the SASL mechanism.] */
+TEST_FUNCTION(saslanonymous_destroy_frees_the_allocated_resources)
 {
 	// arrange
 	amqp_frame_codec_mocks mocks;
@@ -132,8 +132,8 @@ TEST_FUNCTION(saslannymous_destroy_frees_the_allocated_resources)
 	// no explicit assert, uMock checks the calls
 }
 
-/* Tests_SRS_SASL_ANONYMOUS_01_005: [If the argument concrete_sasl_mechanism is NULL, saslannymous_destroy shall do nothing.] */
-TEST_FUNCTION(saslannymous_destroy_with_NULL_argument_does_nothing)
+/* Tests_SRS_SASL_ANONYMOUS_01_005: [If the argument concrete_sasl_mechanism is NULL, saslanonymous_destroy shall do nothing.] */
+TEST_FUNCTION(saslanonymous_destroy_with_NULL_argument_does_nothing)
 {
 	// arrange
 	amqp_frame_codec_mocks mocks;

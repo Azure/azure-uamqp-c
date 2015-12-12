@@ -37,10 +37,10 @@ CONCRETE_SASL_MECHANISM_HANDLE saslanonymous_create(void* config)
 
 void saslanonymous_destroy(CONCRETE_SASL_MECHANISM_HANDLE sasl_mechanism_concrete_handle)
 {
-	/* Codes_SRS_SASL_ANONYMOUS_01_005: [If the argument concrete_sasl_mechanism is NULL, saslannymous_destroy shall do nothing.] */
+	/* Codes_SRS_SASL_ANONYMOUS_01_005: [If the argument concrete_sasl_mechanism is NULL, saslanonymous_destroy shall do nothing.] */
 	if (sasl_mechanism_concrete_handle != NULL)
 	{
-		/* Codes_SRS_SASL_ANONYMOUS_01_004: [saslannymous_destroy shall free all resources associated with the SASL mechanism.] */
+		/* Codes_SRS_SASL_ANONYMOUS_01_004: [saslanonymous_destroy shall free all resources associated with the SASL mechanism.] */
 		amqpalloc_free(sasl_mechanism_concrete_handle);
 	}
 }

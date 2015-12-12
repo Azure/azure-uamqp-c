@@ -787,10 +787,28 @@ static void sasl_frame_received_callback(void* context, AMQP_VALUE sasl_frame)
 
 static void on_frame_codec_error(void* context)
 {
+	SASL_CLIENT_IO_INSTANCE* sasl_client_io_instance = (SASL_CLIENT_IO_INSTANCE*)context;
+
+	/* Codes_SRS_SASLCLIENTIO_01_122: [When on_frame_codec_error is called while in the OPENING or OPEN state the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
+	/* Codes_SRS_SASLCLIENTIO_01_123: [When on_frame_codec_error is called in the ERROR state nothing shall be done.] */
+	if ((sasl_client_io_instance->io_state == IO_STATE_OPEN) ||
+		(sasl_client_io_instance->io_state == IO_STATE_OPENING))
+	{
+		set_io_state(sasl_client_io_instance, IO_STATE_ERROR);
+	}
 }
 
 static void on_sasl_frame_codec_error(void* context)
 {
+	SASL_CLIENT_IO_INSTANCE* sasl_client_io_instance = (SASL_CLIENT_IO_INSTANCE*)context;
+
+	/* Codes_SRS_SASLCLIENTIO_01_124: [**When on_sasl_frame_codec_error is called while in the OPENING or OPEN state the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
+	/* Codes_SRS_SASLCLIENTIO_01_125: [When on_sasl_frame_codec_error is called in the ERROR state nothing shall be done.] */
+	if ((sasl_client_io_instance->io_state == IO_STATE_OPEN) ||
+		(sasl_client_io_instance->io_state == IO_STATE_OPENING))
+	{
+		set_io_state(sasl_client_io_instance, IO_STATE_ERROR);
+	}
 }
 
 CONCRETE_IO_HANDLE saslclientio_create(void* io_create_parameters, LOGGER_LOG logger_log)

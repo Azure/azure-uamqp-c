@@ -147,6 +147,16 @@ When a frame is indicated as received by sasl_frame_codec it shall be processed 
 **SRS_SASLCLIENTIO_01_120: [**When SASL client IO is notified by sasl_frame_codec of bytes that have been encoded via the on_bytes_encoded callback and SASL client IO is in the state OPENING, SASL client IO shall send these bytes by using xio_send.**]** 
 **SRS_SASLCLIENTIO_01_121: [**If xio_send fails, the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.**]** 
 
+###on_frame_codec_error
+
+**SRS_SASLCLIENTIO_01_122: [**When on_frame_codec_error is called while in the OPENING or OPEN state the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.**]** 
+**SRS_SASLCLIENTIO_01_123: [**When on_frame_codec_error is called in the ERROR state nothing shall be done.**]** 
+
+###on_sasl_frame_codec_error
+
+**SRS_SASLCLIENTIO_01_124: [**When on_sasl_frame_codec_error is called while in the OPENING or OPEN state the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.**]** 
+**SRS_SASLCLIENTIO_01_125: [**When on_sasl_frame_codec_error is called in the ERROR state nothing shall be done.**]** 
+
 ##SASL negotiation
 
 **SRS_SASLCLIENTIO_01_067: [**The SASL frame exchange shall be started as soon as the SASL header handshake is done.**]** 

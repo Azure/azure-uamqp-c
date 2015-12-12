@@ -7,6 +7,7 @@
 #endif
 #include <stddef.h>
 #include <stdio.h>
+#include <string.h>
 #include "saslclientio.h"
 #include "xio.h"
 #include "amqpalloc.h"
@@ -613,21 +614,50 @@ static void sasl_frame_received_callback(void* context, AMQP_VALUE sasl_frame)
 
 									for (i = 0; i < mechanisms_count; i++)
 									{
+										AMQP_VALUE sasl_server_mechanism;
+										sasl_server_mechanism = amqpvalue_get_array_item(sasl_server_mechanisms, i);
+										if (sasl_server_mechanism == NULL)
+										{
+											i = mechanisms_count;
+										}
+										else
+										{
+											const char* sasl_server_mechanism_name;
+											if (amqpvalue_get_symbol(sasl_server_mechanism, &sasl_server_mechanism_name) != 0)
+											{
+												i = mechanisms_count;
+											}
+											else
+											{
+												if (strcmp(sasl_mechanism_name, sasl_server_mechanism_name) == 0)
+												{
+													break;
+												}
+											}
+										}
 									}
 
-									sasl_client_io_instance->sasl_client_negotiation_state = SASL_CLIENT_NEGOTIATION_MECH_RCVD;
-
-									/* Codes_SRS_SASLCLIENTIO_01_035: [SASL-INIT -->] */
-									/* Codes_SRS_SASLCLIENTIO_01_033: [The partner MUST then choose one of the supported mechanisms and initiate a sasl exchange.] */
-									/* Codes_SRS_SASLCLIENTIO_01_054: [Selects the sasl mechanism and provides the initial response if needed.] */
-									if (send_sasl_init(sasl_client_io_instance, sasl_mechanism_name) != 0)
+									if (i == mechanisms_count)
 									{
 										/* Codes_SRS_SASLCLIENTIO_01_119: [If any error is encountered when parsing the received frame, the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
 										set_io_state(sasl_client_io_instance, IO_STATE_ERROR);
 									}
 									else
 									{
-										sasl_client_io_instance->sasl_client_negotiation_state = SASL_CLIENT_NEGOTIATION_INIT_SENT;
+										sasl_client_io_instance->sasl_client_negotiation_state = SASL_CLIENT_NEGOTIATION_MECH_RCVD;
+
+										/* Codes_SRS_SASLCLIENTIO_01_035: [SASL-INIT -->] */
+										/* Codes_SRS_SASLCLIENTIO_01_033: [The partner MUST then choose one of the supported mechanisms and initiate a sasl exchange.] */
+										/* Codes_SRS_SASLCLIENTIO_01_054: [Selects the sasl mechanism and provides the initial response if needed.] */
+										if (send_sasl_init(sasl_client_io_instance, sasl_mechanism_name) != 0)
+										{
+											/* Codes_SRS_SASLCLIENTIO_01_119: [If any error is encountered when parsing the received frame, the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
+											set_io_state(sasl_client_io_instance, IO_STATE_ERROR);
+										}
+										else
+										{
+											sasl_client_io_instance->sasl_client_negotiation_state = SASL_CLIENT_NEGOTIATION_INIT_SENT;
+										}
 									}
 								}
 							}

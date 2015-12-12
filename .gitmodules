@@ -1,0 +1,3 @@
+[submodule "azure-c-shared-utility"]
+	path = azure-c-shared-utility
+	url = https://github.com/Azure/azure-c-shared-utility.git

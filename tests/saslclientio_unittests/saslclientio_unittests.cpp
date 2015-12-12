@@ -3219,6 +3219,56 @@ TEST_FUNCTION(when_the_mechanisms_array_does_not_contain_a_usable_SASL_mechanism
 	saslclientio_destroy(sasl_io);
 }
 
+/* Tests_SRS_SASLCLIENTIO_01_073: [If the handshake fails (i.e. the outcome is an error) the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.]  */
+TEST_FUNCTION(when_the_mechanisms_array_has_2_mechanisms_and_none_matches_the_state_is_set_to_ERROR)
+{
+	// arrange
+	saslclientio_mocks mocks;
+	amqp_definitions_mocks definitions_mocks;
+	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+
+	(void)saslclientio_open(sasl_io, test_on_bytes_received, test_on_io_state_changed, test_context);
+	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+	mocks.ResetAllCalls();
+	definitions_mocks.ResetAllCalls();
+
+	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_inplace_descriptor(test_sasl_value));
+	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
+	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+		.CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
+	AMQP_VALUE sasl_server_mechanisms;
+	STRICT_EXPECTED_CALL(definitions_mocks, sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, &sasl_server_mechanisms))
+		.IgnoreArgument(2);
+	STRICT_EXPECTED_CALL(mocks, saslmechanism_get_mechanism_name(test_sasl_mechanism));
+	uint32_t mechanisms_count = 2;
+	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
+		.CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
+	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_array_item(sasl_server_mechanisms, 0));
+	const char* test_sasl_server_mechanism_name_1 = "blahblah";
+	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+		.CopyOutArgumentBuffer(2, &test_sasl_server_mechanism_name_1, sizeof(test_sasl_server_mechanism_name_1));
+	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_array_item(sasl_server_mechanisms, 1));
+	const char* test_sasl_server_mechanism_name_2 = "another_blah";
+	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+		.CopyOutArgumentBuffer(2, &test_sasl_server_mechanism_name_2, sizeof(test_sasl_server_mechanism_name_2));
+	STRICT_EXPECTED_CALL(definitions_mocks, sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
+
+	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+
+	// act
+	saved_on_sasl_frame_received(saved_on_sasl_frame_received_callback_context, test_sasl_value);
+
+	// assert
+	mocks.AssertActualAndExpectedCalls();
+	definitions_mocks.AssertActualAndExpectedCalls();
+
+	// cleanup
+	saslclientio_destroy(sasl_io);
+}
+
 static void SetupSendInit(saslclientio_mocks* mocks, amqp_definitions_mocks* definitions_mocks)
 {
 	STRICT_EXPECTED_CALL((*mocks), amqpvalue_get_inplace_descriptor(test_sasl_value));

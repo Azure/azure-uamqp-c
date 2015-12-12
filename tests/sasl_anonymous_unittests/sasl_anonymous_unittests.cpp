@@ -328,7 +328,7 @@ TEST_FUNCTION(saslanonymous_challenge_with_NULL_response_bytes_fails)
 TEST_FUNCTION(saslanonymous_get_interface_returns_the_sasl_anonymous_mechanism_interface)
 {
 	// arrange
-	/*amqp_frame_codec_mocks mocks;
+	amqp_frame_codec_mocks mocks;
 
 	// act
 	const SASL_MECHANISM_INTERFACE_DESCRIPTION* result = saslanonymous_get_interface();
@@ -337,7 +337,8 @@ TEST_FUNCTION(saslanonymous_get_interface_returns_the_sasl_anonymous_mechanism_i
 	ASSERT_ARE_EQUAL(void_ptr, saslanonymous_create, result->concrete_sasl_mechanism_create);
 	ASSERT_ARE_EQUAL(void_ptr, saslanonymous_destroy, result->concrete_sasl_mechanism_destroy);
 	ASSERT_ARE_EQUAL(void_ptr, saslanonymous_get_init_bytes, result->concrete_sasl_mechanism_get_init_bytes);
-	ASSERT_ARE_EQUAL(void_ptr, saslanonymous_get_mechanism_name, result->concrete_sasl_mechanism_get_mechanism_name);*/
+	ASSERT_ARE_EQUAL(void_ptr, saslanonymous_get_mechanism_name, result->concrete_sasl_mechanism_get_mechanism_name);
+	ASSERT_ARE_EQUAL(void_ptr, saslanonymous_challenge, result->concrete_sasl_mechanism_challenge);
 }
 
 END_TEST_SUITE(sasl_anonymous_unittests)

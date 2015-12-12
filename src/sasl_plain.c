@@ -20,7 +20,8 @@ static const SASL_MECHANISM_INTERFACE_DESCRIPTION saslplain_interface =
 	saslplain_create,
 	saslplain_destroy,
 	saslplain_get_init_bytes,
-	saslplain_get_mechanism_name
+	saslplain_get_mechanism_name,
+	saslplain_challenge
 };
 
 CONCRETE_SASL_MECHANISM_HANDLE saslplain_create(void* config)
@@ -101,6 +102,11 @@ const char* saslplain_get_mechanism_name(CONCRETE_SASL_MECHANISM_HANDLE sasl_mec
 	}
 
 	return result;
+}
+
+int saslplain_challenge(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism, const SASL_MECHANISM_BYTES* challenge_bytes, SASL_MECHANISM_BYTES* response_bytes)
+{
+	return 0;
 }
 
 const SASL_MECHANISM_INTERFACE_DESCRIPTION* saslplain_get_interface(void)

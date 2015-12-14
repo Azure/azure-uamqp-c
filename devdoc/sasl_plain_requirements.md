@@ -29,6 +29,8 @@ extern CONCRETE_SASL_MECHANISM_HANDLE saslplain_create(void* config);
 
 **SRS_SASL_PLAIN_01_001: [**saslplain_create shall return on success a non-NULL handle to a new SASL plain mechanism.**]** 
 **SRS_SASL_PLAIN_01_002: [**If allocating the memory needed for the saslplain instance fails then saslplain_create shall return NULL.**]** 
+**SRS_SASL_PLAIN_01_003: [**If the config argument is NULL, then saslplain_create shall fail and return NULL.**]** 
+**SRS_SASL_PLAIN_01_004: [**If either the authcid or passwd member of the config structure is NULL, then saslplain_create shall fail and return NULL.**]** 
 
 ###saslplain_destroy
 
@@ -36,8 +38,8 @@ extern CONCRETE_SASL_MECHANISM_HANDLE saslplain_create(void* config);
 extern void saslplain_destroy(CONCRETE_SASL_MECHANISM_HANDLE sasl_mechanism_concrete_handle);
 ```
 
-**SRS_SASL_PLAIN_01_003: [**saslplain_destroy shall free all resources associated with the SASL mechanism.**]** 
-**SRS_SASL_PLAIN_01_004: [**If the argument concrete_sasl_mechanism is NULL, saslplain_destroy shall do nothing.**]**
+**SRS_SASL_PLAIN_01_005: [**saslplain_destroy shall free all resources associated with the SASL mechanism.**]** 
+**SRS_SASL_PLAIN_01_006: [**If the argument concrete_sasl_mechanism is NULL, saslplain_destroy shall do nothing.**]**
 
 ###saslplain_get_init_bytes
 

@@ -26,27 +26,50 @@ static const SASL_MECHANISM_INTERFACE_DESCRIPTION saslplain_interface =
 
 CONCRETE_SASL_MECHANISM_HANDLE saslplain_create(void* config)
 {
-	SASL_PLAIN_INSTANCE* result = amqpalloc_malloc(sizeof(SASL_PLAIN_INSTANCE));
-	if (result != NULL)
+	SASL_PLAIN_INSTANCE* result;
+
+	if (config == NULL)
+	{
+		/* Codes_SRS_SASL_PLAIN_01_003: [If the config argument is NULL, then saslplain_create shall fail and return NULL.] */
+		result = NULL;
+	}
+	else
 	{
 		SASL_PLAIN_CONFIG* sasl_plain_config = (SASL_PLAIN_CONFIG*)config;
-		size_t authcid_length = strlen(sasl_plain_config->authcid);
-		size_t passwd_length = strlen(sasl_plain_config->passwd);
 
-		/* Ignore UTF8 for now */
-		result->init_bytes = (unsigned char*)amqpalloc_malloc(authcid_length + passwd_length + 2);
-		if (result->init_bytes == NULL)
+		/* Codes_SRS_SASL_PLAIN_01_004: [If either the authcid or passwd member of the config structure is NULL, then saslplain_create shall fail and return NULL.] */
+		if ((sasl_plain_config->authcid == NULL) ||
+			(sasl_plain_config->passwd == NULL))
 		{
-			amqpalloc_free(result);
 			result = NULL;
 		}
 		else
 		{
-			result->init_bytes[0] = 0;
-			(void)memcpy(result->init_bytes + 1, sasl_plain_config->authcid, authcid_length);
-			result->init_bytes[authcid_length + 1] = 0;
-			(void)memcpy(result->init_bytes + authcid_length + 2, sasl_plain_config->passwd, passwd_length);
-			result->init_bytes_length = authcid_length + passwd_length + 2;
+			/* Codes_SRS_SASL_PLAIN_01_001: [saslplain_create shall return on success a non-NULL handle to a new SASL plain mechanism.] */
+			result = amqpalloc_malloc(sizeof(SASL_PLAIN_INSTANCE));
+			/* Codes_SRS_SASL_PLAIN_01_002: [If allocating the memory needed for the saslplain instance fails then saslplain_create shall return NULL.] */
+			if (result != NULL)
+			{
+				size_t authcid_length = strlen(sasl_plain_config->authcid);
+				size_t passwd_length = strlen(sasl_plain_config->passwd);
+
+				/* Ignore UTF8 for now */
+				result->init_bytes = (unsigned char*)amqpalloc_malloc(authcid_length + passwd_length + 2);
+				if (result->init_bytes == NULL)
+				{
+					/* Codes_SRS_SASL_PLAIN_01_002: [If allocating the memory needed for the saslplain instance fails then saslplain_create shall return NULL.] */
+					amqpalloc_free(result);
+					result = NULL;
+				}
+				else
+				{
+					result->init_bytes[0] = 0;
+					(void)memcpy(result->init_bytes + 1, sasl_plain_config->authcid, authcid_length);
+					result->init_bytes[authcid_length + 1] = 0;
+					(void)memcpy(result->init_bytes + authcid_length + 2, sasl_plain_config->passwd, passwd_length);
+					result->init_bytes_length = authcid_length + passwd_length + 2;
+				}
+			}
 		}
 	}
 

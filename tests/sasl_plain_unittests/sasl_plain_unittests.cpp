@@ -59,4 +59,102 @@ TEST_FUNCTION_CLEANUP(method_cleanup)
 
 /* saslplain_create */
 
+/* Tests_SRS_SASL_PLAIN_01_001: [saslplain_create shall return on success a non-NULL handle to a new SASL plain mechanism.] */
+TEST_FUNCTION(saslplain_create_with_valid_args_succeeds)
+{
+	// arrange
+	amqp_frame_codec_mocks mocks;
+	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", "test_authzid" };
+
+	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
+	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
+
+	// act
+	CONCRETE_SASL_MECHANISM_HANDLE result = saslplain_create(&sasl_plain_config);
+
+	// assert
+	ASSERT_IS_NOT_NULL(result);
+	mocks.AssertActualAndExpectedCalls();
+
+	// cleanup
+	saslplain_destroy(result);
+}
+
+/* Tests_SRS_SASL_PLAIN_01_002: [If allocating the memory needed for the saslplain instance fails then saslplain_create shall return NULL.] */
+TEST_FUNCTION(when_allocating_memory_fails_then_saslplain_create_fails)
+{
+	// arrange
+	amqp_frame_codec_mocks mocks;
+	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", "test_authzid" };
+
+	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG))
+		.SetReturn((void*)NULL);
+
+	// act
+	CONCRETE_SASL_MECHANISM_HANDLE result = saslplain_create(&sasl_plain_config);
+
+	// assert
+	ASSERT_IS_NULL(result);
+}
+
+/* Tests_SRS_SASL_PLAIN_01_002: [If allocating the memory needed for the saslplain instance fails then saslplain_create shall return NULL.] */
+TEST_FUNCTION(when_allocating_memory_for_the_config_fails_then_saslplain_create_fails)
+{
+	// arrange
+	amqp_frame_codec_mocks mocks;
+	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", "test_authzid" };
+
+	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
+	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG))
+		.SetReturn((void*)NULL);
+	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+
+	// act
+	CONCRETE_SASL_MECHANISM_HANDLE result = saslplain_create(&sasl_plain_config);
+
+	// assert
+	ASSERT_IS_NULL(result);
+}
+
+/* Tests_SRS_SASL_PLAIN_01_003: [If the config argument is NULL, then saslplain_create shall fail and return NULL.] */
+TEST_FUNCTION(saslplain_create_with_NULL_config_fails)
+{
+	// arrange
+	amqp_frame_codec_mocks mocks;
+
+	// act
+	CONCRETE_SASL_MECHANISM_HANDLE result = saslplain_create(NULL);
+
+	// assert
+	ASSERT_IS_NULL(result);
+}
+
+/* Tests_SRS_SASL_PLAIN_01_004: [If either the authcid or passwd member of the config structure is NULL, then saslplain_create shall fail and return NULL.] */
+TEST_FUNCTION(saslplain_create_with_NULL_authcid_fails)
+{
+	// arrange
+	amqp_frame_codec_mocks mocks;
+	SASL_PLAIN_CONFIG sasl_plain_config = { NULL, "test_pwd", "test_authzid" };
+
+	// act
+	CONCRETE_SASL_MECHANISM_HANDLE result = saslplain_create(&sasl_plain_config);
+
+	// assert
+	ASSERT_IS_NULL(result);
+}
+
+/* Tests_SRS_SASL_PLAIN_01_004: [If either the authcid or passwd member of the config structure is NULL, then saslplain_create shall fail and return NULL.] */
+TEST_FUNCTION(saslplain_create_with_NULL_passwd_fails)
+{
+	// arrange
+	amqp_frame_codec_mocks mocks;
+	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", NULL, "test_authzid" };
+
+	// act
+	CONCRETE_SASL_MECHANISM_HANDLE result = saslplain_create(&sasl_plain_config);
+
+	// assert
+	ASSERT_IS_NULL(result);
+}
+
 END_TEST_SUITE(sasl_plain_unittests)

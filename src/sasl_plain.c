@@ -17,6 +17,7 @@ typedef struct SASL_PLAIN_INSTANCE_TAG
 
 static const SASL_MECHANISM_INTERFACE_DESCRIPTION saslplain_interface =
 {
+	/* Codes_SRS_SASL_PLAIN_01_015: [**saslplain_get_interface shall return a pointer to a SASL_MECHANISM_INTERFACE_DESCRIPTION  structure that contains pointers to the functions: saslplain_create, saslplain_destroy, saslplain_get_init_bytes, saslplain_get_mechanism_name, saslplain_challenge.] */
 	saslplain_create,
 	saslplain_destroy,
 	saslplain_get_init_bytes,
@@ -136,7 +137,27 @@ const char* saslplain_get_mechanism_name(CONCRETE_SASL_MECHANISM_HANDLE sasl_mec
 
 int saslplain_challenge(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism, const SASL_MECHANISM_BYTES* challenge_bytes, SASL_MECHANISM_BYTES* response_bytes)
 {
-	return 0;
+	int result;
+
+	(void)challenge_bytes;
+
+	/* Codes_SRS_SASL_PLAIN_01_014: [If the concrete_sasl_mechanism or response_bytes argument is NULL then saslplain_challenge shall fail and return a non-zero value.] */
+	if ((concrete_sasl_mechanism == NULL) ||
+		(response_bytes == NULL))
+	{
+		result = __LINE__;
+	}
+	else
+	{
+		/* Codes_SRS_SASL_PLAIN_01_012: [saslplain_challenge shall set the response_bytes buffer to NULL and 0 size as the PLAIN SASL mechanism does not implement challenge/response.] */
+		response_bytes->bytes = NULL;
+		response_bytes->length = 0;
+
+		/* Codes_SRS_SASL_PLAIN_01_013: [On success, saslplain_challenge shall return 0.] */
+		result = 0;
+	}
+
+	return result;
 }
 
 const SASL_MECHANISM_INTERFACE_DESCRIPTION* saslplain_get_interface(void)

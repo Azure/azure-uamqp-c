@@ -299,7 +299,7 @@ TEST_FUNCTION(saslplain_get_init_bytes_with_NULL_init_bytes_fails)
 	saslplain_destroy(sasl_plain);
 }
 
-/* saslanonymous_get_mechanism_name */
+/* saslplain_get_mechanism_name */
 
 /* Tests_SRS_SASL_PLAIN_01_010: [saslplain_get_mechanism_name shall validate the argument concrete_sasl_mechanism and on success it shall return a pointer to the string “PLAIN”.] */
 TEST_FUNCTION(saslplain_get_mechanism_name_with_non_NULL_concrete_sasl_mechanism_succeeds)
@@ -332,6 +332,111 @@ TEST_FUNCTION(saslplain_get_mechanism_name_with_NULL_concrete_sasl_mechanism_fai
 
 	// assert
 	ASSERT_IS_NULL(result);
+}
+
+/* saslplain_challenge */
+
+/* Tests_SRS_SASL_PLAIN_01_012: [saslplain_challenge shall set the response_bytes buffer to NULL and 0 size as the PLAIN SASL mechanism does not implement challenge/response.] */
+/* Tests_SRS_SASL_PLAIN_01_013: [On success, saslplain_challenge shall return 0.] */
+TEST_FUNCTION(saslplain_challenge_returns_a_NULL_response_bytes_buffer)
+{
+	// arrange
+	amqp_frame_codec_mocks mocks;
+	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", NULL };
+	CONCRETE_SASL_MECHANISM_HANDLE saslplain = saslplain_create(&sasl_plain_config);
+	SASL_MECHANISM_BYTES challenge_bytes;
+	SASL_MECHANISM_BYTES response_bytes;
+	mocks.ResetAllCalls();
+
+	// act
+	int result = saslplain_challenge(saslplain, &challenge_bytes, &response_bytes);
+
+	// assert
+	ASSERT_ARE_EQUAL(int, 0, result);
+	ASSERT_IS_NULL(response_bytes.bytes);
+	ASSERT_ARE_EQUAL(size_t, 0, response_bytes.length);
+	mocks.AssertActualAndExpectedCalls();
+
+	// cleanup
+	saslplain_destroy(saslplain);
+}
+
+/* Tests_SRS_SASL_PLAIN_01_013: [On success, saslplain_challenge shall return 0.] */
+TEST_FUNCTION(saslplain_with_NULL_challenge_bytes_returns_a_NULL_response_bytes_buffer)
+{
+	// arrange
+	amqp_frame_codec_mocks mocks;
+	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", NULL };
+	CONCRETE_SASL_MECHANISM_HANDLE saslplain = saslplain_create(&sasl_plain_config);
+	SASL_MECHANISM_BYTES response_bytes;
+	mocks.ResetAllCalls();
+
+	// act
+	int result = saslplain_challenge(saslplain, NULL, &response_bytes);
+
+	// assert
+	ASSERT_ARE_EQUAL(int, 0, result);
+	ASSERT_IS_NULL(response_bytes.bytes);
+	ASSERT_ARE_EQUAL(size_t, 0, response_bytes.length);
+	mocks.AssertActualAndExpectedCalls();
+
+	// cleanup
+	saslplain_destroy(saslplain);
+}
+
+/* Tests_SRS_SASL_PLAIN_01_014: [If the concrete_sasl_mechanism or response_bytes argument is NULL then saslplain_challenge shall fail and return a non-zero value.] */
+TEST_FUNCTION(saslplain_challenge_with_NULL_handle_fails)
+{
+	// arrange
+	amqp_frame_codec_mocks mocks;
+	SASL_MECHANISM_BYTES challenge_bytes;
+	SASL_MECHANISM_BYTES response_bytes;
+
+	// act
+	int result = saslplain_challenge(NULL, &challenge_bytes, &response_bytes);
+
+	// assert
+	ASSERT_ARE_NOT_EQUAL(int, 0, result);
+}
+
+/* Tests_SRS_SASL_PLAIN_01_014: [If the concrete_sasl_mechanism or response_bytes argument is NULL then saslplain_challenge shall fail and return a non-zero value.] */
+TEST_FUNCTION(saslplain_challenge_with_NULL_response_bytes_fails)
+{
+	// arrange
+	amqp_frame_codec_mocks mocks;
+	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", NULL };
+	CONCRETE_SASL_MECHANISM_HANDLE saslplain = saslplain_create(&sasl_plain_config);
+	SASL_MECHANISM_BYTES challenge_bytes;
+	mocks.ResetAllCalls();
+
+	// act
+	int result = saslplain_challenge(saslplain, &challenge_bytes, NULL);
+
+	// assert
+	ASSERT_ARE_NOT_EQUAL(int, 0, result);
+	mocks.AssertActualAndExpectedCalls();
+
+	// cleanup
+	saslplain_destroy(saslplain);
+}
+
+/* saslplain_get_interface */
+
+/* Tests_SRS_SASL_PLAIN_01_015: [**saslplain_get_interface shall return a pointer to a SASL_MECHANISM_INTERFACE_DESCRIPTION  structure that contains pointers to the functions: saslplain_create, saslplain_destroy, saslplain_get_init_bytes, saslplain_get_mechanism_name, saslplain_challenge.] */
+TEST_FUNCTION(saslplain_get_interface_returns_the_sasl_plain_mechanism_interface)
+{
+	// arrange
+	amqp_frame_codec_mocks mocks;
+
+	// act
+	const SASL_MECHANISM_INTERFACE_DESCRIPTION* result = saslplain_get_interface();
+
+	// assert
+	ASSERT_ARE_EQUAL(void_ptr, saslplain_create, result->concrete_sasl_mechanism_create);
+	ASSERT_ARE_EQUAL(void_ptr, saslplain_destroy, result->concrete_sasl_mechanism_destroy);
+	ASSERT_ARE_EQUAL(void_ptr, saslplain_get_init_bytes, result->concrete_sasl_mechanism_get_init_bytes);
+	ASSERT_ARE_EQUAL(void_ptr, saslplain_get_mechanism_name, result->concrete_sasl_mechanism_get_mechanism_name);
+	ASSERT_ARE_EQUAL(void_ptr, saslplain_challenge, result->concrete_sasl_mechanism_challenge);
 }
 
 END_TEST_SUITE(sasl_plain_unittests)

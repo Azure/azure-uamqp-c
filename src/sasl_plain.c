@@ -64,11 +64,12 @@ CONCRETE_SASL_MECHANISM_HANDLE saslplain_create(void* config)
 				}
 				else
 				{
-					result->init_bytes[0] = 0;
-					(void)memcpy(result->init_bytes + 1, sasl_plain_config->authcid, authcid_length);
-					result->init_bytes[authcid_length + 1] = 0;
-					(void)memcpy(result->init_bytes + authcid_length + 2, sasl_plain_config->passwd, passwd_length);
-					result->init_bytes_length = authcid_length + passwd_length + 2;
+					(void)memcpy(result->init_bytes, sasl_plain_config->authzid, authzid_length);
+					result->init_bytes[authzid_length] = 0;
+					(void)memcpy(result->init_bytes + authzid_length + 1, sasl_plain_config->authcid, authcid_length);
+					result->init_bytes[authzid_length + authcid_length + 1] = 0;
+					(void)memcpy(result->init_bytes + authzid_length + authcid_length + 2, sasl_plain_config->passwd, passwd_length);
+					result->init_bytes_length = authzid_length + authcid_length + passwd_length + 2;
 				}
 			}
 		}
@@ -96,7 +97,8 @@ int saslplain_get_init_bytes(CONCRETE_SASL_MECHANISM_HANDLE sasl_mechanism_concr
 {
 	int result;
 
-	if (sasl_mechanism_concrete_handle == NULL)
+	if ((sasl_mechanism_concrete_handle == NULL) ||
+		(init_bytes == NULL))
 	{
 		result = __LINE__;
 	}
@@ -107,6 +109,7 @@ int saslplain_get_init_bytes(CONCRETE_SASL_MECHANISM_HANDLE sasl_mechanism_concr
 		init_bytes->bytes = sasl_plain_instance->init_bytes;
 		init_bytes->length = sasl_plain_instance->init_bytes_length;
 
+		/* Codes_SRS_SASL_PLAIN_01_008: [On success saslplain_get_init_bytes shall return zero.] */
 		result = 0;
 	}
 
@@ -119,10 +122,12 @@ const char* saslplain_get_mechanism_name(CONCRETE_SASL_MECHANISM_HANDLE sasl_mec
 
 	if (sasl_mechanism == NULL)
 	{
+		/* Codes_SRS_SASL_PLAIN_01_011: [If the argument concrete_sasl_mechanism is NULL, saslplain_get_mechanism_name shall return NULL.] */
 		result = NULL;
 	}
 	else
 	{
+		/* Codes_SRS_SASL_PLAIN_01_010: [saslplain_get_mechanism_name shall validate the argument concrete_sasl_mechanism and on success it shall return a pointer to the string “PLAIN”.] */
 		result = "PLAIN";
 	}
 

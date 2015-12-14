@@ -212,4 +212,126 @@ TEST_FUNCTION(saslplain_destroy_with_NULL_handle_does_nothing)
 	// uMock checks the calls
 }
 
+/* saslplain_get_init_bytes */
+
+/* Tests_SRS_SASL_PLAIN_01_007: [saslplain_get_init_bytes shall construct the initial bytes per the RFC 4616.] */
+/* Tests_SRS_SASL_PLAIN_01_008: [On success saslplain_get_init_bytes shall return zero.] */
+TEST_FUNCTION(saslplain_get_init_bytes_returns_the_correct_concateneted_bytes)
+{
+	// arrange
+	amqp_frame_codec_mocks mocks;
+	unsigned char expected_bytes[] = "test_authzid" "\0" "test_authcid" "\0" "test_pwd";
+	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", "test_authzid" };
+	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_create(&sasl_plain_config);
+	SASL_MECHANISM_BYTES init_bytes;
+	mocks.ResetAllCalls();
+
+	// act
+	int result = saslplain_get_init_bytes(sasl_plain, &init_bytes);
+
+	// assert
+	ASSERT_ARE_EQUAL(int, 0, result);
+	ASSERT_ARE_EQUAL(size_t, sizeof(expected_bytes) - 1, init_bytes.length);
+	ASSERT_ARE_EQUAL(int, 0, memcmp(expected_bytes, init_bytes.bytes, sizeof(expected_bytes) - 1));
+	mocks.AssertActualAndExpectedCalls();
+
+	// cleanup
+	saslplain_destroy(sasl_plain);
+}
+
+/* Tests_SRS_SASL_PLAIN_01_007: [saslplain_get_init_bytes shall construct the initial bytes per the RFC 4616.] */
+/* Tests_SRS_SASL_PLAIN_01_008: [On success saslplain_get_init_bytes shall return zero.] */
+TEST_FUNCTION(saslplain_get_init_bytes_with_NULL_authzid_returns_the_correct_concateneted_bytes)
+{
+	// arrange
+	amqp_frame_codec_mocks mocks;
+	unsigned char expected_bytes[] = "\0" "test_authcid" "\0" "test_pwd";
+	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", NULL };
+	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_create(&sasl_plain_config);
+	SASL_MECHANISM_BYTES init_bytes;
+	mocks.ResetAllCalls();
+
+	// act
+	int result = saslplain_get_init_bytes(sasl_plain, &init_bytes);
+
+	// assert
+	ASSERT_ARE_EQUAL(int, 0, result);
+	ASSERT_ARE_EQUAL(size_t, sizeof(expected_bytes) - 1, init_bytes.length);
+	ASSERT_ARE_EQUAL(int, 0, memcmp(expected_bytes, init_bytes.bytes, sizeof(expected_bytes) - 1));
+	mocks.AssertActualAndExpectedCalls();
+
+	// cleanup
+	saslplain_destroy(sasl_plain);
+}
+
+/* Tests_SRS_SASL_PLAIN_01_009: [If any argument is NULL, saslplain_get_init_bytes shall return a non-zero value.] */
+TEST_FUNCTION(saslplain_get_init_bytes_with_NULL_sasl_plain_handle_fails)
+{
+	// arrange
+	amqp_frame_codec_mocks mocks;
+	SASL_MECHANISM_BYTES init_bytes;
+
+	// act
+	int result = saslplain_get_init_bytes(NULL, &init_bytes);
+
+	// assert
+	ASSERT_ARE_NOT_EQUAL(int, 0, result);
+}
+
+/* Tests_SRS_SASL_PLAIN_01_009: [If any argument is NULL, saslplain_get_init_bytes shall return a non-zero value.] */
+TEST_FUNCTION(saslplain_get_init_bytes_with_NULL_init_bytes_fails)
+{
+	// arrange
+	amqp_frame_codec_mocks mocks;
+	unsigned char expected_bytes[] = "\0" "test_authcid" "\0" "test_pwd";
+	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", NULL };
+	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_create(&sasl_plain_config);
+	mocks.ResetAllCalls();
+
+	// act
+	int result = saslplain_get_init_bytes(sasl_plain, NULL);
+
+	// assert
+	ASSERT_ARE_NOT_EQUAL(int, 0, result);
+	mocks.AssertActualAndExpectedCalls();
+
+	// cleanup
+	saslplain_destroy(sasl_plain);
+}
+
+/* saslanonymous_get_mechanism_name */
+
+/* Tests_SRS_SASL_PLAIN_01_010: [saslplain_get_mechanism_name shall validate the argument concrete_sasl_mechanism and on success it shall return a pointer to the string “PLAIN”.] */
+TEST_FUNCTION(saslplain_get_mechanism_name_with_non_NULL_concrete_sasl_mechanism_succeeds)
+{
+	// arrange
+	amqp_frame_codec_mocks mocks;
+	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", NULL };
+	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_create(&sasl_plain_config);
+	mocks.ResetAllCalls();
+
+	// act
+	const char* result = saslplain_get_mechanism_name(sasl_plain);
+
+	// assert
+	ASSERT_ARE_EQUAL(char_ptr, "PLAIN", result);
+	mocks.AssertActualAndExpectedCalls();
+
+	// cleanup
+	saslplain_destroy(sasl_plain);
+}
+
+/* Tests_SRS_SASL_PLAIN_01_011: [If the argument concrete_sasl_mechanism is NULL, saslplain_get_mechanism_name shall return NULL.] */
+TEST_FUNCTION(saslplain_get_mechanism_name_with_NULL_concrete_sasl_mechanism_fails)
+{
+	// arrange
+	amqp_frame_codec_mocks mocks;
+
+	// act
+	const char* result = saslplain_get_mechanism_name(NULL);
+
+	// assert
+	ASSERT_IS_NULL(result);
+}
+
 END_TEST_SUITE(sasl_plain_unittests)

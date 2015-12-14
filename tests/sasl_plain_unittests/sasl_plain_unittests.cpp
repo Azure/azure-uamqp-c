@@ -9,6 +9,10 @@
 #include "sasl_plain.h"
 #include "logger.h"
 
+#define MAX_AUTHZID "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" "1234567890123456789012345678901234567890123456789012345"
+#define MAX_AUTHCID MAX_AUTHZID
+#define MAX_PASSWD MAX_AUTHZID
+
 TYPED_MOCK_CLASS(amqp_frame_codec_mocks, CGlobalMock)
 {
 public:
@@ -216,6 +220,11 @@ TEST_FUNCTION(saslplain_destroy_with_NULL_handle_does_nothing)
 
 /* Tests_SRS_SASL_PLAIN_01_007: [saslplain_get_init_bytes shall construct the initial bytes per the RFC 4616.] */
 /* Tests_SRS_SASL_PLAIN_01_008: [On success saslplain_get_init_bytes shall return zero.] */
+/* Tests_SRS_SASL_PLAIN_01_016: [The mechanism consists of a single message, a string of [UTF-8] encoded [Unicode] characters, from the client to the server.] */
+/* Tests_SRS_SASL_PLAIN_01_017: [The client presents the authorization identity (identity to act as), followed by a NUL (U+0000) character, followed by the authentication identity (identity whose password will be used), followed by a NUL (U+0000) character, followed by the clear-text password.] */
+/* Tests_SRS_SASL_PLAIN_01_019: [   message   = [authzid] UTF8NUL authcid UTF8NUL passwd] */
+/* Tests_SRS_SASL_PLAIN_01_023: [The authorization identity (authzid), authentication identity (authcid), password (passwd), and NUL character deliminators SHALL be transferred as [UTF-8] encoded strings of [Unicode] characters.] */
+/* Tests_SRS_SASL_PLAIN_01_024: [As the NUL (U+0000) character is used as a deliminator, the NUL (U+0000) character MUST NOT appear in authzid, authcid, or passwd productions.] */
 TEST_FUNCTION(saslplain_get_init_bytes_returns_the_correct_concateneted_bytes)
 {
 	// arrange
@@ -241,6 +250,7 @@ TEST_FUNCTION(saslplain_get_init_bytes_returns_the_correct_concateneted_bytes)
 
 /* Tests_SRS_SASL_PLAIN_01_007: [saslplain_get_init_bytes shall construct the initial bytes per the RFC 4616.] */
 /* Tests_SRS_SASL_PLAIN_01_008: [On success saslplain_get_init_bytes shall return zero.] */
+/* Tests_SRS_SASL_PLAIN_01_018: [As with other SASL mechanisms, the client does not provide an authorization identity when it wishes the server to derive an identity from the credentials and use that as the authorization identity.] */
 TEST_FUNCTION(saslplain_get_init_bytes_with_NULL_authzid_returns_the_correct_concateneted_bytes)
 {
 	// arrange
@@ -262,6 +272,150 @@ TEST_FUNCTION(saslplain_get_init_bytes_with_NULL_authzid_returns_the_correct_con
 
 	// cleanup
 	saslplain_destroy(sasl_plain);
+}
+
+/* Tests_SRS_SASL_PLAIN_01_018: [As with other SASL mechanisms, the client does not provide an authorization identity when it wishes the server to derive an identity from the credentials and use that as the authorization identity.] */
+TEST_FUNCTION(saslplain_get_init_bytes_with_authzid_zero_length_succeeds)
+{
+	// arrange
+	amqp_frame_codec_mocks mocks;
+	unsigned char expected_bytes[] = "\0" "test_authcid" "\0" "test_pwd";
+	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", "" };
+	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_create(&sasl_plain_config);
+	SASL_MECHANISM_BYTES init_bytes;
+	mocks.ResetAllCalls();
+
+	// act
+	int result = saslplain_get_init_bytes(sasl_plain, &init_bytes);
+
+	// assert
+	ASSERT_ARE_EQUAL(int, 0, result);
+	ASSERT_ARE_EQUAL(size_t, sizeof(expected_bytes) - 1, init_bytes.length);
+	ASSERT_ARE_EQUAL(int, 0, memcmp(expected_bytes, init_bytes.bytes, sizeof(expected_bytes) - 1));
+	mocks.AssertActualAndExpectedCalls();
+
+	// cleanup
+	saslplain_destroy(sasl_plain);
+}
+
+/* Tests_SRS_SASL_PLAIN_01_020: [   authcid   = 1*SAFE ; MUST accept up to 255 octets] */
+TEST_FUNCTION(saslplain_get_init_bytes_with_1_byte_for_each_field_succeeds)
+{
+	// arrange
+	amqp_frame_codec_mocks mocks;
+	unsigned char expected_bytes[] = "1" "\0" "b" "\0" "c";
+	SASL_PLAIN_CONFIG sasl_plain_config = { "b", "c", "1" };
+	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_create(&sasl_plain_config);
+	SASL_MECHANISM_BYTES init_bytes;
+	mocks.ResetAllCalls();
+
+	// act
+	int result = saslplain_get_init_bytes(sasl_plain, &init_bytes);
+
+	// assert
+	ASSERT_ARE_EQUAL(int, 0, result);
+	ASSERT_ARE_EQUAL(size_t, sizeof(expected_bytes) - 1, init_bytes.length);
+	ASSERT_ARE_EQUAL(int, 0, memcmp(expected_bytes, init_bytes.bytes, sizeof(expected_bytes) - 1));
+	mocks.AssertActualAndExpectedCalls();
+
+	// cleanup
+	saslplain_destroy(sasl_plain);
+}
+
+/* Tests_SRS_SASL_PLAIN_01_020: [   authcid   = 1*SAFE ; MUST accept up to 255 octets] */
+/* Tests_SRS_SASL_PLAIN_01_021: [   authzid   = 1*SAFE ; MUST accept up to 255 octets] */
+/* Tests_SRS_SASL_PLAIN_01_022: [   passwd    = 1*SAFE ; MUST accept up to 255 octets] */
+TEST_FUNCTION(saslplain_get_init_bytes_with_max_bytes_for_each_field_succeeds)
+{
+	// arrange
+	amqp_frame_codec_mocks mocks;
+	unsigned char expected_bytes[] = MAX_AUTHZID "\0" MAX_AUTHCID "\0" MAX_PASSWD;
+	SASL_PLAIN_CONFIG sasl_plain_config = { MAX_AUTHCID, MAX_PASSWD, MAX_AUTHZID };
+	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_create(&sasl_plain_config);
+	SASL_MECHANISM_BYTES init_bytes;
+	mocks.ResetAllCalls();
+
+	// act
+	int result = saslplain_get_init_bytes(sasl_plain, &init_bytes);
+
+	// assert
+	ASSERT_ARE_EQUAL(int, 0, result);
+	ASSERT_ARE_EQUAL(size_t, sizeof(expected_bytes) - 1, init_bytes.length);
+	ASSERT_ARE_EQUAL(int, 0, memcmp(expected_bytes, init_bytes.bytes, sizeof(expected_bytes) - 1));
+	mocks.AssertActualAndExpectedCalls();
+
+	// cleanup
+	saslplain_destroy(sasl_plain);
+}
+
+/* Tests_SRS_SASL_PLAIN_01_020: [   authcid   = 1*SAFE ; MUST accept up to 255 octets] */
+TEST_FUNCTION(saslplain_get_init_bytes_with_authcid_over_max_bytes_fails)
+{
+	// arrange
+	amqp_frame_codec_mocks mocks;
+	SASL_PLAIN_CONFIG sasl_plain_config = { MAX_AUTHCID "x", MAX_PASSWD, MAX_AUTHZID };
+
+	// act
+	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_create(&sasl_plain_config);
+
+	// assert
+	ASSERT_IS_NULL(sasl_plain);
+}
+
+/* Tests_SRS_SASL_PLAIN_01_021: [   authzid   = 1*SAFE ; MUST accept up to 255 octets] */
+TEST_FUNCTION(saslplain_get_init_bytes_with_authzid_over_max_bytes_fails)
+{
+	// arrange
+	amqp_frame_codec_mocks mocks;
+	SASL_PLAIN_CONFIG sasl_plain_config = { MAX_AUTHCID, MAX_PASSWD, MAX_AUTHZID "x" };
+
+	// act
+	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_create(&sasl_plain_config);
+
+	// assert
+	ASSERT_IS_NULL(sasl_plain);
+}
+
+/* Tests_SRS_SASL_PLAIN_01_022: [   passwd    = 1*SAFE ; MUST accept up to 255 octets] */
+TEST_FUNCTION(saslplain_get_init_bytes_with_passwd_over_max_bytes_fails)
+{
+	// arrange
+	amqp_frame_codec_mocks mocks;
+	SASL_PLAIN_CONFIG sasl_plain_config = { MAX_AUTHCID, MAX_PASSWD "x", MAX_AUTHZID };
+
+	// act
+	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_create(&sasl_plain_config);
+
+	// assert
+	ASSERT_IS_NULL(sasl_plain);
+}
+
+/* Tests_SRS_SASL_PLAIN_01_020: [   authcid   = 1*SAFE ; MUST accept up to 255 octets] */
+TEST_FUNCTION(saslplain_get_init_bytes_with_authcid_zero_length_fails)
+{
+	// arrange
+	amqp_frame_codec_mocks mocks;
+	SASL_PLAIN_CONFIG sasl_plain_config = { "", "passwd", "authzid" };
+
+	// act
+	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_create(&sasl_plain_config);
+
+	// assert
+	ASSERT_IS_NULL(sasl_plain);
+}
+
+/* Tests_SRS_SASL_PLAIN_01_022: [   passwd    = 1*SAFE ; MUST accept up to 255 octets] */
+TEST_FUNCTION(saslplain_get_init_bytes_with_passwd_zero_length_fails)
+{
+	// arrange
+	amqp_frame_codec_mocks mocks;
+	SASL_PLAIN_CONFIG sasl_plain_config = { "authcid", "", "authzid" };
+
+	// act
+	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_create(&sasl_plain_config);
+
+	// assert
+	ASSERT_IS_NULL(sasl_plain);
 }
 
 /* Tests_SRS_SASL_PLAIN_01_009: [If any argument is NULL, saslplain_get_init_bytes shall return a non-zero value.] */

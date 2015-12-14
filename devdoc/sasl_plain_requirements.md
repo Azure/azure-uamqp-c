@@ -82,16 +82,16 @@ extern const SASL_MECHANISM_INTERFACE_DESCRIPTION* saslplain_get_interface(void)
 
 2.  PLAIN SASL Mechanism
 
-The mechanism consists of a single message, a string of [UTF-8] encoded [Unicode] characters, from the client to the server.
-The client presents the authorization identity (identity to act as), followed by a NUL (U+0000) character, followed by the authentication identity (identity whose password will be used), followed by a NUL (U+0000) character, followed by the clear-text password.
-As with other SASL mechanisms, the client does not provide an authorization identity when it wishes the server to derive an identity from the credentials and use that as the authorization identity.
+**SRS_SASL_PLAIN_01_016: [**The mechanism consists of a single message, a string of [UTF-8] encoded [Unicode] characters, from the client to the server.**]** 
+**SRS_SASL_PLAIN_01_017: [**The client presents the authorization identity (identity to act as), followed by a NUL (U+0000) character, followed by the authentication identity (identity whose password will be used), followed by a NUL (U+0000) character, followed by the clear-text password.**]** 
+**SRS_SASL_PLAIN_01_018: [**As with other SASL mechanisms, the client does not provide an authorization identity when it wishes the server to derive an identity from the credentials and use that as the authorization identity.**]** 
 
 The formal grammar for the client message using Augmented BNF [ABNF] follows.
 
-   message   = [authzid] UTF8NUL authcid UTF8NUL passwd
-   authcid   = 1*SAFE ; MUST accept up to 255 octets
-   authzid   = 1*SAFE ; MUST accept up to 255 octets
-   passwd    = 1*SAFE ; MUST accept up to 255 octets
+**SRS_SASL_PLAIN_01_019: [**   message   = [authzid] UTF8NUL authcid UTF8NUL passwd**]** 
+**SRS_SASL_PLAIN_01_020: [**   authcid   = 1*SAFE ; MUST accept up to 255 octets**]** 
+**SRS_SASL_PLAIN_01_021: [**   authzid   = 1*SAFE ; MUST accept up to 255 octets**]** 
+**SRS_SASL_PLAIN_01_022: [**   passwd    = 1*SAFE ; MUST accept up to 255 octets**]** 
    UTF8NUL   = %x00 ; UTF-8 encoded NUL character
 
    SAFE      = UTF1 / UTF2 / UTF3 / UTF4
@@ -105,8 +105,8 @@ The formal grammar for the client message using Augmented BNF [ABNF] follows.
                %xF4 %x80-8F 2(UTF0)
    UTF0      = %x80-BF
 
-The authorization identity (authzid), authentication identity (authcid), password (passwd), and NUL character deliminators SHALL be transferred as [UTF-8] encoded strings of [Unicode] characters.
-As the NUL (U+0000) character is used as a deliminator, the NUL (U+0000) character MUST NOT appear in authzid, authcid, or passwd productions.
+**SRS_SASL_PLAIN_01_023: [**The authorization identity (authzid), authentication identity (authcid), password (passwd), and NUL character deliminators SHALL be transferred as [UTF-8**]** encoded strings of [Unicode] characters.] 
+**SRS_SASL_PLAIN_01_024: [**As the NUL (U+0000) character is used as a deliminator, the NUL (U+0000) character MUST NOT appear in authzid, authcid, or passwd productions.**]** 
 
 The form of the authzid production is specific to the application-level protocol's SASL profile [SASL].
 The authcid and passwd productions are form-free.

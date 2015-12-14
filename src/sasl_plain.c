@@ -46,31 +46,54 @@ CONCRETE_SASL_MECHANISM_HANDLE saslplain_create(void* config)
 		}
 		else
 		{
-			/* Codes_SRS_SASL_PLAIN_01_001: [saslplain_create shall return on success a non-NULL handle to a new SASL plain mechanism.] */
-			result = amqpalloc_malloc(sizeof(SASL_PLAIN_INSTANCE));
-			/* Codes_SRS_SASL_PLAIN_01_002: [If allocating the memory needed for the saslplain instance fails then saslplain_create shall return NULL.] */
-			if (result != NULL)
-			{
-				size_t authzid_length = sasl_plain_config->authzid == NULL ? 0 : strlen(sasl_plain_config->authcid);
-				size_t authcid_length = strlen(sasl_plain_config->authcid);
-				size_t passwd_length = strlen(sasl_plain_config->passwd);
+			size_t authzid_length = sasl_plain_config->authzid == NULL ? 0 : strlen(sasl_plain_config->authzid);
+			size_t authcid_length = strlen(sasl_plain_config->authcid);
+			size_t passwd_length = strlen(sasl_plain_config->passwd);
 
-				/* Ignore UTF8 for now */
-				result->init_bytes = (unsigned char*)amqpalloc_malloc(authzid_length + authcid_length + passwd_length + 2);
-				if (result->init_bytes == NULL)
+			/* Codes_SRS_SASL_PLAIN_01_020: [   authcid   = 1*SAFE ; MUST accept up to 255 octets] */
+			if ((authcid_length > 255) || (authcid_length == 0) ||
+				/* Codes_SRS_SASL_PLAIN_01_021: [   authzid   = 1*SAFE ; MUST accept up to 255 octets] */
+				(authzid_length > 255) ||
+				/* Codes_SRS_SASL_PLAIN_01_022: [   passwd    = 1*SAFE ; MUST accept up to 255 octets] */
+				(passwd_length > 255) || (passwd_length == 0))
+			{
+				result = NULL;
+			}
+			else
+			{
+				/* Codes_SRS_SASL_PLAIN_01_001: [saslplain_create shall return on success a non-NULL handle to a new SASL plain mechanism.] */
+				result = amqpalloc_malloc(sizeof(SASL_PLAIN_INSTANCE));
+				/* Codes_SRS_SASL_PLAIN_01_002: [If allocating the memory needed for the saslplain instance fails then saslplain_create shall return NULL.] */
+				if (result != NULL)
 				{
-					/* Codes_SRS_SASL_PLAIN_01_002: [If allocating the memory needed for the saslplain instance fails then saslplain_create shall return NULL.] */
-					amqpalloc_free(result);
-					result = NULL;
-				}
-				else
-				{
-					(void)memcpy(result->init_bytes, sasl_plain_config->authzid, authzid_length);
-					result->init_bytes[authzid_length] = 0;
-					(void)memcpy(result->init_bytes + authzid_length + 1, sasl_plain_config->authcid, authcid_length);
-					result->init_bytes[authzid_length + authcid_length + 1] = 0;
-					(void)memcpy(result->init_bytes + authzid_length + authcid_length + 2, sasl_plain_config->passwd, passwd_length);
-					result->init_bytes_length = authzid_length + authcid_length + passwd_length + 2;
+					/* Ignore UTF8 for now */
+					result->init_bytes = (unsigned char*)amqpalloc_malloc(authzid_length + authcid_length + passwd_length + 2);
+					if (result->init_bytes == NULL)
+					{
+						/* Codes_SRS_SASL_PLAIN_01_002: [If allocating the memory needed for the saslplain instance fails then saslplain_create shall return NULL.] */
+						amqpalloc_free(result);
+						result = NULL;
+					}
+					else
+					{
+						/* Codes_SRS_SASL_PLAIN_01_016: [The mechanism consists of a single message, a string of [UTF-8] encoded [Unicode] characters, from the client to the server.] */
+						/* Codes_SRS_SASL_PLAIN_01_017: [The client presents the authorization identity (identity to act as), followed by a NUL (U+0000) character, followed by the authentication identity (identity whose password will be used), followed by a NUL (U+0000) character, followed by the clear-text password.] */
+						/* Codes_SRS_SASL_PLAIN_01_019: [   message   = [authzid] UTF8NUL authcid UTF8NUL passwd] */
+						/* Codes_SRS_SASL_PLAIN_01_023: [The authorization identity (authzid), authentication identity (authcid), password (passwd), and NUL character deliminators SHALL be transferred as [UTF-8] encoded strings of [Unicode] characters.] */
+						/* Codes_SRS_SASL_PLAIN_01_024: [As the NUL (U+0000) character is used as a deliminator, the NUL (U+0000) character MUST NOT appear in authzid, authcid, or passwd productions.] */
+
+						/* Codes_SRS_SASL_PLAIN_01_018: [As with other SASL mechanisms, the client does not provide an authorization identity when it wishes the server to derive an identity from the credentials and use that as the authorization identity.] */
+						if (authzid_length > 0)
+						{
+							(void)memcpy(result->init_bytes, sasl_plain_config->authzid, authzid_length);
+						}
+
+						result->init_bytes[authzid_length] = 0;
+						(void)memcpy(result->init_bytes + authzid_length + 1, sasl_plain_config->authcid, authcid_length);
+						result->init_bytes[authzid_length + authcid_length + 1] = 0;
+						(void)memcpy(result->init_bytes + authzid_length + authcid_length + 2, sasl_plain_config->passwd, passwd_length);
+						result->init_bytes_length = authzid_length + authcid_length + passwd_length + 2;
+					}
 				}
 			}
 		}

@@ -178,4 +178,38 @@ TEST_FUNCTION(saslplain_create_with_NULL_authzis_succeeds)
 	saslplain_destroy(result);
 }
 
+/* saslplain_destroy */
+
+/* Tests_SRS_SASL_PLAIN_01_005: [saslplain_destroy shall free all resources associated with the SASL mechanism.] */
+TEST_FUNCTION(saslplain_destroy_frees_the_allocated_memory)
+{
+	// arrange
+	amqp_frame_codec_mocks mocks;
+	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", NULL };
+	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_create(&sasl_plain_config);
+	mocks.ResetAllCalls();
+
+	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+
+	// act
+	saslplain_destroy(sasl_plain);
+
+	// assert
+	// uMock checks the calls
+}
+
+/* Tests_SRS_SASL_PLAIN_01_006: [If the argument concrete_sasl_mechanism is NULL, saslplain_destroy shall do nothing.] */
+TEST_FUNCTION(saslplain_destroy_with_NULL_handle_does_nothing)
+{
+	// arrange
+	amqp_frame_codec_mocks mocks;
+
+	// act
+	saslplain_destroy(NULL);
+
+	// assert
+	// uMock checks the calls
+}
+
 END_TEST_SUITE(sasl_plain_unittests)

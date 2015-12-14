@@ -81,6 +81,7 @@ void saslplain_destroy(CONCRETE_SASL_MECHANISM_HANDLE sasl_mechanism_concrete_ha
 {
 	if (sasl_mechanism_concrete_handle != NULL)
 	{
+		/* Codes_SRS_SASL_PLAIN_01_005: [saslplain_destroy shall free all resources associated with the SASL mechanism.] */
 		SASL_PLAIN_INSTANCE* sasl_plain_instance = (SASL_PLAIN_INSTANCE*)sasl_mechanism_concrete_handle;
 		if (sasl_plain_instance->init_bytes != NULL)
 		{

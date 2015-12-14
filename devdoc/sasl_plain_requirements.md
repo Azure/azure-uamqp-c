@@ -27,8 +27,8 @@ sasl_plain is a module that implements the sasl mechanism PLAIN so that it can b
 extern CONCRETE_SASL_MECHANISM_HANDLE saslplain_create(void* config);
 ```
 
-**SRS_SASL_ANONYMOUS_01_001: [**saslplain_create shall return on success a non-NULL handle to a new SASL plain mechanism.**]** 
-**SRS_SASL_ANONYMOUS_01_002: [**If allocating the memory needed for the saslplain instance fails then saslplain_create shall return NULL.**]** 
+**SRS_SASL_PLAIN_01_001: [**saslplain_create shall return on success a non-NULL handle to a new SASL plain mechanism.**]** 
+**SRS_SASL_PLAIN_01_002: [**If allocating the memory needed for the saslplain instance fails then saslplain_create shall return NULL.**]** 
 
 ###saslplain_destroy
 
@@ -36,8 +36,8 @@ extern CONCRETE_SASL_MECHANISM_HANDLE saslplain_create(void* config);
 extern void saslplain_destroy(CONCRETE_SASL_MECHANISM_HANDLE sasl_mechanism_concrete_handle);
 ```
 
-**SRS_SASL_ANONYMOUS_01_003: [**saslplain_destroy shall free all resources associated with the SASL mechanism.**]** 
-**SRS_SASL_ANONYMOUS_01_004: [**If the argument concrete_sasl_mechanism is NULL, saslplain_destroy shall do nothing.**]**
+**SRS_SASL_PLAIN_01_003: [**saslplain_destroy shall free all resources associated with the SASL mechanism.**]** 
+**SRS_SASL_PLAIN_01_004: [**If the argument concrete_sasl_mechanism is NULL, saslplain_destroy shall do nothing.**]**
 
 ###saslplain_get_init_bytes
 
@@ -45,9 +45,9 @@ extern void saslplain_destroy(CONCRETE_SASL_MECHANISM_HANDLE sasl_mechanism_conc
 extern int saslplain_get_init_bytes(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism, INIT_BYTES* init_bytes);
 ```
 
-**SRS_SASL_ANONYMOUS_01_005: [**saslplain_get_init_bytes shall construct the initial bytes per the RFC 4616.**]** 
-**SRS_SASL_ANONYMOUS_01_006: [**On success saslplain_get_init_bytes shall return zero.**]** 
-**SRS_SASL_ANONYMOUS_01_007: [**If the any argument is NULL, saslplain_get_init_bytes shall return a non-zero value.**]**
+**SRS_SASL_PLAIN_01_005: [**saslplain_get_init_bytes shall construct the initial bytes per the RFC 4616.**]** 
+**SRS_SASL_PLAIN_01_006: [**On success saslplain_get_init_bytes shall return zero.**]** 
+**SRS_SASL_PLAIN_01_007: [**If the any argument is NULL, saslplain_get_init_bytes shall return a non-zero value.**]**
 
 ###saslplain_get_mechanism_name
 
@@ -55,8 +55,8 @@ extern int saslplain_get_init_bytes(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl
 extern const char* saslplain_get_mechanism_name(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism);
 ```
 
-**SRS_SASL_ANONYMOUS_01_008: [**saslplain_get_mechanism_name shall validate the argument concrete_sasl_mechanism and on success it shall return a pointer to the string “PLAIN”.**]** 
-**SRS_SASL_ANONYMOUS_01_009: [**If the argument concrete_sasl_mechanism is NULL, saslplain_get_mechanism_name shall return NULL.**]** 
+**SRS_SASL_PLAIN_01_008: [**saslplain_get_mechanism_name shall validate the argument concrete_sasl_mechanism and on success it shall return a pointer to the string “PLAIN”.**]** 
+**SRS_SASL_PLAIN_01_009: [**If the argument concrete_sasl_mechanism is NULL, saslplain_get_mechanism_name shall return NULL.**]** 
 
 ###saslplain_challenge
 
@@ -64,9 +64,9 @@ extern const char* saslplain_get_mechanism_name(CONCRETE_SASL_MECHANISM_HANDLE c
 extern int saslplain_challenge(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism, const SASL_MECHANISM_BYTES* challenge_bytes, SASL_MECHANISM_BYTES* response_bytes);
 ```
 
-**SRS_SASL_ANONYMOUS_01_010: [**saslplain_challenge shall set the response_bytes buffer to NULL and 0 size as the PLAIN SASL mechanism does not implement challenge/response.**]** 
-**SRS_SASL_ANONYMOUS_01_011: [**On success, saslplain_challenge shall return 0.**]** 
-**SRS_SASL_ANONYMOUS_01_012: [**If the concrete_sasl_mechanism or response_bytes argument is NULL then saslplain_challenge shall fail and return a non-zero value.**]** 
+**SRS_SASL_PLAIN_01_010: [**saslplain_challenge shall set the response_bytes buffer to NULL and 0 size as the PLAIN SASL mechanism does not implement challenge/response.**]** 
+**SRS_SASL_PLAIN_01_011: [**On success, saslplain_challenge shall return 0.**]** 
+**SRS_SASL_PLAIN_01_012: [**If the concrete_sasl_mechanism or response_bytes argument is NULL then saslplain_challenge shall fail and return a non-zero value.**]** 
 
 ###saslplain_get_interface
 
@@ -74,7 +74,7 @@ extern int saslplain_challenge(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mech
 extern const SASL_MECHANISM_INTERFACE_DESCRIPTION* saslplain_get_interface(void);
 ```
 
-**SRS_SASL_ANONYMOUS_01_013: [**saslplain_get_interface shall return a pointer to a SASL_MECHANISM_INTERFACE_DESCRIPTION  structure that contains pointers to the functions: saslplain_create, saslplain_destroy, saslplain_get_init_bytes, saslplain_get_mechanism_name, saslplain_challenge.**]** 
+**SRS_SASL_PLAIN_01_013: [**saslplain_get_interface shall return a pointer to a SASL_MECHANISM_INTERFACE_DESCRIPTION  structure that contains pointers to the functions: saslplain_create, saslplain_destroy, saslplain_get_init_bytes, saslplain_get_mechanism_name, saslplain_challenge.**]** 
 
 ## RFC section
 

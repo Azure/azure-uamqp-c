@@ -14,6 +14,7 @@ extern "C" {
 	{
 		const char* authcid;
 		const char* passwd;
+		const char* authzid;
 	} SASL_PLAIN_CONFIG;
 
 	extern CONCRETE_SASL_MECHANISM_HANDLE saslplain_create(void* config);

@@ -50,11 +50,12 @@ CONCRETE_SASL_MECHANISM_HANDLE saslplain_create(void* config)
 			/* Codes_SRS_SASL_PLAIN_01_002: [If allocating the memory needed for the saslplain instance fails then saslplain_create shall return NULL.] */
 			if (result != NULL)
 			{
+				size_t authzid_length = sasl_plain_config->authzid == NULL ? 0 : strlen(sasl_plain_config->authcid);
 				size_t authcid_length = strlen(sasl_plain_config->authcid);
 				size_t passwd_length = strlen(sasl_plain_config->passwd);
 
 				/* Ignore UTF8 for now */
-				result->init_bytes = (unsigned char*)amqpalloc_malloc(authcid_length + passwd_length + 2);
+				result->init_bytes = (unsigned char*)amqpalloc_malloc(authzid_length + authcid_length + passwd_length + 2);
 				if (result->init_bytes == NULL)
 				{
 					/* Codes_SRS_SASL_PLAIN_01_002: [If allocating the memory needed for the saslplain instance fails then saslplain_create shall return NULL.] */

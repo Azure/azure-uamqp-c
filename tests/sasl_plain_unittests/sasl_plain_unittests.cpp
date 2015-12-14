@@ -301,7 +301,7 @@ TEST_FUNCTION(saslplain_get_init_bytes_with_NULL_init_bytes_fails)
 
 /* saslplain_get_mechanism_name */
 
-/* Tests_SRS_SASL_PLAIN_01_010: [saslplain_get_mechanism_name shall validate the argument concrete_sasl_mechanism and on success it shall return a pointer to the string “PLAIN”.] */
+/* Tests_SRS_SASL_PLAIN_01_010: [saslplain_get_mechanism_name shall validate the argument concrete_sasl_mechanism and on success it shall return a pointer to the string "PLAIN".] */
 TEST_FUNCTION(saslplain_get_mechanism_name_with_non_NULL_concrete_sasl_mechanism_succeeds)
 {
 	// arrange

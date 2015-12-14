@@ -207,7 +207,7 @@ TEST_FUNCTION(saslannymous_get_init_bytes_with_NULL_init_bytes_fails)
 
 /* saslanonymous_get_mechanism_name */
 
-/* Tests_SRS_SASL_ANONYMOUS_01_008: [saslanonymous_get_mechanism_name shall validate the argument concrete_sasl_mechanism and on success it shall return a pointer to the string “ANONYMOUS”.] */
+/* Tests_SRS_SASL_ANONYMOUS_01_008: [saslanonymous_get_mechanism_name shall validate the argument concrete_sasl_mechanism and on success it shall return a pointer to the string "ANONYMOUS".] */
 TEST_FUNCTION(saslanonymous_get_mechanism_name_with_non_NULL_concrete_sasl_mechanism_succeeds)
 {
 	// arrange

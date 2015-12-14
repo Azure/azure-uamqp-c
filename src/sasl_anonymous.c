@@ -80,7 +80,7 @@ const char* saslanonymous_get_mechanism_name(CONCRETE_SASL_MECHANISM_HANDLE sasl
 	}
 	else
 	{
-		/* Codes_SRS_SASL_ANONYMOUS_01_008: [saslanonymous_get_mechanism_name shall validate the argument concrete_sasl_mechanism and on success it shall return a pointer to the string “ANONYMOUS”.] */
+		/* Codes_SRS_SASL_ANONYMOUS_01_008: [saslanonymous_get_mechanism_name shall validate the argument concrete_sasl_mechanism and on success it shall return a pointer to the string "ANONYMOUS".] */
 		result = "ANONYMOUS";
 	}
 

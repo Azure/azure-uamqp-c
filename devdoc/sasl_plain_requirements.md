@@ -57,7 +57,7 @@ extern int saslplain_get_init_bytes(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl
 extern const char* saslplain_get_mechanism_name(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism);
 ```
 
-**SRS_SASL_PLAIN_01_010: [**saslplain_get_mechanism_name shall validate the argument concrete_sasl_mechanism and on success it shall return a pointer to the string “PLAIN”.**]** 
+**SRS_SASL_PLAIN_01_010: [**saslplain_get_mechanism_name shall validate the argument concrete_sasl_mechanism and on success it shall return a pointer to the string "PLAIN".**]** 
 **SRS_SASL_PLAIN_01_011: [**If the argument concrete_sasl_mechanism is NULL, saslplain_get_mechanism_name shall return NULL.**]** 
 
 ###saslplain_challenge

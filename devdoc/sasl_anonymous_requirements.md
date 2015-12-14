@@ -51,7 +51,7 @@ extern int saslanonymous_get_init_bytes(CONCRETE_SASL_MECHANISM_HANDLE concrete_
 extern const char* saslanonymous_get_mechanism_name(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism);
 ```
 
-**SRS_SASL_ANONYMOUS_01_008: [**saslanonymous_get_mechanism_name shall validate the argument concrete_sasl_mechanism and on success it shall return a pointer to the string “ANONYMOUS”.**]** 
+**SRS_SASL_ANONYMOUS_01_008: [**saslanonymous_get_mechanism_name shall validate the argument concrete_sasl_mechanism and on success it shall return a pointer to the string "ANONYMOUS".**]** 
 **SRS_SASL_ANONYMOUS_01_009: [**If the argument concrete_sasl_mechanism is NULL, saslanonymous_get_mechanism_name shall return NULL.**]** 
 
 ###saslanonymous_challenge

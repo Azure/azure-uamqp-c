@@ -36,7 +36,7 @@
 #define EH_HOST "<<<Replace with your own EH host (like myeventhub.servicebus.windows.net)>>>"
 #define EH_KEY_NAME "<<<Replace with your own key name>>>"
 #define EH_KEY "<<<Replace with your own key>>>"
-#define EH_NAME "<<<Replace with your event hub name (like my_event_hub)>>>"
+#define EH_NAME "<<<Replace with your own EH name (like ingress_eh)>>>"
 
 static const size_t msg_count = 1000;
 static unsigned int sent_messages = 0;
@@ -47,7 +47,6 @@ static void on_message_send_complete(const void* context, MESSAGE_SEND_RESULT se
 	(void)context;
 
 	sent_messages++;
-	//printf("Sent %lu.\r\n", sent_messages);
 }
 
 int main(int argc, char** argv)
@@ -72,7 +71,7 @@ int main(int argc, char** argv)
 		size_t last_memory_used = 0;
 
 		/* create SASL PLAIN handler */
-		SASL_PLAIN_CONFIG sasl_plain_config = { EH_KEY_NAME, EH_KEY };
+		SASL_PLAIN_CONFIG sasl_plain_config = { EH_KEY_NAME, EH_KEY, NULL };
 		SASL_MECHANISM_HANDLE sasl_mechanism_handle = saslmechanism_create(saslplain_get_interface(), &sasl_plain_config);
 		XIO_HANDLE tls_io;
 

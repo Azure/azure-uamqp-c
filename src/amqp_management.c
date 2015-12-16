@@ -132,6 +132,7 @@ static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE messag
 					}
 					else
 					{
+						printf("%s\n", amqpvalue_to_string(map));
 						value = amqpvalue_get_map_value(map, key);
 						if (value == NULL)
 						{
@@ -162,7 +163,8 @@ static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE messag
 										{
 											if (amqpvalue_are_equal(correlation_id_value, expected_message_id))
 											{
-												if (status_code != 200)
+												/* 202 is not mentioned in the draft in any way, this is a workaround for an EH bug for now */
+												if ((status_code != 200) && (status_code != 202))
 												{
 													operation_result = OPERATION_RESULT_OPERATION_FAILED;
 												}

@@ -30,12 +30,13 @@
 #include "windows.h"
 #endif
 
-/* This sample connects to an Event Hub, authenticates using SASL MSSBCBS (SAS token given by a put-token) and sends 1 message to the EH */
+/* This sample connects to an Event Hub, authenticates using SASL MSSBCBS (SAS token given by a put-token) and sends 1 message to the EH specifying a publisher ID */
 /* Replace the below settings with your own.*/
 
 #define EH_HOST "<<<Replace with your own EH host (like myeventhub.servicebus.windows.net)>>>"
 #define EH_NAME "<<<Replace with your own EH name (like ingress_eh)>>>"
-#define EH_SAS_TOKEN "<<<Replace with your SAS token>>>"
+#define EH_PUBLISHER "<<<Replace with your publisher ID (like publisher42)>>>"
+#define EH_SAS_TOKEN "<<<Replace with your SAS token generated for your publisher (secured path is like myeventhub.servicebus.windows.net/ingress_eh/pubslishers/publisher42 >>>"
 
 static const size_t msg_count = 1;
 static unsigned int sent_messages = 0;
@@ -112,7 +113,7 @@ int main(int argc, char** argv)
 		CBS_HANDLE cbs = cbs_create(session, NULL, NULL);
 		if (cbs_open(cbs) == 0)
 		{
-			(void)cbs_put_token(cbs, "servicebus.windows.net:sastoken", "sb://" EH_HOST "/" EH_NAME, EH_SAS_TOKEN, on_cbs_operation_complete, cbs);
+			(void)cbs_put_token(cbs, "servicebus.windows.net:sastoken", "sb://" EH_HOST "/" EH_NAME "/publishers/" EH_PUBLISHER, EH_SAS_TOKEN, on_cbs_operation_complete, cbs);
 
 			while (!auth)
 			{

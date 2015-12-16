@@ -132,7 +132,6 @@ static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE messag
 					}
 					else
 					{
-						printf("%s\n", amqpvalue_to_string(map));
 						value = amqpvalue_get_map_value(map, key);
 						if (value == NULL)
 						{

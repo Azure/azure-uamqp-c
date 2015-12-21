@@ -586,11 +586,11 @@ TEST_FUNCTION(saslplain_get_interface_returns_the_sasl_plain_mechanism_interface
 	const SASL_MECHANISM_INTERFACE_DESCRIPTION* result = saslplain_get_interface();
 
 	// assert
-	ASSERT_ARE_EQUAL(void_ptr, saslplain_create, result->concrete_sasl_mechanism_create);
-	ASSERT_ARE_EQUAL(void_ptr, saslplain_destroy, result->concrete_sasl_mechanism_destroy);
-	ASSERT_ARE_EQUAL(void_ptr, saslplain_get_init_bytes, result->concrete_sasl_mechanism_get_init_bytes);
-	ASSERT_ARE_EQUAL(void_ptr, saslplain_get_mechanism_name, result->concrete_sasl_mechanism_get_mechanism_name);
-	ASSERT_ARE_EQUAL(void_ptr, saslplain_challenge, result->concrete_sasl_mechanism_challenge);
+	ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslplain_create, (void_ptr)result->concrete_sasl_mechanism_create);
+	ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslplain_destroy, (void_ptr)result->concrete_sasl_mechanism_destroy);
+	ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslplain_get_init_bytes, (void_ptr)result->concrete_sasl_mechanism_get_init_bytes);
+	ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslplain_get_mechanism_name, (void_ptr)result->concrete_sasl_mechanism_get_mechanism_name);
+	ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslplain_challenge, (void_ptr)result->concrete_sasl_mechanism_challenge);
 }
 
 END_TEST_SUITE(sasl_plain_unittests)

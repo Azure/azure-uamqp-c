@@ -1100,12 +1100,12 @@ TEST_FUNCTION(saslclientio_get_interface_description_returns_the_saslclientio_in
 	const IO_INTERFACE_DESCRIPTION* result = saslclientio_get_interface_description();
 
 	// assert
-	ASSERT_ARE_EQUAL(void_ptr, saslclientio_create, result->concrete_io_create);
-	ASSERT_ARE_EQUAL(void_ptr, saslclientio_destroy, result->concrete_io_destroy);
-	ASSERT_ARE_EQUAL(void_ptr, saslclientio_open, result->concrete_io_open);
-	ASSERT_ARE_EQUAL(void_ptr, saslclientio_close, result->concrete_io_close);
-	ASSERT_ARE_EQUAL(void_ptr, saslclientio_send, result->concrete_io_send);
-	ASSERT_ARE_EQUAL(void_ptr, saslclientio_dowork, result->concrete_io_dowork);
+	ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslclientio_create, (void_ptr)result->concrete_io_create);
+	ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslclientio_destroy, (void_ptr)result->concrete_io_destroy);
+	ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslclientio_open, (void_ptr)result->concrete_io_open);
+	ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslclientio_close, (void_ptr)result->concrete_io_close);
+	ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslclientio_send, (void_ptr)result->concrete_io_send);
+	ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslclientio_dowork, (void_ptr)result->concrete_io_dowork);
 }
 
 /* on_bytes_received */

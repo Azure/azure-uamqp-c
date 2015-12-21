@@ -6,16 +6,16 @@
 #include <crtdbg.h>
 #endif
 #include <stddef.h>
-#include "io.h"
+#include "xio.h"
 #include "amqpalloc.h"
 
 typedef struct IO_INSTANCE_TAG
 {
 	const IO_INTERFACE_DESCRIPTION* io_interface_description;
-	IO_HANDLE concrete_io_handle;
+    CONCRETE_IO_HANDLE concrete_io_handle;
 } IO_INSTANCE;
 
-IO_HANDLE io_create(const IO_INTERFACE_DESCRIPTION* io_interface_description, const void* io_create_parameters, LOGGER_LOG logger_log)
+CONCRETE_IO_HANDLE io_create(const IO_INTERFACE_DESCRIPTION* io_interface_description, const void* io_create_parameters, LOGGER_LOG logger_log)
 {
 	IO_INSTANCE* io_instance;
 	/* Codes_SRS_IO_01_003: [If the argument io_interface_description is NULL, io_create shall return NULL.] */
@@ -51,10 +51,10 @@ IO_HANDLE io_create(const IO_INTERFACE_DESCRIPTION* io_interface_description, co
 			}
 		}
 	}
-	return (IO_HANDLE)io_instance;
+	return (CONCRETE_IO_HANDLE)io_instance;
 }
 
-void io_destroy(IO_HANDLE io)
+void io_destroy(CONCRETE_IO_HANDLE io)
 {
 	/* Codes_SRS_IO_01_007: [If the argument io is NULL, io_destroy shall do nothing.] */
 	if (io != NULL)
@@ -69,7 +69,7 @@ void io_destroy(IO_HANDLE io)
 	}
 }
 
-int io_open(IO_HANDLE io, ON_BYTES_RECEIVED on_bytes_received, ON_IO_STATE_CHANGED on_io_state_changed, void* callback_context)
+int io_open(CONCRETE_IO_HANDLE io, ON_BYTES_RECEIVED on_bytes_received, ON_IO_STATE_CHANGED on_io_state_changed, void* callback_context)
 {
 	int result;
 
@@ -98,7 +98,7 @@ int io_open(IO_HANDLE io, ON_BYTES_RECEIVED on_bytes_received, ON_IO_STATE_CHANG
 	return result;
 }
 
-int io_close(IO_HANDLE io)
+int io_close(CONCRETE_IO_HANDLE io)
 {
 	int result;
 
@@ -127,7 +127,7 @@ int io_close(IO_HANDLE io)
 	return result;
 }
 
-int io_send(IO_HANDLE io, const void* buffer, size_t size, ON_SEND_COMPLETE on_send_complete, void* callback_context)
+int io_send(CONCRETE_IO_HANDLE io, const void* buffer, size_t size, ON_SEND_COMPLETE on_send_complete, void* callback_context)
 {
 	int result;
 
@@ -151,7 +151,7 @@ int io_send(IO_HANDLE io, const void* buffer, size_t size, ON_SEND_COMPLETE on_s
 	return result;
 }
 
-void io_dowork(IO_HANDLE io)
+void io_dowork(CONCRETE_IO_HANDLE io)
 {
 	/* Codes_SRS_IO_01_018: [When the io argument is NULL, io_dowork shall do nothing.] */
 	if (io != NULL)

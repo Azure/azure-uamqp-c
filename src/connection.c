@@ -98,7 +98,7 @@ static int send_header(CONNECTION_INSTANCE* connection_instance)
 	if (xio_send(connection_instance->io, amqp_header, sizeof(amqp_header), NULL, NULL) != 0)
 	{
 		/* Codes_SRS_CONNECTION_01_106: [When sending the protocol header fails, the connection shall be immediately closed.] */
-		xio_close(connection_instance->io);
+		xio_close(connection_instance->io, NULL, NULL);
 
 		/* Codes_SRS_CONNECTION_01_057: [END In this state it is illegal for either endpoint to write anything more onto the connection. The connection can be safely closed and discarded.] */
 		connection_set_state(connection_instance, CONNECTION_STATE_END);
@@ -203,7 +203,7 @@ static void on_bytes_encoded(void* context, const unsigned char* bytes, size_t l
 	CONNECTION_INSTANCE* connection_instance = (CONNECTION_INSTANCE*)context;
 	if (xio_send(connection_instance->io, bytes, length, encode_complete ? connection_instance->on_send_complete : NULL, connection_instance->on_send_complete_callback_context) != 0)
 	{
-		xio_close(connection_instance->io);
+		xio_close(connection_instance->io, NULL, NULL);
 		connection_set_state(connection_instance, CONNECTION_STATE_END);
 	}
 }
@@ -216,7 +216,7 @@ static int send_open_frame(CONNECTION_INSTANCE* connection_instance)
 	if (frame_codec_set_max_frame_size(connection_instance->frame_codec, connection_instance->max_frame_size) != 0)
 	{
 		/* Codes_SRS_CONNECTION_01_207: [If frame_codec_set_max_frame_size fails the connection shall be closed and the state set to END.] */
-		xio_close(connection_instance->io);
+		xio_close(connection_instance->io, NULL, NULL);
 		connection_set_state(connection_instance, CONNECTION_STATE_END);
 		result = __LINE__;
 	}
@@ -227,7 +227,7 @@ static int send_open_frame(CONNECTION_INSTANCE* connection_instance)
 		if (open_performative == NULL)
 		{
 			/* Codes_SRS_CONNECTION_01_208: [If the open frame cannot be constructed, the connection shall be closed and set to the END state.] */
-			xio_close(connection_instance->io);
+			xio_close(connection_instance->io, NULL, NULL);
 			connection_set_state(connection_instance, CONNECTION_STATE_END);
 			result = __LINE__;
 		}
@@ -237,7 +237,7 @@ static int send_open_frame(CONNECTION_INSTANCE* connection_instance)
 			if (open_set_max_frame_size(open_performative, connection_instance->max_frame_size) != 0)
 			{
 				/* Codes_SRS_CONNECTION_01_208: [If the open frame cannot be constructed, the connection shall be closed and set to the END state.] */
-				xio_close(connection_instance->io);
+				xio_close(connection_instance->io, NULL, NULL);
 				connection_set_state(connection_instance, CONNECTION_STATE_END);
 				result = __LINE__;
 			}
@@ -245,7 +245,7 @@ static int send_open_frame(CONNECTION_INSTANCE* connection_instance)
 			else if (open_set_channel_max(open_performative, connection_instance->channel_max) != 0)
 			{
 				/* Codes_SRS_CONNECTION_01_208: [If the open frame cannot be constructed, the connection shall be closed and set to the END state.] */
-				xio_close(connection_instance->io);
+				xio_close(connection_instance->io, NULL, NULL);
 				connection_set_state(connection_instance, CONNECTION_STATE_END);
 				result = __LINE__;
 			}
@@ -255,7 +255,7 @@ static int send_open_frame(CONNECTION_INSTANCE* connection_instance)
 				(open_set_idle_time_out(open_performative, connection_instance->idle_timeout) != 0))
 			{
 				/* Codes_SRS_CONNECTION_01_208: [If the open frame cannot be constructed, the connection shall be closed and set to the END state.] */
-				xio_close(connection_instance->io);
+				xio_close(connection_instance->io, NULL, NULL);
 				connection_set_state(connection_instance, CONNECTION_STATE_END);
 				result = __LINE__;
 			}
@@ -265,7 +265,7 @@ static int send_open_frame(CONNECTION_INSTANCE* connection_instance)
 				(open_set_hostname(open_performative, connection_instance->host_name) != 0))
 			{
 				/* Codes_SRS_CONNECTION_01_208: [If the open frame cannot be constructed, the connection shall be closed and set to the END state.] */
-				xio_close(connection_instance->io);
+				xio_close(connection_instance->io, NULL, NULL);
 				connection_set_state(connection_instance, CONNECTION_STATE_END);
 				result = __LINE__;
 			}
@@ -275,7 +275,7 @@ static int send_open_frame(CONNECTION_INSTANCE* connection_instance)
 				if (open_performative_value == NULL)
 				{
 					/* Codes_SRS_CONNECTION_01_208: [If the open frame cannot be constructed, the connection shall be closed and set to the END state.] */
-					xio_close(connection_instance->io);
+					xio_close(connection_instance->io, NULL, NULL);
 					connection_set_state(connection_instance, CONNECTION_STATE_END);
 					result = __LINE__;
 				}
@@ -291,7 +291,7 @@ static int send_open_frame(CONNECTION_INSTANCE* connection_instance)
 					if (amqp_frame_codec_encode_frame(connection_instance->amqp_frame_codec, 0, open_performative_value, NULL, 0, on_bytes_encoded, connection_instance) != 0)
 					{
 						/* Codes_SRS_CONNECTION_01_206: [If sending the frame fails, the connection shall be closed and state set to END.] */
-						xio_close(connection_instance->io);
+						xio_close(connection_instance->io, NULL, NULL);
 						connection_set_state(connection_instance, CONNECTION_STATE_END);
 						result = __LINE__;
 					}
@@ -373,7 +373,7 @@ static void close_connection_with_error(CONNECTION_INSTANCE* connection_instance
 	if (error_handle == NULL)
 	{
 		/* Codes_SRS_CONNECTION_01_214: [If the close frame cannot be constructed or sent, the connection shall be closed and set to the END state.] */
-		(void)xio_close(connection_instance->io);
+		(void)xio_close(connection_instance->io, NULL, NULL);
 		connection_set_state(connection_instance, CONNECTION_STATE_END);
 	}
 	else
@@ -383,7 +383,7 @@ static void close_connection_with_error(CONNECTION_INSTANCE* connection_instance
 			(send_close_frame(connection_instance, error_handle) != 0))
 		{
 			/* Codes_SRS_CONNECTION_01_214: [If the close frame cannot be constructed or sent, the connection shall be closed and set to the END state.] */
-			(void)xio_close(connection_instance->io);
+			(void)xio_close(connection_instance->io, NULL, NULL);
 			connection_set_state(connection_instance, CONNECTION_STATE_END);
 		}
 		else
@@ -466,7 +466,7 @@ static int connection_byte_received(CONNECTION_INSTANCE* connection_instance, un
 		if (b != amqp_header[connection_instance->header_bytes_received])
 		{
 			/* Codes_SRS_CONNECTION_01_089: [If the incoming and outgoing protocol headers do not match, both peers MUST close their outgoing stream] */
-			xio_close(connection_instance->io);
+			xio_close(connection_instance->io, NULL, NULL);
 			connection_set_state(connection_instance, CONNECTION_STATE_END);
 			result = __LINE__;
 		}
@@ -536,24 +536,12 @@ static void connection_on_bytes_received(void* context, const unsigned char* buf
 	}
 }
 
-static void connection_on_io_state_changed(void* context, IO_STATE new_io_state, IO_STATE previous_io_state)
+static void connection_on_io_open_complete(void* context, IO_OPEN_RESULT io_open_result)
 {
 	CONNECTION_INSTANCE* connection_instance = (CONNECTION_INSTANCE*)context;
-	switch (new_io_state)
+
+	if (io_open_result == IO_OPEN_OK)
 	{
-	default:
-	case IO_STATE_NOT_OPEN:
-		break;
-
-	case IO_STATE_ERROR:
-		/* Codes_SRS_CONNECTION_01_202: [If the io notifies the connection instance of an IO_STATE_ERROR state the connection shall be closed and the state set to END.] */
-		connection_set_state(connection_instance, CONNECTION_STATE_END);
-		xio_close(connection_instance->io);
-		break;
-
-	case IO_STATE_OPENING:
-		break;
-	case IO_STATE_OPEN:
 		/* Codes_SRS_CONNECTION_01_084: [The connection_instance state machine implementing the protocol requirements shall be run as part of connection_dowork.] */
 		switch (connection_instance->connection_state)
 		{
@@ -561,12 +549,9 @@ static void connection_on_io_state_changed(void* context, IO_STATE new_io_state,
 			break;
 
 		case CONNECTION_STATE_START:
-			if (new_io_state == IO_STATE_OPEN)
-			{
-				/* Codes_SRS_CONNECTION_01_086: [Prior to sending any frames on a connection_instance, each peer MUST start by sending a protocol header that indicates the protocol version used on the connection_instance.] */
-				/* Codes_SRS_CONNECTION_01_091: [The AMQP peer which acted in the role of the TCP client (i.e. the peer that actively opened the connection_instance) MUST immediately send its outgoing protocol header on establishment of the TCP connection_instance.] */
-				(void)send_header(connection_instance);
-			}
+			/* Codes_SRS_CONNECTION_01_086: [Prior to sending any frames on a connection_instance, each peer MUST start by sending a protocol header that indicates the protocol version used on the connection_instance.] */
+			/* Codes_SRS_CONNECTION_01_091: [The AMQP peer which acted in the role of the TCP client (i.e. the peer that actively opened the connection_instance) MUST immediately send its outgoing protocol header on establishment of the TCP connection_instance.] */
+			(void)send_header(connection_instance);
 			break;
 
 		case CONNECTION_STATE_HDR_SENT:
@@ -587,6 +572,22 @@ static void connection_on_io_state_changed(void* context, IO_STATE new_io_state,
 		case CONNECTION_STATE_OPEN_RCVD:
 			break;
 		}
+	}
+	else
+	{
+		connection_set_state(connection_instance, CONNECTION_STATE_END);
+	}
+}
+
+static void connection_on_io_error(void* context)
+{
+	CONNECTION_INSTANCE* connection_instance = (CONNECTION_INSTANCE*)context;
+
+	if (connection_instance->connection_state != CONNECTION_STATE_END)
+	{
+		/* Codes_SRS_CONNECTION_01_202: [If the io notifies the connection instance of an IO_STATE_ERROR state the connection shall be closed and the state set to END.] */
+		connection_set_state(connection_instance, CONNECTION_STATE_END);
+		(void)xio_close(connection_instance->io, NULL, NULL);
 	}
 }
 
@@ -705,7 +706,7 @@ static void on_amqp_frame_received(void* context, uint16_t channel, AMQP_VALUE p
 							/* Codes_SRS_CONNECTION_01_236: [DISCARDING - * TCP Close for Write] */
 							(connection_instance->connection_state == CONNECTION_STATE_DISCARDING))
 						{
-							xio_close(connection_instance->io);
+							xio_close(connection_instance->io, NULL, NULL);
 						}
 						else
 						{
@@ -730,7 +731,7 @@ static void on_amqp_frame_received(void* context, uint16_t channel, AMQP_VALUE p
 
 									(void)send_close_frame(connection_instance, NULL);
 									/* Codes_SRS_CONNECTION_01_214: [If the close frame cannot be constructed or sent, the connection shall be closed and set to the END state.] */
-									(void)xio_close(connection_instance->io);
+									(void)xio_close(connection_instance->io, NULL, NULL);
 
 									connection_set_state(connection_instance, CONNECTION_STATE_END);
 								}
@@ -837,7 +838,7 @@ static void on_amqp_frame_received(void* context, uint16_t channel, AMQP_VALUE p
 				/* Codes_SRS_CONNECTION_01_234: [CLOSE_RCVD * - TCP Close for Read] */
 			case CONNECTION_STATE_END:
 				/* Codes_SRS_CONNECTION_01_237: [END - - TCP Close] */
-				xio_close(connection_instance->io);
+				xio_close(connection_instance->io, NULL, NULL);
 				break;
 			}
 		}
@@ -1012,7 +1013,7 @@ int connection_open(CONNECTION_HANDLE connection)
 	{
 		if (!connection->is_underlying_io_open)
 		{
-			if (xio_open(connection->io, connection_on_bytes_received, connection_on_io_state_changed, connection) != 0)
+			if (xio_open(connection->io, connection_on_io_open_complete, connection_on_bytes_received, connection_on_io_error, connection) != 0)
 			{
 				connection_set_state(connection, CONNECTION_STATE_END);
 				result = __LINE__;
@@ -1047,7 +1048,7 @@ int connection_listen(CONNECTION_HANDLE connection)
 	{
 		if (!connection->is_underlying_io_open)
 		{
-			if (xio_open(connection->io, connection_on_bytes_received, connection_on_io_state_changed, connection) != 0)
+			if (xio_open(connection->io, connection_on_io_open_complete, connection_on_bytes_received, connection_on_io_error, connection) != 0)
 			{
 				connection_set_state(connection, CONNECTION_STATE_END);
 				result = __LINE__;
@@ -1090,7 +1091,7 @@ int connection_close(CONNECTION_HANDLE connection, const char* condition_value, 
 			connection_set_state(connection, CONNECTION_STATE_END);
 		}
 
-		(void)xio_close(connection->io);
+		(void)xio_close(connection->io, NULL, NULL);
 		connection->is_underlying_io_open = 1;
 
 

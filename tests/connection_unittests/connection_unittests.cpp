@@ -48,7 +48,8 @@ static const char test_container_id[] = "1234";
 const IO_INTERFACE_DESCRIPTION test_io_interface_description = { 0 };
 
 static ON_BYTES_RECEIVED saved_on_bytes_received;
-static ON_IO_STATE_CHANGED saved_io_state_changed;
+static ON_IO_OPEN_COMPLETE saved_on_io_open_complete;
+static ON_IO_ERROR saved_on_io_error;
 static void* saved_io_callback_context;
 static uint64_t performative_ulong;
 static const void** list_items = NULL;
@@ -90,12 +91,13 @@ public:
 	MOCK_METHOD_END(XIO_HANDLE, TEST_IO_HANDLE);
 	MOCK_STATIC_METHOD_1(, void, xio_destroy, XIO_HANDLE, xio)
 	MOCK_VOID_METHOD_END();
-	MOCK_STATIC_METHOD_4(, int, xio_open, XIO_HANDLE, io, ON_BYTES_RECEIVED, on_bytes_received, ON_IO_STATE_CHANGED, on_io_state_changed, void*, callback_context)
+	MOCK_STATIC_METHOD_5(, int, xio_open, XIO_HANDLE, io, ON_IO_OPEN_COMPLETE, on_io_open_complete, ON_BYTES_RECEIVED, on_bytes_received, ON_IO_ERROR, on_io_error, void*, callback_context)
 		saved_on_bytes_received = on_bytes_received;
-		saved_io_state_changed = on_io_state_changed;
+		saved_on_io_open_complete = on_io_open_complete;
+		saved_on_io_error = on_io_error;
 		saved_io_callback_context = callback_context;
 	MOCK_METHOD_END(int, 0);
-	MOCK_STATIC_METHOD_1(, int, xio_close, XIO_HANDLE, xio)
+	MOCK_STATIC_METHOD_3(, int, xio_close, XIO_HANDLE, xio, ON_IO_CLOSE_COMPLETE, on_io_close_complete, void*, callback_context)
 	MOCK_METHOD_END(int, 0);
 	MOCK_STATIC_METHOD_5(, int, xio_send, XIO_HANDLE, xio, const void*, buffer, size_t, size, ON_SEND_COMPLETE, on_send_complete, void*, callback_context)
 	MOCK_METHOD_END(int, 0);
@@ -210,8 +212,8 @@ extern "C"
 {
 	DECLARE_GLOBAL_MOCK_METHOD_3(connection_mocks, , XIO_HANDLE, xio_create, const IO_INTERFACE_DESCRIPTION*, io_interface_description, const void*, io_create_parameters, LOGGER_LOG, logger_log);
 	DECLARE_GLOBAL_MOCK_METHOD_1(connection_mocks, , void, xio_destroy, XIO_HANDLE, xio);
-	DECLARE_GLOBAL_MOCK_METHOD_4(connection_mocks, , int, xio_open, XIO_HANDLE, xio, ON_BYTES_RECEIVED, on_bytes_received, ON_IO_STATE_CHANGED, on_io_state_changed, void*, callback_context);
-	DECLARE_GLOBAL_MOCK_METHOD_1(connection_mocks, , int, xio_close, XIO_HANDLE, xio);
+	DECLARE_GLOBAL_MOCK_METHOD_5(connection_mocks, , int, xio_open, XIO_HANDLE, xio, ON_IO_OPEN_COMPLETE, on_io_open_complete, ON_BYTES_RECEIVED, on_bytes_received, ON_IO_ERROR, on_io_error, void*, callback_context);
+	DECLARE_GLOBAL_MOCK_METHOD_3(connection_mocks, , int, xio_close, XIO_HANDLE, xio, ON_IO_CLOSE_COMPLETE, on_io_close_complete, void*, callback_context);
 	DECLARE_GLOBAL_MOCK_METHOD_5(connection_mocks, , int, xio_send, XIO_HANDLE, xio, const void*, buffer, size_t, size, ON_SEND_COMPLETE, on_send_complete, void*, callback_context);
 	DECLARE_GLOBAL_MOCK_METHOD_1(connection_mocks, , void, xio_dowork, XIO_HANDLE, xio);
 

@@ -17,8 +17,8 @@ extern "C" {
 
 	extern CONCRETE_IO_HANDLE headerdetectio_create(void* io_create_parameters, LOGGER_LOG logger_log);
 	extern void headerdetectio_destroy(CONCRETE_IO_HANDLE header_detect_io);
-	extern int headerdetectio_open(CONCRETE_IO_HANDLE header_detect_io, ON_BYTES_RECEIVED on_bytes_received, ON_IO_STATE_CHANGED on_io_state_changed, void* callback_context);
-	extern int headerdetectio_close(CONCRETE_IO_HANDLE header_detect_io);
+	extern int headerdetectio_open(CONCRETE_IO_HANDLE header_detect_io, ON_IO_OPEN_COMPLETE on_io_open_complete, ON_BYTES_RECEIVED on_bytes_received, ON_IO_ERROR on_io_error, void* callback_context);
+	extern int headerdetectio_close(CONCRETE_IO_HANDLE header_detect_io, ON_IO_CLOSE_COMPLETE on_io_close_complete, void* callback_context);
 	extern int headerdetectio_send(CONCRETE_IO_HANDLE header_detect_io, const void* buffer, size_t size, ON_SEND_COMPLETE on_send_complete, void* callback_context);
 	extern void headerdetectio_dowork(CONCRETE_IO_HANDLE header_detect_io);
 	extern const IO_INTERFACE_DESCRIPTION* headerdetectio_get_interface_description(void);

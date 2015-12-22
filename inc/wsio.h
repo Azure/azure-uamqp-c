@@ -29,8 +29,8 @@ typedef struct WSIO_CONFIG_TAG
 
 extern CONCRETE_IO_HANDLE wsio_create(void* io_create_parameters, LOGGER_LOG logger_log);
 extern void wsio_destroy(CONCRETE_IO_HANDLE ws_io);
-extern int wsio_open(CONCRETE_IO_HANDLE ws_io, ON_BYTES_RECEIVED on_bytes_received, ON_IO_STATE_CHANGED on_io_state_changed, void* callback_context);
-extern int wsio_close(CONCRETE_IO_HANDLE ws_io);
+extern int wsio_open(CONCRETE_IO_HANDLE ws_io, ON_IO_OPEN_COMPLETE on_io_open_complete, ON_BYTES_RECEIVED on_bytes_received, ON_IO_ERROR on_io_error, void* callback_context);
+extern int wsio_close(CONCRETE_IO_HANDLE ws_io, ON_IO_CLOSE_COMPLETE on_io_close_complete, void* callback_context);
 extern int wsio_send(CONCRETE_IO_HANDLE ws_io, const void* buffer, size_t size, ON_SEND_COMPLETE on_send_complete, void* callback_context);
 extern void wsio_dowork(CONCRETE_IO_HANDLE ws_io);
 extern const IO_INTERFACE_DESCRIPTION* wsio_get_interface_description(void);

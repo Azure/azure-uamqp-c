@@ -12,7 +12,7 @@
 #include "message.h"
 #include "messaging.h"
 #include "amqpalloc.h"
-#include "saslio.h"
+#include "saslclientio.h"
 #include "sasl_mssbcbs.h"
 #include "wsio.h"
 #include "consolelogger.h"
@@ -90,12 +90,12 @@ int main(int argc, char** argv)
 		ws_io = xio_create(tlsio_interface, &ws_io_config, NULL);
 
 		/* create the SASL IO using the WS IO */
-		SASLIO_CONFIG sasl_io_config = { ws_io, sasl_mechanism_handle };
-		sasl_io = xio_create(saslio_get_interface_description(), &sasl_io_config, NULL);
+		SASLCLIENTIO_CONFIG sasl_io_config = { ws_io, sasl_mechanism_handle };
+		sasl_io = xio_create(saslclientio_get_interface_description(), &sasl_io_config, NULL);
 
 		/* create the connection, session and link */
-		connection = connection_create(sasl_io, IOT_HUB_HOST, "some");
-		session = session_create(connection);
+		connection = connection_create(sasl_io, IOT_HUB_HOST, "some", NULL, NULL);
+		session = session_create(connection, NULL, NULL);
 		session_set_incoming_window(session, 2147483647);
 		session_set_outgoing_window(session, 65536);
 

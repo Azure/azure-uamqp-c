@@ -4,25 +4,44 @@
 #include "header_detect_io.h"
 #include "amqpalloc.h"
 
+typedef enum IO_STATE_TAG
+{
+	IO_STATE_NOT_OPEN,
+	IO_STATE_OPENING_UNDERLYING_IO,
+	IO_STATE_WAIT_FOR_HEADER,
+	IO_STATE_OPEN,
+	IO_STATE_CLOSING,
+	IO_STATE_ERROR
+} IO_STATE;
+
 typedef struct HEADER_DETECT_IO_INSTANCE_TAG
 {
 	XIO_HANDLE underlying_io;
 	size_t header_pos;
 	IO_STATE io_state;
-	ON_IO_STATE_CHANGED on_io_state_changed;
+	ON_IO_OPEN_COMPLETE on_io_open_complete;
+	ON_IO_CLOSE_COMPLETE on_io_close_complete;
+	ON_IO_ERROR on_io_error;
 	ON_BYTES_RECEIVED on_bytes_received;
-	void* callback_context;
+	void* open_callback_context;
+	void* close_callback_context;
 } HEADER_DETECT_IO_INSTANCE;
 
 static const unsigned char amqp_header[] = { 'A', 'M', 'Q', 'P', 0, 1, 0, 0 };
 
-static void set_io_state(HEADER_DETECT_IO_INSTANCE* header_detect_io_instance, IO_STATE io_state)
+static void indicate_error(HEADER_DETECT_IO_INSTANCE* header_detect_io_instance)
 {
-	IO_STATE previous_state = header_detect_io_instance->io_state;
-	header_detect_io_instance->io_state = io_state;
-	if (header_detect_io_instance->on_io_state_changed != NULL)
+	if (header_detect_io_instance->on_io_error != NULL)
 	{
-		header_detect_io_instance->on_io_state_changed(header_detect_io_instance->callback_context, io_state, previous_state);
+		header_detect_io_instance->on_io_error(header_detect_io_instance->open_callback_context);
+	}
+}
+
+static void indicate_open_complete(HEADER_DETECT_IO_INSTANCE* header_detect_io_instance, IO_OPEN_RESULT open_result)
+{
+	if (header_detect_io_instance->on_io_open_complete != NULL)
+	{
+		header_detect_io_instance->on_io_open_complete(header_detect_io_instance->open_callback_context, open_result);
 	}
 }
 
@@ -35,13 +54,13 @@ static void on_underlying_io_bytes_received(void* context, const unsigned char* 
 		switch (header_detect_io_instance->io_state)
 		{
 		default:
-			set_io_state(header_detect_io_instance, IO_STATE_ERROR);
 			break;
 
-		case IO_STATE_OPENING:
+		case IO_STATE_WAIT_FOR_HEADER:
 			if (amqp_header[header_detect_io_instance->header_pos] != buffer[0])
 			{
-				set_io_state(header_detect_io_instance, IO_STATE_ERROR);
+				header_detect_io_instance->io_state = IO_STATE_NOT_OPEN;
+				indicate_open_complete(header_detect_io_instance, IO_OPEN_ERROR);
 				size = 0;
 			}
 			else
@@ -53,35 +72,88 @@ static void on_underlying_io_bytes_received(void* context, const unsigned char* 
 				{
 					if (xio_send(header_detect_io_instance->underlying_io, amqp_header, sizeof(amqp_header), NULL, NULL) != 0)
 					{
-						set_io_state(header_detect_io_instance, IO_STATE_ERROR);
+						header_detect_io_instance->io_state = IO_STATE_NOT_OPEN;
+						indicate_open_complete(header_detect_io_instance, IO_OPEN_ERROR);
 					}
 					else
 					{
-						set_io_state(header_detect_io_instance, IO_STATE_OPEN);
+						header_detect_io_instance->io_state = IO_STATE_OPEN;
+						indicate_open_complete(header_detect_io_instance, IO_OPEN_OK);
 					}
 				}
 			}
 			break;
 
 		case IO_STATE_OPEN:
-			header_detect_io_instance->on_bytes_received(header_detect_io_instance->callback_context, buffer, size);
+			header_detect_io_instance->on_bytes_received(header_detect_io_instance->open_callback_context, buffer, size);
 			size = 0;
 			break;
 		}
 	}
 }
 
-static void on_underlying_io_state_changed(void* context, IO_STATE new_io_state, IO_STATE previous_io_state)
+static void on_underlying_io_close_complete(void* context)
 {
 	HEADER_DETECT_IO_INSTANCE* header_detect_io_instance = (HEADER_DETECT_IO_INSTANCE*)context;
 
-	switch (new_io_state)
+	switch (header_detect_io_instance->io_state)
 	{
 	default:
 		break;
 
-	case IO_STATE_ERROR:
-		set_io_state(header_detect_io_instance, IO_STATE_ERROR);
+	case IO_STATE_WAIT_FOR_HEADER:
+	case IO_STATE_OPENING_UNDERLYING_IO:
+		header_detect_io_instance->io_state = IO_STATE_NOT_OPEN;
+		indicate_open_complete(header_detect_io_instance, IO_OPEN_ERROR);
+		break;
+	}
+}
+
+static void on_underlying_io_open_complete(void* context, IO_OPEN_RESULT open_result)
+{
+	HEADER_DETECT_IO_INSTANCE* header_detect_io_instance = (HEADER_DETECT_IO_INSTANCE*)context;
+
+	switch (header_detect_io_instance->io_state)
+	{
+	default:
+		break;
+
+	case IO_STATE_OPENING_UNDERLYING_IO:
+		if (open_result == IO_OPEN_OK)
+		{
+			header_detect_io_instance->io_state = IO_STATE_WAIT_FOR_HEADER;
+		}
+		else
+		{
+			if (xio_close(header_detect_io_instance->underlying_io, on_underlying_io_close_complete, header_detect_io_instance) != 0)
+			{
+				header_detect_io_instance->io_state = IO_STATE_NOT_OPEN;
+				indicate_open_complete(header_detect_io_instance, IO_OPEN_ERROR);
+			}
+		}
+
+		break;
+	}
+}
+
+static void on_underlying_io_error(void* context)
+{
+	HEADER_DETECT_IO_INSTANCE* header_detect_io_instance = (HEADER_DETECT_IO_INSTANCE*)context;
+
+	switch (header_detect_io_instance->io_state)
+	{
+	default:
+		break;
+
+	case IO_STATE_WAIT_FOR_HEADER:
+	case IO_STATE_OPENING_UNDERLYING_IO:
+		header_detect_io_instance->io_state = IO_STATE_NOT_OPEN;
+		indicate_open_complete(header_detect_io_instance, IO_OPEN_ERROR);
+		break;
+
+	case IO_STATE_OPEN:
+		header_detect_io_instance->io_state = IO_STATE_ERROR;
+		indicate_error(header_detect_io_instance);
 		break;
 	}
 }
@@ -101,11 +173,12 @@ CONCRETE_IO_HANDLE headerdetectio_create(void* io_create_parameters, LOGGER_LOG 
 		if (result != NULL)
 		{
 			result->underlying_io = header_detect_io_config->underlying_io;
-			result->on_io_state_changed = NULL;
+			result->on_io_open_complete = NULL;
+			result->on_io_error = NULL;
 			result->on_bytes_received = NULL;
-			result->callback_context = NULL;
+			result->open_callback_context = NULL;
 
-			set_io_state(result, IO_STATE_NOT_OPEN);
+			result->io_state = IO_STATE_NOT_OPEN;
 		}
 	}
 
@@ -117,13 +190,13 @@ void headerdetectio_destroy(CONCRETE_IO_HANDLE header_detect_io)
 	if (header_detect_io != NULL)
 	{
 		HEADER_DETECT_IO_INSTANCE* header_detect_io_instance = (HEADER_DETECT_IO_INSTANCE*)header_detect_io;
-		(void)headerdetectio_close(header_detect_io);
+		(void)headerdetectio_close(header_detect_io, NULL, NULL);
 		xio_destroy(header_detect_io_instance->underlying_io);
 		amqpalloc_free(header_detect_io);
 	}
 }
 
-int headerdetectio_open(CONCRETE_IO_HANDLE header_detect_io, ON_BYTES_RECEIVED on_bytes_received, ON_IO_STATE_CHANGED on_io_state_changed, void* callback_context)
+int headerdetectio_open(CONCRETE_IO_HANDLE header_detect_io, ON_IO_OPEN_COMPLETE on_io_open_complete, ON_BYTES_RECEIVED on_bytes_received, ON_IO_ERROR on_io_error, void* callback_context)
 {
 	int result;
 
@@ -138,8 +211,9 @@ int headerdetectio_open(CONCRETE_IO_HANDLE header_detect_io, ON_BYTES_RECEIVED o
 		if (header_detect_io_instance->io_state == IO_STATE_OPEN)
 		{
 			header_detect_io_instance->on_bytes_received = on_bytes_received;
-			header_detect_io_instance->on_io_state_changed = on_io_state_changed;
-			header_detect_io_instance->callback_context = callback_context;
+			header_detect_io_instance->on_io_open_complete = on_io_open_complete;
+			header_detect_io_instance->on_io_error = on_io_error;
+			header_detect_io_instance->open_callback_context = callback_context;
 
 			result = 0;
 		}
@@ -150,18 +224,14 @@ int headerdetectio_open(CONCRETE_IO_HANDLE header_detect_io, ON_BYTES_RECEIVED o
 		else
 		{
 			header_detect_io_instance->header_pos = 0;
-			set_io_state(header_detect_io_instance, IO_STATE_OPENING);
+			header_detect_io_instance->io_state = IO_STATE_OPENING_UNDERLYING_IO;
 
-			if (xio_open(header_detect_io_instance->underlying_io, on_underlying_io_bytes_received, on_underlying_io_state_changed, header_detect_io_instance) != 0)
+			if (xio_open(header_detect_io_instance->underlying_io, on_underlying_io_open_complete, on_underlying_io_bytes_received, on_underlying_io_error, header_detect_io_instance) != 0)
 			{
 				result = __LINE__;
 			}
 			else
 			{
-				header_detect_io_instance->on_bytes_received = on_bytes_received;
-				header_detect_io_instance->on_io_state_changed = on_io_state_changed;
-				header_detect_io_instance->callback_context = callback_context;
-
 				result = 0;
 			}
 		}
@@ -170,7 +240,7 @@ int headerdetectio_open(CONCRETE_IO_HANDLE header_detect_io, ON_BYTES_RECEIVED o
 	return result;
 }
 
-int headerdetectio_close(CONCRETE_IO_HANDLE header_detect_io)
+int headerdetectio_close(CONCRETE_IO_HANDLE header_detect_io, ON_IO_CLOSE_COMPLETE on_io_close_complete, void* callback_context)
 {
 	int result;
 
@@ -182,13 +252,16 @@ int headerdetectio_close(CONCRETE_IO_HANDLE header_detect_io)
 	{
 		HEADER_DETECT_IO_INSTANCE* header_detect_io_instance = (HEADER_DETECT_IO_INSTANCE*)header_detect_io;
 
-		if (header_detect_io_instance->io_state == IO_STATE_NOT_OPEN)
+		if ((header_detect_io_instance->io_state == IO_STATE_NOT_OPEN) ||
+			(header_detect_io_instance->io_state == IO_STATE_CLOSING))
 		{
 			result = __LINE__;
 		}
 		else
 		{
-			if (xio_close(header_detect_io_instance->underlying_io) != 0)
+			header_detect_io_instance->io_state = IO_STATE_CLOSING;
+
+			if (xio_close(header_detect_io_instance->underlying_io, on_underlying_io_close_complete, header_detect_io_instance) != 0)
 			{
 				result = __LINE__;
 			}

@@ -25,6 +25,9 @@ endif()
 #Use solution folders. 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+add_definitions(-DREFCOUNT_ATOMIC_DONTCARE)
+add_definitions(-D__STDC_NO_ATOMICS__=1)
+
 add_subdirectory(azure-c-shared-utility/c)
 
 enable_testing()

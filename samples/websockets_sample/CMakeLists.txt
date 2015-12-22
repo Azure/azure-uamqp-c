@@ -20,7 +20,7 @@ if(WIN32)
 		uamqp
 		ws2_32
 		$ENV{OpenSSLDir}/lib/ssleay32.lib $ENV{OpenSSLDir}/lib/libeay32.lib		
-		aziotsharedutil.lib
+		aziotsharedutil
 		$ENV{WSDir}/build/lib/Debug/websockets_static.lib
 		$ENV{WSDir}/build/lib/Debug/zlib_internal.lib)
 	file(COPY $ENV{OpenSSLDir}/bin/libeay32.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Debug)

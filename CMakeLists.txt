@@ -10,16 +10,16 @@ option(skip_unittests "set skip_unittests to ON to skip unittests (default is OF
 option(leak_detection "set leak_detection to ON (default is OFF)" OFF)
 option(compileOption_C "passes a string to the command line of the C compiler" OFF)
 option(compileOption_CXX "passes a string to the command line of the C++ compiler" OFF)
-option(wsio "set wsio to ON to use libwebsockets for WebSocket support (default is OFF)[if possible, they are always build]" OFF)
+option(use_wsio "set use_wsio to ON to use libwebsockets for WebSocket support (default is OFF)" OFF)
 
 if(WIN32)
-	option(use_schannel "set use_schannel to ON if schannel is to be used, set to OFF to not use schannel" ON)
-	option(use_openssl "set use_openssl to ON if openssl is to be used, set to OFF to not use openssl" OFF)
-	option(use_wolfssl "set use_wolfssl to ON if wolfssl is to be used, set to OFF to not use wolfssl" OFF)
+    option(use_schannel "set use_schannel to ON if schannel is to be used, set to OFF to not use schannel" ON)
+    option(use_openssl "set use_openssl to ON if openssl is to be used, set to OFF to not use openssl" OFF)
+    option(use_wolfssl "set use_wolfssl to ON if wolfssl is to be used, set to OFF to not use wolfssl" OFF)
 else()
-	option(use_schannel "set use_schannel to ON if schannel is to be used, set to OFF to not use schannel" OFF)
-	option(use_openssl "set use_openssl to ON if openssl is to be used, set to OFF to not use openssl" ON)
-	option(use_wolfssl "set use_wolfssl to ON if wolfssl is to be used, set to OFF to not use wolfssl" OFF)
+    option(use_schannel "set use_schannel to ON if schannel is to be used, set to OFF to not use schannel" OFF)
+    option(use_openssl "set use_openssl to ON if openssl is to be used, set to OFF to not use openssl" ON)
+    option(use_wolfssl "set use_wolfssl to ON if wolfssl is to be used, set to OFF to not use wolfssl" OFF)
 endif()
 
 #Use solution folders. 
@@ -187,20 +187,20 @@ include_directories(inc ${SHARED_UTIL_INC_FOLDER})
 add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 
 if(${leak_detection})
-add_definitions(-D_CRTDBG_MAP_ALLOC)
+    add_definitions(-D_CRTDBG_MAP_ALLOC)
 endif()
 
 if(${memory_trace})
 else()
-add_definitions(-DDISABLE_MEMORY_TRACE)
+    add_definitions(-DDISABLE_MEMORY_TRACE)
 endif()
 
 if(WIN32)
-include_directories($ENV{OpenSSLDir}/include)
+    include_directories($ENV{OpenSSLDir}/include)
 endif()
 
-if(wsio)
-include_directories($ENV{WSDir}/lib $ENV{WSDir}/cmake)
+if(${use_wsio})
+    include_directories($ENV{WSDir}/lib $ENV{WSDir}/build)
 endif()
 
 set(uamqp_h_files
@@ -258,29 +258,24 @@ set(uamqp_c_files
     ./src/session.c
 )
 
-if(wsio)
-set(wsio_h_files
-    ./inc/wsio.h
-)
-
-set(wsio_c_files
-    ./src/wsio.c
-)
+if(${use_wsio})
+    set(wsio_h_files
+        ./inc/wsio.h
+    )
+    set(wsio_c_files
+        ./src/wsio.c
+    )
 else()
-set(wsio_h_files
-)
-
-set(wsio_c_files
-)
+    set(wsio_h_files)
+    set(wsio_c_files)
 endif()
 
 if(WIN32)
-set(socketlistener_c_files
-    ./src/socket_listener_win32.c
-)
+    set(socketlistener_c_files
+        ./src/socket_listener_win32.c
+    )
 else()
-set(socketlistener_c_files
-)
+    set(socketlistener_c_files)
 endif()
 
 add_library(uamqp

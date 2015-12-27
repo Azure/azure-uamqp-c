@@ -12,6 +12,7 @@
 #include "logger.h"
 #include "list.h"
 #include "libwebsockets.h"
+#include "openssl/ssl.h"
 
 typedef enum IO_STATE_TAG
 {
@@ -276,6 +277,7 @@ CONCRETE_IO_HANDLE wsio_create(void* io_create_parameters, LOGGER_LOG logger_log
 	}
 	else
 	{
+        /* Codes_SRS_WSIO_01_001: [wsio_create shall create an instance of a wsio and return a non-NULL handle to it.] */
 		result = amqpalloc_malloc(sizeof(WSIO_INSTANCE));
 		if (result != NULL)
 		{
@@ -287,7 +289,8 @@ CONCRETE_IO_HANDLE wsio_create(void* io_create_parameters, LOGGER_LOG logger_log
 			result->wsi = NULL;
 			result->ws_context = NULL;
 
-			result->pending_io_list = list_create();
+            /* Codes_SRS_WSIO_01_098: [wsio_create shall create a pending IO list that is to be used when sending buffers over the libwebsockets IO by calling list_create.] */
+            result->pending_io_list = list_create();
 			if (result->pending_io_list == NULL)
 			{
 				amqpalloc_free(result);

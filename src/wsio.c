@@ -410,11 +410,17 @@ CONCRETE_IO_HANDLE wsio_create(void* io_create_parameters, LOGGER_LOG logger_log
 
 void wsio_destroy(CONCRETE_IO_HANDLE ws_io)
 {
-	if (ws_io != NULL)
+    /* Codes_SRS_WSIO_01_008: [If ws_io is NULL, wsio_destroy shall do nothing.] */
+    if (ws_io != NULL)
 	{
 		WSIO_INSTANCE* wsio_instance = (WSIO_INSTANCE*)ws_io;
 
-		/* clear all pending IOs */
+        /* Codes_SRS_WSIO_01_007: [wsio_destroy shall free all resources associated with the wsio instance.] */
+
+        /* Codes_SRS_WSIO_01_009: [wsio_destroy shall execute a close action if the IO has already been open or an open action is already pending.] */
+        (void)wsio_close(wsio_instance, NULL, NULL);
+
+        /* Codes_SRS_WSIO_01_101: [wsio_destroy shall obtain all the IO items by repetitively querying for the head of the pending IO list and freeing that head item.] */
 		LIST_ITEM_HANDLE first_pending_io;
 		while ((first_pending_io = list_get_head_item(wsio_instance->pending_io_list)) != NULL)
 		{
@@ -425,11 +431,13 @@ void wsio_destroy(CONCRETE_IO_HANDLE ws_io)
 				amqpalloc_free(pending_socket_io);
 			}
 
-			list_remove(wsio_instance->pending_io_list, first_pending_io);
+            /* Codes_SRS_WSIO_01_102: [Each freed item shall be removed from the list by using list_remove.] */
+            (void)list_remove(wsio_instance->pending_io_list, first_pending_io);
 		}
 
 		amqpalloc_free(wsio_instance->protocols);
 		amqpalloc_free(wsio_instance->host);
+        amqpalloc_free(wsio_instance->protocol_name);
 		amqpalloc_free(wsio_instance->relative_path);
 		amqpalloc_free(wsio_instance->trusted_ca);
 
@@ -506,12 +514,20 @@ int wsio_close(CONCRETE_IO_HANDLE ws_io, ON_IO_CLOSE_COMPLETE on_io_close_comple
 	{
 		WSIO_INSTANCE* wsio_instance = (WSIO_INSTANCE*)ws_io;
 
-		if (wsio_instance->io_state != IO_STATE_NOT_OPEN)
-		{
-			libwebsocket_context_destroy(wsio_instance->ws_context);
+        if (wsio_instance->io_state == IO_STATE_NOT_OPEN)
+        {
+            result = __LINE__;
+        }
+        else
+        {
+            if (wsio_instance->io_state == IO_STATE_OPENING)
+            {
+                indicate_open_complete(wsio_instance, IO_OPEN_ERROR);
+            }
 
-			wsio_instance->io_state = IO_STATE_NOT_OPEN;
-		}
+            libwebsocket_context_destroy(wsio_instance->ws_context);
+            wsio_instance->io_state = IO_STATE_NOT_OPEN;
+        }
 
 		result = 0;
 	}

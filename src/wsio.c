@@ -46,6 +46,7 @@ typedef struct WSIO_INSTANCE_TAG
 	int port;
 	char* host;
 	char* relative_path;
+    char* protocol_name;
 	char* trusted_ca;
 	struct libwebsocket_protocols* protocols;
 	bool use_ssl;
@@ -265,11 +266,13 @@ static int ws_sb_cbs_callback(struct libwebsocket_context *this, struct libwebso
 
 CONCRETE_IO_HANDLE wsio_create(void* io_create_parameters, LOGGER_LOG logger_log)
 {
-	WSIO_CONFIG* ws_io_config = io_create_parameters;
+    /* Codes_SRS_WSIO_01_003: [io_create_parameters shall be used as a WSIO_CONFIG*.] */
+    WSIO_CONFIG* ws_io_config = io_create_parameters;
 	WSIO_INSTANCE* result;
 
 	if ((ws_io_config == NULL) ||
-		(ws_io_config->host == NULL) ||
+        /* Codes_SRS_WSIO_01_004: [If any of the WSIO_CONFIG fields host, protocol_name or relative_path is NULL then wsio_create shall return NULL.] */
+        (ws_io_config->host == NULL) ||
 		(ws_io_config->protocol_name == NULL) ||
 		(ws_io_config->relative_path == NULL))
 	{
@@ -293,15 +296,18 @@ CONCRETE_IO_HANDLE wsio_create(void* io_create_parameters, LOGGER_LOG logger_log
             result->pending_io_list = list_create();
 			if (result->pending_io_list == NULL)
 			{
+                /* Codes_SRS_WSIO_01_099: [If list_create fails then wsio_create shall fail and return NULL.] */
 				amqpalloc_free(result);
 				result = NULL;
 			}
 			else
 			{
-				result->host = (char*)amqpalloc_malloc(strlen(ws_io_config->host) + 1);
+                /* Codes_SRS_WSIO_01_006: [The members host, protocol_name, relative_path and trusted_ca shall be copied for later use (they are needed when the IO is opened).] */
+                result->host = (char*)amqpalloc_malloc(strlen(ws_io_config->host) + 1);
 				if (result->host == NULL)
 				{
-					list_destroy(result->pending_io_list);
+                    /* Codes_SRS_WSIO_01_005: [If allocating memory for the new wsio instance fails then wsio_create shall return NULL.] */
+                    list_destroy(result->pending_io_list);
 					amqpalloc_free(result);
 					result = NULL;
 				}
@@ -310,68 +316,89 @@ CONCRETE_IO_HANDLE wsio_create(void* io_create_parameters, LOGGER_LOG logger_log
 					result->relative_path = (char*)amqpalloc_malloc(strlen(ws_io_config->relative_path) + 1);
 					if (result->relative_path == NULL)
 					{
-						amqpalloc_free(result->host);
+                        /* Codes_SRS_WSIO_01_005: [If allocating memory for the new wsio instance fails then wsio_create shall return NULL.] */
+                        amqpalloc_free(result->host);
 						list_destroy(result->pending_io_list);
 						amqpalloc_free(result);
 						result = NULL;
 					}
 					else
 					{
-						result->protocols = (struct libwebsocket_protocols*)amqpalloc_malloc(sizeof(struct libwebsocket_protocols) * 2);
-						if (result->protocols == NULL)
-						{
-							amqpalloc_free(result->relative_path);
-							amqpalloc_free(result->host);
-							list_destroy(result->pending_io_list);
-							amqpalloc_free(result);
-							result = NULL;
-						}
-						else
-						{
-							result->trusted_ca = NULL;
+                        result->protocol_name = (char*)amqpalloc_malloc(strlen(ws_io_config->protocol_name) + 1);
+                        if (result->protocol_name == NULL)
+                        {
+                            /* Codes_SRS_WSIO_01_005: [If allocating memory for the new wsio instance fails then wsio_create shall return NULL.] */
+                            amqpalloc_free(result->relative_path);
+                            amqpalloc_free(result->host);
+                            list_destroy(result->pending_io_list);
+                            amqpalloc_free(result);
+                            result = NULL;
+                        }
+                        else
+                        {
+                            (void)strcpy(result->protocol_name, ws_io_config->protocol_name);
 
-							result->protocols[0].callback = ws_sb_cbs_callback;
-							result->protocols[0].id = 0;
-							result->protocols[0].name = ws_io_config->protocol_name;
-							result->protocols[0].owning_server = NULL;
-							result->protocols[0].per_session_data_size = 0;
-							result->protocols[0].protocol_index = 0;
-							result->protocols[0].rx_buffer_size = 1;
-							result->protocols[0].user = NULL;
+                            result->protocols = (struct libwebsocket_protocols*)amqpalloc_malloc(sizeof(struct libwebsocket_protocols) * 2);
+                            if (result->protocols == NULL)
+                            {
+                                /* Codes_SRS_WSIO_01_005: [If allocating memory for the new wsio instance fails then wsio_create shall return NULL.] */
+                                amqpalloc_free(result->relative_path);
+                                amqpalloc_free(result->protocol_name);
+                                amqpalloc_free(result->host);
+                                list_destroy(result->pending_io_list);
+                                amqpalloc_free(result);
+                                result = NULL;
+                            }
+                            else
+                            {
+                                result->trusted_ca = NULL;
 
-							result->protocols[1].callback = NULL;
-							result->protocols[1].id = 0;
-							result->protocols[1].name = NULL;
-							result->protocols[1].owning_server = NULL;
-							result->protocols[1].per_session_data_size = 0;
-							result->protocols[1].protocol_index = 0;
-							result->protocols[1].rx_buffer_size = 0;
-							result->protocols[1].user = NULL;
+                                result->protocols[0].callback = ws_sb_cbs_callback;
+                                result->protocols[0].id = 0;
+                                result->protocols[0].name = result->protocol_name;
+                                result->protocols[0].owning_server = NULL;
+                                result->protocols[0].per_session_data_size = 0;
+                                result->protocols[0].protocol_index = 0;
+                                result->protocols[0].rx_buffer_size = 1;
+                                result->protocols[0].user = NULL;
 
-							(void)strcpy(result->host, ws_io_config->host);
-							(void)strcpy(result->relative_path, ws_io_config->relative_path);
-							result->port = ws_io_config->port;
-							result->use_ssl = ws_io_config->use_ssl;
-							result->io_state = IO_STATE_NOT_OPEN;
+                                result->protocols[1].callback = NULL;
+                                result->protocols[1].id = 0;
+                                result->protocols[1].name = NULL;
+                                result->protocols[1].owning_server = NULL;
+                                result->protocols[1].per_session_data_size = 0;
+                                result->protocols[1].protocol_index = 0;
+                                result->protocols[1].rx_buffer_size = 0;
+                                result->protocols[1].user = NULL;
 
-							if (ws_io_config->trusted_ca != NULL)
-							{
-								result->trusted_ca = (char*)amqpalloc_malloc(strlen(ws_io_config->trusted_ca) + 1);
-								if (result->trusted_ca == NULL)
-								{
-									amqpalloc_free(result->protocols);
-									amqpalloc_free(result->relative_path);
-									amqpalloc_free(result->host);
-									list_destroy(result->pending_io_list);
-									amqpalloc_free(result);
-									result = NULL;
-								}
-								else
-								{
-									(void)strcpy(result->trusted_ca, ws_io_config->trusted_ca);
-								}
-							}
-						}
+                                (void)strcpy(result->host, ws_io_config->host);
+                                (void)strcpy(result->relative_path, ws_io_config->relative_path);
+                                result->port = ws_io_config->port;
+                                result->use_ssl = ws_io_config->use_ssl;
+                                result->io_state = IO_STATE_NOT_OPEN;
+
+                                /* Codes_SRS_WSIO_01_100: [The trusted_ca member shall be optional (it can be NULL).] */
+                                if (ws_io_config->trusted_ca != NULL)
+                                {
+                                    result->trusted_ca = (char*)amqpalloc_malloc(strlen(ws_io_config->trusted_ca) + 1);
+                                    if (result->trusted_ca == NULL)
+                                    {
+                                        /* Codes_SRS_WSIO_01_005: [If allocating memory for the new wsio instance fails then wsio_create shall return NULL.] */
+                                        amqpalloc_free(result->protocols);
+                                        amqpalloc_free(result->protocol_name);
+                                        amqpalloc_free(result->relative_path);
+                                        amqpalloc_free(result->host);
+                                        list_destroy(result->pending_io_list);
+                                        amqpalloc_free(result);
+                                        result = NULL;
+                                    }
+                                    else
+                                    {
+                                        (void)strcpy(result->trusted_ca, ws_io_config->trusted_ca);
+                                    }
+                                }
+                            }
+                        }
 					}
 				}
 			}

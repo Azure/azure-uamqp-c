@@ -13,3 +13,7 @@ add_subdirectory(sasl_mechanism_unittests)
 add_subdirectory(sasl_plain_unittests)
 add_subdirectory(session_unittests)
 add_subdirectory(saslclientio_unittests)
+
+if(use_wsio)
+    add_subdirectory(wsio_unittests)
+endif()

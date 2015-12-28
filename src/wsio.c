@@ -12,6 +12,7 @@
 #include "logger.h"
 #include "list.h"
 #include "libwebsockets.h"
+#include "openssl/ssl.h"
 
 typedef enum IO_STATE_TAG
 {
@@ -45,6 +46,7 @@ typedef struct WSIO_INSTANCE_TAG
 	int port;
 	char* host;
 	char* relative_path;
+    char* protocol_name;
 	char* trusted_ca;
 	struct libwebsocket_protocols* protocols;
 	bool use_ssl;
@@ -264,11 +266,13 @@ static int ws_sb_cbs_callback(struct libwebsocket_context *this, struct libwebso
 
 CONCRETE_IO_HANDLE wsio_create(void* io_create_parameters, LOGGER_LOG logger_log)
 {
-	WSIO_CONFIG* ws_io_config = io_create_parameters;
+    /* Codes_SRS_WSIO_01_003: [io_create_parameters shall be used as a WSIO_CONFIG*.] */
+    WSIO_CONFIG* ws_io_config = io_create_parameters;
 	WSIO_INSTANCE* result;
 
 	if ((ws_io_config == NULL) ||
-		(ws_io_config->host == NULL) ||
+        /* Codes_SRS_WSIO_01_004: [If any of the WSIO_CONFIG fields host, protocol_name or relative_path is NULL then wsio_create shall return NULL.] */
+        (ws_io_config->host == NULL) ||
 		(ws_io_config->protocol_name == NULL) ||
 		(ws_io_config->relative_path == NULL))
 	{
@@ -276,6 +280,7 @@ CONCRETE_IO_HANDLE wsio_create(void* io_create_parameters, LOGGER_LOG logger_log
 	}
 	else
 	{
+        /* Codes_SRS_WSIO_01_001: [wsio_create shall create an instance of a wsio and return a non-NULL handle to it.] */
 		result = amqpalloc_malloc(sizeof(WSIO_INSTANCE));
 		if (result != NULL)
 		{
@@ -287,18 +292,22 @@ CONCRETE_IO_HANDLE wsio_create(void* io_create_parameters, LOGGER_LOG logger_log
 			result->wsi = NULL;
 			result->ws_context = NULL;
 
-			result->pending_io_list = list_create();
+            /* Codes_SRS_WSIO_01_098: [wsio_create shall create a pending IO list that is to be used when sending buffers over the libwebsockets IO by calling list_create.] */
+            result->pending_io_list = list_create();
 			if (result->pending_io_list == NULL)
 			{
+                /* Codes_SRS_WSIO_01_099: [If list_create fails then wsio_create shall fail and return NULL.] */
 				amqpalloc_free(result);
 				result = NULL;
 			}
 			else
 			{
-				result->host = (char*)amqpalloc_malloc(strlen(ws_io_config->host) + 1);
+                /* Codes_SRS_WSIO_01_006: [The members host, protocol_name, relative_path and trusted_ca shall be copied for later use (they are needed when the IO is opened).] */
+                result->host = (char*)amqpalloc_malloc(strlen(ws_io_config->host) + 1);
 				if (result->host == NULL)
 				{
-					list_destroy(result->pending_io_list);
+                    /* Codes_SRS_WSIO_01_005: [If allocating memory for the new wsio instance fails then wsio_create shall return NULL.] */
+                    list_destroy(result->pending_io_list);
 					amqpalloc_free(result);
 					result = NULL;
 				}
@@ -307,68 +316,89 @@ CONCRETE_IO_HANDLE wsio_create(void* io_create_parameters, LOGGER_LOG logger_log
 					result->relative_path = (char*)amqpalloc_malloc(strlen(ws_io_config->relative_path) + 1);
 					if (result->relative_path == NULL)
 					{
-						amqpalloc_free(result->host);
+                        /* Codes_SRS_WSIO_01_005: [If allocating memory for the new wsio instance fails then wsio_create shall return NULL.] */
+                        amqpalloc_free(result->host);
 						list_destroy(result->pending_io_list);
 						amqpalloc_free(result);
 						result = NULL;
 					}
 					else
 					{
-						result->protocols = (struct libwebsocket_protocols*)amqpalloc_malloc(sizeof(struct libwebsocket_protocols) * 2);
-						if (result->protocols == NULL)
-						{
-							amqpalloc_free(result->relative_path);
-							amqpalloc_free(result->host);
-							list_destroy(result->pending_io_list);
-							amqpalloc_free(result);
-							result = NULL;
-						}
-						else
-						{
-							result->trusted_ca = NULL;
+                        result->protocol_name = (char*)amqpalloc_malloc(strlen(ws_io_config->protocol_name) + 1);
+                        if (result->protocol_name == NULL)
+                        {
+                            /* Codes_SRS_WSIO_01_005: [If allocating memory for the new wsio instance fails then wsio_create shall return NULL.] */
+                            amqpalloc_free(result->relative_path);
+                            amqpalloc_free(result->host);
+                            list_destroy(result->pending_io_list);
+                            amqpalloc_free(result);
+                            result = NULL;
+                        }
+                        else
+                        {
+                            (void)strcpy(result->protocol_name, ws_io_config->protocol_name);
 
-							result->protocols[0].callback = ws_sb_cbs_callback;
-							result->protocols[0].id = 0;
-							result->protocols[0].name = ws_io_config->protocol_name;
-							result->protocols[0].owning_server = NULL;
-							result->protocols[0].per_session_data_size = 0;
-							result->protocols[0].protocol_index = 0;
-							result->protocols[0].rx_buffer_size = 1;
-							result->protocols[0].user = NULL;
+                            result->protocols = (struct libwebsocket_protocols*)amqpalloc_malloc(sizeof(struct libwebsocket_protocols) * 2);
+                            if (result->protocols == NULL)
+                            {
+                                /* Codes_SRS_WSIO_01_005: [If allocating memory for the new wsio instance fails then wsio_create shall return NULL.] */
+                                amqpalloc_free(result->relative_path);
+                                amqpalloc_free(result->protocol_name);
+                                amqpalloc_free(result->host);
+                                list_destroy(result->pending_io_list);
+                                amqpalloc_free(result);
+                                result = NULL;
+                            }
+                            else
+                            {
+                                result->trusted_ca = NULL;
 
-							result->protocols[1].callback = NULL;
-							result->protocols[1].id = 0;
-							result->protocols[1].name = NULL;
-							result->protocols[1].owning_server = NULL;
-							result->protocols[1].per_session_data_size = 0;
-							result->protocols[1].protocol_index = 0;
-							result->protocols[1].rx_buffer_size = 0;
-							result->protocols[1].user = NULL;
+                                result->protocols[0].callback = ws_sb_cbs_callback;
+                                result->protocols[0].id = 0;
+                                result->protocols[0].name = result->protocol_name;
+                                result->protocols[0].owning_server = NULL;
+                                result->protocols[0].per_session_data_size = 0;
+                                result->protocols[0].protocol_index = 0;
+                                result->protocols[0].rx_buffer_size = 1;
+                                result->protocols[0].user = NULL;
 
-							(void)strcpy(result->host, ws_io_config->host);
-							(void)strcpy(result->relative_path, ws_io_config->relative_path);
-							result->port = ws_io_config->port;
-							result->use_ssl = ws_io_config->use_ssl;
-							result->io_state = IO_STATE_NOT_OPEN;
+                                result->protocols[1].callback = NULL;
+                                result->protocols[1].id = 0;
+                                result->protocols[1].name = NULL;
+                                result->protocols[1].owning_server = NULL;
+                                result->protocols[1].per_session_data_size = 0;
+                                result->protocols[1].protocol_index = 0;
+                                result->protocols[1].rx_buffer_size = 0;
+                                result->protocols[1].user = NULL;
 
-							if (ws_io_config->trusted_ca != NULL)
-							{
-								result->trusted_ca = (char*)amqpalloc_malloc(strlen(ws_io_config->trusted_ca) + 1);
-								if (result->trusted_ca == NULL)
-								{
-									amqpalloc_free(result->protocols);
-									amqpalloc_free(result->relative_path);
-									amqpalloc_free(result->host);
-									list_destroy(result->pending_io_list);
-									amqpalloc_free(result);
-									result = NULL;
-								}
-								else
-								{
-									(void)strcpy(result->trusted_ca, ws_io_config->trusted_ca);
-								}
-							}
-						}
+                                (void)strcpy(result->host, ws_io_config->host);
+                                (void)strcpy(result->relative_path, ws_io_config->relative_path);
+                                result->port = ws_io_config->port;
+                                result->use_ssl = ws_io_config->use_ssl;
+                                result->io_state = IO_STATE_NOT_OPEN;
+
+                                /* Codes_SRS_WSIO_01_100: [The trusted_ca member shall be optional (it can be NULL).] */
+                                if (ws_io_config->trusted_ca != NULL)
+                                {
+                                    result->trusted_ca = (char*)amqpalloc_malloc(strlen(ws_io_config->trusted_ca) + 1);
+                                    if (result->trusted_ca == NULL)
+                                    {
+                                        /* Codes_SRS_WSIO_01_005: [If allocating memory for the new wsio instance fails then wsio_create shall return NULL.] */
+                                        amqpalloc_free(result->protocols);
+                                        amqpalloc_free(result->protocol_name);
+                                        amqpalloc_free(result->relative_path);
+                                        amqpalloc_free(result->host);
+                                        list_destroy(result->pending_io_list);
+                                        amqpalloc_free(result);
+                                        result = NULL;
+                                    }
+                                    else
+                                    {
+                                        (void)strcpy(result->trusted_ca, ws_io_config->trusted_ca);
+                                    }
+                                }
+                            }
+                        }
 					}
 				}
 			}
@@ -380,11 +410,17 @@ CONCRETE_IO_HANDLE wsio_create(void* io_create_parameters, LOGGER_LOG logger_log
 
 void wsio_destroy(CONCRETE_IO_HANDLE ws_io)
 {
-	if (ws_io != NULL)
+    /* Codes_SRS_WSIO_01_008: [If ws_io is NULL, wsio_destroy shall do nothing.] */
+    if (ws_io != NULL)
 	{
 		WSIO_INSTANCE* wsio_instance = (WSIO_INSTANCE*)ws_io;
 
-		/* clear all pending IOs */
+        /* Codes_SRS_WSIO_01_007: [wsio_destroy shall free all resources associated with the wsio instance.] */
+
+        /* Codes_SRS_WSIO_01_009: [wsio_destroy shall execute a close action if the IO has already been open or an open action is already pending.] */
+        (void)wsio_close(wsio_instance, NULL, NULL);
+
+        /* Codes_SRS_WSIO_01_101: [wsio_destroy shall obtain all the IO items by repetitively querying for the head of the pending IO list and freeing that head item.] */
 		LIST_ITEM_HANDLE first_pending_io;
 		while ((first_pending_io = list_get_head_item(wsio_instance->pending_io_list)) != NULL)
 		{
@@ -395,11 +431,13 @@ void wsio_destroy(CONCRETE_IO_HANDLE ws_io)
 				amqpalloc_free(pending_socket_io);
 			}
 
-			list_remove(wsio_instance->pending_io_list, first_pending_io);
+            /* Codes_SRS_WSIO_01_102: [Each freed item shall be removed from the list by using list_remove.] */
+            (void)list_remove(wsio_instance->pending_io_list, first_pending_io);
 		}
 
 		amqpalloc_free(wsio_instance->protocols);
 		amqpalloc_free(wsio_instance->host);
+        amqpalloc_free(wsio_instance->protocol_name);
 		amqpalloc_free(wsio_instance->relative_path);
 		amqpalloc_free(wsio_instance->trusted_ca);
 
@@ -476,12 +514,20 @@ int wsio_close(CONCRETE_IO_HANDLE ws_io, ON_IO_CLOSE_COMPLETE on_io_close_comple
 	{
 		WSIO_INSTANCE* wsio_instance = (WSIO_INSTANCE*)ws_io;
 
-		if (wsio_instance->io_state != IO_STATE_NOT_OPEN)
-		{
-			libwebsocket_context_destroy(wsio_instance->ws_context);
+        if (wsio_instance->io_state == IO_STATE_NOT_OPEN)
+        {
+            result = __LINE__;
+        }
+        else
+        {
+            if (wsio_instance->io_state == IO_STATE_OPENING)
+            {
+                indicate_open_complete(wsio_instance, IO_OPEN_ERROR);
+            }
 
-			wsio_instance->io_state = IO_STATE_NOT_OPEN;
-		}
+            libwebsocket_context_destroy(wsio_instance->ws_context);
+            wsio_instance->io_state = IO_STATE_NOT_OPEN;
+        }
 
 		result = 0;
 	}

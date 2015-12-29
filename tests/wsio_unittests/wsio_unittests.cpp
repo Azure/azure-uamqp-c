@@ -36,6 +36,120 @@ static WSIO_CONFIG default_wsio_config =
 static callback_function* saved_ws_callback;
 static void* saved_ws_callback_context;
 
+template<>
+bool operator==<const lws_context_creation_info*>(const CMockValue<const lws_context_creation_info*>& lhs, const CMockValue<const lws_context_creation_info*>& rhs)
+{
+    bool result;
+
+    if (lhs.GetValue() == rhs.GetValue())
+    {
+        result = true;
+    }
+    else
+    {
+        size_t currentProtocol = 0;
+
+        result = lhs.GetValue()->gid == rhs.GetValue()->gid;
+        result = result && (lhs.GetValue()->extensions == rhs.GetValue()->extensions);
+        result = result && (lhs.GetValue()->token_limits == rhs.GetValue()->token_limits);
+        result = result && (lhs.GetValue()->uid == rhs.GetValue()->uid);
+        result = result && (lhs.GetValue()->ka_time == rhs.GetValue()->ka_time);
+        if (rhs.GetValue()->ka_time != 0)
+        {
+            result = result && (lhs.GetValue()->ka_interval == rhs.GetValue()->ka_interval);
+            result = result && (lhs.GetValue()->ka_probes == rhs.GetValue()->ka_probes);
+        }
+
+        result = result && (lhs.GetValue()->options == rhs.GetValue()->options);
+        result = result && (lhs.GetValue()->iface == rhs.GetValue()->iface);
+        result = result && (lhs.GetValue()->port == rhs.GetValue()->port);
+        result = result && (lhs.GetValue()->provided_client_ssl_ctx == rhs.GetValue()->provided_client_ssl_ctx);
+        if (rhs.GetValue()->http_proxy_address == NULL)
+        {
+            result = result && (lhs.GetValue()->http_proxy_address == rhs.GetValue()->http_proxy_address);
+        }
+        else
+        {
+            result = result && (strcmp(lhs.GetValue()->http_proxy_address, rhs.GetValue()->http_proxy_address) == 0);
+            result = result && (lhs.GetValue()->http_proxy_port, rhs.GetValue()->http_proxy_port);
+        }
+
+        if (rhs.GetValue()->ssl_ca_filepath == NULL)
+        {
+            result = result && (lhs.GetValue()->ssl_ca_filepath == rhs.GetValue()->ssl_ca_filepath);
+        }
+        else
+        {
+            result = result && (strcmp(lhs.GetValue()->ssl_ca_filepath, rhs.GetValue()->ssl_ca_filepath) == 0);
+        }
+
+        if (rhs.GetValue()->ssl_cert_filepath == NULL)
+        {
+            result = result && (lhs.GetValue()->ssl_cert_filepath == rhs.GetValue()->ssl_cert_filepath);
+        }
+        else
+        {
+            result = result && (strcmp(lhs.GetValue()->ssl_cert_filepath, rhs.GetValue()->ssl_cert_filepath) == 0);
+        }
+
+        if (rhs.GetValue()->ssl_cipher_list == NULL)
+        {
+            result = result && (lhs.GetValue()->ssl_cipher_list == rhs.GetValue()->ssl_cipher_list);
+        }
+        else
+        {
+            result = result && (strcmp(lhs.GetValue()->ssl_cipher_list, rhs.GetValue()->ssl_cipher_list) == 0);
+        }
+
+        if (rhs.GetValue()->ssl_private_key_filepath == NULL)
+        {
+            result = result && (lhs.GetValue()->ssl_private_key_filepath == rhs.GetValue()->ssl_private_key_filepath);
+        }
+        else
+        {
+            result = result && (strcmp(lhs.GetValue()->ssl_private_key_filepath, rhs.GetValue()->ssl_private_key_filepath) == 0);
+        }
+
+        if (rhs.GetValue()->ssl_private_key_password == NULL)
+        {
+            result = result && (lhs.GetValue()->ssl_private_key_password == rhs.GetValue()->ssl_private_key_password);
+        }
+        else
+        {
+            result = result && (strcmp(lhs.GetValue()->ssl_private_key_password, rhs.GetValue()->ssl_private_key_password) == 0);
+        }
+
+        while (lhs.GetValue()->protocols[currentProtocol].name != NULL)
+        {
+            result = result && (lhs.GetValue()->protocols[currentProtocol].id == rhs.GetValue()->protocols[currentProtocol].id);
+            result = result && (strcmp(lhs.GetValue()->protocols[currentProtocol].name, rhs.GetValue()->protocols[currentProtocol].name) == 0);
+            result = result && (lhs.GetValue()->protocols[currentProtocol].owning_server == rhs.GetValue()->protocols[currentProtocol].owning_server);
+            result = result && (lhs.GetValue()->protocols[currentProtocol].per_session_data_size == rhs.GetValue()->protocols[currentProtocol].per_session_data_size);
+            result = result && (lhs.GetValue()->protocols[currentProtocol].protocol_index == rhs.GetValue()->protocols[currentProtocol].protocol_index);
+            result = result && (lhs.GetValue()->protocols[currentProtocol].rx_buffer_size == rhs.GetValue()->protocols[currentProtocol].rx_buffer_size);
+            result = result && (lhs.GetValue()->protocols[currentProtocol].user == rhs.GetValue()->protocols[currentProtocol].user);
+
+            currentProtocol++;
+        }
+
+        if (rhs.GetValue()->protocols[currentProtocol].name != NULL)
+        {
+            result = false;
+        }
+    }
+
+    return result;
+}
+
+template<>
+bool operator==<lws_context_creation_info*>(const CMockValue<lws_context_creation_info*>& lhs, const CMockValue<lws_context_creation_info*>& rhs)
+{
+    const lws_context_creation_info* lhs_value = lhs.GetValue();
+    const lws_context_creation_info* rhs_value = rhs.GetValue();
+
+    return CMockValue<const lws_context_creation_info*>(lhs_value) == CMockValue<const lws_context_creation_info*>(rhs_value);
+}
+
 TYPED_MOCK_CLASS(wsio_mocks, CGlobalMock)
 {
 public:
@@ -680,6 +794,149 @@ TEST_FUNCTION(wsio_destroy_frees_2_pending_ios)
 
     // assert
     // no explicit assert, uMock checks the calls
+}
+
+/* wsio_open */
+
+/* Tests_SRS_WSIO_01_010: [wsio_open shall create a context for the libwebsockets connection by calling libwebsocket_create_context.] */
+/* Tests_SRS_WSIO_01_011: [The port member of the info argument shall be set to CONTEXT_PORT_NO_LISTEN.] */
+/* Tests_SRS_WSIO_01_091: [The extensions field shall be set to the internal extensions obtained by calling libwebsocket_get_internal_extensions.] */
+/* Tests_SRS_WSIO_01_092: [gid and uid shall be set to -1.] */
+/* Tests_SRS_WSIO_01_093: [The members iface, token_limits, ssl_cert_filepath, ssl_private_key_filepath, ssl_private_key_password, ssl_ca_filepath, ssl_cipher_list and provided_client_ssl_ctx shall be set to NULL.] */
+/* Tests_SRS_WSIO_01_094: [No proxy support shall be implemented, thus setting http_proxy_address to NULL.] */
+/* Tests_SRS_WSIO_01_095: [The member options shall be set to 0.] */
+/* Tests_SRS_WSIO_01_096: [The member user shall be set to a user context that will be later passed by the libwebsockets callbacks.] */
+/* Tests_SRS_WSIO_01_097: [Keep alive shall not be supported, thus ka_time shall be set to 0.] */
+/* Tests_SRS_WSIO_01_012: [The protocols member shall be populated with 2 protocol entries, one containing the actual protocol to be used and one empty (fields shall be NULL or 0).] */
+/* Tests_SRS_WSIO_01_013: [callback shall be set to a callback used by the wsio module to listen to libwebsockets events.] */
+/* Tests_SRS_WSIO_01_014: [id shall be set to 0] */
+/* Tests_SRS_WSIO_01_015: [name shall be set to protocol_name as passed to wsio_create] */
+/* Tests_SRS_WSIO_01_016: [per_session_data_size shall be set to 0] */
+/* Tests_SRS_WSIO_01_017: [rx_buffer_size shall be set to 0, as there is no need for atomic frames] */
+/* Tests_SRS_WSIO_01_019: [user shall be set to NULL] */
+/* Tests_SRS_WSIO_01_020: [owning_server shall be set to NULL] */
+/* Tests_SRS_WSIO_01_021: [protocol_index shall be set to 0] */
+/* Tests_SRS_WSIO_01_023: [wsio_open shall trigger the libwebsocket connect by calling libwebsocket_client_connect and passing to it the following arguments] */
+/* Tests_SRS_WSIO_01_024: [clients shall be the context created earlier in wsio_open] */
+/* Tests_SRS_WSIO_01_025: [address shall be the hostname passed to wsio_create] */
+/* Tests_SRS_WSIO_01_026: [port shall be the port passed to wsio_create] */
+/* Tests_SRS_WSIO_01_103: [otherwise it shall be 0.] */
+/* Tests_SRS_WSIO_01_028: [path shall be the relative_path passed in wsio_create] */
+/* Tests_SRS_WSIO_01_029: [host shall be the host passed to wsio_create] */
+/* Tests_SRS_WSIO_01_030: [origin shall be the host passed to wsio_create] */
+/* Tests_SRS_WSIO_01_031: [protocol shall be the protocol_name passed to wsio_create] */
+/* Tests_SRS_WSIO_01_032: [ietf_version_or_minus_one shall be -1] */
+TEST_FUNCTION(wsio_open_with_proper_arguments_succeeds)
+{
+    // arrange
+    wsio_mocks mocks;
+    unsigned char test_buffer[] = { 0x42 };
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    mocks.ResetAllCalls();
+
+    lws_context_creation_info lws_context_info;
+    libwebsocket_protocols protocols[] = 
+    {
+        { default_wsio_config.protocol_name, NULL, 0, 0, 0, NULL, NULL, 0 },
+        { NULL, NULL, 0, 0, 0, NULL, NULL, 0 }
+    };
+
+    lws_context_info.port = CONTEXT_PORT_NO_LISTEN;
+    lws_context_info.extensions = TEST_INTERNAL_EXTENSIONS;
+    lws_context_info.gid = -1;
+    lws_context_info.uid = -1;
+    lws_context_info.iface = NULL;
+    lws_context_info.token_limits = NULL;
+    lws_context_info.ssl_cert_filepath = NULL;
+    lws_context_info.ssl_private_key_filepath = NULL;
+    lws_context_info.ssl_private_key_password = NULL;
+    lws_context_info.ssl_ca_filepath = NULL;
+    lws_context_info.ssl_cipher_list = NULL;
+    lws_context_info.provided_client_ssl_ctx = NULL;
+    lws_context_info.http_proxy_address = NULL;
+    lws_context_info.options = 0;
+    lws_context_info.ka_time = 0;
+
+    lws_context_info.protocols = protocols;
+
+    STRICT_EXPECTED_CALL(mocks, libwebsocket_get_internal_extensions());
+    STRICT_EXPECTED_CALL(mocks, libwebsocket_create_context(&lws_context_info));
+    STRICT_EXPECTED_CALL(mocks, libwebsocket_client_connect(TEST_LIBWEBSOCKET_CONTEXT, default_wsio_config.host, default_wsio_config.port, 0, default_wsio_config.relative_path, default_wsio_config.host, default_wsio_config.host, default_wsio_config.protocol_name, -1));
+
+    // act
+    int result = wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    mocks.AssertActualAndExpectedCalls();
+    
+    // cleanup
+    wsio_destroy(wsio);
+}
+
+/* Tests_SRS_WSIO_01_015: [name shall be set to protocol_name as passed to wsio_create] */
+/* Tests_SRS_WSIO_01_025: [address shall be the hostname passed to wsio_create] */
+/* Tests_SRS_WSIO_01_026: [port shall be the port passed to wsio_create] */
+/* Tests_SRS_WSIO_01_027: [if use_ssl passed in wsio_create is true, the use_ssl argument shall be 1] */
+/* Tests_SRS_WSIO_01_028: [path shall be the relative_path passed in wsio_create] */
+/* Tests_SRS_WSIO_01_029: [host shall be the host passed to wsio_create] */
+/* Tests_SRS_WSIO_01_030: [origin shall be the host passed to wsio_create] */
+/* Tests_SRS_WSIO_01_031: [protocol shall be the protocol_name passed to wsio_create] */
+TEST_FUNCTION(wsio_open_with_different_config_succeeds)
+{
+    // arrange
+    wsio_mocks mocks;
+    unsigned char test_buffer[] = { 0x42 };
+    static WSIO_CONFIG wsio_config =
+    {
+        "hagauaga",
+        1234,
+        "another_proto",
+        "d1/e2/f3",
+        true,
+        "booohoo"
+    };
+    CONCRETE_IO_HANDLE wsio = wsio_create(&wsio_config, test_logger_log);
+    mocks.ResetAllCalls();
+
+    lws_context_creation_info lws_context_info;
+    libwebsocket_protocols protocols[] =
+    {
+        { wsio_config.protocol_name, NULL, 0, 0, 0, NULL, NULL, 0 },
+        { NULL, NULL, 0, 0, 0, NULL, NULL, 0 }
+    };
+
+    lws_context_info.port = CONTEXT_PORT_NO_LISTEN;
+    lws_context_info.extensions = TEST_INTERNAL_EXTENSIONS;
+    lws_context_info.gid = -1;
+    lws_context_info.uid = -1;
+    lws_context_info.iface = NULL;
+    lws_context_info.token_limits = NULL;
+    lws_context_info.ssl_cert_filepath = NULL;
+    lws_context_info.ssl_private_key_filepath = NULL;
+    lws_context_info.ssl_private_key_password = NULL;
+    lws_context_info.ssl_ca_filepath = NULL;
+    lws_context_info.ssl_cipher_list = NULL;
+    lws_context_info.provided_client_ssl_ctx = NULL;
+    lws_context_info.http_proxy_address = NULL;
+    lws_context_info.options = 0;
+    lws_context_info.ka_time = 0;
+
+    lws_context_info.protocols = protocols;
+
+    STRICT_EXPECTED_CALL(mocks, libwebsocket_get_internal_extensions());
+    STRICT_EXPECTED_CALL(mocks, libwebsocket_create_context(&lws_context_info));
+    STRICT_EXPECTED_CALL(mocks, libwebsocket_client_connect(TEST_LIBWEBSOCKET_CONTEXT, wsio_config.host, wsio_config.port, 1, wsio_config.relative_path, wsio_config.host, wsio_config.host, wsio_config.protocol_name, -1));
+
+    // act
+    int result = wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    mocks.AssertActualAndExpectedCalls();
+
+    // cleanup
+    wsio_destroy(wsio);
 }
 
 END_TEST_SUITE(wsio_unittests)

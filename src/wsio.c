@@ -468,75 +468,86 @@ int wsio_open(CONCRETE_IO_HANDLE ws_io, ON_IO_OPEN_COMPLETE on_io_open_complete,
 	{
 		WSIO_INSTANCE* wsio_instance = (WSIO_INSTANCE*)ws_io;
 
-		wsio_instance->on_bytes_received = on_bytes_received;
-		wsio_instance->on_io_open_complete = on_io_open_complete;
-		wsio_instance->on_io_error = on_io_error;
-		wsio_instance->open_callback_context = callback_context;
+        /* Codes_SRS_WSIO_01_034: [If another open is in progress or has completed successfully (the IO is open), wsio_open shall fail and return a non-zero value without performing any connection related activities.] */
+        if (wsio_instance->io_state != IO_STATE_NOT_OPEN)
+        {
+            result = __LINE__;
+        }
+        else
+        {
+            wsio_instance->on_bytes_received = on_bytes_received;
+            wsio_instance->on_io_open_complete = on_io_open_complete;
+            wsio_instance->on_io_error = on_io_error;
+            wsio_instance->open_callback_context = callback_context;
 
-		int ietf_version = -1; /* latest */
-		struct lws_context_creation_info info;
+            int ietf_version = -1; /* latest */
+            struct lws_context_creation_info info;
 
-		memset(&info, 0, sizeof info);
+            memset(&info, 0, sizeof info);
 
-        /* Codes_SRS_WSIO_01_011: [The port member of the info argument shall be set to CONTEXT_PORT_NO_LISTEN.] */
-		info.port = CONTEXT_PORT_NO_LISTEN;
-        /* Codes_SRS_WSIO_01_012: [The protocols member shall be populated with 2 protocol entries, one containing the actual protocol to be used and one empty (fields shall be NULL or 0).] */
-		info.protocols = wsio_instance->protocols;
-        /* Codes_SRS_WSIO_01_091: [The extensions field shall be set to the internal extensions obtained by calling libwebsocket_get_internal_extensions.] */
-		info.extensions = libwebsocket_get_internal_extensions();
-        /* Codes_SRS_WSIO_01_092: [gid and uid shall be set to -1.] */
-		info.gid = -1;
-		info.uid = -1;
-        /* Codes_SRS_WSIO_01_096: [The member user shall be set to a user context that will be later passed by the libwebsockets callbacks.] */
-		info.user = wsio_instance;
-        /* Codes_SRS_WSIO_01_093: [The members iface, token_limits, ssl_cert_filepath, ssl_private_key_filepath, ssl_private_key_password, ssl_ca_filepath, ssl_cipher_list and provided_client_ssl_ctx shall be set to NULL.] */
-        info.iface = NULL;
-        info.token_limits = NULL;
-        info.ssl_ca_filepath = NULL;
-        info.ssl_cert_filepath = NULL;
-        info.ssl_cipher_list = NULL;
-        info.ssl_private_key_filepath = NULL;
-        info.ssl_private_key_password = NULL;
-        info.provided_client_ssl_ctx = NULL;
-        /* Codes_SRS_WSIO_01_094: [No proxy support shall be implemented, thus setting http_proxy_address to NULL.] */
-        info.http_proxy_address = NULL;
-        /* Codes_SRS_WSIO_01_095: [The member options shall be set to 0.] */
-        info.options = 0;
-        /* Codes_SRS_WSIO_01_097: [Keep alive shall not be supported, thus ka_time shall be set to 0.] */
-        info.ka_time = 0;
+            /* Codes_SRS_WSIO_01_011: [The port member of the info argument shall be set to CONTEXT_PORT_NO_LISTEN.] */
+            info.port = CONTEXT_PORT_NO_LISTEN;
+            /* Codes_SRS_WSIO_01_012: [The protocols member shall be populated with 2 protocol entries, one containing the actual protocol to be used and one empty (fields shall be NULL or 0).] */
+            info.protocols = wsio_instance->protocols;
+            /* Codes_SRS_WSIO_01_091: [The extensions field shall be set to the internal extensions obtained by calling libwebsocket_get_internal_extensions.] */
+            info.extensions = libwebsocket_get_internal_extensions();
+            /* Codes_SRS_WSIO_01_092: [gid and uid shall be set to -1.] */
+            info.gid = -1;
+            info.uid = -1;
+            /* Codes_SRS_WSIO_01_096: [The member user shall be set to a user context that will be later passed by the libwebsockets callbacks.] */
+            info.user = wsio_instance;
+            /* Codes_SRS_WSIO_01_093: [The members iface, token_limits, ssl_cert_filepath, ssl_private_key_filepath, ssl_private_key_password, ssl_ca_filepath, ssl_cipher_list and provided_client_ssl_ctx shall be set to NULL.] */
+            info.iface = NULL;
+            info.token_limits = NULL;
+            info.ssl_ca_filepath = NULL;
+            info.ssl_cert_filepath = NULL;
+            info.ssl_cipher_list = NULL;
+            info.ssl_private_key_filepath = NULL;
+            info.ssl_private_key_password = NULL;
+            info.provided_client_ssl_ctx = NULL;
+            /* Codes_SRS_WSIO_01_094: [No proxy support shall be implemented, thus setting http_proxy_address to NULL.] */
+            info.http_proxy_address = NULL;
+            /* Codes_SRS_WSIO_01_095: [The member options shall be set to 0.] */
+            info.options = 0;
+            /* Codes_SRS_WSIO_01_097: [Keep alive shall not be supported, thus ka_time shall be set to 0.] */
+            info.ka_time = 0;
 
-        /* Codes_SRS_WSIO_01_010: [wsio_open shall create a context for the libwebsockets connection by calling libwebsocket_create_context.] */
-		wsio_instance->ws_context = libwebsocket_create_context(&info);
-		if (wsio_instance->ws_context == NULL)
-		{
-			printf("Creating libwebsocket context failed\n");
-			result = __LINE__;
-		}
-		else
-		{
-			wsio_instance->io_state = IO_STATE_OPENING;
+            /* Codes_SRS_WSIO_01_010: [wsio_open shall create a context for the libwebsockets connection by calling libwebsocket_create_context.] */
+            wsio_instance->ws_context = libwebsocket_create_context(&info);
+            if (wsio_instance->ws_context == NULL)
+            {
+                /* Codes_SRS_WSIO_01_022: [If creating the context fails then wsio_open shall fail and return a non-zero value.] */
+                result = __LINE__;
+            }
+            else
+            {
+                wsio_instance->io_state = IO_STATE_OPENING;
 
-            /* Codes_SRS_WSIO_01_023: [wsio_open shall trigger the libwebsocket connect by calling libwebsocket_client_connect and passing to it the following arguments] */
-            /* Codes_SRS_WSIO_01_024: [clients shall be the context created earlier in wsio_open] */
-            /* Codes_SRS_WSIO_01_025: [address shall be the hostname passed to wsio_create] */
-            /* Codes_SRS_WSIO_01_026: [port shall be the port passed to wsio_create] */
-            /* Codes_SRS_WSIO_01_103: [otherwise it shall be 0.] */
-            /* Codes_SRS_WSIO_01_028: [path shall be the relative_path passed in wsio_create] */
-            /* Codes_SRS_WSIO_01_029: [host shall be the host passed to wsio_create] */
-            /* Codes_SRS_WSIO_01_030: [origin shall be the host passed to wsio_create] */
-            /* Codes_SRS_WSIO_01_031: [protocol shall be the protocol_name passed to wsio_create] */
-            /* Codes_SRS_WSIO_01_032: [ietf_version_or_minus_one shall be -1] */
-			wsio_instance->wsi = libwebsocket_client_connect(wsio_instance->ws_context, wsio_instance->host, wsio_instance->port, wsio_instance->use_ssl, wsio_instance->relative_path, wsio_instance->host, wsio_instance->host, wsio_instance->protocols[0].name, ietf_version);
-			if (wsio_instance->wsi == NULL)
-			{
-				wsio_instance->io_state = IO_STATE_NOT_OPEN;
-				result = __LINE__;
-			}
-			else
-			{
-				result = 0;
-			}
-		}
+                /* Codes_SRS_WSIO_01_023: [wsio_open shall trigger the libwebsocket connect by calling libwebsocket_client_connect and passing to it the following arguments] */
+                /* Codes_SRS_WSIO_01_024: [clients shall be the context created earlier in wsio_open] */
+                /* Codes_SRS_WSIO_01_025: [address shall be the hostname passed to wsio_create] */
+                /* Codes_SRS_WSIO_01_026: [port shall be the port passed to wsio_create] */
+                /* Codes_SRS_WSIO_01_103: [otherwise it shall be 0.] */
+                /* Codes_SRS_WSIO_01_028: [path shall be the relative_path passed in wsio_create] */
+                /* Codes_SRS_WSIO_01_029: [host shall be the host passed to wsio_create] */
+                /* Codes_SRS_WSIO_01_030: [origin shall be the host passed to wsio_create] */
+                /* Codes_SRS_WSIO_01_031: [protocol shall be the protocol_name passed to wsio_create] */
+                /* Codes_SRS_WSIO_01_032: [ietf_version_or_minus_one shall be -1] */
+                wsio_instance->wsi = libwebsocket_client_connect(wsio_instance->ws_context, wsio_instance->host, wsio_instance->port, wsio_instance->use_ssl, wsio_instance->relative_path, wsio_instance->host, wsio_instance->host, wsio_instance->protocols[0].name, ietf_version);
+                if (wsio_instance->wsi == NULL)
+                {
+                    /* Codes_SRS_WSIO_01_033: [If libwebsocket_client_connect fails then wsio_open shall fail and return a non-zero value.] */
+                    libwebsocket_context_destroy(wsio_instance->ws_context);
+                    wsio_instance->io_state = IO_STATE_NOT_OPEN;
+                    result = __LINE__;
+                }
+                else
+                {
+                    /* Codes_SRS_WSIO_01_104: [On success, wsio_open shall return 0.] */
+                    result = 0;
+                }
+            }
+        }
 	}
 	
 	return result;

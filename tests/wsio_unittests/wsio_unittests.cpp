@@ -826,6 +826,7 @@ TEST_FUNCTION(wsio_destroy_frees_2_pending_ios)
 /* Tests_SRS_WSIO_01_030: [origin shall be the host passed to wsio_create] */
 /* Tests_SRS_WSIO_01_031: [protocol shall be the protocol_name passed to wsio_create] */
 /* Tests_SRS_WSIO_01_032: [ietf_version_or_minus_one shall be -1] */
+/* Tests_SRS_WSIO_01_104: [On success, wsio_open shall return 0.] */
 TEST_FUNCTION(wsio_open_with_proper_arguments_succeeds)
 {
     // arrange
@@ -882,6 +883,8 @@ TEST_FUNCTION(wsio_open_with_proper_arguments_succeeds)
 /* Tests_SRS_WSIO_01_029: [host shall be the host passed to wsio_create] */
 /* Tests_SRS_WSIO_01_030: [origin shall be the host passed to wsio_create] */
 /* Tests_SRS_WSIO_01_031: [protocol shall be the protocol_name passed to wsio_create] */
+/* Tests_SRS_WSIO_01_091: [The extensions field shall be set to the internal extensions obtained by calling libwebsocket_get_internal_extensions.] */
+/* Tests_SRS_WSIO_01_104: [On success, wsio_open shall return 0.] */
 TEST_FUNCTION(wsio_open_with_different_config_succeeds)
 {
     // arrange
@@ -907,6 +910,101 @@ TEST_FUNCTION(wsio_open_with_different_config_succeeds)
     };
 
     lws_context_info.port = CONTEXT_PORT_NO_LISTEN;
+    lws_context_info.extensions = (libwebsocket_extension*)NULL;
+    lws_context_info.gid = -1;
+    lws_context_info.uid = -1;
+    lws_context_info.iface = NULL;
+    lws_context_info.token_limits = NULL;
+    lws_context_info.ssl_cert_filepath = NULL;
+    lws_context_info.ssl_private_key_filepath = NULL;
+    lws_context_info.ssl_private_key_password = NULL;
+    lws_context_info.ssl_ca_filepath = NULL;
+    lws_context_info.ssl_cipher_list = NULL;
+    lws_context_info.provided_client_ssl_ctx = NULL;
+    lws_context_info.http_proxy_address = NULL;
+    lws_context_info.options = 0;
+    lws_context_info.ka_time = 0;
+
+    lws_context_info.protocols = protocols;
+
+    STRICT_EXPECTED_CALL(mocks, libwebsocket_get_internal_extensions())
+        .SetReturn((libwebsocket_extension*)NULL);
+    STRICT_EXPECTED_CALL(mocks, libwebsocket_create_context(&lws_context_info));
+    STRICT_EXPECTED_CALL(mocks, libwebsocket_client_connect(TEST_LIBWEBSOCKET_CONTEXT, wsio_config.host, wsio_config.port, 1, wsio_config.relative_path, wsio_config.host, wsio_config.host, wsio_config.protocol_name, -1));
+
+    // act
+    int result = wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    mocks.AssertActualAndExpectedCalls();
+
+    // cleanup
+    wsio_destroy(wsio);
+}
+
+/* Tests_SRS_WSIO_01_022: [If creating the context fails then wsio_open shall fail and return a non-zero value.] */
+TEST_FUNCTION(when_creating_the_libwebsockets_context_fails_then_wsio_open_fails)
+{
+    // arrange
+    wsio_mocks mocks;
+    unsigned char test_buffer[] = { 0x42 };
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    mocks.ResetAllCalls();
+
+    lws_context_creation_info lws_context_info;
+    libwebsocket_protocols protocols[] =
+    {
+        { default_wsio_config.protocol_name, NULL, 0, 0, 0, NULL, NULL, 0 },
+        { NULL, NULL, 0, 0, 0, NULL, NULL, 0 }
+    };
+
+    lws_context_info.port = CONTEXT_PORT_NO_LISTEN;
+    lws_context_info.extensions = TEST_INTERNAL_EXTENSIONS;
+    lws_context_info.gid = -1;
+    lws_context_info.uid = -1;
+    lws_context_info.iface = NULL;
+    lws_context_info.token_limits = NULL;
+    lws_context_info.ssl_cert_filepath = NULL;
+    lws_context_info.ssl_private_key_filepath = NULL;
+    lws_context_info.ssl_private_key_password = NULL;
+    lws_context_info.ssl_ca_filepath = NULL;
+    lws_context_info.ssl_cipher_list = NULL;
+    lws_context_info.provided_client_ssl_ctx = NULL;
+    lws_context_info.http_proxy_address = NULL;
+    lws_context_info.options = 0;
+    lws_context_info.ka_time = 0;
+
+    lws_context_info.protocols = protocols;
+
+    STRICT_EXPECTED_CALL(mocks, libwebsocket_get_internal_extensions());
+    STRICT_EXPECTED_CALL(mocks, libwebsocket_create_context(&lws_context_info))
+        .SetReturn((libwebsocket_context*)NULL);
+
+    // act
+    int result = wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+
+    // assert
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+}
+
+/* Tests_SRS_WSIO_01_033: [If libwebsocket_client_connect fails then wsio_open shall fail and return a non-zero value.] */
+TEST_FUNCTION(when_libwebsocket_client_connect_fails_then_wsio_open_fails)
+{
+    // arrange
+    wsio_mocks mocks;
+    unsigned char test_buffer[] = { 0x42 };
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    mocks.ResetAllCalls();
+
+    lws_context_creation_info lws_context_info;
+    libwebsocket_protocols protocols[] =
+    {
+        { default_wsio_config.protocol_name, NULL, 0, 0, 0, NULL, NULL, 0 },
+        { NULL, NULL, 0, 0, 0, NULL, NULL, 0 }
+    };
+
+    lws_context_info.port = CONTEXT_PORT_NO_LISTEN;
     lws_context_info.extensions = TEST_INTERNAL_EXTENSIONS;
     lws_context_info.gid = -1;
     lws_context_info.uid = -1;
@@ -926,13 +1024,32 @@ TEST_FUNCTION(wsio_open_with_different_config_succeeds)
 
     STRICT_EXPECTED_CALL(mocks, libwebsocket_get_internal_extensions());
     STRICT_EXPECTED_CALL(mocks, libwebsocket_create_context(&lws_context_info));
-    STRICT_EXPECTED_CALL(mocks, libwebsocket_client_connect(TEST_LIBWEBSOCKET_CONTEXT, wsio_config.host, wsio_config.port, 1, wsio_config.relative_path, wsio_config.host, wsio_config.host, wsio_config.protocol_name, -1));
+    STRICT_EXPECTED_CALL(mocks, libwebsocket_client_connect(TEST_LIBWEBSOCKET_CONTEXT, default_wsio_config.host, default_wsio_config.port, 0, default_wsio_config.relative_path, default_wsio_config.host, default_wsio_config.host, default_wsio_config.protocol_name, -1))
+        .SetReturn((libwebsocket*)NULL);
+    STRICT_EXPECTED_CALL(mocks, libwebsocket_context_destroy(TEST_LIBWEBSOCKET_CONTEXT));
 
     // act
     int result = wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
 
     // assert
-    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+}
+
+/* Tests_SRS_WSIO_01_034: [If another open is in progress or has completed successfully (the IO is open), wsio_open shall fail and return a non-zero value without performing any connection related activities.] */
+TEST_FUNCTION(a_second_wsio_open_while_opening_fails)
+{
+    // arrange
+    wsio_mocks mocks;
+    unsigned char test_buffer[] = { 0x42 };
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+    mocks.ResetAllCalls();
+
+    // act
+    int result = wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+
+    // assert
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
     mocks.AssertActualAndExpectedCalls();
 
     // cleanup

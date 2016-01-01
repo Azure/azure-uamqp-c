@@ -124,13 +124,24 @@ static int ws_sb_cbs_callback(struct libwebsocket_context *this, struct libwebso
 	switch (reason)
 	{
 	case LWS_CALLBACK_CLIENT_ESTABLISHED:
-		wsio_instance->io_state = IO_STATE_OPEN;
-		indicate_open_complete(wsio_instance, IO_OPEN_OK);
+        if (wsio_instance->io_state == IO_STATE_OPENING)
+        {
+            /* Codes_SRS_WSIO_01_036: [The callback on_io_open_complete shall be called with io_open_result being set to IO_OPEN_OK when the open action is succesfull.] */
+            wsio_instance->io_state = IO_STATE_OPEN;
+            indicate_open_complete(wsio_instance, IO_OPEN_OK);
+        }
+
 		break;
 
 	case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
-		wsio_instance->io_state = IO_STATE_ERROR;
-		indicate_error(wsio_instance);
+        if (wsio_instance->io_state == IO_STATE_OPENING)
+        {
+            /* Codes_SRS_WSIO_01_037: [If any error occurs while the open action is in progress, the callback on_io_open_complete shall be called with io_open_result being set to IO_OPEN_ERROR.] */
+            indicate_open_complete(wsio_instance, IO_OPEN_ERROR);
+            libwebsocket_context_destroy(wsio_instance->ws_context);
+            wsio_instance->io_state = IO_STATE_NOT_OPEN;
+        }
+
 		break;
 
 	case LWS_CALLBACK_CLOSED:
@@ -571,9 +582,10 @@ int wsio_close(CONCRETE_IO_HANDLE ws_io, ON_IO_CLOSE_COMPLETE on_io_close_comple
         }
         else
         {
+            /* Codes_SRS_WSIO_01_038: [If wsio_close is called while the open action is in progress, the callback on_io_open_complete shall be called with io_open_result being set to IO_OPEN_CANCELLED and then the wsio_close shall proceed to close the IO.] */
             if (wsio_instance->io_state == IO_STATE_OPENING)
             {
-                indicate_open_complete(wsio_instance, IO_OPEN_ERROR);
+                indicate_open_complete(wsio_instance, IO_OPEN_CANCELLED);
             }
 
             libwebsocket_context_destroy(wsio_instance->ws_context);

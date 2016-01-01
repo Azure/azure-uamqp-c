@@ -62,8 +62,10 @@ static void indicate_error(WSIO_INSTANCE* ws_io_instance)
 
 static void indicate_open_complete(WSIO_INSTANCE* ws_io_instance, IO_OPEN_RESULT open_result)
 {
-	if (ws_io_instance->on_io_open_complete != NULL)
+    /* Codes_SRS_WSIO_01_040: [The argument on_io_open_complete shall be optional, if NULL is passed by the caller then no open complete callback shall be triggered.] */
+    if (ws_io_instance->on_io_open_complete != NULL)
 	{
+        /* Codes_SRS_WSIO_01_039: [The callback_context argument shall be passed to on_io_open_complete as is.] */
 		ws_io_instance->on_io_open_complete(ws_io_instance->open_callback_context, open_result);
 	}
 }

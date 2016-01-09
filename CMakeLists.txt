@@ -288,3 +288,7 @@ add_library(uamqp
 
 add_subdirectory(samples)
 add_subdirectory(tests)
+
+# The following "set" statetement exports across the project a global variable
+set(UAMQP_INC_FOLDER ${CMAKE_CURRENT_LIST_DIR}/inc CACHE INTERNAL "This is the include folder for UAMQP" FORCE)
+set(UAMQP_SRC_FOLDER ${CMAKE_CURRENT_LIST_DIR}/src CACHE INTERNAL "This is the lib folder for UAMQP" FORCE)

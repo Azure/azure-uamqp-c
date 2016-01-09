@@ -572,12 +572,15 @@ int wsio_close(CONCRETE_IO_HANDLE ws_io, ON_IO_CLOSE_COMPLETE on_io_close_comple
 
 	if (ws_io == NULL)
 	{
+        /* Codes_SRS_WSIO_01_042: [if ws_io is NULL, wsio_close shall return a non-zero value.] */
 		result = __LINE__;
 	}
 	else
 	{
 		WSIO_INSTANCE* wsio_instance = (WSIO_INSTANCE*)ws_io;
 
+        /* Codes_SRS_WSIO_01_045: [wsio_close when no open action has been issued shall fail and return a non-zero value.] */
+        /* Codes_SRS_WSIO_01_046: [wsio_close after a wsio_close shall fail and return a non-zero value.] */
         if (wsio_instance->io_state == IO_STATE_NOT_OPEN)
         {
             result = __LINE__;
@@ -590,11 +593,22 @@ int wsio_close(CONCRETE_IO_HANDLE ws_io, ON_IO_CLOSE_COMPLETE on_io_close_comple
                 indicate_open_complete(wsio_instance, IO_OPEN_CANCELLED);
             }
 
+            /* Codes_SRS_WSIO_01_041: [wsio_close shall close the websockets IO if an open action is either pending or has completed successfully (if the IO is open).] */
+            /* Codes_SRS_WSIO_01_043: [wsio_close shall close the connection by calling libwebsocket_context_destroy.] */
             libwebsocket_context_destroy(wsio_instance->ws_context);
             wsio_instance->io_state = IO_STATE_NOT_OPEN;
-        }
 
-		result = 0;
+            /* Codes_SRS_WSIO_01_049: [The argument on_io_close_complete shall be optional, if NULL is passed by the caller then no close complete callback shall be triggered.] */
+            if (on_io_close_complete != NULL)
+            {
+                /* Codes_SRS_WSIO_01_047: [The callback on_io_close_complete shall be called after the close action has been completed in the context of wsio_close (wsio_close is effectively blocking).] */
+                /* Codes_SRS_WSIO_01_048: [The callback_context argument shall be passed to on_io_close_complete as is.] */
+                on_io_close_complete(callback_context);
+            }
+
+            /* Codes_SRS_WSIO_01_044: [On success wsio_close shall return 0.] */
+            result = 0;
+        }
 	}
 
 	return result;

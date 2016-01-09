@@ -265,6 +265,8 @@ public:
     MOCK_VOID_METHOD_END()
     MOCK_STATIC_METHOD_1(, void, test_on_io_error, void*, context);
     MOCK_VOID_METHOD_END()
+    MOCK_STATIC_METHOD_1(, void, test_on_io_close_complete, void*, context);
+    MOCK_VOID_METHOD_END()
 };
 
 extern "C"
@@ -302,6 +304,7 @@ extern "C"
     DECLARE_GLOBAL_MOCK_METHOD_2(wsio_mocks, , void, test_on_io_open_complete, void*, context, IO_OPEN_RESULT, io_open_result);
     DECLARE_GLOBAL_MOCK_METHOD_3(wsio_mocks, , void, test_on_bytes_received, void*, context, const unsigned char*, buffer, size_t, size);
     DECLARE_GLOBAL_MOCK_METHOD_1(wsio_mocks, , void, test_on_io_error, void*, context);
+    DECLARE_GLOBAL_MOCK_METHOD_1(wsio_mocks, , void, test_on_io_close_complete, void*, context);
 
     extern void test_logger_log(unsigned int options, char* format, ...)
 	{
@@ -1218,6 +1221,9 @@ TEST_FUNCTION(when_ws_callback_indicates_a_connect_error_and_no_on_open_complete
 /* wsio_close */
 
 /* Tests_SRS_WSIO_01_041: [wsio_close shall close the websockets IO if an open action is either pending or has completed successfully (if the IO is open).] */
+/* Tests_SRS_WSIO_01_049: [The argument on_io_close_complete shall be optional, if NULL is passed by the caller then no close complete callback shall be triggered.] */
+/* Tests_SRS_WSIO_01_043: [wsio_close shall close the connection by calling libwebsocket_context_destroy.] */
+/* Tests_SRS_WSIO_01_044: [On success wsio_close shall return 0.] */
 TEST_FUNCTION(wsio_close_destroys_the_ws_context)
 {
     // arrange
@@ -1234,6 +1240,112 @@ TEST_FUNCTION(wsio_close_destroys_the_ws_context)
 
     // assert
     mocks.AssertActualAndExpectedCalls();
+    ASSERT_ARE_EQUAL(int, 0, result);
+
+    // cleanup
+    wsio_destroy(wsio);
+}
+
+/* Tests_SRS_WSIO_01_047: [The callback on_io_close_complete shall be called after the close action has been completed in the context of wsio_close (wsio_close is effectively blocking).] */
+/* Tests_SRS_WSIO_01_048: [The callback_context argument shall be passed to on_io_close_complete as is.] */
+TEST_FUNCTION(wsio_close_destroys_the_ws_context_and_calls_the_io_close_complete_callback)
+{
+    // arrange
+    wsio_mocks mocks;
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+    mocks.ResetAllCalls();
+
+    STRICT_EXPECTED_CALL(mocks, test_on_io_open_complete((void*)0x4242, IO_OPEN_CANCELLED));
+    STRICT_EXPECTED_CALL(mocks, libwebsocket_context_destroy(TEST_LIBWEBSOCKET_CONTEXT));
+    STRICT_EXPECTED_CALL(mocks, test_on_io_close_complete((void*)0x4243));
+
+    // act
+    int result = wsio_close(wsio, test_on_io_close_complete, (void*)0x4243);
+
+    // assert
+    mocks.AssertActualAndExpectedCalls();
+    ASSERT_ARE_EQUAL(int, 0, result);
+
+    // cleanup
+    wsio_destroy(wsio);
+}
+
+/* Tests_SRS_WSIO_01_047: [The callback on_io_close_complete shall be called after the close action has been completed in the context of wsio_close (wsio_close is effectively blocking).] */
+/* Tests_SRS_WSIO_01_048: [The callback_context argument shall be passed to on_io_close_complete as is.] */
+TEST_FUNCTION(wsio_close_after_ws_connected_calls_the_io_close_complete_callback)
+{
+    // arrange
+    wsio_mocks mocks;
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+    STRICT_EXPECTED_CALL(mocks, libwebsocket_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET_CONTEXT, TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_ESTABLISHED, saved_ws_callback_context, NULL, 0);
+    mocks.ResetAllCalls();
+
+    STRICT_EXPECTED_CALL(mocks, libwebsocket_context_destroy(TEST_LIBWEBSOCKET_CONTEXT));
+    STRICT_EXPECTED_CALL(mocks, test_on_io_close_complete((void*)0x4243));
+
+    // act
+    int result = wsio_close(wsio, test_on_io_close_complete, (void*)0x4243);
+
+    // assert
+    mocks.AssertActualAndExpectedCalls();
+    ASSERT_ARE_EQUAL(int, 0, result);
+
+    // cleanup
+    wsio_destroy(wsio);
+}
+
+/* Tests_SRS_WSIO_01_042: [if ws_io is NULL, wsio_close shall return a non-zero value.] */
+TEST_FUNCTION(wsio_close_with_NULL_handle_fails)
+{
+    // arrange
+    wsio_mocks mocks;
+
+    // act
+    int result = wsio_close(NULL, test_on_io_close_complete, (void*)0x4242);
+
+    // assert
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+}
+
+/* Tests_SRS_WSIO_01_045: [wsio_close when no open action has been issued shall fail and return a non-zero value.] */
+TEST_FUNCTION(wsio_close_when_not_open_fails)
+{
+    // arrange
+    wsio_mocks mocks;
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    mocks.ResetAllCalls();
+
+    // act
+    int result = wsio_close(wsio, test_on_io_close_complete, (void*)0x4242);
+
+    // assert
+    mocks.AssertActualAndExpectedCalls();
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+
+    // cleanup
+    wsio_destroy(wsio);
+}
+
+/* Tests_SRS_WSIO_01_046: [wsio_close after a wsio_close shall fail and return a non-zero value.]  */
+TEST_FUNCTION(wsio_close_when_already_closed_fails)
+{
+    // arrange
+    wsio_mocks mocks;
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+    (void)wsio_close(wsio, test_on_io_close_complete, (void*)0x4242);
+    mocks.ResetAllCalls();
+
+    // act
+    int result = wsio_close(wsio, test_on_io_close_complete, (void*)0x4242);
+
+    // assert
+    mocks.AssertActualAndExpectedCalls();
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
 
     // cleanup
     wsio_destroy(wsio);

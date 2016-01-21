@@ -41,14 +41,14 @@ typedef struct WSIO_INSTANCE_TAG
 	void* open_callback_context;
 	IO_STATE io_state;
 	LIST_HANDLE pending_io_list;
-	struct libwebsocket_context* ws_context;
-	struct libwebsocket* wsi;
+	struct lws_context* ws_context;
+	struct lws* wsi;
 	int port;
 	char* host;
 	char* relative_path;
     char* protocol_name;
 	char* trusted_ca;
-	struct libwebsocket_protocols* protocols;
+	struct lws_protocols* protocols;
 	bool use_ssl;
 } WSIO_INSTANCE;
 
@@ -120,12 +120,15 @@ static const IO_INTERFACE_DESCRIPTION ws_io_interface_description =
 	wsio_dowork
 };
 
-static int ws_sb_cbs_callback(struct libwebsocket_context *this, struct libwebsocket *wsi, enum libwebsocket_callback_reasons reason, void *user, void *in, size_t len)
+static int ws_sb_callback(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len)
 {
-	WSIO_INSTANCE* wsio_instance = libwebsocket_context_user(this);
+    struct lws_context* context;
+	WSIO_INSTANCE* wsio_instance;
 	switch (reason)
 	{
 	case LWS_CALLBACK_CLIENT_ESTABLISHED:
+        context = lws_get_context(wsi);
+        wsio_instance = lws_context_user(context);
         if (wsio_instance->io_state == IO_STATE_OPENING)
         {
             /* Codes_SRS_WSIO_01_036: [The callback on_io_open_complete shall be called with io_open_result being set to IO_OPEN_OK when the open action is succesfull.] */
@@ -136,11 +139,13 @@ static int ws_sb_cbs_callback(struct libwebsocket_context *this, struct libwebso
 		break;
 
 	case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
+        context = lws_get_context(wsi);
+        wsio_instance = lws_context_user(context);
         if (wsio_instance->io_state == IO_STATE_OPENING)
         {
             /* Codes_SRS_WSIO_01_037: [If any error occurs while the open action is in progress, the callback on_io_open_complete shall be called with io_open_result being set to IO_OPEN_ERROR.] */
             indicate_open_complete(wsio_instance, IO_OPEN_ERROR);
-            libwebsocket_context_destroy(wsio_instance->ws_context);
+            lws_context_destroy(wsio_instance->ws_context);
             wsio_instance->io_state = IO_STATE_NOT_OPEN;
         }
 
@@ -151,8 +156,10 @@ static int ws_sb_cbs_callback(struct libwebsocket_context *this, struct libwebso
 
 	case LWS_CALLBACK_CLIENT_WRITEABLE:
 	{
-		WSIO_INSTANCE* wsio_instance = libwebsocket_context_user(this);
-		LIST_ITEM_HANDLE first_pending_io = list_get_head_item(wsio_instance->pending_io_list);
+        LIST_ITEM_HANDLE first_pending_io;
+        context = lws_get_context(wsi);
+        wsio_instance = lws_context_user(context);
+        first_pending_io = list_get_head_item(wsio_instance->pending_io_list);
 		if (first_pending_io != NULL)
 		{
 			PENDING_SOCKET_IO* pending_socket_io = (PENDING_SOCKET_IO*)list_item_get_value(first_pending_io);
@@ -172,7 +179,7 @@ static int ws_sb_cbs_callback(struct libwebsocket_context *this, struct libwebso
 				else
 				{
 					(void)memcpy(ws_buffer + LWS_SEND_BUFFER_PRE_PADDING, pending_socket_io->bytes, pending_socket_io->size);
-					int n = libwebsocket_write(wsio_instance->wsi, &ws_buffer[LWS_SEND_BUFFER_PRE_PADDING], pending_socket_io->size, LWS_WRITE_BINARY);
+					int n = lws_write(wsio_instance->wsi, &ws_buffer[LWS_SEND_BUFFER_PRE_PADDING], pending_socket_io->size, LWS_WRITE_BINARY);
 					if (n < 0)
 					{
 						/* error */
@@ -206,7 +213,7 @@ static int ws_sb_cbs_callback(struct libwebsocket_context *this, struct libwebso
 
 					if (list_get_head_item(wsio_instance->pending_io_list) != NULL)
 					{
-						(void)libwebsocket_callback_on_writable(this, wsi);
+						(void)lws_callback_on_writable(wsi);
 					}
 
 					amqpalloc_free(ws_buffer);
@@ -219,8 +226,9 @@ static int ws_sb_cbs_callback(struct libwebsocket_context *this, struct libwebso
 
 	case LWS_CALLBACK_CLIENT_RECEIVE:
 	{
-		WSIO_INSTANCE* wsio_instance = libwebsocket_context_user(this);
-		wsio_instance->on_bytes_received(wsio_instance->open_callback_context, in, len);
+        context = lws_get_context(wsi);
+        wsio_instance = lws_context_user(context);
+        wsio_instance->on_bytes_received(wsio_instance->open_callback_context, in, len);
 		break;
 	}
 
@@ -232,7 +240,10 @@ static int ws_sb_cbs_callback(struct libwebsocket_context *this, struct libwebso
 		X509_STORE* cert_store = SSL_CTX_get_cert_store(user);
 		BIO* cert_memory_bio;
 		X509* certificate;
-		
+
+        context = lws_get_context(wsi);
+        wsio_instance = lws_context_user(context);
+
 		cert_memory_bio = BIO_new(BIO_s_mem());
 		if (cert_memory_bio == NULL)
 		{
@@ -351,7 +362,7 @@ CONCRETE_IO_HANDLE wsio_create(void* io_create_parameters, LOGGER_LOG logger_log
                         {
                             (void)strcpy(result->protocol_name, ws_io_config->protocol_name);
 
-                            result->protocols = (struct libwebsocket_protocols*)amqpalloc_malloc(sizeof(struct libwebsocket_protocols) * 2);
+                            result->protocols = (struct lws_protocols*)amqpalloc_malloc(sizeof(struct lws_protocols) * 2);
                             if (result->protocols == NULL)
                             {
                                 /* Codes_SRS_WSIO_01_005: [If allocating memory for the new wsio instance fails then wsio_create shall return NULL.] */
@@ -368,17 +379,13 @@ CONCRETE_IO_HANDLE wsio_create(void* io_create_parameters, LOGGER_LOG logger_log
 
                                 /* Codes_SRS_WSIO_01_012: [The protocols member shall be populated with 2 protocol entries, one containing the actual protocol to be used and one empty (fields shall be NULL or 0).] */
                                 /* Codes_SRS_WSIO_01_013: [callback shall be set to a callback used by the wsio module to listen to libwebsockets events.] */
-                                result->protocols[0].callback = ws_sb_cbs_callback;
+                                result->protocols[0].callback = ws_sb_callback;
                                 /* Codes_SRS_WSIO_01_014: [id shall be set to 0] */
                                 result->protocols[0].id = 0;
                                 /* Codes_SRS_WSIO_01_015: [name shall be set to protocol_name as passed to wsio_create] */
                                 result->protocols[0].name = result->protocol_name;
-                                /* Codes_SRS_WSIO_01_020: [owning_server shall be set to NULL] */
-                                result->protocols[0].owning_server = NULL;
                                 /* Codes_SRS_WSIO_01_016: [per_session_data_size shall be set to 0] */
                                 result->protocols[0].per_session_data_size = 0;
-                                /* Codes_SRS_WSIO_01_021: [protocol_index shall be set to 0] */
-                                result->protocols[0].protocol_index = 0;
                                 /* Codes_SRS_WSIO_01_017: [rx_buffer_size shall be set to 0, as there is no need for atomic frames] */
                                 result->protocols[0].rx_buffer_size = 0;
                                 /* Codes_SRS_WSIO_01_019: [user shall be set to NULL] */
@@ -387,9 +394,7 @@ CONCRETE_IO_HANDLE wsio_create(void* io_create_parameters, LOGGER_LOG logger_log
                                 result->protocols[1].callback = NULL;
                                 result->protocols[1].id = 0;
                                 result->protocols[1].name = NULL;
-                                result->protocols[1].owning_server = NULL;
                                 result->protocols[1].per_session_data_size = 0;
-                                result->protocols[1].protocol_index = 0;
                                 result->protocols[1].rx_buffer_size = 0;
                                 result->protocols[1].user = NULL;
 
@@ -502,8 +507,8 @@ int wsio_open(CONCRETE_IO_HANDLE ws_io, ON_IO_OPEN_COMPLETE on_io_open_complete,
             info.port = CONTEXT_PORT_NO_LISTEN;
             /* Codes_SRS_WSIO_01_012: [The protocols member shall be populated with 2 protocol entries, one containing the actual protocol to be used and one empty (fields shall be NULL or 0).] */
             info.protocols = wsio_instance->protocols;
-            /* Codes_SRS_WSIO_01_091: [The extensions field shall be set to the internal extensions obtained by calling libwebsocket_get_internal_extensions.] */
-            info.extensions = libwebsocket_get_internal_extensions();
+            /* Codes_SRS_WSIO_01_091: [The extensions field shall be set to the internal extensions obtained by calling lws_get_internal_extensions.] */
+            info.extensions = lws_get_internal_extensions();
             /* Codes_SRS_WSIO_01_092: [gid and uid shall be set to -1.] */
             info.gid = -1;
             info.uid = -1;
@@ -525,8 +530,8 @@ int wsio_open(CONCRETE_IO_HANDLE ws_io, ON_IO_OPEN_COMPLETE on_io_open_complete,
             /* Codes_SRS_WSIO_01_097: [Keep alive shall not be supported, thus ka_time shall be set to 0.] */
             info.ka_time = 0;
 
-            /* Codes_SRS_WSIO_01_010: [wsio_open shall create a context for the libwebsockets connection by calling libwebsocket_create_context.] */
-            wsio_instance->ws_context = libwebsocket_create_context(&info);
+            /* Codes_SRS_WSIO_01_010: [wsio_open shall create a context for the libwebsockets connection by calling lws_create_context.] */
+            wsio_instance->ws_context = lws_create_context(&info);
             if (wsio_instance->ws_context == NULL)
             {
                 /* Codes_SRS_WSIO_01_022: [If creating the context fails then wsio_open shall fail and return a non-zero value.] */
@@ -536,7 +541,7 @@ int wsio_open(CONCRETE_IO_HANDLE ws_io, ON_IO_OPEN_COMPLETE on_io_open_complete,
             {
                 wsio_instance->io_state = IO_STATE_OPENING;
 
-                /* Codes_SRS_WSIO_01_023: [wsio_open shall trigger the libwebsocket connect by calling libwebsocket_client_connect and passing to it the following arguments] */
+                /* Codes_SRS_WSIO_01_023: [wsio_open shall trigger the libwebsocket connect by calling lws_client_connect and passing to it the following arguments] */
                 /* Codes_SRS_WSIO_01_024: [clients shall be the context created earlier in wsio_open] */
                 /* Codes_SRS_WSIO_01_025: [address shall be the hostname passed to wsio_create] */
                 /* Codes_SRS_WSIO_01_026: [port shall be the port passed to wsio_create] */
@@ -546,11 +551,11 @@ int wsio_open(CONCRETE_IO_HANDLE ws_io, ON_IO_OPEN_COMPLETE on_io_open_complete,
                 /* Codes_SRS_WSIO_01_030: [origin shall be the host passed to wsio_create] */
                 /* Codes_SRS_WSIO_01_031: [protocol shall be the protocol_name passed to wsio_create] */
                 /* Codes_SRS_WSIO_01_032: [ietf_version_or_minus_one shall be -1] */
-                wsio_instance->wsi = libwebsocket_client_connect(wsio_instance->ws_context, wsio_instance->host, wsio_instance->port, wsio_instance->use_ssl, wsio_instance->relative_path, wsio_instance->host, wsio_instance->host, wsio_instance->protocols[0].name, ietf_version);
+                wsio_instance->wsi = lws_client_connect(wsio_instance->ws_context, wsio_instance->host, wsio_instance->port, wsio_instance->use_ssl, wsio_instance->relative_path, wsio_instance->host, wsio_instance->host, wsio_instance->protocols[0].name, ietf_version);
                 if (wsio_instance->wsi == NULL)
                 {
-                    /* Codes_SRS_WSIO_01_033: [If libwebsocket_client_connect fails then wsio_open shall fail and return a non-zero value.] */
-                    libwebsocket_context_destroy(wsio_instance->ws_context);
+                    /* Codes_SRS_WSIO_01_033: [If lws_client_connect fails then wsio_open shall fail and return a non-zero value.] */
+                    lws_context_destroy(wsio_instance->ws_context);
                     wsio_instance->io_state = IO_STATE_NOT_OPEN;
                     result = __LINE__;
                 }
@@ -594,8 +599,8 @@ int wsio_close(CONCRETE_IO_HANDLE ws_io, ON_IO_CLOSE_COMPLETE on_io_close_comple
             }
 
             /* Codes_SRS_WSIO_01_041: [wsio_close shall close the websockets IO if an open action is either pending or has completed successfully (if the IO is open).] */
-            /* Codes_SRS_WSIO_01_043: [wsio_close shall close the connection by calling libwebsocket_context_destroy.] */
-            libwebsocket_context_destroy(wsio_instance->ws_context);
+            /* Codes_SRS_WSIO_01_043: [wsio_close shall close the connection by calling lws_context_destroy.] */
+            lws_context_destroy(wsio_instance->ws_context);
             wsio_instance->io_state = IO_STATE_NOT_OPEN;
 
             /* Codes_SRS_WSIO_01_049: [The argument on_io_close_complete shall be optional, if NULL is passed by the caller then no close complete callback shall be triggered.] */
@@ -650,7 +655,7 @@ int wsio_send(CONCRETE_IO_HANDLE ws_io, const void* buffer, size_t size, ON_SEND
 			}
 			else
 			{
-				(void)libwebsocket_callback_on_writable(wsio_instance->ws_context, wsio_instance->wsi);
+				(void)lws_callback_on_writable(wsio_instance->wsi);
 				result = 0;
 			}
 		}
@@ -668,7 +673,7 @@ void wsio_dowork(CONCRETE_IO_HANDLE ws_io)
 		if ((wsio_instance->io_state == IO_STATE_OPEN) ||
 			(wsio_instance->io_state == IO_STATE_OPENING))
 		{
-			(void)libwebsocket_service(wsio_instance->ws_context, 0);
+			(void)lws_service(wsio_instance->ws_context, 0);
 		}
 	}
 }

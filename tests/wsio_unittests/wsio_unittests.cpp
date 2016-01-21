@@ -16,10 +16,10 @@ static size_t list_item_count = 0;
 
 static const LIST_HANDLE TEST_LIST_HANDLE = (LIST_HANDLE)0x4242;
 static const LIST_ITEM_HANDLE TEST_LIST_ITEM_HANDLE = (LIST_ITEM_HANDLE)0x11;
-static struct libwebsocket_context* TEST_LIBWEBSOCKET_CONTEXT = (struct libwebsocket_context*)0x4243;
+static struct lws_context* TEST_LIBWEBSOCKET_CONTEXT = (struct lws_context*)0x4243;
 static void* TEST_USER_CONTEXT = (void*)0x4244;
-static struct libwebsocket* TEST_LIBWEBSOCKET = (struct libwebsocket*)0x4245;
-static struct libwebsocket_extension* TEST_INTERNAL_EXTENSIONS = (struct libwebsocket_extension*)0x4246;
+static struct lws* TEST_LIBWEBSOCKET = (struct lws*)0x4245;
+static struct lws_extension* TEST_INTERNAL_EXTENSIONS = (struct lws_extension*)0x4246;
 static BIO* TEST_BIO = (BIO*)0x4247;
 static BIO_METHOD* TEST_BIO_METHOD = (BIO_METHOD*)0x4248;
 static X509_STORE* TEST_CERT_STORE = (X509_STORE*)0x4249;
@@ -123,9 +123,7 @@ bool operator==<const lws_context_creation_info*>(const CMockValue<const lws_con
         {
             result = result && (lhs.GetValue()->protocols[currentProtocol].id == rhs.GetValue()->protocols[currentProtocol].id);
             result = result && (strcmp(lhs.GetValue()->protocols[currentProtocol].name, rhs.GetValue()->protocols[currentProtocol].name) == 0);
-            result = result && (lhs.GetValue()->protocols[currentProtocol].owning_server == rhs.GetValue()->protocols[currentProtocol].owning_server);
             result = result && (lhs.GetValue()->protocols[currentProtocol].per_session_data_size == rhs.GetValue()->protocols[currentProtocol].per_session_data_size);
-            result = result && (lhs.GetValue()->protocols[currentProtocol].protocol_index == rhs.GetValue()->protocols[currentProtocol].protocol_index);
             result = result && (lhs.GetValue()->protocols[currentProtocol].rx_buffer_size == rhs.GetValue()->protocols[currentProtocol].rx_buffer_size);
             result = result && (lhs.GetValue()->protocols[currentProtocol].user == rhs.GetValue()->protocols[currentProtocol].user);
 
@@ -223,24 +221,26 @@ public:
     MOCK_METHOD_END(int, res);
 
     // libwebsockets mocks
-    MOCK_STATIC_METHOD_1(, struct libwebsocket_context*, libwebsocket_create_context, struct lws_context_creation_info*, info)
+    MOCK_STATIC_METHOD_1(, struct lws_context*, lws_create_context, struct lws_context_creation_info*, info)
         saved_ws_callback = info->protocols[0].callback;
         saved_ws_callback_context = info->user;
-    MOCK_METHOD_END(struct libwebsocket_context*, TEST_LIBWEBSOCKET_CONTEXT)
-    MOCK_STATIC_METHOD_1(, void, libwebsocket_context_destroy, struct libwebsocket_context*, context)
+    MOCK_METHOD_END(struct lws_context*, TEST_LIBWEBSOCKET_CONTEXT)
+    MOCK_STATIC_METHOD_1(, void, lws_context_destroy, struct lws_context*, context)
     MOCK_VOID_METHOD_END()
-    MOCK_STATIC_METHOD_2(, int, libwebsocket_service, struct libwebsocket_context*, context, int, timeout_ms)
+    MOCK_STATIC_METHOD_2(, int, lws_service, struct lws_context*, context, int, timeout_ms)
     MOCK_METHOD_END(int, 0)
-    MOCK_STATIC_METHOD_1(, void*, libwebsocket_context_user, struct libwebsocket_context*, context)
+    MOCK_STATIC_METHOD_1(, struct lws_context*, lws_get_context, const struct lws*, wsi)
+    MOCK_METHOD_END(struct lws_context*, TEST_LIBWEBSOCKET_CONTEXT)
+    MOCK_STATIC_METHOD_1(, void*, lws_context_user, struct lws_context*, context)
     MOCK_METHOD_END(void*, TEST_USER_CONTEXT)
-    MOCK_STATIC_METHOD_4(, int, libwebsocket_write, struct libwebsocket*, wsi, unsigned char*, buf, size_t, len, enum libwebsocket_write_protocol, protocol)
+    MOCK_STATIC_METHOD_4(, int, lws_write, struct lws*, wsi, unsigned char*, buf, size_t, len, enum lws_write_protocol, protocol)
     MOCK_METHOD_END(int, 0)
-    MOCK_STATIC_METHOD_2(, int, libwebsocket_callback_on_writable, struct libwebsocket_context*, context, struct libwebsocket*, wsi)
+    MOCK_STATIC_METHOD_1(, int, lws_callback_on_writable, struct lws*, wsi)
     MOCK_METHOD_END(int, 0)
-    MOCK_STATIC_METHOD_9(, struct libwebsocket*, libwebsocket_client_connect, struct libwebsocket_context*, clients, const char*, address, int, port, int, ssl_connection, const char*, path, const char*, host, const char*, origin, const char*, protocol, int, ietf_version_or_minus_one)
-    MOCK_METHOD_END(struct libwebsocket*, TEST_LIBWEBSOCKET)
-    MOCK_STATIC_METHOD_0(, struct libwebsocket_extension*, libwebsocket_get_internal_extensions)
-    MOCK_METHOD_END(struct libwebsocket_extension*, TEST_INTERNAL_EXTENSIONS)
+    MOCK_STATIC_METHOD_9(, struct lws*, lws_client_connect, struct lws_context*, clients, const char*, address, int, port, int, ssl_connection, const char*, path, const char*, host, const char*, origin, const char*, protocol, int, ietf_version_or_minus_one)
+    MOCK_METHOD_END(struct lws*, TEST_LIBWEBSOCKET)
+    MOCK_STATIC_METHOD_0(, struct lws_extension*, lws_get_internal_extensions)
+    MOCK_METHOD_END(struct lws_extension*, TEST_INTERNAL_EXTENSIONS)
 
     // openssl mocks
     MOCK_STATIC_METHOD_1(, BIO*, BIO_new, BIO_METHOD*, type)
@@ -284,14 +284,15 @@ extern "C"
     DECLARE_GLOBAL_MOCK_METHOD_3(wsio_mocks, , LIST_ITEM_HANDLE, list_find, LIST_HANDLE, handle, LIST_MATCH_FUNCTION, match_function, const void*, match_context);
     DECLARE_GLOBAL_MOCK_METHOD_3(wsio_mocks, , int, list_remove_matching_item, LIST_HANDLE, handle, LIST_MATCH_FUNCTION, match_function, const void*, match_context);
 
-    DECLARE_GLOBAL_MOCK_METHOD_1(wsio_mocks, , struct libwebsocket_context*, libwebsocket_create_context, struct lws_context_creation_info*, info);
-    DECLARE_GLOBAL_MOCK_METHOD_1(wsio_mocks, , void, libwebsocket_context_destroy, struct libwebsocket_context*, context);
-    DECLARE_GLOBAL_MOCK_METHOD_2(wsio_mocks, , int, libwebsocket_service, struct libwebsocket_context*, context, int, timeout_ms);
-    DECLARE_GLOBAL_MOCK_METHOD_1(wsio_mocks, , void*, libwebsocket_context_user, struct libwebsocket_context*, context);
-    DECLARE_GLOBAL_MOCK_METHOD_4(wsio_mocks, , int, libwebsocket_write, struct libwebsocket*, wsi, unsigned char*, buf, size_t, len, enum libwebsocket_write_protocol, protocol);
-    DECLARE_GLOBAL_MOCK_METHOD_2(wsio_mocks, , int, libwebsocket_callback_on_writable, struct libwebsocket_context*, context, struct libwebsocket*, wsi);
-    DECLARE_GLOBAL_MOCK_METHOD_9(wsio_mocks, , struct libwebsocket*, libwebsocket_client_connect, struct libwebsocket_context*, clients, const char*, address, int, port, int, ssl_connection, const char*, path, const char*, host, const char*, origin, const char*, protocol, int, ietf_version_or_minus_one);
-    DECLARE_GLOBAL_MOCK_METHOD_0(wsio_mocks, , struct libwebsocket_extension*, libwebsocket_get_internal_extensions);
+    DECLARE_GLOBAL_MOCK_METHOD_1(wsio_mocks, , struct lws_context*, lws_create_context, struct lws_context_creation_info*, info);
+    DECLARE_GLOBAL_MOCK_METHOD_1(wsio_mocks, , void, lws_context_destroy, struct lws_context*, context);
+    DECLARE_GLOBAL_MOCK_METHOD_2(wsio_mocks, , int, lws_service, struct lws_context*, context, int, timeout_ms);
+    DECLARE_GLOBAL_MOCK_METHOD_1(wsio_mocks, , struct lws_context*, lws_get_context, const struct lws*, wsi);
+    DECLARE_GLOBAL_MOCK_METHOD_1(wsio_mocks, , void*, lws_context_user, struct lws_context*, context);
+    DECLARE_GLOBAL_MOCK_METHOD_4(wsio_mocks, , int, lws_write, struct lws*, wsi, unsigned char*, buf, size_t, len, enum lws_write_protocol, protocol);
+    DECLARE_GLOBAL_MOCK_METHOD_1(wsio_mocks, , int, lws_callback_on_writable, struct lws*, wsi);
+    DECLARE_GLOBAL_MOCK_METHOD_9(wsio_mocks, , struct lws*, lws_client_connect, struct lws_context*, clients, const char*, address, int, port, int, ssl_connection, const char*, path, const char*, host, const char*, origin, const char*, protocol, int, ietf_version_or_minus_one);
+    DECLARE_GLOBAL_MOCK_METHOD_0(wsio_mocks, , struct lws_extension*, lws_get_internal_extensions);
 
     DECLARE_GLOBAL_MOCK_METHOD_1(wsio_mocks, , BIO*, BIO_new, BIO_METHOD*, type);
     DECLARE_GLOBAL_MOCK_METHOD_1(wsio_mocks, , int, BIO_free, BIO*, a);
@@ -685,7 +686,7 @@ TEST_FUNCTION(wsio_destroy_with_NULL_handle_does_nothing)
 }
 
 /* Tests_SRS_WSIO_01_009: [wsio_destroy shall execute a close action if the IO has already been open or an open action is already pending.] */
-TEST_FUNCTION(wsio_destroy_closes_the_underlying_libwebsocket_before_destroying_all_resources)
+TEST_FUNCTION(wsio_destroy_closes_the_underlying_lws_before_destroying_all_resources)
 {
     // arrange
     wsio_mocks mocks;
@@ -695,7 +696,7 @@ TEST_FUNCTION(wsio_destroy_closes_the_underlying_libwebsocket_before_destroying_
 
     STRICT_EXPECTED_CALL(mocks, test_on_io_open_complete((void*)0x4242, IO_OPEN_CANCELLED));
 
-    STRICT_EXPECTED_CALL(mocks, libwebsocket_context_destroy(TEST_LIBWEBSOCKET_CONTEXT));
+    STRICT_EXPECTED_CALL(mocks, lws_context_destroy(TEST_LIBWEBSOCKET_CONTEXT));
     STRICT_EXPECTED_CALL(mocks, list_get_head_item(TEST_LIST_HANDLE));
     STRICT_EXPECTED_CALL(mocks, list_destroy(TEST_LIST_HANDLE));
     EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG)); // host_name
@@ -721,9 +722,9 @@ TEST_FUNCTION(wsio_destroy_frees_a_pending_io)
     unsigned char test_buffer[] = { 0x42 };
     CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
     (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
-    STRICT_EXPECTED_CALL(mocks, libwebsocket_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
-    (void)saved_ws_callback(TEST_LIBWEBSOCKET_CONTEXT, TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_ESTABLISHED, saved_ws_callback_context, NULL, 0);
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_ESTABLISHED, saved_ws_callback_context, NULL, 0);
     (void)wsio_send(wsio, test_buffer, sizeof(test_buffer), NULL, NULL);
     mocks.ResetAllCalls();
 
@@ -736,7 +737,7 @@ TEST_FUNCTION(wsio_destroy_frees_a_pending_io)
 
     STRICT_EXPECTED_CALL(mocks, list_get_head_item(TEST_LIST_HANDLE));
 
-    STRICT_EXPECTED_CALL(mocks, libwebsocket_context_destroy(TEST_LIBWEBSOCKET_CONTEXT));
+    STRICT_EXPECTED_CALL(mocks, lws_context_destroy(TEST_LIBWEBSOCKET_CONTEXT));
     STRICT_EXPECTED_CALL(mocks, list_destroy(TEST_LIST_HANDLE));
     EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG)); // host_name
     EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG)); // relative_path
@@ -761,9 +762,9 @@ TEST_FUNCTION(wsio_destroy_frees_2_pending_ios)
     unsigned char test_buffer[] = { 0x42 };
     CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
     (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
-    STRICT_EXPECTED_CALL(mocks, libwebsocket_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
-    (void)saved_ws_callback(TEST_LIBWEBSOCKET_CONTEXT, TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_ESTABLISHED, saved_ws_callback_context, NULL, 0);
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_ESTABLISHED, saved_ws_callback_context, NULL, 0);
     (void)wsio_send(wsio, test_buffer, sizeof(test_buffer), NULL, NULL);
     (void)wsio_send(wsio, test_buffer, sizeof(test_buffer), NULL, NULL);
     mocks.ResetAllCalls();
@@ -783,7 +784,7 @@ TEST_FUNCTION(wsio_destroy_frees_2_pending_ios)
 
     STRICT_EXPECTED_CALL(mocks, list_get_head_item(TEST_LIST_HANDLE));
 
-    STRICT_EXPECTED_CALL(mocks, libwebsocket_context_destroy(TEST_LIBWEBSOCKET_CONTEXT));
+    STRICT_EXPECTED_CALL(mocks, lws_context_destroy(TEST_LIBWEBSOCKET_CONTEXT));
     STRICT_EXPECTED_CALL(mocks, list_destroy(TEST_LIST_HANDLE));
     EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG)); // host_name
     EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG)); // relative_path
@@ -801,9 +802,9 @@ TEST_FUNCTION(wsio_destroy_frees_2_pending_ios)
 
 /* wsio_open */
 
-/* Tests_SRS_WSIO_01_010: [wsio_open shall create a context for the libwebsockets connection by calling libwebsocket_create_context.] */
+/* Tests_SRS_WSIO_01_010: [wsio_open shall create a context for the libwebsockets connection by calling lws_create_context.] */
 /* Tests_SRS_WSIO_01_011: [The port member of the info argument shall be set to CONTEXT_PORT_NO_LISTEN.] */
-/* Tests_SRS_WSIO_01_091: [The extensions field shall be set to the internal extensions obtained by calling libwebsocket_get_internal_extensions.] */
+/* Tests_SRS_WSIO_01_091: [The extensions field shall be set to the internal extensions obtained by calling lws_get_internal_extensions.] */
 /* Tests_SRS_WSIO_01_092: [gid and uid shall be set to -1.] */
 /* Tests_SRS_WSIO_01_093: [The members iface, token_limits, ssl_cert_filepath, ssl_private_key_filepath, ssl_private_key_password, ssl_ca_filepath, ssl_cipher_list and provided_client_ssl_ctx shall be set to NULL.] */
 /* Tests_SRS_WSIO_01_094: [No proxy support shall be implemented, thus setting http_proxy_address to NULL.] */
@@ -817,9 +818,7 @@ TEST_FUNCTION(wsio_destroy_frees_2_pending_ios)
 /* Tests_SRS_WSIO_01_016: [per_session_data_size shall be set to 0] */
 /* Tests_SRS_WSIO_01_017: [rx_buffer_size shall be set to 0, as there is no need for atomic frames] */
 /* Tests_SRS_WSIO_01_019: [user shall be set to NULL] */
-/* Tests_SRS_WSIO_01_020: [owning_server shall be set to NULL] */
-/* Tests_SRS_WSIO_01_021: [protocol_index shall be set to 0] */
-/* Tests_SRS_WSIO_01_023: [wsio_open shall trigger the libwebsocket connect by calling libwebsocket_client_connect and passing to it the following arguments] */
+/* Tests_SRS_WSIO_01_023: [wsio_open shall trigger the lws connect by calling lws_client_connect and passing to it the following arguments] */
 /* Tests_SRS_WSIO_01_024: [clients shall be the context created earlier in wsio_open] */
 /* Tests_SRS_WSIO_01_025: [address shall be the hostname passed to wsio_create] */
 /* Tests_SRS_WSIO_01_026: [port shall be the port passed to wsio_create] */
@@ -838,10 +837,10 @@ TEST_FUNCTION(wsio_open_with_proper_arguments_succeeds)
     mocks.ResetAllCalls();
 
     lws_context_creation_info lws_context_info;
-    libwebsocket_protocols protocols[] = 
+    lws_protocols protocols[] = 
     {
-        { default_wsio_config.protocol_name, NULL, 0, 0, 0, NULL, NULL, 0 },
-        { NULL, NULL, 0, 0, 0, NULL, NULL, 0 }
+        { default_wsio_config.protocol_name, NULL, 0, 0, 0, NULL },
+        { NULL, NULL, 0, 0, 0, NULL }
     };
 
     lws_context_info.port = CONTEXT_PORT_NO_LISTEN;
@@ -862,9 +861,9 @@ TEST_FUNCTION(wsio_open_with_proper_arguments_succeeds)
 
     lws_context_info.protocols = protocols;
 
-    STRICT_EXPECTED_CALL(mocks, libwebsocket_get_internal_extensions());
-    STRICT_EXPECTED_CALL(mocks, libwebsocket_create_context(&lws_context_info));
-    STRICT_EXPECTED_CALL(mocks, libwebsocket_client_connect(TEST_LIBWEBSOCKET_CONTEXT, default_wsio_config.host, default_wsio_config.port, 0, default_wsio_config.relative_path, default_wsio_config.host, default_wsio_config.host, default_wsio_config.protocol_name, -1));
+    STRICT_EXPECTED_CALL(mocks, lws_get_internal_extensions());
+    STRICT_EXPECTED_CALL(mocks, lws_create_context(&lws_context_info));
+    STRICT_EXPECTED_CALL(mocks, lws_client_connect(TEST_LIBWEBSOCKET_CONTEXT, default_wsio_config.host, default_wsio_config.port, 0, default_wsio_config.relative_path, default_wsio_config.host, default_wsio_config.host, default_wsio_config.protocol_name, -1));
 
     // act
     int result = wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
@@ -885,7 +884,7 @@ TEST_FUNCTION(wsio_open_with_proper_arguments_succeeds)
 /* Tests_SRS_WSIO_01_029: [host shall be the host passed to wsio_create] */
 /* Tests_SRS_WSIO_01_030: [origin shall be the host passed to wsio_create] */
 /* Tests_SRS_WSIO_01_031: [protocol shall be the protocol_name passed to wsio_create] */
-/* Tests_SRS_WSIO_01_091: [The extensions field shall be set to the internal extensions obtained by calling libwebsocket_get_internal_extensions.] */
+/* Tests_SRS_WSIO_01_091: [The extensions field shall be set to the internal extensions obtained by calling lws_get_internal_extensions.] */
 /* Tests_SRS_WSIO_01_104: [On success, wsio_open shall return 0.] */
 TEST_FUNCTION(wsio_open_with_different_config_succeeds)
 {
@@ -904,14 +903,14 @@ TEST_FUNCTION(wsio_open_with_different_config_succeeds)
     mocks.ResetAllCalls();
 
     lws_context_creation_info lws_context_info;
-    libwebsocket_protocols protocols[] =
+    lws_protocols protocols[] =
     {
-        { wsio_config.protocol_name, NULL, 0, 0, 0, NULL, NULL, 0 },
-        { NULL, NULL, 0, 0, 0, NULL, NULL, 0 }
+        { wsio_config.protocol_name, NULL, 0, 0, 0, NULL },
+        { NULL, NULL, 0, 0, 0, NULL }
     };
 
     lws_context_info.port = CONTEXT_PORT_NO_LISTEN;
-    lws_context_info.extensions = (libwebsocket_extension*)NULL;
+    lws_context_info.extensions = (lws_extension*)NULL;
     lws_context_info.gid = -1;
     lws_context_info.uid = -1;
     lws_context_info.iface = NULL;
@@ -928,10 +927,10 @@ TEST_FUNCTION(wsio_open_with_different_config_succeeds)
 
     lws_context_info.protocols = protocols;
 
-    STRICT_EXPECTED_CALL(mocks, libwebsocket_get_internal_extensions())
-        .SetReturn((libwebsocket_extension*)NULL);
-    STRICT_EXPECTED_CALL(mocks, libwebsocket_create_context(&lws_context_info));
-    STRICT_EXPECTED_CALL(mocks, libwebsocket_client_connect(TEST_LIBWEBSOCKET_CONTEXT, wsio_config.host, wsio_config.port, 1, wsio_config.relative_path, wsio_config.host, wsio_config.host, wsio_config.protocol_name, -1));
+    STRICT_EXPECTED_CALL(mocks, lws_get_internal_extensions())
+        .SetReturn((lws_extension*)NULL);
+    STRICT_EXPECTED_CALL(mocks, lws_create_context(&lws_context_info));
+    STRICT_EXPECTED_CALL(mocks, lws_client_connect(TEST_LIBWEBSOCKET_CONTEXT, wsio_config.host, wsio_config.port, 1, wsio_config.relative_path, wsio_config.host, wsio_config.host, wsio_config.protocol_name, -1));
 
     // act
     int result = wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
@@ -953,10 +952,10 @@ TEST_FUNCTION(when_creating_the_libwebsockets_context_fails_then_wsio_open_fails
     mocks.ResetAllCalls();
 
     lws_context_creation_info lws_context_info;
-    libwebsocket_protocols protocols[] =
+    lws_protocols protocols[] =
     {
-        { default_wsio_config.protocol_name, NULL, 0, 0, 0, NULL, NULL, 0 },
-        { NULL, NULL, 0, 0, 0, NULL, NULL, 0 }
+        { default_wsio_config.protocol_name, NULL, 0, 0, 0, NULL },
+        { NULL, NULL, 0, 0, 0, NULL }
     };
 
     lws_context_info.port = CONTEXT_PORT_NO_LISTEN;
@@ -977,9 +976,9 @@ TEST_FUNCTION(when_creating_the_libwebsockets_context_fails_then_wsio_open_fails
 
     lws_context_info.protocols = protocols;
 
-    STRICT_EXPECTED_CALL(mocks, libwebsocket_get_internal_extensions());
-    STRICT_EXPECTED_CALL(mocks, libwebsocket_create_context(&lws_context_info))
-        .SetReturn((libwebsocket_context*)NULL);
+    STRICT_EXPECTED_CALL(mocks, lws_get_internal_extensions());
+    STRICT_EXPECTED_CALL(mocks, lws_create_context(&lws_context_info))
+        .SetReturn((lws_context*)NULL);
 
     // act
     int result = wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
@@ -988,8 +987,8 @@ TEST_FUNCTION(when_creating_the_libwebsockets_context_fails_then_wsio_open_fails
     ASSERT_ARE_NOT_EQUAL(int, 0, result);
 }
 
-/* Tests_SRS_WSIO_01_033: [If libwebsocket_client_connect fails then wsio_open shall fail and return a non-zero value.] */
-TEST_FUNCTION(when_libwebsocket_client_connect_fails_then_wsio_open_fails)
+/* Tests_SRS_WSIO_01_033: [If lws_client_connect fails then wsio_open shall fail and return a non-zero value.] */
+TEST_FUNCTION(when_lws_client_connect_fails_then_wsio_open_fails)
 {
     // arrange
     wsio_mocks mocks;
@@ -997,10 +996,10 @@ TEST_FUNCTION(when_libwebsocket_client_connect_fails_then_wsio_open_fails)
     mocks.ResetAllCalls();
 
     lws_context_creation_info lws_context_info;
-    libwebsocket_protocols protocols[] =
+    lws_protocols protocols[] =
     {
-        { default_wsio_config.protocol_name, NULL, 0, 0, 0, NULL, NULL, 0 },
-        { NULL, NULL, 0, 0, 0, NULL, NULL, 0 }
+        { default_wsio_config.protocol_name, NULL, 0, 0, 0, NULL },
+        { NULL, NULL, 0, 0, 0, NULL }
     };
 
     lws_context_info.port = CONTEXT_PORT_NO_LISTEN;
@@ -1021,11 +1020,11 @@ TEST_FUNCTION(when_libwebsocket_client_connect_fails_then_wsio_open_fails)
 
     lws_context_info.protocols = protocols;
 
-    STRICT_EXPECTED_CALL(mocks, libwebsocket_get_internal_extensions());
-    STRICT_EXPECTED_CALL(mocks, libwebsocket_create_context(&lws_context_info));
-    STRICT_EXPECTED_CALL(mocks, libwebsocket_client_connect(TEST_LIBWEBSOCKET_CONTEXT, default_wsio_config.host, default_wsio_config.port, 0, default_wsio_config.relative_path, default_wsio_config.host, default_wsio_config.host, default_wsio_config.protocol_name, -1))
-        .SetReturn((libwebsocket*)NULL);
-    STRICT_EXPECTED_CALL(mocks, libwebsocket_context_destroy(TEST_LIBWEBSOCKET_CONTEXT));
+    STRICT_EXPECTED_CALL(mocks, lws_get_internal_extensions());
+    STRICT_EXPECTED_CALL(mocks, lws_create_context(&lws_context_info));
+    STRICT_EXPECTED_CALL(mocks, lws_client_connect(TEST_LIBWEBSOCKET_CONTEXT, default_wsio_config.host, default_wsio_config.port, 0, default_wsio_config.relative_path, default_wsio_config.host, default_wsio_config.host, default_wsio_config.protocol_name, -1))
+        .SetReturn((lws*)NULL);
+    STRICT_EXPECTED_CALL(mocks, lws_context_destroy(TEST_LIBWEBSOCKET_CONTEXT));
 
     // act
     int result = wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
@@ -1064,12 +1063,13 @@ TEST_FUNCTION(when_ws_callback_indicates_a_connect_complete_then_the_on_open_com
     (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
 
-    STRICT_EXPECTED_CALL(mocks, libwebsocket_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+    STRICT_EXPECTED_CALL(mocks, lws_get_context(TEST_LIBWEBSOCKET));
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
     STRICT_EXPECTED_CALL(mocks, test_on_io_open_complete((void*)0x4242, IO_OPEN_OK));
 
     // act
-    (void)saved_ws_callback(TEST_LIBWEBSOCKET_CONTEXT, TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_ESTABLISHED, NULL, NULL, 0);
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_ESTABLISHED, NULL, NULL, 0);
 
     // assert
     mocks.AssertActualAndExpectedCalls();
@@ -1088,13 +1088,14 @@ TEST_FUNCTION(when_ws_callback_indicates_a_connection_error_then_the_on_open_com
     (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
 
-    STRICT_EXPECTED_CALL(mocks, libwebsocket_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+    STRICT_EXPECTED_CALL(mocks, lws_get_context(TEST_LIBWEBSOCKET));
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
     STRICT_EXPECTED_CALL(mocks, test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
-    STRICT_EXPECTED_CALL(mocks, libwebsocket_context_destroy(TEST_LIBWEBSOCKET_CONTEXT));
+    STRICT_EXPECTED_CALL(mocks, lws_context_destroy(TEST_LIBWEBSOCKET_CONTEXT));
 
     // act
-    (void)saved_ws_callback(TEST_LIBWEBSOCKET_CONTEXT, TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_CONNECTION_ERROR, NULL, NULL, 0);
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_CONNECTION_ERROR, NULL, NULL, 0);
 
     // assert
     mocks.AssertActualAndExpectedCalls();
@@ -1114,7 +1115,7 @@ TEST_FUNCTION(when_wsio_close_is_called_while_an_open_action_is_in_progress_the_
     mocks.ResetAllCalls();
 
     STRICT_EXPECTED_CALL(mocks, test_on_io_open_complete((void*)0x4242, IO_OPEN_CANCELLED));
-    STRICT_EXPECTED_CALL(mocks, libwebsocket_context_destroy(TEST_LIBWEBSOCKET_CONTEXT));
+    STRICT_EXPECTED_CALL(mocks, lws_context_destroy(TEST_LIBWEBSOCKET_CONTEXT));
 
     // act
     wsio_close(wsio, NULL, NULL);
@@ -1135,13 +1136,14 @@ TEST_FUNCTION(when_ws_callback_indicates_a_connection_error_then_the_on_open_com
     (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, NULL);
     mocks.ResetAllCalls();
 
-    STRICT_EXPECTED_CALL(mocks, libwebsocket_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+    STRICT_EXPECTED_CALL(mocks, lws_get_context(TEST_LIBWEBSOCKET));
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
     STRICT_EXPECTED_CALL(mocks, test_on_io_open_complete(NULL, IO_OPEN_ERROR));
-    STRICT_EXPECTED_CALL(mocks, libwebsocket_context_destroy(TEST_LIBWEBSOCKET_CONTEXT));
+    STRICT_EXPECTED_CALL(mocks, lws_context_destroy(TEST_LIBWEBSOCKET_CONTEXT));
 
     // act
-    (void)saved_ws_callback(TEST_LIBWEBSOCKET_CONTEXT, TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_CONNECTION_ERROR, NULL, NULL, 0);
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_CONNECTION_ERROR, NULL, NULL, 0);
 
     // assert
     mocks.AssertActualAndExpectedCalls();
@@ -1159,12 +1161,13 @@ TEST_FUNCTION(when_ws_callback_indicates_a_connect_complete_then_the_on_open_com
     (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, NULL);
     mocks.ResetAllCalls();
 
-    STRICT_EXPECTED_CALL(mocks, libwebsocket_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+    STRICT_EXPECTED_CALL(mocks, lws_get_context(TEST_LIBWEBSOCKET));
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
     STRICT_EXPECTED_CALL(mocks, test_on_io_open_complete(NULL, IO_OPEN_OK));
 
     // act
-    (void)saved_ws_callback(TEST_LIBWEBSOCKET_CONTEXT, TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_ESTABLISHED, NULL, NULL, 0);
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_ESTABLISHED, NULL, NULL, 0);
 
     // assert
     mocks.AssertActualAndExpectedCalls();
@@ -1182,11 +1185,12 @@ TEST_FUNCTION(when_ws_callback_indicates_a_connect_complete_and_no_on_open_compl
     (void)wsio_open(wsio, NULL, test_on_bytes_received, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
 
-    STRICT_EXPECTED_CALL(mocks, libwebsocket_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+    STRICT_EXPECTED_CALL(mocks, lws_get_context(TEST_LIBWEBSOCKET));
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
 
     // act
-    (void)saved_ws_callback(TEST_LIBWEBSOCKET_CONTEXT, TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_ESTABLISHED, NULL, NULL, 0);
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_ESTABLISHED, NULL, NULL, 0);
 
     // assert
     mocks.AssertActualAndExpectedCalls();
@@ -1204,12 +1208,13 @@ TEST_FUNCTION(when_ws_callback_indicates_a_connect_error_and_no_on_open_complete
     (void)wsio_open(wsio, NULL, test_on_bytes_received, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
 
-    STRICT_EXPECTED_CALL(mocks, libwebsocket_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+    STRICT_EXPECTED_CALL(mocks, lws_get_context(TEST_LIBWEBSOCKET));
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
-    STRICT_EXPECTED_CALL(mocks, libwebsocket_context_destroy(TEST_LIBWEBSOCKET_CONTEXT));
+    STRICT_EXPECTED_CALL(mocks, lws_context_destroy(TEST_LIBWEBSOCKET_CONTEXT));
 
     // act
-    (void)saved_ws_callback(TEST_LIBWEBSOCKET_CONTEXT, TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_CONNECTION_ERROR, NULL, NULL, 0);
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_CONNECTION_ERROR, NULL, NULL, 0);
 
     // assert
     mocks.AssertActualAndExpectedCalls();
@@ -1222,7 +1227,7 @@ TEST_FUNCTION(when_ws_callback_indicates_a_connect_error_and_no_on_open_complete
 
 /* Tests_SRS_WSIO_01_041: [wsio_close shall close the websockets IO if an open action is either pending or has completed successfully (if the IO is open).] */
 /* Tests_SRS_WSIO_01_049: [The argument on_io_close_complete shall be optional, if NULL is passed by the caller then no close complete callback shall be triggered.] */
-/* Tests_SRS_WSIO_01_043: [wsio_close shall close the connection by calling libwebsocket_context_destroy.] */
+/* Tests_SRS_WSIO_01_043: [wsio_close shall close the connection by calling lws_context_destroy.] */
 /* Tests_SRS_WSIO_01_044: [On success wsio_close shall return 0.] */
 TEST_FUNCTION(wsio_close_destroys_the_ws_context)
 {
@@ -1233,7 +1238,7 @@ TEST_FUNCTION(wsio_close_destroys_the_ws_context)
     mocks.ResetAllCalls();
 
     STRICT_EXPECTED_CALL(mocks, test_on_io_open_complete((void*)0x4242, IO_OPEN_CANCELLED));
-    STRICT_EXPECTED_CALL(mocks, libwebsocket_context_destroy(TEST_LIBWEBSOCKET_CONTEXT));
+    STRICT_EXPECTED_CALL(mocks, lws_context_destroy(TEST_LIBWEBSOCKET_CONTEXT));
 
     // act
     int result = wsio_close(wsio, NULL, NULL);
@@ -1257,7 +1262,7 @@ TEST_FUNCTION(wsio_close_destroys_the_ws_context_and_calls_the_io_close_complete
     mocks.ResetAllCalls();
 
     STRICT_EXPECTED_CALL(mocks, test_on_io_open_complete((void*)0x4242, IO_OPEN_CANCELLED));
-    STRICT_EXPECTED_CALL(mocks, libwebsocket_context_destroy(TEST_LIBWEBSOCKET_CONTEXT));
+    STRICT_EXPECTED_CALL(mocks, lws_context_destroy(TEST_LIBWEBSOCKET_CONTEXT));
     STRICT_EXPECTED_CALL(mocks, test_on_io_close_complete((void*)0x4243));
 
     // act
@@ -1279,12 +1284,12 @@ TEST_FUNCTION(wsio_close_after_ws_connected_calls_the_io_close_complete_callback
     wsio_mocks mocks;
     CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
     (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
-    STRICT_EXPECTED_CALL(mocks, libwebsocket_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
-    (void)saved_ws_callback(TEST_LIBWEBSOCKET_CONTEXT, TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_ESTABLISHED, saved_ws_callback_context, NULL, 0);
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_ESTABLISHED, saved_ws_callback_context, NULL, 0);
     mocks.ResetAllCalls();
 
-    STRICT_EXPECTED_CALL(mocks, libwebsocket_context_destroy(TEST_LIBWEBSOCKET_CONTEXT));
+    STRICT_EXPECTED_CALL(mocks, lws_context_destroy(TEST_LIBWEBSOCKET_CONTEXT));
     STRICT_EXPECTED_CALL(mocks, test_on_io_close_complete((void*)0x4243));
 
     // act

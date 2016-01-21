@@ -28,6 +28,12 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 add_definitions(-DREFCOUNT_ATOMIC_DONTCARE)
 add_definitions(-D__STDC_NO_ATOMICS__=1)
 
+if(${use_wsio})
+    include_directories(libwebsockets/lib)
+    include_directories(${CMAKE_BINARY_DIR}/libwebsockets)
+    add_subdirectory(libwebsockets)
+endif()
+
 add_subdirectory(azure-c-shared-utility/c)
 
 enable_testing()
@@ -197,10 +203,6 @@ endif()
 
 if(WIN32)
     include_directories($ENV{OpenSSLDir}/include)
-endif()
-
-if(${use_wsio})
-    include_directories($ENV{WSDir}/lib $ENV{WSDir}/build)
 endif()
 
 set(uamqp_h_files

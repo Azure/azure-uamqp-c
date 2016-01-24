@@ -200,9 +200,11 @@ static int ws_sb_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
 						}
 						else
 						{
-							if (pending_socket_io->on_send_complete != NULL)
+                            /* Codes_SRS_WSIO_01_060: [The argument on_send_complete shall be optional, if NULL is passed by the caller then no send complete callback shall be triggered.] */
+                            if (pending_socket_io->on_send_complete != NULL)
 							{
                                 /* Codes_SRS_WSIO_01_057: [The callback on_send_complete shall be called with SEND_RESULT_OK when the send is indicated as complete.] */
+                                /* Codes_SRS_WSIO_01_059: [The callback_context argument shall be passed to on_send_complete as is.] */
 								pending_socket_io->on_send_complete(pending_socket_io->callback_context, IO_SEND_OK);
 							}
 
@@ -453,20 +455,6 @@ void wsio_destroy(CONCRETE_IO_HANDLE ws_io)
         /* Codes_SRS_WSIO_01_009: [wsio_destroy shall execute a close action if the IO has already been open or an open action is already pending.] */
         (void)wsio_close(wsio_instance, NULL, NULL);
 
-        /* Codes_SRS_WSIO_01_101: [wsio_destroy shall obtain all the IO items by repetitively querying for the head of the pending IO list and freeing that head item.] */
-		while ((first_pending_io = list_get_head_item(wsio_instance->pending_io_list)) != NULL)
-		{
-			PENDING_SOCKET_IO* pending_socket_io = (PENDING_SOCKET_IO*)list_item_get_value(first_pending_io);
-			if (pending_socket_io != NULL)
-			{
-				amqpalloc_free(pending_socket_io->bytes);
-				amqpalloc_free(pending_socket_io);
-			}
-
-            /* Codes_SRS_WSIO_01_102: [Each freed item shall be removed from the list by using list_remove.] */
-            (void)list_remove(wsio_instance->pending_io_list, first_pending_io);
-		}
-
 		amqpalloc_free(wsio_instance->protocols);
 		amqpalloc_free(wsio_instance->host);
         amqpalloc_free(wsio_instance->protocol_name);
@@ -607,14 +595,22 @@ int wsio_close(CONCRETE_IO_HANDLE ws_io, ON_IO_CLOSE_COMPLETE on_io_close_comple
                 /* cancel all pending IOs */
                 LIST_ITEM_HANDLE first_pending_io;
 
-                /* Codes_SRS_WSIO_01_058: [If a close action is started (by calling wsio_close) while a send is pending, the callback on_send_complete shall be called with IO_SEND_CANCELLED.] */
+                /* Codes_SRS_WSIO_01_108: [wsio_close shall obtain all the pending IO items by repetitively querying for the head of the pending IO list and freeing that head item.] */
+                /* Codes_SRS_WSIO_01_111: [Obtaining the head of the pending IO list shall be done by calling list_get_head_item.] */
                 while ((first_pending_io = list_get_head_item(wsio_instance->pending_io_list)) != NULL)
                 {
                     PENDING_SOCKET_IO* pending_socket_io = (PENDING_SOCKET_IO*)list_item_get_value(first_pending_io);
 
                     if (pending_socket_io != NULL)
                     {
-                        pending_socket_io->on_send_complete(pending_socket_io->callback_context, IO_SEND_CANCELLED);
+                        /* Codes_SRS_WSIO_01_060: [The argument on_send_complete shall be optional, if NULL is passed by the caller then no send complete callback shall be triggered.] */
+                        if (pending_socket_io->on_send_complete != NULL)
+                        {
+                            /* Codes_SRS_WSIO_01_109: [For each pending item the send complete callback shall be called with IO_SEND_CANCELLED.] */
+                            /* Codes_SRS_WSIO_01_110: [The callback context passed to the on_send_complete callback shall be the context given to wsio_send.] */
+                            /* Codes_SRS_WSIO_01_059: [The callback_context argument shall be passed to on_send_complete as is.] */
+                            pending_socket_io->on_send_complete(pending_socket_io->callback_context, IO_SEND_CANCELLED);
+                        }
 
                         if (pending_socket_io != NULL)
                         {

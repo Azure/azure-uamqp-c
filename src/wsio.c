@@ -76,14 +76,16 @@ static int add_pending_io(WSIO_INSTANCE* ws_io_instance, const unsigned char* bu
 	PENDING_SOCKET_IO* pending_socket_io = (PENDING_SOCKET_IO*)amqpalloc_malloc(sizeof(PENDING_SOCKET_IO));
 	if (pending_socket_io == NULL)
 	{
-		result = __LINE__;
+        /* Codes_SRS_WSIO_01_055: [If queueing the data fails (i.e. due to insufficient memory), wsio_send shall fail and return a non-zero value.] */
+        result = __LINE__;
 	}
 	else
 	{
 		pending_socket_io->bytes = (unsigned char*)amqpalloc_malloc(size);
 		if (pending_socket_io->bytes == NULL)
 		{
-			amqpalloc_free(pending_socket_io);
+            /* Codes_SRS_WSIO_01_055: [If queueing the data fails (i.e. due to insufficient memory), wsio_send shall fail and return a non-zero value.] */
+            amqpalloc_free(pending_socket_io);
 			result = __LINE__;
 		}
 		else
@@ -94,9 +96,11 @@ static int add_pending_io(WSIO_INSTANCE* ws_io_instance, const unsigned char* bu
 			pending_socket_io->pending_io_list = ws_io_instance->pending_io_list;
 			(void)memcpy(pending_socket_io->bytes, buffer, size);
 
+            /* Codes_SRS_WSIO_01_105: [The data and callback shall be queued by calling list_add on the list created in wsio_create.] */
 			if (list_add(ws_io_instance->pending_io_list, pending_socket_io) == NULL)
 			{
-				amqpalloc_free(pending_socket_io->bytes);
+                /* Codes_SRS_WSIO_01_055: [If queueing the data fails (i.e. due to insufficient memory), wsio_send shall fail and return a non-zero value.] */
+                amqpalloc_free(pending_socket_io->bytes);
 				amqpalloc_free(pending_socket_io);
 				result = __LINE__;
 			}
@@ -198,6 +202,7 @@ static int ws_sb_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
 						{
 							if (pending_socket_io->on_send_complete != NULL)
 							{
+                                /* Codes_SRS_WSIO_01_057: [The callback on_send_complete shall be called with SEND_RESULT_OK when the send is indicated as complete.] */
 								pending_socket_io->on_send_complete(pending_socket_io->callback_context, IO_SEND_OK);
 							}
 
@@ -619,22 +624,25 @@ int wsio_close(CONCRETE_IO_HANDLE ws_io, ON_IO_CLOSE_COMPLETE on_io_close_comple
 	return result;
 }
 
+/* Tests_SRS_WSIO_01_050: [wsio_send shall send the buffer bytes through the websockets connection.] */
 int wsio_send(CONCRETE_IO_HANDLE ws_io, const void* buffer, size_t size, ON_SEND_COMPLETE on_send_complete, void* callback_context)
 {
 	int result;
 
-	if ((ws_io == NULL) ||
+    /* Codes_SRS_WSIO_01_052: [If any of the arguments ws_io or buffer are NULL, wsio_send shall fail and return a non-zero value.] */
+    if ((ws_io == NULL) ||
 		(buffer == NULL) ||
-		(size == 0))
+        /* Codes_SRS_WSIO_01_053: [If size is zero then wsio_send shall fail and return a non-zero value.] */
+        (size == 0))
 	{
-		/* Invalid arguments */
 		result = __LINE__;
 	}
 	else
 	{
 		WSIO_INSTANCE* wsio_instance = (WSIO_INSTANCE*)ws_io;
 
-		if (wsio_instance->io_state != IO_STATE_OPEN)
+        /* Codes_SRS_WSIO_01_051: [If the wsio is not OPEN (open has not been called or is still in progress) then wsio_send shall fail and return a non-zero value.] */
+        if (wsio_instance->io_state != IO_STATE_OPEN)
 		{
 			result = __LINE__;
 		}
@@ -649,14 +657,24 @@ int wsio_send(CONCRETE_IO_HANDLE ws_io, const void* buffer, size_t size, ON_SEND
 				}
 			}
 
-			if (add_pending_io(wsio_instance, buffer, size, on_send_complete, callback_context) != 0)
+            /* Codes_SRS_WSIO_01_054: [wsio_send shall queue the buffer and size until the libwebsockets callback is invoked with the event LWS_CALLBACK_CLIENT_WRITEABLE.] */
+            if (add_pending_io(wsio_instance, buffer, size, on_send_complete, callback_context) != 0)
 			{
 				result = __LINE__;
 			}
 			else
 			{
-				(void)lws_callback_on_writable(wsio_instance->wsi);
-				result = 0;
+                /* Codes_SRS_WSIO_01_056: [After queueing the data, wsio_send shall call lws_callback_on_writable, while passing as arguments the websockets instance previously obtained in wsio_open from lws_client_connect.] */
+                if (lws_callback_on_writable(wsio_instance->wsi) < 0)
+                {
+                    /* Codes_SRS_WSIO_01_106: [If lws_callback_on_writable returns a negative value, wsio_send shall fail and return a non-zero value.] */
+                    result = __LINE__;
+                }
+                else
+                {
+                    /* Codes_SRS_WSIO_01_107: [On success, wsio_send shall return 0.] */
+                    result = 0;
+                }
 			}
 		}
 	}

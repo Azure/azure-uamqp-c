@@ -446,6 +446,7 @@ void wsio_destroy(CONCRETE_IO_HANDLE ws_io)
     if (ws_io != NULL)
 	{
 		WSIO_INSTANCE* wsio_instance = (WSIO_INSTANCE*)ws_io;
+        LIST_ITEM_HANDLE first_pending_io;
 
         /* Codes_SRS_WSIO_01_007: [wsio_destroy shall free all resources associated with the wsio instance.] */
 
@@ -453,7 +454,6 @@ void wsio_destroy(CONCRETE_IO_HANDLE ws_io)
         (void)wsio_close(wsio_instance, NULL, NULL);
 
         /* Codes_SRS_WSIO_01_101: [wsio_destroy shall obtain all the IO items by repetitively querying for the head of the pending IO list and freeing that head item.] */
-		LIST_ITEM_HANDLE first_pending_io;
 		while ((first_pending_io = list_get_head_item(wsio_instance->pending_io_list)) != NULL)
 		{
 			PENDING_SOCKET_IO* pending_socket_io = (PENDING_SOCKET_IO*)list_item_get_value(first_pending_io);
@@ -601,6 +601,30 @@ int wsio_close(CONCRETE_IO_HANDLE ws_io, ON_IO_CLOSE_COMPLETE on_io_close_comple
             if (wsio_instance->io_state == IO_STATE_OPENING)
             {
                 indicate_open_complete(wsio_instance, IO_OPEN_CANCELLED);
+            }
+            else
+            {
+                /* cancel all pending IOs */
+                LIST_ITEM_HANDLE first_pending_io;
+
+                /* Codes_SRS_WSIO_01_058: [If a close action is started (by calling wsio_close) while a send is pending, the callback on_send_complete shall be called with IO_SEND_CANCELLED.] */
+                while ((first_pending_io = list_get_head_item(wsio_instance->pending_io_list)) != NULL)
+                {
+                    PENDING_SOCKET_IO* pending_socket_io = (PENDING_SOCKET_IO*)list_item_get_value(first_pending_io);
+
+                    if (pending_socket_io != NULL)
+                    {
+                        pending_socket_io->on_send_complete(pending_socket_io->callback_context, IO_SEND_CANCELLED);
+
+                        if (pending_socket_io != NULL)
+                        {
+                            amqpalloc_free(pending_socket_io->bytes);
+                            amqpalloc_free(pending_socket_io);
+                        }
+                    }
+
+                    (void)list_remove(wsio_instance->pending_io_list, first_pending_io);
+                }
             }
 
             /* Codes_SRS_WSIO_01_041: [wsio_close shall close the websockets IO if an open action is either pending or has completed successfully (if the IO is open).] */

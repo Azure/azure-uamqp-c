@@ -1674,7 +1674,7 @@ TEST_FUNCTION(when_size_is_zero_wsio_send_fails)
     wsio_destroy(wsio);
 }
 
-/* Tests_SRS_WSIO_01_058: [If a close action is started (by calling wsio_close) while a send is pending, the callback on_send_complete shall be called with SEND_RESULT_CANCELLED.] */
+/* Tests_SRS_WSIO_01_058: [If a close action is started (by calling wsio_close) while a send is pending, the callback on_send_complete shall be called with IO_SEND_CANCELLED.] */
 TEST_FUNCTION(wsio_close_with_a_pending_send_cancels_the_send)
 {
     // arrange
@@ -1688,24 +1688,17 @@ TEST_FUNCTION(wsio_close_with_a_pending_send_cancels_the_send)
     (void)wsio_send(wsio, test_buffer, sizeof(test_buffer), test_on_send_complete, (void*)0x4243);
     mocks.ResetAllCalls();
 
-    STRICT_EXPECTED_CALL(mocks, lws_get_context(TEST_LIBWEBSOCKET));
-    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
-        .SetReturn(saved_ws_callback_context);
     STRICT_EXPECTED_CALL(mocks, list_get_head_item(TEST_LIST_HANDLE));
     EXPECTED_CALL(mocks, list_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(mocks, lws_write(TEST_LIBWEBSOCKET, IGNORED_PTR_ARG, sizeof(test_buffer), LWS_WRITE_BINARY))
-        .ValidateArgumentBuffer(2, test_buffer, sizeof(test_buffer))
-        .SetReturn(sizeof(test_buffer));
     EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(mocks, test_on_send_complete((void*)0x4243, IO_SEND_OK));
-    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(mocks, test_on_send_complete((void*)0x4243, IO_SEND_CANCELLED));
     EXPECTED_CALL(mocks, list_remove(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(mocks, list_get_head_item(TEST_LIST_HANDLE));
     EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(mocks, lws_context_destroy(TEST_LIBWEBSOCKET_CONTEXT));
 
     // act
-    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_WRITEABLE, saved_ws_callback_context, NULL, 0);
+    (void)wsio_close(wsio, NULL, NULL);
 
     // assert
     mocks.AssertActualAndExpectedCalls();

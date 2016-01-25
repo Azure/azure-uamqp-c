@@ -7,6 +7,7 @@
 #endif
 #include <stddef.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include "wsio.h"
 #include "amqpalloc.h"
 #include "logger.h"
@@ -30,6 +31,7 @@ typedef struct PENDING_SOCKET_IO_TAG
 	ON_SEND_COMPLETE on_send_complete;
 	void* callback_context;
 	LIST_HANDLE pending_io_list;
+    bool is_partially_sent;
 } PENDING_SOCKET_IO;
 
 typedef struct WSIO_INSTANCE_TAG
@@ -90,7 +92,8 @@ static int add_pending_io(WSIO_INSTANCE* ws_io_instance, const unsigned char* bu
 		}
 		else
 		{
-			pending_socket_io->size = size;
+            pending_socket_io->is_partially_sent = false;
+            pending_socket_io->size = size;
 			pending_socket_io->on_send_complete = on_send_complete;
 			pending_socket_io->callback_context = callback_context;
 			pending_socket_io->pending_io_list = ws_io_instance->pending_io_list;
@@ -114,6 +117,17 @@ static int add_pending_io(WSIO_INSTANCE* ws_io_instance, const unsigned char* bu
 	return result;
 }
 
+static void remove_pending_io(WSIO_INSTANCE* wsio_instance, LIST_ITEM_HANDLE item_handle, PENDING_SOCKET_IO* pending_socket_io)
+{
+    amqpalloc_free(pending_socket_io->bytes);
+    amqpalloc_free(pending_socket_io);
+    if (list_remove(wsio_instance->pending_io_list, item_handle) != 0)
+    {
+        wsio_instance->io_state = IO_STATE_ERROR;
+        indicate_error(wsio_instance);
+    }
+}
+
 static const IO_INTERFACE_DESCRIPTION ws_io_interface_description =
 {
 	wsio_create,
@@ -124,7 +138,7 @@ static const IO_INTERFACE_DESCRIPTION ws_io_interface_description =
 	wsio_dowork
 };
 
-static int ws_sb_callback(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len)
+static int on_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len)
 {
     struct lws_context* context;
 	WSIO_INSTANCE* wsio_instance;
@@ -133,11 +147,21 @@ static int ws_sb_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
 	case LWS_CALLBACK_CLIENT_ESTABLISHED:
         context = lws_get_context(wsi);
         wsio_instance = lws_context_user(context);
-        if (wsio_instance->io_state == IO_STATE_OPENING)
+
+        /* Codes_SRS_WSIO_01_066: [If an open action is pending, the on_io_open_complete callback shall be triggered with IO_OPEN_OK and from now on it shall be possible to send/receive data.] */
+        switch (wsio_instance->io_state)
         {
+        default:
+        case IO_STATE_OPEN:
+            /* Codes_SRS_WSIO_01_068: [If the IO is already open, the on_io_error callback shall be triggered.] */
+            indicate_error(wsio_instance);
+            break;
+
+        case IO_STATE_OPENING:
             /* Codes_SRS_WSIO_01_036: [The callback on_io_open_complete shall be called with io_open_result being set to IO_OPEN_OK when the open action is succesfull.] */
             wsio_instance->io_state = IO_STATE_OPEN;
             indicate_open_complete(wsio_instance, IO_OPEN_OK);
+            break;
         }
 
 		break;
@@ -145,28 +169,38 @@ static int ws_sb_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
 	case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
         context = lws_get_context(wsi);
         wsio_instance = lws_context_user(context);
-        if (wsio_instance->io_state == IO_STATE_OPENING)
+        switch (wsio_instance->io_state)
         {
+        default:
+        case IO_STATE_OPEN:
+            /* Codes_SRS_WSIO_01_070: [If the IO is already open, the on_io_error callback shall be triggered.] */
+            indicate_error(wsio_instance);
+            break;
+
+        case IO_STATE_OPENING:
             /* Codes_SRS_WSIO_01_037: [If any error occurs while the open action is in progress, the callback on_io_open_complete shall be called with io_open_result being set to IO_OPEN_ERROR.] */
+            /* Codes_SRS_WSIO_01_069: [If an open action is pending, the on_io_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
             indicate_open_complete(wsio_instance, IO_OPEN_ERROR);
             lws_context_destroy(wsio_instance->ws_context);
             wsio_instance->io_state = IO_STATE_NOT_OPEN;
+            break;
         }
 
-		break;
-
-	case LWS_CALLBACK_CLOSED:
 		break;
 
 	case LWS_CALLBACK_CLIENT_WRITEABLE:
 	{
         LIST_ITEM_HANDLE first_pending_io;
+
         context = lws_get_context(wsi);
         wsio_instance = lws_context_user(context);
+
+        /* Codes_SRS_WSIO_01_071: [If any pending IO chunks queued in wsio_send are to be sent, then the first one shall be retrieved from the queue.] */
         first_pending_io = list_get_head_item(wsio_instance->pending_io_list);
+
 		if (first_pending_io != NULL)
 		{
-			PENDING_SOCKET_IO* pending_socket_io = (PENDING_SOCKET_IO*)list_item_get_value(first_pending_io);
+            PENDING_SOCKET_IO* pending_socket_io = (PENDING_SOCKET_IO*)list_item_get_value(first_pending_io);
 			if (pending_socket_io == NULL)
 			{
 				wsio_instance->io_state = IO_STATE_ERROR;
@@ -174,23 +208,47 @@ static int ws_sb_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
 			}
 			else
 			{
+                /* Codes_SRS_WSIO_01_072: [Enough space to fit the data and LWS_SEND_BUFFER_PRE_PADDING and LWS_SEND_BUFFER_POST_PADDING shall be allocated.] */
 				unsigned char* ws_buffer = (unsigned char*)amqpalloc_malloc(LWS_SEND_BUFFER_PRE_PADDING + pending_socket_io->size + LWS_SEND_BUFFER_POST_PADDING);
 				if (ws_buffer == NULL)
 				{
-					wsio_instance->io_state = IO_STATE_ERROR;
-					indicate_error(wsio_instance);
+                    /* Codes_SRS_WSIO_01_073: [If allocating the memory fails then the send_result callback callback shall be triggered with IO_SEND_ERROR.] */
+                    if (pending_socket_io->on_send_complete != NULL)
+                    {
+                        pending_socket_io->on_send_complete(pending_socket_io->callback_context, IO_SEND_ERROR);
+                    }
+
+                    if (pending_socket_io->is_partially_sent)
+                    {
+                        wsio_instance->io_state = IO_STATE_ERROR;
+                        indicate_error(wsio_instance);
+                    }
+
+                    remove_pending_io(wsio_instance, first_pending_io, pending_socket_io);
 				}
 				else
 				{
+                    /* Codes_SRS_WSIO_01_074: [The payload queued in wsio_send shall be copied to the newly allocated buffer at the position LWS_SEND_BUFFER_PRE_PADDING.] */
 					(void)memcpy(ws_buffer + LWS_SEND_BUFFER_PRE_PADDING, pending_socket_io->bytes, pending_socket_io->size);
+
+                    /* Codes_SRS_WSIO_01_075: [lws_write shall be called with the websockets interface obtained in wsio_open, the newly constructed padded buffer, the data size queued in wsio_send (actual payload) and the payload type should be set to LWS_WRITE_BINARY.] */
 					int n = lws_write(wsio_instance->wsi, &ws_buffer[LWS_SEND_BUFFER_PRE_PADDING], pending_socket_io->size, LWS_WRITE_BINARY);
 					if (n < 0)
 					{
-						/* error */
-						wsio_instance->io_state = IO_STATE_ERROR;
-						indicate_error(wsio_instance);
-						pending_socket_io->on_send_complete(pending_socket_io->callback_context, IO_SEND_ERROR);
-					}
+                        /* Codes_SRS_WSIO_01_076: [If lws_write fails (result is less than 0) then the send_complete callback shall be triggered with IO_SEND_ERROR.] */
+                        if (pending_socket_io->on_send_complete != NULL)
+                        {
+                            pending_socket_io->on_send_complete(pending_socket_io->callback_context, IO_SEND_ERROR);
+                        }
+
+                        if (pending_socket_io->is_partially_sent)
+                        {
+                            wsio_instance->io_state = IO_STATE_ERROR;
+                            indicate_error(wsio_instance);
+                        }
+
+                        remove_pending_io(wsio_instance, first_pending_io, pending_socket_io);
+                    }
 					else
 					{
 						if ((size_t)n < pending_socket_io->size)
@@ -218,14 +276,14 @@ static int ws_sb_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
 						}
 					}
 
-					if (list_get_head_item(wsio_instance->pending_io_list) != NULL)
-					{
-						(void)lws_callback_on_writable(wsi);
-					}
-
 					amqpalloc_free(ws_buffer);
 				}
-			}
+
+                if (list_get_head_item(wsio_instance->pending_io_list) != NULL)
+                {
+                    (void)lws_callback_on_writable(wsi);
+                }
+            }
 		}
 
 		break;
@@ -238,9 +296,6 @@ static int ws_sb_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
         wsio_instance->on_bytes_received(wsio_instance->open_callback_context, in, len);
 		break;
 	}
-
-	case LWS_CALLBACK_CLIENT_CONFIRM_EXTENSION_SUPPORTED:
-		break;
 
 	case LWS_CALLBACK_OPENSSL_LOAD_EXTRA_CLIENT_VERIFY_CERTS:
 	{
@@ -386,7 +441,7 @@ CONCRETE_IO_HANDLE wsio_create(void* io_create_parameters, LOGGER_LOG logger_log
 
                                 /* Codes_SRS_WSIO_01_012: [The protocols member shall be populated with 2 protocol entries, one containing the actual protocol to be used and one empty (fields shall be NULL or 0).] */
                                 /* Codes_SRS_WSIO_01_013: [callback shall be set to a callback used by the wsio module to listen to libwebsockets events.] */
-                                result->protocols[0].callback = ws_sb_callback;
+                                result->protocols[0].callback = on_ws_callback;
                                 /* Codes_SRS_WSIO_01_014: [id shall be set to 0] */
                                 result->protocols[0].id = 0;
                                 /* Codes_SRS_WSIO_01_015: [name shall be set to protocol_name as passed to wsio_create] */
@@ -448,14 +503,12 @@ void wsio_destroy(CONCRETE_IO_HANDLE ws_io)
     if (ws_io != NULL)
 	{
 		WSIO_INSTANCE* wsio_instance = (WSIO_INSTANCE*)ws_io;
-        LIST_ITEM_HANDLE first_pending_io;
-
-        /* Codes_SRS_WSIO_01_007: [wsio_destroy shall free all resources associated with the wsio instance.] */
 
         /* Codes_SRS_WSIO_01_009: [wsio_destroy shall execute a close action if the IO has already been open or an open action is already pending.] */
         (void)wsio_close(wsio_instance, NULL, NULL);
 
-		amqpalloc_free(wsio_instance->protocols);
+        /* Codes_SRS_WSIO_01_007: [wsio_destroy shall free all resources associated with the wsio instance.] */
+        amqpalloc_free(wsio_instance->protocols);
 		amqpalloc_free(wsio_instance->host);
         amqpalloc_free(wsio_instance->protocol_name);
 		amqpalloc_free(wsio_instance->relative_path);
@@ -704,18 +757,23 @@ int wsio_send(CONCRETE_IO_HANDLE ws_io, const void* buffer, size_t size, ON_SEND
 
 void wsio_dowork(CONCRETE_IO_HANDLE ws_io)
 {
+    /* Codes_SRS_WSIO_01_063: [If the ws_io argument is NULL, wsio_dowork shall do nothing.] */
 	if (ws_io != NULL)
 	{
 		WSIO_INSTANCE* wsio_instance = (WSIO_INSTANCE*)ws_io;
 
+        /* Codes_SRS_WSIO_01_062: [This shall be done if the IO is not closed.] */
 		if ((wsio_instance->io_state == IO_STATE_OPEN) ||
 			(wsio_instance->io_state == IO_STATE_OPENING))
 		{
+            /* Codes_SRS_WSIO_01_061: [wsio_dowork shall service the libwebsockets context by calling lws_service and passing as argument the context obtained in wsio_open.] */
+            /* Codes_SRS_WSIO_01_112: [The timeout for lws_service shall be 0.] */
 			(void)lws_service(wsio_instance->ws_context, 0);
 		}
 	}
 }
 
+/* Codes_SRS_WSIO_01_064: [wsio_get_interface_description shall return a pointer to an IO_INTERFACE_DESCRIPTION structure that contains pointers to the functions: wsio_create, wsio_destroy, wsio_open, wsio_close, wsio_send and wsio_dowork.] */
 const IO_INTERFACE_DESCRIPTION* wsio_get_interface_description(void)
 {
 	return &ws_io_interface_description;

@@ -152,6 +152,8 @@ static int on_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
         switch (wsio_instance->io_state)
         {
         default:
+            break;
+
         case IO_STATE_OPEN:
             /* Codes_SRS_WSIO_01_068: [If the IO is already open, the on_io_error callback shall be triggered.] */
             indicate_error(wsio_instance);
@@ -172,6 +174,8 @@ static int on_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
         switch (wsio_instance->io_state)
         {
         default:
+            break;
+
         case IO_STATE_OPEN:
             /* Codes_SRS_WSIO_01_070: [If the IO is already open, the on_io_error callback shall be triggered.] */
             indicate_error(wsio_instance);
@@ -218,6 +222,7 @@ static int on_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
                         pending_socket_io->on_send_complete(pending_socket_io->callback_context, IO_SEND_ERROR);
                     }
 
+                    /* Codes_SRS_WSIO_01_113: [If allocating the memory fails for a pending IO that has been partially sent already then the on_io_error callback shall also be triggered.] */
                     if (pending_socket_io->is_partially_sent)
                     {
                         wsio_instance->io_state = IO_STATE_ERROR;
@@ -241,6 +246,7 @@ static int on_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
                             pending_socket_io->on_send_complete(pending_socket_io->callback_context, IO_SEND_ERROR);
                         }
 
+                        /* Codes_SRS_WSIO_01_114: [Additionally, if the failure is for a pending IO that has been partially sent already then the on_io_error callback shall also be triggered.] */
                         if (pending_socket_io->is_partially_sent)
                         {
                             wsio_instance->io_state = IO_STATE_ERROR;
@@ -253,8 +259,9 @@ static int on_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
 					{
 						if ((size_t)n < pending_socket_io->size)
 						{
-							/* make pending */
 							(void)memmove(pending_socket_io->bytes, pending_socket_io->bytes + n, (pending_socket_io->size - (size_t)n));
+                            pending_socket_io->size -= n;
+                            pending_socket_io->is_partially_sent = true;
 						}
 						else
 						{

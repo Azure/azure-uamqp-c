@@ -51,6 +51,7 @@ typedef struct LINK_INSTANCE_TAG
 	uint64_t max_message_size;
 	uint32_t link_credit;
 	uint32_t available;
+    fields attach_properties;
 	unsigned char is_underlying_session_begun : 1;
 } LINK_INSTANCE;
 
@@ -359,6 +360,8 @@ static int send_attach(LINK_INSTANCE* link, const char* name, handle handle, rol
 		attach_set_role(attach, role);
 		attach_set_source(attach, link->source);
 		attach_set_target(attach, link->target);
+        attach_set_properties(attach, link->attach_properties);
+
 		if (role == role_sender)
 		{
 			if (attach_set_initial_delivery_count(attach, link->delivery_count) != 0)
@@ -473,6 +476,7 @@ LINK_HANDLE link_create(SESSION_HANDLE session, const char* name, role role, AMQ
 		result->initial_delivery_count = 0;
 		result->max_message_size = 0;
 		result->is_underlying_session_begun = 0;
+        result->attach_properties = NULL;
 
 		result->pending_deliveries = list_create();
 		if (result->pending_deliveries == NULL)
@@ -597,6 +601,11 @@ void link_destroy(LINK_HANDLE link)
 		{
 			amqpalloc_free(link->name);
 		}
+
+        if (link->attach_properties != NULL)
+        {
+            amqpvalue_destroy(link->attach_properties);
+        }
 
 		amqpalloc_free(link);
 	}
@@ -741,6 +750,24 @@ int link_get_max_message_size(LINK_HANDLE link, uint64_t* max_message_size)
 	}
 
 	return result;
+}
+
+int link_set_attach_properties(LINK_HANDLE link, fields attach_properties)
+{
+    int result;
+
+    if (link == NULL)
+    {
+        result = __LINE__;
+    }
+    else
+    {
+        link->attach_properties = amqpvalue_clone(attach_properties);
+
+        result = 0;
+    }
+
+    return result;
 }
 
 int link_attach(LINK_HANDLE link, ON_TRANSFER_RECEIVED on_transfer_received, ON_LINK_STATE_CHANGED on_link_state_changed, ON_LINK_FLOW_ON on_link_flow_on, void* callback_context)

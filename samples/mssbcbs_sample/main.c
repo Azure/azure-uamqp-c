@@ -152,6 +152,17 @@ int main(int argc, char** argv)
 		BINARY_DATA binary_data = { hello, sizeof(hello) };
 		message_add_body_amqp_data(message, binary_data);
 
+        fields attach_properties = amqpvalue_create_map();
+        AMQP_VALUE test_attach_property_key = amqpvalue_create_string("test_attach_property_key");
+        AMQP_VALUE test_attach_property_value = amqpvalue_create_string("a_test_property");
+        (void)amqpvalue_set_map_value(attach_properties, test_attach_property_key, test_attach_property_value);
+
+        link_set_attach_properties(link, attach_properties);
+
+        amqpvalue_destroy(test_attach_property_key);
+        amqpvalue_destroy(test_attach_property_value);
+        amqpvalue_destroy(attach_properties);
+
 		/* create a message sender */
 		message_sender = messagesender_create(link, NULL, NULL, NULL);
 		if (messagesender_open(message_sender) == 0)

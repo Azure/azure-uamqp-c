@@ -45,6 +45,7 @@ extern int link_set_initial_delivery_count(LINK_HANDLE link, sequence_no initial
 extern int link_get_initial_delivery_count(LINK_HANDLE link, sequence_no* initial_delivery_count);
 extern int link_set_max_message_size(LINK_HANDLE link, uint64_t max_message_size);
 extern int link_get_max_message_size(LINK_HANDLE link, uint64_t* max_message_size);
+extern int link_set_attach_properties(LINK_HANDLE link, fields attach_properties);
 extern int link_attach(LINK_HANDLE link, ON_TRANSFER_RECEIVED on_transfer_received, ON_LINK_STATE_CHANGED on_link_state_changed, ON_LINK_FLOW_ON on_link_flow_on, void* callback_context);
 extern int link_detach(LINK_HANDLE link);
 extern LINK_TRANSFER_RESULT link_transfer(LINK_HANDLE handle, PAYLOAD* payloads, size_t payload_count, ON_DELIVERY_SETTLED on_delivery_settled, void* callback_context);

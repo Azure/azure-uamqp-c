@@ -266,6 +266,7 @@ static int on_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
 						else
 						{
                             /* Codes_SRS_WSIO_01_060: [The argument on_send_complete shall be optional, if NULL is passed by the caller then no send complete callback shall be triggered.] */
+                            /* Codes_SRS_WSIO_01_078: [If the pending IO had an associated on_send_complete, then the on_send_complete function shall be called with the callback_context and IO_SEND_OK as arguments.] */
                             if (pending_socket_io->on_send_complete != NULL)
 							{
                                 /* Codes_SRS_WSIO_01_057: [The callback on_send_complete shall be called with SEND_RESULT_OK when the send is indicated as complete.] */
@@ -273,7 +274,8 @@ static int on_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
 								pending_socket_io->on_send_complete(pending_socket_io->callback_context, IO_SEND_OK);
 							}
 
-							amqpalloc_free(pending_socket_io->bytes);
+                            /* Codes_SRS_WSIO_01_077: [If lws_write succeeds and the complete payload has been sent, the queued pending IO shall be removed from the pending list.] */
+                            amqpalloc_free(pending_socket_io->bytes);
 							amqpalloc_free(pending_socket_io);
 							if (list_remove(wsio_instance->pending_io_list, first_pending_io) != 0)
 							{

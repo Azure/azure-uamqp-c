@@ -763,8 +763,14 @@ int link_set_attach_properties(LINK_HANDLE link, fields attach_properties)
     else
     {
         link->attach_properties = amqpvalue_clone(attach_properties);
-
-        result = 0;
+        if (link->attach_properties == NULL)
+        {
+            result = __LINE__;
+        }
+        else
+        {
+            result = 0;
+        }
     }
 
     return result;

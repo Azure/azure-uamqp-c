@@ -117,15 +117,22 @@ static int add_pending_io(WSIO_INSTANCE* ws_io_instance, const unsigned char* bu
 	return result;
 }
 
-static void remove_pending_io(WSIO_INSTANCE* wsio_instance, LIST_ITEM_HANDLE item_handle, PENDING_SOCKET_IO* pending_socket_io)
+static int remove_pending_io(WSIO_INSTANCE* wsio_instance, LIST_ITEM_HANDLE item_handle, PENDING_SOCKET_IO* pending_socket_io)
 {
+    int result;
+
     amqpalloc_free(pending_socket_io->bytes);
     amqpalloc_free(pending_socket_io);
     if (list_remove(wsio_instance->pending_io_list, item_handle) != 0)
     {
-        wsio_instance->io_state = IO_STATE_ERROR;
-        indicate_error(wsio_instance);
+        result = __LINE__;
     }
+    else
+    {
+        result = 0;
+    }
+
+    return result;
 }
 
 static const IO_INTERFACE_DESCRIPTION ws_io_interface_description =
@@ -199,98 +206,154 @@ static int on_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
         context = lws_get_context(wsi);
         wsio_instance = lws_context_user(context);
 
-        /* Codes_SRS_WSIO_01_071: [If any pending IO chunks queued in wsio_send are to be sent, then the first one shall be retrieved from the queue.] */
-        first_pending_io = list_get_head_item(wsio_instance->pending_io_list);
+        switch (wsio_instance->io_state)
+        {
+        default:
+            break;
 
-		if (first_pending_io != NULL)
-		{
-            PENDING_SOCKET_IO* pending_socket_io = (PENDING_SOCKET_IO*)list_item_get_value(first_pending_io);
-			if (pending_socket_io == NULL)
-			{
-				wsio_instance->io_state = IO_STATE_ERROR;
-				indicate_error(wsio_instance);
-			}
-			else
-			{
-                /* Codes_SRS_WSIO_01_072: [Enough space to fit the data and LWS_SEND_BUFFER_PRE_PADDING and LWS_SEND_BUFFER_POST_PADDING shall be allocated.] */
-				unsigned char* ws_buffer = (unsigned char*)amqpalloc_malloc(LWS_SEND_BUFFER_PRE_PADDING + pending_socket_io->size + LWS_SEND_BUFFER_POST_PADDING);
-				if (ws_buffer == NULL)
-				{
-                    /* Codes_SRS_WSIO_01_073: [If allocating the memory fails then the send_result callback callback shall be triggered with IO_SEND_ERROR.] */
-                    if (pending_socket_io->on_send_complete != NULL)
+        case IO_STATE_OPENING:
+            /* Codes_SRS_WSIO_01_121: [If this event is received in while an open action is incomplete, the open_complete callback shall be called with IO_OPEN_ERROR.] */
+            wsio_instance->io_state = IO_STATE_ERROR;
+            indicate_error(wsio_instance);
+            break;
+
+        case IO_STATE_OPEN:
+            /* Codes_SRS_WSIO_01_120: [This event shall only be processed if the IO is open.] */
+            /* Codes_SRS_WSIO_01_071: [If any pending IO chunks queued in wsio_send are to be sent, then the first one shall be retrieved from the queue.] */
+            first_pending_io = list_get_head_item(wsio_instance->pending_io_list);
+
+            if (first_pending_io != NULL)
+            {
+                PENDING_SOCKET_IO* pending_socket_io = (PENDING_SOCKET_IO*)list_item_get_value(first_pending_io);
+                if (pending_socket_io == NULL)
+                {
+                    wsio_instance->io_state = IO_STATE_ERROR;
+                    indicate_error(wsio_instance);
+                }
+                else
+                {
+                    bool is_partially_sent = pending_socket_io->is_partially_sent;
+
+                    /* Codes_SRS_WSIO_01_072: [Enough space to fit the data and LWS_SEND_BUFFER_PRE_PADDING and LWS_SEND_BUFFER_POST_PADDING shall be allocated.] */
+                    unsigned char* ws_buffer = (unsigned char*)amqpalloc_malloc(LWS_SEND_BUFFER_PRE_PADDING + pending_socket_io->size + LWS_SEND_BUFFER_POST_PADDING);
+                    if (ws_buffer == NULL)
                     {
-                        pending_socket_io->on_send_complete(pending_socket_io->callback_context, IO_SEND_ERROR);
-                    }
-
-                    /* Codes_SRS_WSIO_01_113: [If allocating the memory fails for a pending IO that has been partially sent already then the on_io_error callback shall also be triggered.] */
-                    if (pending_socket_io->is_partially_sent)
-                    {
-                        wsio_instance->io_state = IO_STATE_ERROR;
-                        indicate_error(wsio_instance);
-                    }
-
-                    remove_pending_io(wsio_instance, first_pending_io, pending_socket_io);
-				}
-				else
-				{
-                    /* Codes_SRS_WSIO_01_074: [The payload queued in wsio_send shall be copied to the newly allocated buffer at the position LWS_SEND_BUFFER_PRE_PADDING.] */
-					(void)memcpy(ws_buffer + LWS_SEND_BUFFER_PRE_PADDING, pending_socket_io->bytes, pending_socket_io->size);
-
-                    /* Codes_SRS_WSIO_01_075: [lws_write shall be called with the websockets interface obtained in wsio_open, the newly constructed padded buffer, the data size queued in wsio_send (actual payload) and the payload type should be set to LWS_WRITE_BINARY.] */
-					int n = lws_write(wsio_instance->wsi, &ws_buffer[LWS_SEND_BUFFER_PRE_PADDING], pending_socket_io->size, LWS_WRITE_BINARY);
-					if (n < 0)
-					{
-                        /* Codes_SRS_WSIO_01_076: [If lws_write fails (result is less than 0) then the send_complete callback shall be triggered with IO_SEND_ERROR.] */
+                        /* Codes_SRS_WSIO_01_073: [If allocating the memory fails then the send_result callback callback shall be triggered with IO_SEND_ERROR.] */
                         if (pending_socket_io->on_send_complete != NULL)
                         {
                             pending_socket_io->on_send_complete(pending_socket_io->callback_context, IO_SEND_ERROR);
                         }
 
-                        /* Codes_SRS_WSIO_01_114: [Additionally, if the failure is for a pending IO that has been partially sent already then the on_io_error callback shall also be triggered.] */
-                        if (pending_socket_io->is_partially_sent)
+                        /* Codes_SRS_WSIO_01_113: [If allocating the memory fails for a pending IO that has been partially sent already then the on_io_error callback shall also be triggered.] */
+                        if (is_partially_sent)
                         {
                             wsio_instance->io_state = IO_STATE_ERROR;
                             indicate_error(wsio_instance);
                         }
+                        else
+                        {
+                            /* Codes_SRS_WSIO_01_081: [If any pending IOs are in the list, lws_callback_on_writable shall be called, while passing the websockets instance obtained in wsio_open as arguments if:] */
+                            /* Codes_SRS_WSIO_01_116: [The send failed writing to lws or allocating memory for the data to be passed to lws and no partial data has been sent previously for the pending IO.] */
+                            if (list_get_head_item(wsio_instance->pending_io_list) != NULL)
+                            {
+                                (void)lws_callback_on_writable(wsi);
+                            }
+                        }
 
-                        remove_pending_io(wsio_instance, first_pending_io, pending_socket_io);
+                        if ((remove_pending_io(wsio_instance, first_pending_io, pending_socket_io) != 0) && !is_partially_sent)
+                        {
+                            /* Codes_SRS_WSIO_01_117: [on_io_error should not be triggered twice when removing a pending IO that failed and a partial send for it has already been done.] */
+                            wsio_instance->io_state = IO_STATE_ERROR;
+                            indicate_error(wsio_instance);
+                        }
                     }
-					else
-					{
-						if ((size_t)n < pending_socket_io->size)
-						{
-							(void)memmove(pending_socket_io->bytes, pending_socket_io->bytes + n, (pending_socket_io->size - (size_t)n));
-                            pending_socket_io->size -= n;
-                            pending_socket_io->is_partially_sent = true;
-						}
-						else
-						{
-                            /* Codes_SRS_WSIO_01_060: [The argument on_send_complete shall be optional, if NULL is passed by the caller then no send complete callback shall be triggered.] */
-                            /* Codes_SRS_WSIO_01_078: [If the pending IO had an associated on_send_complete, then the on_send_complete function shall be called with the callback_context and IO_SEND_OK as arguments.] */
+                    else
+                    {
+                        int sent;
+
+                        /* Codes_SRS_WSIO_01_074: [The payload queued in wsio_send shall be copied to the newly allocated buffer at the position LWS_SEND_BUFFER_PRE_PADDING.] */
+                        (void)memcpy(ws_buffer + LWS_SEND_BUFFER_PRE_PADDING, pending_socket_io->bytes, pending_socket_io->size);
+
+                        /* Codes_SRS_WSIO_01_075: [lws_write shall be called with the websockets interface obtained in wsio_open, the newly constructed padded buffer, the data size queued in wsio_send (actual payload) and the payload type should be set to LWS_WRITE_BINARY.] */
+                        sent = lws_write(wsio_instance->wsi, &ws_buffer[LWS_SEND_BUFFER_PRE_PADDING], pending_socket_io->size, LWS_WRITE_BINARY);
+
+                        /* Codes_SRS_WSIO_01_118: [If lws_write indicates more bytes sent than were passed to it an error shall be indicated via on_io_error.] */
+                        if ((sent < 0) || ((size_t)sent > pending_socket_io->size))
+                        {
+                            /* Codes_SRS_WSIO_01_076: [If lws_write fails (result is less than 0) then the send_complete callback shall be triggered with IO_SEND_ERROR.] */
                             if (pending_socket_io->on_send_complete != NULL)
-							{
-                                /* Codes_SRS_WSIO_01_057: [The callback on_send_complete shall be called with SEND_RESULT_OK when the send is indicated as complete.] */
-                                /* Codes_SRS_WSIO_01_059: [The callback_context argument shall be passed to on_send_complete as is.] */
-								pending_socket_io->on_send_complete(pending_socket_io->callback_context, IO_SEND_OK);
-							}
+                            {
+                                pending_socket_io->on_send_complete(pending_socket_io->callback_context, IO_SEND_ERROR);
+                            }
 
-                            /* Codes_SRS_WSIO_01_077: [If lws_write succeeds and the complete payload has been sent, the queued pending IO shall be removed from the pending list.] */
-                            amqpalloc_free(pending_socket_io->bytes);
-							amqpalloc_free(pending_socket_io);
-							if (list_remove(wsio_instance->pending_io_list, first_pending_io) != 0)
-							{
-								wsio_instance->io_state = IO_STATE_ERROR;
-								indicate_error(wsio_instance);
-							}
-						}
-					}
+                            /* Codes_SRS_WSIO_01_114: [Additionally, if the failure is for a pending IO that has been partially sent already then the on_io_error callback shall also be triggered.] */
+                            /* Codes_SRS_WSIO_01_119: [If this error happens after the pending IO being partially sent, the on_io_error shall also be indicated.] */
+                            if (pending_socket_io->is_partially_sent)
+                            {
+                                wsio_instance->io_state = IO_STATE_ERROR;
+                                indicate_error(wsio_instance);
+                            }
+                            else
+                            {
+                                /* Codes_SRS_WSIO_01_081: [If any pending IOs are in the list, lws_callback_on_writable shall be called, while passing the websockets instance obtained in wsio_open as arguments if:] */
+                                /* Codes_SRS_WSIO_01_116: [The send failed writing to lws or allocating memory for the data to be passed to lws and no partial data has been sent previously for the pending IO.] */
+                                if (list_get_head_item(wsio_instance->pending_io_list) != NULL)
+                                {
+                                    (void)lws_callback_on_writable(wsi);
+                                }
+                            }
 
-					amqpalloc_free(ws_buffer);
-				}
+                            if ((remove_pending_io(wsio_instance, first_pending_io, pending_socket_io) != 0) && !is_partially_sent)
+                            {
+                                /* Codes_SRS_WSIO_01_117: [on_io_error should not be triggered twice when removing a pending IO that failed and a partial send for it has already been done.] */
+                                wsio_instance->io_state = IO_STATE_ERROR;
+                                indicate_error(wsio_instance);
+                            }
+                        }
+                        else
+                        {
+                            if ((size_t)sent < pending_socket_io->size)
+                            {
+                                /* Codes_SRS_WSIO_01_080: [If lws_write succeeds and less bytes than the complete payload have been sent, then the sent bytes shall be removed from the pending IO and only the leftover bytes shall be left as pending and sent upon subsequent events.] */
+                                (void)memmove(pending_socket_io->bytes, pending_socket_io->bytes + sent, (pending_socket_io->size - (size_t)sent));
+                                pending_socket_io->size -= sent;
+                                pending_socket_io->is_partially_sent = true;
 
-                if (list_get_head_item(wsio_instance->pending_io_list) != NULL)
-                {
-                    (void)lws_callback_on_writable(wsi);
+                                /* Codes_SRS_WSIO_01_081: [If any pending IOs are in the list, lws_callback_on_writable shall be called, while passing the websockets instance obtained in wsio_open as arguments if:] */
+                                (void)lws_callback_on_writable(wsi);
+                            }
+                            else
+                            {
+                                /* Codes_SRS_WSIO_01_060: [The argument on_send_complete shall be optional, if NULL is passed by the caller then no send complete callback shall be triggered.] */
+                                /* Codes_SRS_WSIO_01_078: [If the pending IO had an associated on_send_complete, then the on_send_complete function shall be called with the callback_context and IO_SEND_OK as arguments.] */
+                                if (pending_socket_io->on_send_complete != NULL)
+                                {
+                                    /* Codes_SRS_WSIO_01_057: [The callback on_send_complete shall be called with SEND_RESULT_OK when the send is indicated as complete.] */
+                                    /* Codes_SRS_WSIO_01_059: [The callback_context argument shall be passed to on_send_complete as is.] */
+                                    pending_socket_io->on_send_complete(pending_socket_io->callback_context, IO_SEND_OK);
+                                }
+
+                                /* Codes_SRS_WSIO_01_077: [If lws_write succeeds and the complete payload has been sent, the queued pending IO shall be removed from the pending list.] */
+                                if (remove_pending_io(wsio_instance, first_pending_io, pending_socket_io) != 0)
+                                {
+                                    /* Codes_SRS_WSIO_01_079: [If the send was successful and any error occurs during removing the pending IO from the list then the on_io_error callback shall be triggered.]  */
+                                    wsio_instance->io_state = IO_STATE_ERROR;
+                                    indicate_error(wsio_instance);
+                                }
+                                else
+                                {
+                                    /* Codes_SRS_WSIO_01_081: [If any pending IOs are in the list, lws_callback_on_writable shall be called, while passing the websockets instance obtained in wsio_open as arguments if:] */
+                                    /* Codes_SRS_WSIO_01_115: [The send over websockets was successful] */
+                                    if (list_get_head_item(wsio_instance->pending_io_list) != NULL)
+                                    {
+                                        (void)lws_callback_on_writable(wsi);
+                                    }
+                                }
+                            }
+                        }
+
+                        amqpalloc_free(ws_buffer);
+                    }
                 }
             }
 		}

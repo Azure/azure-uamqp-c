@@ -1997,6 +1997,7 @@ TEST_FUNCTION(CLIENT_CONNECTION_ERROR_when_already_open_indicates_an_error_to_th
 /* Tests_SRS_WSIO_01_075: [lws_write shall be called with the websockets interface obtained in wsio_open, the newly constructed padded buffer, the data size queued in wsio_send (actual payload) and the payload type should be set to LWS_WRITE_BINARY.] */
 /* Tests_SRS_WSIO_01_077: [If lws_write succeeds and the complete payload has been sent, the queued pending IO shall be removed from the pending list.] */
 /* Tests_SRS_WSIO_01_078: [If the pending IO had an associated on_send_complete, then the on_send_complete function shall be called with the callback_context and IO_SEND_OK as arguments.] */
+/* Tests_SRS_WSIO_01_120: [This event shall only be processed if the IO is open.] */
 TEST_FUNCTION(CLIENT_WRITABLE_when_open_and_one_chunk_queued_sends_the_chunk)
 {
     // arrange
@@ -2024,6 +2025,31 @@ TEST_FUNCTION(CLIENT_WRITABLE_when_open_and_one_chunk_queued_sends_the_chunk)
     EXPECTED_CALL(mocks, list_remove(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(mocks, list_get_head_item(TEST_LIST_HANDLE));
     EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+
+    // act
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_WRITEABLE, saved_ws_callback_context, NULL, 0);
+
+    // assert
+    mocks.AssertActualAndExpectedCalls();
+
+    // cleanup
+    wsio_destroy(wsio);
+}
+
+/* Tests_SRS_WSIO_01_121: [If this event is received in while an open action is incomplete, the open_complete callback shall be called with IO_OPEN_ERROR.] */
+TEST_FUNCTION(CLIENT_WRITABLE_when_opening_yields_an_error)
+{
+    // arrange
+    wsio_mocks mocks;
+    unsigned char test_buffer[] = { 0x42 };
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+    mocks.ResetAllCalls();
+
+    STRICT_EXPECTED_CALL(mocks, lws_get_context(TEST_LIBWEBSOCKET));
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    STRICT_EXPECTED_CALL(mocks, test_on_io_error((void*)0x4242));
 
     // act
     (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_WRITEABLE, saved_ws_callback_context, NULL, 0);
@@ -2098,6 +2124,7 @@ TEST_FUNCTION(when_getting_the_pending_io_data_in_CLIENT_WRITABLE_fails_then_an_
 }
 
 /* Tests_SRS_WSIO_01_073: [If allocating the memory fails then the send_result callback callback shall be triggered with IO_SEND_ERROR.] */
+/* Tests_SRS_WSIO_01_081: [If no errors prohibiting further processing of other pending IO chunks have happened, then lws_callback_on_writable shall be called, while passing the websockets context and interface obtained in wsio_open as arguments.] */
 TEST_FUNCTION(when_allocating_memory_for_lws_in_CLIENT_WRITABLE_fails_then_an_error_is_indicated)
 {
     // arrange
@@ -2122,7 +2149,8 @@ TEST_FUNCTION(when_allocating_memory_for_lws_in_CLIENT_WRITABLE_fails_then_an_er
     EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
     EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
     EXPECTED_CALL(mocks, list_remove(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(mocks, list_get_head_item(TEST_LIST_HANDLE));
+    STRICT_EXPECTED_CALL(mocks, list_get_head_item(TEST_LIST_HANDLE))
+        .SetReturn((LIST_ITEM_HANDLE)NULL);
 
     // act
     (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_WRITEABLE, saved_ws_callback_context, NULL, 0);
@@ -2162,7 +2190,8 @@ TEST_FUNCTION(when_lws_write_fails_in_CLIENT_WRITABLE_then_an_error_is_indicated
     EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
     EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
     EXPECTED_CALL(mocks, list_remove(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(mocks, list_get_head_item(TEST_LIST_HANDLE));
+    STRICT_EXPECTED_CALL(mocks, list_get_head_item(TEST_LIST_HANDLE))
+        .SetReturn((LIST_ITEM_HANDLE)NULL);
 
     // act
     (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_WRITEABLE, saved_ws_callback_context, NULL, 0);
@@ -2207,7 +2236,6 @@ TEST_FUNCTION(when_allocating_memory_for_the_lws_write_fails_in_CLIENT_WRITABLE_
     EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
     EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
     EXPECTED_CALL(mocks, list_remove(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(mocks, list_get_head_item(TEST_LIST_HANDLE));
 
     // act
     (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_WRITEABLE, saved_ws_callback_context, NULL, 0);
@@ -2255,7 +2283,539 @@ TEST_FUNCTION(when_lws_write_fails_in_CLIENT_WRITABLE_for_a_pending_io_that_was_
     EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
     EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
     EXPECTED_CALL(mocks, list_remove(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
+
+    // act
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_WRITEABLE, saved_ws_callback_context, NULL, 0);
+
+    // assert
+    mocks.AssertActualAndExpectedCalls();
+
+    // cleanup
+    wsio_destroy(wsio);
+}
+
+/* Tests_SRS_WSIO_01_079: [If the send was successful and any error occurs during removing the pending IO from the list then the on_io_error callback shall be triggered.]  */
+TEST_FUNCTION(when_removing_the_pending_IO_after_a_succesfull_write_lws_write_fails_in_CLIENT_WRITABLE_then_an_error_is_indicated)
+{
+    // arrange
+    wsio_mocks mocks;
+    unsigned char test_buffer[] = { 0x42, 0x43 };
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_ESTABLISHED, saved_ws_callback_context, NULL, 0);
+    (void)wsio_send(wsio, test_buffer, sizeof(test_buffer), test_on_send_complete, (void*)0x4243);
+    mocks.ResetAllCalls();
+
+    STRICT_EXPECTED_CALL(mocks, lws_get_context(TEST_LIBWEBSOCKET));
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
     STRICT_EXPECTED_CALL(mocks, list_get_head_item(TEST_LIST_HANDLE));
+    EXPECTED_CALL(mocks, list_item_get_value(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(mocks, lws_write(TEST_LIBWEBSOCKET, IGNORED_PTR_ARG, sizeof(test_buffer), LWS_WRITE_BINARY))
+        .ValidateArgumentBuffer(2, test_buffer, sizeof(test_buffer))
+        .SetReturn(2);
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(mocks, test_on_send_complete((void*)0x4243, IO_SEND_OK));
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, list_remove(TEST_LIST_HANDLE, IGNORED_PTR_ARG))
+        .SetReturn(1);
+    STRICT_EXPECTED_CALL(mocks, test_on_io_error((void*)0x4242));
+
+    // act
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_WRITEABLE, saved_ws_callback_context, NULL, 0);
+
+    // assert
+    mocks.AssertActualAndExpectedCalls();
+
+    // cleanup
+    wsio_destroy(wsio);
+}
+
+/* Tests_SRS_WSIO_01_081: [If any pending IOs are in the list, lws_callback_on_writable shall be called, while passing the websockets instance obtained in wsio_open as arguments if:] */
+/* Tests_SRS_WSIO_01_116: [The send failed writing to lws or allocating memory for the data to be passed to lws and no partial data has been sent previously for the pending IO.] */
+TEST_FUNCTION(when_allocating_memory_for_lws_in_CLIENT_WRITABLE_and_another_pending_IO_exists_then_callback_on_writable_is_called)
+{
+    // arrange
+    wsio_mocks mocks;
+    unsigned char test_buffer[] = { 0x42 };
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_ESTABLISHED, saved_ws_callback_context, NULL, 0);
+    (void)wsio_send(wsio, test_buffer, sizeof(test_buffer), test_on_send_complete, (void*)0x4243);
+    mocks.ResetAllCalls();
+
+    STRICT_EXPECTED_CALL(mocks, lws_get_context(TEST_LIBWEBSOCKET));
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    STRICT_EXPECTED_CALL(mocks, list_get_head_item(TEST_LIST_HANDLE));
+    EXPECTED_CALL(mocks, list_item_get_value(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG))
+        .SetReturn((void*)NULL);
+    STRICT_EXPECTED_CALL(mocks, test_on_send_complete((void*)0x4243, IO_SEND_ERROR));
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, list_remove(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(mocks, list_get_head_item(TEST_LIST_HANDLE));
+    STRICT_EXPECTED_CALL(mocks, lws_callback_on_writable(TEST_LIBWEBSOCKET));
+
+    // act
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_WRITEABLE, saved_ws_callback_context, NULL, 0);
+
+    // assert
+    mocks.AssertActualAndExpectedCalls();
+
+    // cleanup
+    wsio_destroy(wsio);
+}
+
+/* Tests_SRS_WSIO_01_081: [If any pending IOs are in the list, lws_callback_on_writable shall be called, while passing the websockets instance obtained in wsio_open as arguments if:] */
+/* Tests_SRS_WSIO_01_116: [The send failed writing to lws or allocating memory for the data to be passed to lws and no partial data has been sent previously for the pending IO.] */
+TEST_FUNCTION(when_lws_write_in_CLIENT_WRITABLE_fails_and_another_pending_IO_exists_then_callback_on_writable_is_called)
+{
+    // arrange
+    wsio_mocks mocks;
+    unsigned char test_buffer[] = { 0x42 };
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_ESTABLISHED, saved_ws_callback_context, NULL, 0);
+    (void)wsio_send(wsio, test_buffer, sizeof(test_buffer), test_on_send_complete, (void*)0x4243);
+    mocks.ResetAllCalls();
+
+    STRICT_EXPECTED_CALL(mocks, lws_get_context(TEST_LIBWEBSOCKET));
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    STRICT_EXPECTED_CALL(mocks, list_get_head_item(TEST_LIST_HANDLE));
+    EXPECTED_CALL(mocks, list_item_get_value(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(mocks, lws_write(TEST_LIBWEBSOCKET, IGNORED_PTR_ARG, sizeof(test_buffer), LWS_WRITE_BINARY))
+        .ValidateArgumentBuffer(2, test_buffer, sizeof(test_buffer))
+        .SetReturn(-1);
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(mocks, test_on_send_complete((void*)0x4243, IO_SEND_ERROR));
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, list_remove(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(mocks, list_get_head_item(TEST_LIST_HANDLE));
+    STRICT_EXPECTED_CALL(mocks, lws_callback_on_writable(TEST_LIBWEBSOCKET));
+
+    // act
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_WRITEABLE, saved_ws_callback_context, NULL, 0);
+
+    // assert
+    mocks.AssertActualAndExpectedCalls();
+
+    // cleanup
+    wsio_destroy(wsio);
+}
+
+/* Tests_SRS_WSIO_01_081: [If any pending IOs are in the list, lws_callback_on_writable shall be called, while passing the websockets instance obtained in wsio_open as arguments if:] */
+/* Tests_SRS_WSIO_01_116: [The send failed writing to lws or allocating memory for the data to be passed to lws and no partial data has been sent previously for the pending IO.] */
+TEST_FUNCTION(when_allocating_memory_in_CLIENT_WRITABLE_fails_after_a_partial_write_and_another_pending_IO_exists_then_callback_on_writable_is_not_called)
+{
+    // arrange
+    wsio_mocks mocks;
+    unsigned char test_buffer[] = { 0x42, 0x43 };
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_ESTABLISHED, saved_ws_callback_context, NULL, 0);
+    (void)wsio_send(wsio, test_buffer, sizeof(test_buffer), test_on_send_complete, (void*)0x4243);
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    STRICT_EXPECTED_CALL(mocks, lws_write(TEST_LIBWEBSOCKET, IGNORED_PTR_ARG, sizeof(test_buffer), LWS_WRITE_BINARY))
+        .ValidateArgumentBuffer(2, test_buffer, sizeof(test_buffer))
+        .SetReturn(1);
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_WRITEABLE, saved_ws_callback_context, NULL, 0);
+    mocks.ResetAllCalls();
+
+    STRICT_EXPECTED_CALL(mocks, lws_get_context(TEST_LIBWEBSOCKET));
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    STRICT_EXPECTED_CALL(mocks, list_get_head_item(TEST_LIST_HANDLE));
+    EXPECTED_CALL(mocks, list_item_get_value(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG))
+        .SetReturn((void*)NULL);
+    STRICT_EXPECTED_CALL(mocks, test_on_send_complete((void*)0x4243, IO_SEND_ERROR));
+    STRICT_EXPECTED_CALL(mocks, test_on_io_error((void*)0x4242));
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, list_remove(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
+
+    // act
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_WRITEABLE, saved_ws_callback_context, NULL, 0);
+
+    // assert
+    mocks.AssertActualAndExpectedCalls();
+
+    // cleanup
+    wsio_destroy(wsio);
+}
+
+/* Tests_SRS_WSIO_01_081: [If any pending IOs are in the list, lws_callback_on_writable shall be called, while passing the websockets instance obtained in wsio_open as arguments if:] */
+/* Tests_SRS_WSIO_01_116: [The send failed writing to lws or allocating memory for the data to be passed to lws and no partial data has been sent previously for the pending IO.] */
+TEST_FUNCTION(when_lws_write_in_CLIENT_WRITABLE_fails_after_a_partial_write_and_another_pending_IO_exists_then_callback_on_writable_is_not_called)
+{
+    // arrange
+    wsio_mocks mocks;
+    unsigned char test_buffer[] = { 0x42, 0x43 };
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_ESTABLISHED, saved_ws_callback_context, NULL, 0);
+    (void)wsio_send(wsio, test_buffer, sizeof(test_buffer), test_on_send_complete, (void*)0x4243);
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    STRICT_EXPECTED_CALL(mocks, lws_write(TEST_LIBWEBSOCKET, IGNORED_PTR_ARG, sizeof(test_buffer), LWS_WRITE_BINARY))
+        .ValidateArgumentBuffer(2, test_buffer, sizeof(test_buffer))
+        .SetReturn(1);
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_WRITEABLE, saved_ws_callback_context, NULL, 0);
+    mocks.ResetAllCalls();
+
+    STRICT_EXPECTED_CALL(mocks, lws_get_context(TEST_LIBWEBSOCKET));
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    STRICT_EXPECTED_CALL(mocks, list_get_head_item(TEST_LIST_HANDLE));
+    EXPECTED_CALL(mocks, list_item_get_value(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(mocks, lws_write(TEST_LIBWEBSOCKET, IGNORED_PTR_ARG, 1, LWS_WRITE_BINARY))
+        .ValidateArgumentBuffer(2, test_buffer + 1, 1)
+        .SetReturn(-1);
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(mocks, test_on_send_complete((void*)0x4243, IO_SEND_ERROR));
+    STRICT_EXPECTED_CALL(mocks, test_on_io_error((void*)0x4242));
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, list_remove(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
+
+    // act
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_WRITEABLE, saved_ws_callback_context, NULL, 0);
+
+    // assert
+    mocks.AssertActualAndExpectedCalls();
+
+    // cleanup
+    wsio_destroy(wsio);
+}
+
+/* Tests_SRS_WSIO_01_081: [If any pending IOs are in the list, lws_callback_on_writable shall be called, while passing the websockets instance obtained in wsio_open as arguments if:] */
+/* Tests_SRS_WSIO_01_115: [The send over websockets was successful] */
+TEST_FUNCTION(when_send_is_succesfull_and_there_is_another_pending_IO_in_CLIENT_WRITABLE_then_callback_on_writable_is_called)
+{
+    // arrange
+    wsio_mocks mocks;
+    unsigned char test_buffer[] = { 0x42, 0x43 };
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_ESTABLISHED, saved_ws_callback_context, NULL, 0);
+    (void)wsio_send(wsio, test_buffer, sizeof(test_buffer), test_on_send_complete, (void*)0x4243);
+    (void)wsio_send(wsio, test_buffer, sizeof(test_buffer), test_on_send_complete, (void*)0x4243);
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    STRICT_EXPECTED_CALL(mocks, lws_write(TEST_LIBWEBSOCKET, IGNORED_PTR_ARG, sizeof(test_buffer), LWS_WRITE_BINARY))
+        .ValidateArgumentBuffer(2, test_buffer, sizeof(test_buffer))
+        .SetReturn(1);
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_WRITEABLE, saved_ws_callback_context, NULL, 0);
+    mocks.ResetAllCalls();
+
+    STRICT_EXPECTED_CALL(mocks, lws_get_context(TEST_LIBWEBSOCKET));
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    STRICT_EXPECTED_CALL(mocks, list_get_head_item(TEST_LIST_HANDLE));
+    EXPECTED_CALL(mocks, list_item_get_value(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(mocks, lws_write(TEST_LIBWEBSOCKET, IGNORED_PTR_ARG, 1, LWS_WRITE_BINARY))
+        .ValidateArgumentBuffer(2, test_buffer + 1, 1)
+        .SetReturn(1);
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(mocks, test_on_send_complete((void*)0x4243, IO_SEND_OK));
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, list_remove(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(mocks, list_get_head_item(TEST_LIST_HANDLE));
+    STRICT_EXPECTED_CALL(mocks, lws_callback_on_writable(TEST_LIBWEBSOCKET));
+
+    // act
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_WRITEABLE, saved_ws_callback_context, NULL, 0);
+
+    // assert
+    mocks.AssertActualAndExpectedCalls();
+
+    // cleanup
+    wsio_destroy(wsio);
+}
+
+/* Tests_SRS_WSIO_01_117: [on_io_error should not be triggered twice when removing a pending IO that failed and a partial send for it has already been done.]  */
+TEST_FUNCTION(when_removing_the_pending_IO_due_to_lws_write_failing_in_CLIENT_WRITABLE_fails_then_on_io_error_is_called_only_once)
+{
+    // arrange
+    wsio_mocks mocks;
+    unsigned char test_buffer[] = { 0x42, 0x43 };
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_ESTABLISHED, saved_ws_callback_context, NULL, 0);
+    (void)wsio_send(wsio, test_buffer, sizeof(test_buffer), test_on_send_complete, (void*)0x4243);
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    STRICT_EXPECTED_CALL(mocks, lws_write(TEST_LIBWEBSOCKET, IGNORED_PTR_ARG, sizeof(test_buffer), LWS_WRITE_BINARY))
+        .ValidateArgumentBuffer(2, test_buffer, sizeof(test_buffer))
+        .SetReturn(1);
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_WRITEABLE, saved_ws_callback_context, NULL, 0);
+    mocks.ResetAllCalls();
+
+    STRICT_EXPECTED_CALL(mocks, lws_get_context(TEST_LIBWEBSOCKET));
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    STRICT_EXPECTED_CALL(mocks, list_get_head_item(TEST_LIST_HANDLE));
+    EXPECTED_CALL(mocks, list_item_get_value(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(mocks, lws_write(TEST_LIBWEBSOCKET, IGNORED_PTR_ARG, 1, LWS_WRITE_BINARY))
+        .ValidateArgumentBuffer(2, test_buffer + 1, 1)
+        .SetReturn(-1);
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(mocks, test_on_send_complete((void*)0x4243, IO_SEND_ERROR));
+    STRICT_EXPECTED_CALL(mocks, test_on_io_error((void*)0x4242));
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, list_remove(TEST_LIST_HANDLE, IGNORED_PTR_ARG))
+        .SetReturn(1);
+
+    // act
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_WRITEABLE, saved_ws_callback_context, NULL, 0);
+
+    // assert
+    mocks.AssertActualAndExpectedCalls();
+
+    // cleanup
+    wsio_destroy(wsio);
+}
+
+/* Tests_SRS_WSIO_01_117: [on_io_error should not be triggered twice when removing a pending IO that failed and a partial send for it has already been done.]  */
+TEST_FUNCTION(when_removing_the_pending_IO_due_to_allocating_memory_failing_in_CLIENT_WRITABLE_fails_then_on_io_error_is_called_only_once)
+{
+    // arrange
+    wsio_mocks mocks;
+    unsigned char test_buffer[] = { 0x42, 0x43 };
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_ESTABLISHED, saved_ws_callback_context, NULL, 0);
+    (void)wsio_send(wsio, test_buffer, sizeof(test_buffer), test_on_send_complete, (void*)0x4243);
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    STRICT_EXPECTED_CALL(mocks, lws_write(TEST_LIBWEBSOCKET, IGNORED_PTR_ARG, sizeof(test_buffer), LWS_WRITE_BINARY))
+        .ValidateArgumentBuffer(2, test_buffer, sizeof(test_buffer))
+        .SetReturn(1);
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_WRITEABLE, saved_ws_callback_context, NULL, 0);
+    mocks.ResetAllCalls();
+
+    STRICT_EXPECTED_CALL(mocks, lws_get_context(TEST_LIBWEBSOCKET));
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    STRICT_EXPECTED_CALL(mocks, list_get_head_item(TEST_LIST_HANDLE));
+    EXPECTED_CALL(mocks, list_item_get_value(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG))
+        .SetReturn((void*)NULL);
+    STRICT_EXPECTED_CALL(mocks, test_on_send_complete((void*)0x4243, IO_SEND_ERROR));
+    STRICT_EXPECTED_CALL(mocks, test_on_io_error((void*)0x4242));
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, list_remove(TEST_LIST_HANDLE, IGNORED_PTR_ARG))
+        .SetReturn(1);
+
+    // act
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_WRITEABLE, saved_ws_callback_context, NULL, 0);
+
+    // assert
+    mocks.AssertActualAndExpectedCalls();
+
+    // cleanup
+    wsio_destroy(wsio);
+}
+
+/* Tests_SRS_WSIO_01_080: [If lws_write succeeds and less bytes than the complete payload have been sent, then the sent bytes shall be removed from the pending IO and only the leftover bytes shall be left as pending and sent upon subsequent events.] */
+TEST_FUNCTION(sending_partial_content_leaves_the_bytes_for_the_next_writable_event)
+{
+    // arrange
+    wsio_mocks mocks;
+    unsigned char test_buffer[] = { 0x42, 0x43 };
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_ESTABLISHED, saved_ws_callback_context, NULL, 0);
+    (void)wsio_send(wsio, test_buffer, sizeof(test_buffer), test_on_send_complete, (void*)0x4243);
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    STRICT_EXPECTED_CALL(mocks, lws_write(TEST_LIBWEBSOCKET, IGNORED_PTR_ARG, sizeof(test_buffer), LWS_WRITE_BINARY))
+        .ValidateArgumentBuffer(2, test_buffer, sizeof(test_buffer))
+        .SetReturn(1);
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_WRITEABLE, saved_ws_callback_context, NULL, 0);
+    mocks.ResetAllCalls();
+
+    STRICT_EXPECTED_CALL(mocks, lws_get_context(TEST_LIBWEBSOCKET));
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    STRICT_EXPECTED_CALL(mocks, list_get_head_item(TEST_LIST_HANDLE));
+    EXPECTED_CALL(mocks, list_item_get_value(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(mocks, lws_write(TEST_LIBWEBSOCKET, IGNORED_PTR_ARG, 1, LWS_WRITE_BINARY))
+        .ValidateArgumentBuffer(2, test_buffer + 1, 1)
+        .SetReturn(1);
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(mocks, test_on_send_complete((void*)0x4243, IO_SEND_OK));
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, list_remove(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(mocks, list_get_head_item(TEST_LIST_HANDLE));
+
+    // act
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_WRITEABLE, saved_ws_callback_context, NULL, 0);
+
+    // assert
+    mocks.AssertActualAndExpectedCalls();
+
+    // cleanup
+    wsio_destroy(wsio);
+}
+
+/* Tests_SRS_WSIO_01_080: [If lws_write succeeds and less bytes than the complete payload have been sent, then the sent bytes shall be removed from the pending IO and only the leftover bytes shall be left as pending and sent upon subsequent events.] */
+TEST_FUNCTION(sending_partial_content_of_2_bytes_works_and_leaves_the_bytes_for_the_next_writable_event)
+{
+    // arrange
+    wsio_mocks mocks;
+    unsigned char test_buffer[] = { 0x42, 0x43, 0x44 };
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_ESTABLISHED, saved_ws_callback_context, NULL, 0);
+    (void)wsio_send(wsio, test_buffer, sizeof(test_buffer), test_on_send_complete, (void*)0x4243);
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    STRICT_EXPECTED_CALL(mocks, lws_write(TEST_LIBWEBSOCKET, IGNORED_PTR_ARG, sizeof(test_buffer), LWS_WRITE_BINARY))
+        .ValidateArgumentBuffer(2, test_buffer, sizeof(test_buffer))
+        .SetReturn(2);
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_WRITEABLE, saved_ws_callback_context, NULL, 0);
+    mocks.ResetAllCalls();
+
+    STRICT_EXPECTED_CALL(mocks, lws_get_context(TEST_LIBWEBSOCKET));
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    STRICT_EXPECTED_CALL(mocks, list_get_head_item(TEST_LIST_HANDLE));
+    EXPECTED_CALL(mocks, list_item_get_value(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(mocks, lws_write(TEST_LIBWEBSOCKET, IGNORED_PTR_ARG, 1, LWS_WRITE_BINARY))
+        .ValidateArgumentBuffer(2, test_buffer + 2, 1)
+        .SetReturn(1);
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(mocks, test_on_send_complete((void*)0x4243, IO_SEND_OK));
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, list_remove(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(mocks, list_get_head_item(TEST_LIST_HANDLE));
+
+    // act
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_WRITEABLE, saved_ws_callback_context, NULL, 0);
+
+    // assert
+    mocks.AssertActualAndExpectedCalls();
+
+    // cleanup
+    wsio_destroy(wsio);
+}
+
+/* Tests_SRS_WSIO_01_118: [If lws_write indicates more bytes sent than were passed to it an error shall be indicated via on_io_error.] */
+TEST_FUNCTION(when_more_bytes_than_requested_are_indicated_by_lws_write_on_send_complete_indicates_an_error)
+{
+    // arrange
+    wsio_mocks mocks;
+    unsigned char test_buffer[] = { 0x42 };
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_ESTABLISHED, saved_ws_callback_context, NULL, 0);
+    (void)wsio_send(wsio, test_buffer, sizeof(test_buffer), test_on_send_complete, (void*)0x4243);
+    mocks.ResetAllCalls();
+
+    STRICT_EXPECTED_CALL(mocks, lws_get_context(TEST_LIBWEBSOCKET));
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    STRICT_EXPECTED_CALL(mocks, list_get_head_item(TEST_LIST_HANDLE));
+    EXPECTED_CALL(mocks, list_item_get_value(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(mocks, lws_write(TEST_LIBWEBSOCKET, IGNORED_PTR_ARG, sizeof(test_buffer), LWS_WRITE_BINARY))
+        .ValidateArgumentBuffer(2, test_buffer, sizeof(test_buffer))
+        .SetReturn(2);
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(mocks, test_on_send_complete((void*)0x4243, IO_SEND_ERROR));
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, list_remove(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(mocks, list_get_head_item(TEST_LIST_HANDLE))
+        .SetReturn((LIST_ITEM_HANDLE)NULL);
+
+    // act
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_WRITEABLE, saved_ws_callback_context, NULL, 0);
+
+    // assert
+    mocks.AssertActualAndExpectedCalls();
+
+    // cleanup
+    wsio_destroy(wsio);
+}
+
+/* Tests_SRS_WSIO_01_119: [If this error happens after the pending IO being partially sent, the on_io_error shall also be indicated.] */
+TEST_FUNCTION(when_more_bytes_than_requested_are_indicated_by_lws_write_and_a_partial_send_has_been_done_then_on_io_error_is_triggered)
+{
+    // arrange
+    wsio_mocks mocks;
+    unsigned char test_buffer[] = { 0x42, 0x43 };
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_ESTABLISHED, saved_ws_callback_context, NULL, 0);
+    (void)wsio_send(wsio, test_buffer, sizeof(test_buffer), test_on_send_complete, (void*)0x4243);
+
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    STRICT_EXPECTED_CALL(mocks, lws_write(TEST_LIBWEBSOCKET, IGNORED_PTR_ARG, sizeof(test_buffer), LWS_WRITE_BINARY))
+        .ValidateArgumentBuffer(2, test_buffer, sizeof(test_buffer))
+        .SetReturn(1);
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_WRITEABLE, saved_ws_callback_context, NULL, 0);
+    mocks.ResetAllCalls();
+
+    STRICT_EXPECTED_CALL(mocks, lws_get_context(TEST_LIBWEBSOCKET));
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    STRICT_EXPECTED_CALL(mocks, list_get_head_item(TEST_LIST_HANDLE));
+    EXPECTED_CALL(mocks, list_item_get_value(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(mocks, lws_write(TEST_LIBWEBSOCKET, IGNORED_PTR_ARG, 1, LWS_WRITE_BINARY))
+        .ValidateArgumentBuffer(2, test_buffer + 1, 1)
+        .SetReturn(2);
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(mocks, test_on_send_complete((void*)0x4243, IO_SEND_ERROR));
+    STRICT_EXPECTED_CALL(mocks, test_on_io_error((void*)0x4242));
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, list_remove(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
 
     // act
     (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_WRITEABLE, saved_ws_callback_context, NULL, 0);

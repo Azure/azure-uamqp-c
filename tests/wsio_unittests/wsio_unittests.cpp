@@ -2037,7 +2037,7 @@ TEST_FUNCTION(CLIENT_WRITABLE_when_open_and_one_chunk_queued_sends_the_chunk)
 }
 
 /* Tests_SRS_WSIO_01_121: [If this event is received in while an open action is incomplete, the open_complete callback shall be called with IO_OPEN_ERROR.] */
-TEST_FUNCTION(CLIENT_WRITABLE_when_opening_yields_an_error)
+TEST_FUNCTION(CLIENT_WRITABLE_when_opening_yields_an_open_complete_error)
 {
     // arrange
     wsio_mocks mocks;
@@ -2049,7 +2049,8 @@ TEST_FUNCTION(CLIENT_WRITABLE_when_opening_yields_an_error)
     STRICT_EXPECTED_CALL(mocks, lws_get_context(TEST_LIBWEBSOCKET));
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
-    STRICT_EXPECTED_CALL(mocks, test_on_io_error((void*)0x4242));
+    STRICT_EXPECTED_CALL(mocks, test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
+    STRICT_EXPECTED_CALL(mocks, lws_context_destroy(TEST_LIBWEBSOCKET_CONTEXT));
 
     // act
     (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_WRITEABLE, saved_ws_callback_context, NULL, 0);
@@ -2819,6 +2820,37 @@ TEST_FUNCTION(when_more_bytes_than_requested_are_indicated_by_lws_write_and_a_pa
 
     // act
     (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_WRITEABLE, saved_ws_callback_context, NULL, 0);
+
+    // assert
+    mocks.AssertActualAndExpectedCalls();
+
+    // cleanup
+    wsio_destroy(wsio);
+}
+
+/* LWS_CALLBACK_CLIENT_RECEIVE */
+
+/* Tests_SRS_WSIO_01_082: [LWS_CALLBACK_CLIENT_RECEIVE shall only be processed when the IO is open.] */
+TEST_FUNCTION(CLIENT_RECEIVE_while_the_IO_is_open_indicates_the_byte_as_received)
+{
+    // arrange
+    wsio_mocks mocks;
+    unsigned char test_buffer[] = { 0x42 };
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_ESTABLISHED, saved_ws_callback_context, NULL, 0);
+    mocks.ResetAllCalls();
+
+    STRICT_EXPECTED_CALL(mocks, lws_get_context(TEST_LIBWEBSOCKET));
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    STRICT_EXPECTED_CALL(mocks, test_on_bytes_received((void*)0x4242, IGNORED_PTR_ARG, sizeof(test_buffer)))
+        .ValidateArgumentBuffer(2, test_buffer, sizeof(test_buffer));
+
+    // act
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_RECEIVE, saved_ws_callback_context, test_buffer, sizeof(test_buffer));
 
     // assert
     mocks.AssertActualAndExpectedCalls();

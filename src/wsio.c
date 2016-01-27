@@ -213,8 +213,9 @@ static int on_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
 
         case IO_STATE_OPENING:
             /* Codes_SRS_WSIO_01_121: [If this event is received in while an open action is incomplete, the open_complete callback shall be called with IO_OPEN_ERROR.] */
-            wsio_instance->io_state = IO_STATE_ERROR;
-            indicate_error(wsio_instance);
+            indicate_open_complete(wsio_instance, IO_OPEN_ERROR);
+            lws_context_destroy(wsio_instance->ws_context);
+            wsio_instance->io_state = IO_STATE_NOT_OPEN;
             break;
 
         case IO_STATE_OPEN:

@@ -23,7 +23,9 @@ static struct lws_extension* TEST_INTERNAL_EXTENSIONS = (struct lws_extension*)0
 static BIO* TEST_BIO = (BIO*)0x4247;
 static BIO_METHOD* TEST_BIO_METHOD = (BIO_METHOD*)0x4248;
 static X509_STORE* TEST_CERT_STORE = (X509_STORE*)0x4249;
-static X509* TEST_X509_CERT = (X509*)0x424A;
+static X509* TEST_X509_CERT_1 = (X509*)0x424A;
+static X509* TEST_X509_CERT_2 = (X509*)0x424B;
+static const SSL_CTX* TEST_SSL_CONTEXT = (const SSL_CTX*)0x424C;
 static WSIO_CONFIG default_wsio_config = 
 {
     "test_host",
@@ -259,9 +261,11 @@ public:
     MOCK_STATIC_METHOD_1(, X509_STORE*, SSL_CTX_get_cert_store, const SSL_CTX*, ctx);
     MOCK_METHOD_END(X509_STORE*, TEST_CERT_STORE)
     MOCK_STATIC_METHOD_2(, int, X509_STORE_add_cert, X509_STORE*, ctx, X509*, x);
-    MOCK_METHOD_END(int, 0)
+    MOCK_METHOD_END(int, 1)
     MOCK_STATIC_METHOD_4(, X509*, PEM_read_bio_X509, BIO*, bp, X509**, x, pem_password_cb*, cb, void*, u);
-    MOCK_METHOD_END(X509*, TEST_X509_CERT)
+    MOCK_METHOD_END(X509*, TEST_X509_CERT_1)
+    MOCK_STATIC_METHOD_1(, void, X509_free, X509*, a);
+    MOCK_VOID_METHOD_END()
 
     // consumer mocks
     MOCK_STATIC_METHOD_2(, void, test_on_io_open_complete, void*, context, IO_OPEN_RESULT, io_open_result);
@@ -308,6 +312,7 @@ extern "C"
     DECLARE_GLOBAL_MOCK_METHOD_1(wsio_mocks, , X509_STORE*, SSL_CTX_get_cert_store, const SSL_CTX*, ctx);
     DECLARE_GLOBAL_MOCK_METHOD_2(wsio_mocks, , int, X509_STORE_add_cert, X509_STORE*, ctx, X509*, x);
     DECLARE_GLOBAL_MOCK_METHOD_4(wsio_mocks, , X509*, PEM_read_bio_X509, BIO*, bp, X509**, x, pem_password_cb*, cb, void*, u);
+    DECLARE_GLOBAL_MOCK_METHOD_1(wsio_mocks, , void, X509_free, X509*, a);
 
     DECLARE_GLOBAL_MOCK_METHOD_2(wsio_mocks, , void, test_on_io_open_complete, void*, context, IO_OPEN_RESULT, io_open_result);
     DECLARE_GLOBAL_MOCK_METHOD_3(wsio_mocks, , void, test_on_bytes_received, void*, context, const unsigned char*, buffer, size_t, size);
@@ -3034,6 +3039,376 @@ TEST_FUNCTION(CLIENT_RECEIVE_twice_indicates_2_receives)
     // act
     (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_RECEIVE, saved_ws_callback_context, test_buffer1, sizeof(test_buffer1));
     (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_RECEIVE, saved_ws_callback_context, test_buffer2, sizeof(test_buffer2));
+
+    // assert
+    mocks.AssertActualAndExpectedCalls();
+
+    // cleanup
+    wsio_destroy(wsio);
+}
+
+/* LWS_CALLBACK_OPENSSL_LOAD_EXTRA_CLIENT_VERIFY_CERTS */
+
+/* Tests_SRS_WSIO_01_089: [When LWS_CALLBACK_OPENSSL_LOAD_EXTRA_CLIENT_VERIFY_CERTS is triggered, the certificates passed in the trusted_ca member of WSIO_CONFIG passed in wsio_init shall be loaded in the certificate store.] */
+/* Tests_SRS_WSIO_01_090: [The OpenSSL certificate store is passed in the user argument.] */
+/* Tests_SRS_WSIO_01_131: [Get the certificate store for the OpenSSL context by calling SSL_CTX_get_cert_store] */
+/* Tests_SRS_WSIO_01_123: [Creating a new BIO by calling BIO_new.] */
+/* Tests_SRS_WSIO_01_124: [The BIO shall be a memory one (obtained by calling BIO_s_mem).] */
+/* Tests_SRS_WSIO_01_125: [Setting the certificates string as the input by using BIO_puts.] */
+/* Tests_SRS_WSIO_01_126: [Reading every certificate by calling PEM_read_bio_X509] */
+/* Tests_SRS_WSIO_01_132: [When PEM_read_bio_X509 returns NULL then no more certificates are available in the input string.] */
+/* Tests_SRS_WSIO_01_128: [Freeing the BIO] */
+TEST_FUNCTION(LOAD_EXTRA_CLIENT_VERIFY_CERTS_with_a_string_that_has_no_certs_add_no_certs_to_the_store)
+{
+    // arrange
+    wsio_mocks mocks;
+    unsigned char test_buffer1[] = { 0x42, 0x43 };
+    unsigned char test_buffer2[] = { 0x44 };
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+    mocks.ResetAllCalls();
+
+    STRICT_EXPECTED_CALL(mocks, lws_get_context(TEST_LIBWEBSOCKET));
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    STRICT_EXPECTED_CALL(mocks, SSL_CTX_get_cert_store(TEST_SSL_CONTEXT));
+    STRICT_EXPECTED_CALL(mocks, BIO_s_mem());
+    STRICT_EXPECTED_CALL(mocks, BIO_new(TEST_BIO_METHOD));
+    STRICT_EXPECTED_CALL(mocks, BIO_puts(TEST_BIO, default_wsio_config.trusted_ca))
+        .SetReturn(strlen(default_wsio_config.trusted_ca));
+    STRICT_EXPECTED_CALL(mocks, PEM_read_bio_X509(TEST_BIO, NULL, NULL, NULL))
+        .SetReturn((X509*)NULL);
+    STRICT_EXPECTED_CALL(mocks, BIO_free(TEST_BIO));
+
+    // act
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_OPENSSL_LOAD_EXTRA_CLIENT_VERIFY_CERTS, (void*)TEST_SSL_CONTEXT, NULL, 0);
+
+    // assert
+    mocks.AssertActualAndExpectedCalls();
+
+    // cleanup
+    wsio_destroy(wsio);
+}
+
+/* Tests_SRS_WSIO_01_126: [Reading every certificate by calling PEM_read_bio_X509] */
+/* Tests_SRS_WSIO_01_127: [Adding the read certificate to the store by calling X509_STORE_add_cert]  */
+TEST_FUNCTION(LOAD_EXTRA_CLIENT_VERIFY_CERTS_with_a_string_that_has_1_cert_loads_that_cert)
+{
+    // arrange
+    wsio_mocks mocks;
+    unsigned char test_buffer1[] = { 0x42, 0x43 };
+    unsigned char test_buffer2[] = { 0x44 };
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+    mocks.ResetAllCalls();
+
+    STRICT_EXPECTED_CALL(mocks, lws_get_context(TEST_LIBWEBSOCKET));
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    STRICT_EXPECTED_CALL(mocks, SSL_CTX_get_cert_store(TEST_SSL_CONTEXT));
+    STRICT_EXPECTED_CALL(mocks, BIO_s_mem());
+    STRICT_EXPECTED_CALL(mocks, BIO_new(TEST_BIO_METHOD));
+    STRICT_EXPECTED_CALL(mocks, BIO_puts(TEST_BIO, default_wsio_config.trusted_ca))
+        .SetReturn(strlen(default_wsio_config.trusted_ca));
+    STRICT_EXPECTED_CALL(mocks, PEM_read_bio_X509(TEST_BIO, NULL, NULL, NULL))
+        .SetReturn(TEST_X509_CERT_1);
+    STRICT_EXPECTED_CALL(mocks, X509_STORE_add_cert(TEST_CERT_STORE, TEST_X509_CERT_1));
+    STRICT_EXPECTED_CALL(mocks, PEM_read_bio_X509(TEST_BIO, NULL, NULL, NULL))
+        .SetReturn((X509*)NULL);
+    STRICT_EXPECTED_CALL(mocks, BIO_free(TEST_BIO));
+
+    // act
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_OPENSSL_LOAD_EXTRA_CLIENT_VERIFY_CERTS, (void*)TEST_SSL_CONTEXT, NULL, 0);
+
+    // assert
+    mocks.AssertActualAndExpectedCalls();
+
+    // cleanup
+    wsio_destroy(wsio);
+}
+
+/* Tests_SRS_WSIO_01_126: [Reading every certificate by calling PEM_read_bio_X509] */
+/* Tests_SRS_WSIO_01_127: [Adding the read certificate to the store by calling X509_STORE_add_cert] */
+TEST_FUNCTION(LOAD_EXTRA_CLIENT_VERIFY_CERTS_with_a_string_that_has_2_certs_loads_that_certs)
+{
+    // arrange
+    wsio_mocks mocks;
+    unsigned char test_buffer1[] = { 0x42, 0x43 };
+    unsigned char test_buffer2[] = { 0x44 };
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+    mocks.ResetAllCalls();
+
+    STRICT_EXPECTED_CALL(mocks, lws_get_context(TEST_LIBWEBSOCKET));
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    STRICT_EXPECTED_CALL(mocks, SSL_CTX_get_cert_store(TEST_SSL_CONTEXT));
+    STRICT_EXPECTED_CALL(mocks, BIO_s_mem());
+    STRICT_EXPECTED_CALL(mocks, BIO_new(TEST_BIO_METHOD));
+    STRICT_EXPECTED_CALL(mocks, BIO_puts(TEST_BIO, default_wsio_config.trusted_ca))
+        .SetReturn(strlen(default_wsio_config.trusted_ca));
+    STRICT_EXPECTED_CALL(mocks, PEM_read_bio_X509(TEST_BIO, NULL, NULL, NULL))
+        .SetReturn(TEST_X509_CERT_1);
+    STRICT_EXPECTED_CALL(mocks, X509_STORE_add_cert(TEST_CERT_STORE, TEST_X509_CERT_1));
+    STRICT_EXPECTED_CALL(mocks, PEM_read_bio_X509(TEST_BIO, NULL, NULL, NULL))
+        .SetReturn(TEST_X509_CERT_2);
+    STRICT_EXPECTED_CALL(mocks, X509_STORE_add_cert(TEST_CERT_STORE, TEST_X509_CERT_2));
+    STRICT_EXPECTED_CALL(mocks, PEM_read_bio_X509(TEST_BIO, NULL, NULL, NULL))
+        .SetReturn((X509*)NULL);
+    STRICT_EXPECTED_CALL(mocks, BIO_free(TEST_BIO));
+
+    // act
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_OPENSSL_LOAD_EXTRA_CLIENT_VERIFY_CERTS, (void*)TEST_SSL_CONTEXT, NULL, 0);
+
+    // assert
+    mocks.AssertActualAndExpectedCalls();
+
+    // cleanup
+    wsio_destroy(wsio);
+}
+
+/* Tests_SRS_WSIO_01_130: [If the event is received when the IO is already open the on_io_error callback shall be triggered.] */
+TEST_FUNCTION(LOAD_EXTRA_CLIENT_VERIFY_CERTS_when_already_open_yields_an_error)
+{
+    // arrange
+    wsio_mocks mocks;
+    unsigned char test_buffer1[] = { 0x42, 0x43 };
+    unsigned char test_buffer2[] = { 0x44 };
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_CLIENT_ESTABLISHED, saved_ws_callback_context, NULL, 0);
+    mocks.ResetAllCalls();
+
+    STRICT_EXPECTED_CALL(mocks, lws_get_context(TEST_LIBWEBSOCKET));
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    STRICT_EXPECTED_CALL(mocks, test_on_io_error((void*)0x4242));
+
+    // act
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_OPENSSL_LOAD_EXTRA_CLIENT_VERIFY_CERTS, (void*)TEST_SSL_CONTEXT, NULL, 0);
+
+    // assert
+    mocks.AssertActualAndExpectedCalls();
+
+    // cleanup
+    wsio_destroy(wsio);
+}
+
+/* Tests_SRS_WSIO_01_129: [If any of the APIs fails the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
+TEST_FUNCTION(when_getting_the_cert_store_fails_in_LOAD_EXTRA_CLIENT_VERIFY_CERTS_an_on_open_complete_is_triggered_with_error)
+{
+    // arrange
+    wsio_mocks mocks;
+    unsigned char test_buffer1[] = { 0x42, 0x43 };
+    unsigned char test_buffer2[] = { 0x44 };
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+    mocks.ResetAllCalls();
+
+    STRICT_EXPECTED_CALL(mocks, lws_get_context(TEST_LIBWEBSOCKET));
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    STRICT_EXPECTED_CALL(mocks, SSL_CTX_get_cert_store(TEST_SSL_CONTEXT))
+        .SetReturn((X509_STORE*)NULL);
+    STRICT_EXPECTED_CALL(mocks, test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
+
+    // act
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_OPENSSL_LOAD_EXTRA_CLIENT_VERIFY_CERTS, (void*)TEST_SSL_CONTEXT, NULL, 0);
+
+    // assert
+    mocks.AssertActualAndExpectedCalls();
+
+    // cleanup
+    wsio_destroy(wsio);
+}
+
+/* Tests_SRS_WSIO_01_129: [If any of the APIs fails the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
+TEST_FUNCTION(when_getting_the_memory_BIO_METHOD_fails_in_LOAD_EXTRA_CLIENT_VERIFY_CERTS_an_on_open_complete_is_triggered_with_error)
+{
+    // arrange
+    wsio_mocks mocks;
+    unsigned char test_buffer1[] = { 0x42, 0x43 };
+    unsigned char test_buffer2[] = { 0x44 };
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+    mocks.ResetAllCalls();
+
+    STRICT_EXPECTED_CALL(mocks, lws_get_context(TEST_LIBWEBSOCKET));
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    STRICT_EXPECTED_CALL(mocks, SSL_CTX_get_cert_store(TEST_SSL_CONTEXT));
+    STRICT_EXPECTED_CALL(mocks, BIO_s_mem())
+        .SetReturn((BIO_METHOD*)NULL);
+    STRICT_EXPECTED_CALL(mocks, test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
+
+    // act
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_OPENSSL_LOAD_EXTRA_CLIENT_VERIFY_CERTS, (void*)TEST_SSL_CONTEXT, NULL, 0);
+
+    // assert
+    mocks.AssertActualAndExpectedCalls();
+
+    // cleanup
+    wsio_destroy(wsio);
+}
+
+/* Tests_SRS_WSIO_01_129: [If any of the APIs fails the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
+TEST_FUNCTION(when_creating_the_BIO_fails_in_LOAD_EXTRA_CLIENT_VERIFY_CERTS_an_on_open_complete_is_triggered_with_error)
+{
+    // arrange
+    wsio_mocks mocks;
+    unsigned char test_buffer1[] = { 0x42, 0x43 };
+    unsigned char test_buffer2[] = { 0x44 };
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+    mocks.ResetAllCalls();
+
+    STRICT_EXPECTED_CALL(mocks, lws_get_context(TEST_LIBWEBSOCKET));
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    STRICT_EXPECTED_CALL(mocks, SSL_CTX_get_cert_store(TEST_SSL_CONTEXT));
+    STRICT_EXPECTED_CALL(mocks, BIO_s_mem());
+    STRICT_EXPECTED_CALL(mocks, BIO_new(TEST_BIO_METHOD))
+        .SetReturn((BIO*)NULL);
+    STRICT_EXPECTED_CALL(mocks, test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
+
+    // act
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_OPENSSL_LOAD_EXTRA_CLIENT_VERIFY_CERTS, (void*)TEST_SSL_CONTEXT, NULL, 0);
+
+    // assert
+    mocks.AssertActualAndExpectedCalls();
+
+    // cleanup
+    wsio_destroy(wsio);
+}
+
+/* Tests_SRS_WSIO_01_129: [If any of the APIs fails the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
+TEST_FUNCTION(when_setting_the_input_string_for_the_memory_BIO_fails_with_0_in_LOAD_EXTRA_CLIENT_VERIFY_CERTS_an_on_open_complete_is_triggered_with_error)
+{
+    // arrange
+    wsio_mocks mocks;
+    unsigned char test_buffer1[] = { 0x42, 0x43 };
+    unsigned char test_buffer2[] = { 0x44 };
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+    mocks.ResetAllCalls();
+
+    STRICT_EXPECTED_CALL(mocks, lws_get_context(TEST_LIBWEBSOCKET));
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    STRICT_EXPECTED_CALL(mocks, SSL_CTX_get_cert_store(TEST_SSL_CONTEXT));
+    STRICT_EXPECTED_CALL(mocks, BIO_s_mem());
+    STRICT_EXPECTED_CALL(mocks, BIO_new(TEST_BIO_METHOD));
+    STRICT_EXPECTED_CALL(mocks, BIO_puts(TEST_BIO, default_wsio_config.trusted_ca))
+        .SetReturn(0);
+    STRICT_EXPECTED_CALL(mocks, BIO_free(TEST_BIO));
+    STRICT_EXPECTED_CALL(mocks, test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
+
+    // act
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_OPENSSL_LOAD_EXTRA_CLIENT_VERIFY_CERTS, (void*)TEST_SSL_CONTEXT, NULL, 0);
+
+    // assert
+    mocks.AssertActualAndExpectedCalls();
+
+    // cleanup
+    wsio_destroy(wsio);
+}
+
+/* Tests_SRS_WSIO_01_129: [If any of the APIs fails the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
+TEST_FUNCTION(when_setting_the_input_string_for_the_memory_BIO_fails_with_len_minus_1_in_LOAD_EXTRA_CLIENT_VERIFY_CERTS_an_on_open_complete_is_triggered_with_error)
+{
+    // arrange
+    wsio_mocks mocks;
+    unsigned char test_buffer1[] = { 0x42, 0x43 };
+    unsigned char test_buffer2[] = { 0x44 };
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+    mocks.ResetAllCalls();
+
+    STRICT_EXPECTED_CALL(mocks, lws_get_context(TEST_LIBWEBSOCKET));
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    STRICT_EXPECTED_CALL(mocks, SSL_CTX_get_cert_store(TEST_SSL_CONTEXT));
+    STRICT_EXPECTED_CALL(mocks, BIO_s_mem());
+    STRICT_EXPECTED_CALL(mocks, BIO_new(TEST_BIO_METHOD));
+    STRICT_EXPECTED_CALL(mocks, BIO_puts(TEST_BIO, default_wsio_config.trusted_ca))
+        .SetReturn(strlen(default_wsio_config.trusted_ca) - 1);
+    STRICT_EXPECTED_CALL(mocks, test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
+    STRICT_EXPECTED_CALL(mocks, BIO_free(TEST_BIO));
+
+    // act
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_OPENSSL_LOAD_EXTRA_CLIENT_VERIFY_CERTS, (void*)TEST_SSL_CONTEXT, NULL, 0);
+
+    // assert
+    mocks.AssertActualAndExpectedCalls();
+
+    // cleanup
+    wsio_destroy(wsio);
+}
+
+/* Tests_SRS_WSIO_01_129: [If any of the APIs fails the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
+TEST_FUNCTION(when_setting_the_input_string_for_the_memory_BIO_fails_with_len_plus_1_in_LOAD_EXTRA_CLIENT_VERIFY_CERTS_an_on_open_complete_is_triggered_with_error)
+{
+    // arrange
+    wsio_mocks mocks;
+    unsigned char test_buffer1[] = { 0x42, 0x43 };
+    unsigned char test_buffer2[] = { 0x44 };
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+    mocks.ResetAllCalls();
+
+    STRICT_EXPECTED_CALL(mocks, lws_get_context(TEST_LIBWEBSOCKET));
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    STRICT_EXPECTED_CALL(mocks, SSL_CTX_get_cert_store(TEST_SSL_CONTEXT));
+    STRICT_EXPECTED_CALL(mocks, BIO_s_mem());
+    STRICT_EXPECTED_CALL(mocks, BIO_new(TEST_BIO_METHOD));
+    STRICT_EXPECTED_CALL(mocks, BIO_puts(TEST_BIO, default_wsio_config.trusted_ca))
+        .SetReturn(strlen(default_wsio_config.trusted_ca) + 1);
+    STRICT_EXPECTED_CALL(mocks, BIO_free(TEST_BIO));
+    STRICT_EXPECTED_CALL(mocks, test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
+
+    // act
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_OPENSSL_LOAD_EXTRA_CLIENT_VERIFY_CERTS, (void*)TEST_SSL_CONTEXT, NULL, 0);
+
+    // assert
+    mocks.AssertActualAndExpectedCalls();
+
+    // cleanup
+    wsio_destroy(wsio);
+}
+
+/* Tests_SRS_WSIO_01_129: [If any of the APIs fails the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
+/* Tests_SRS_WSIO_01_133: [If X509_STORE_add_cert fails then the certificate obtained by calling PEM_read_bio_X509 shall be freed with X509_free.] */
+TEST_FUNCTION(when_adding_the_cert_to_the_store_fails_in_LOAD_EXTRA_CLIENT_VERIFY_CERTS_the_cert_is_freed_and_on_open_complete_is_triggered_with_error)
+{
+    // arrange
+    wsio_mocks mocks;
+    unsigned char test_buffer1[] = { 0x42, 0x43 };
+    unsigned char test_buffer2[] = { 0x44 };
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    (void)wsio_open(wsio, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, (void*)0x4242);
+    mocks.ResetAllCalls();
+
+    STRICT_EXPECTED_CALL(mocks, lws_get_context(TEST_LIBWEBSOCKET));
+    STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
+        .SetReturn(saved_ws_callback_context);
+    STRICT_EXPECTED_CALL(mocks, SSL_CTX_get_cert_store(TEST_SSL_CONTEXT));
+    STRICT_EXPECTED_CALL(mocks, BIO_s_mem());
+    STRICT_EXPECTED_CALL(mocks, BIO_new(TEST_BIO_METHOD));
+    STRICT_EXPECTED_CALL(mocks, BIO_puts(TEST_BIO, default_wsio_config.trusted_ca))
+        .SetReturn(strlen(default_wsio_config.trusted_ca));
+    STRICT_EXPECTED_CALL(mocks, PEM_read_bio_X509(TEST_BIO, NULL, NULL, NULL))
+        .SetReturn(TEST_X509_CERT_1);
+    STRICT_EXPECTED_CALL(mocks, X509_STORE_add_cert(TEST_CERT_STORE, TEST_X509_CERT_1))
+        .SetReturn(0);
+    STRICT_EXPECTED_CALL(mocks, X509_free(TEST_X509_CERT_1));
+    STRICT_EXPECTED_CALL(mocks, BIO_free(TEST_BIO));
+    STRICT_EXPECTED_CALL(mocks, test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
+
+    // act
+    (void)saved_ws_callback(TEST_LIBWEBSOCKET, LWS_CALLBACK_OPENSSL_LOAD_EXTRA_CLIENT_VERIFY_CERTS, (void*)TEST_SSL_CONTEXT, NULL, 0);
 
     // assert
     mocks.AssertActualAndExpectedCalls();

@@ -398,46 +398,103 @@ static int on_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
 
 	case LWS_CALLBACK_OPENSSL_LOAD_EXTRA_CLIENT_VERIFY_CERTS:
 	{
-		X509_STORE* cert_store = SSL_CTX_get_cert_store(user);
-		BIO* cert_memory_bio;
-		X509* certificate;
-
         context = lws_get_context(wsi);
         wsio_instance = lws_context_user(context);
 
-		cert_memory_bio = BIO_new(BIO_s_mem());
-		if (cert_memory_bio == NULL)
-		{
-			/* error */
-		}
-		else
-		{
-			if (BIO_puts(cert_memory_bio, wsio_instance->trusted_ca) < (int)strlen(wsio_instance->trusted_ca))
-			{
-				/* error */
-			}
-			else
-			{
-				do
-				{
-					certificate = PEM_read_bio_X509(cert_memory_bio, NULL, 0, NULL);
-					if (certificate != NULL)
-					{
-						if (!X509_STORE_add_cert(cert_store, certificate))
-						{
-							break;
-						}
-					}
-				} while (certificate != NULL);
+        switch (wsio_instance->io_state)
+        {
+        default:
+            break;
 
-				if (certificate != NULL)
-				{
-					/* error */
-				}
-			}
+        case IO_STATE_OPEN:
+            /* Codes_SRS_WSIO_01_130: [If the event is received when the IO is already open the on_io_error callback shall be triggered.]  */
+            indicate_error(wsio_instance);
+            break;
 
-			BIO_free(cert_memory_bio);
-		}
+        case IO_STATE_OPENING:
+        {
+            /* Codes_SRS_WSIO_01_089: [When LWS_CALLBACK_OPENSSL_LOAD_EXTRA_CLIENT_VERIFY_CERTS is triggered, the certificates passed in the trusted_ca member of WSIO_CONFIG passed in wsio_init shall be loaded in the certificate store.] */
+            /* Codes_SRS_WSIO_01_131: [Get the certificate store for the OpenSSL context by calling SSL_CTX_get_cert_store] */
+            /* Codes_SRS_WSIO_01_090: [The OpenSSL certificate store is passed in the user argument.] */
+            X509_STORE* cert_store = SSL_CTX_get_cert_store(user);
+            BIO* cert_memory_bio;
+            X509* certificate;
+            bool is_error = false;
+
+            if (cert_store == NULL)
+            {
+                /* Codes_SRS_WSIO_01_129: [If any of the APIs fails the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
+                is_error = true;
+            }
+            else
+            {
+                /* Codes_SRS_WSIO_01_123: [Creating a new BIO by calling BIO_new.] */
+                /* Codes_SRS_WSIO_01_124: [The BIO shall be a memory one (obtained by calling BIO_s_mem).] */
+                BIO_METHOD* bio_method = BIO_s_mem();
+                if (bio_method == NULL)
+                {
+                    /* Codes_SRS_WSIO_01_129: [If any of the APIs fails the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
+                    is_error = true;
+                }
+                else
+                {
+                    cert_memory_bio = BIO_new(bio_method);
+                    if (cert_memory_bio == NULL)
+                    {
+                        /* Codes_SRS_WSIO_01_129: [If any of the APIs fails the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
+                        is_error = true;
+                    }
+                    else
+                    {
+                        int puts_result = BIO_puts(cert_memory_bio, wsio_instance->trusted_ca);
+
+                        /* Codes_SRS_WSIO_01_125: [Setting the certificates string as the input by using BIO_puts.] */
+                        if ((puts_result < 0) || 
+                            ((size_t)puts_result != strlen(wsio_instance->trusted_ca)))
+                        {
+                            /* Codes_SRS_WSIO_01_129: [If any of the APIs fails the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
+                            is_error = true;
+                        }
+                        else
+                        {
+                            do
+                            {
+                                /* Codes_SRS_WSIO_01_126: [Reading every certificate by calling PEM_read_bio_X509] */
+                                certificate = PEM_read_bio_X509(cert_memory_bio, NULL, NULL, NULL);
+
+                                /* Codes_SRS_WSIO_01_132: [When PEM_read_bio_X509 returns NULL then no more certificates are available in the input string.] */
+                                if (certificate != NULL)
+                                {
+                                    /* Codes_SRS_WSIO_01_127: [Adding the read certificate to the store by calling X509_STORE_add_cert] */
+                                    if (!X509_STORE_add_cert(cert_store, certificate))
+                                    {
+                                        is_error = true;
+                                        X509_free(certificate);
+                                        break;
+                                    }
+                                }
+                            } while (certificate != NULL);
+
+                            if (certificate != NULL)
+                            {
+                                /* error */
+                            }
+                        }
+
+                        /* Codes_SRS_WSIO_01_128: [Freeing the BIO] */
+                        BIO_free(cert_memory_bio);
+                    }
+                }
+            }
+
+            if (is_error)
+            {
+                indicate_open_complete(wsio_instance, IO_OPEN_ERROR);
+            }
+
+            break;
+        }
+        }
 
 		break;
 	}

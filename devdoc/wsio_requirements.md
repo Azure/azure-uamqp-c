@@ -34,7 +34,7 @@ extern CONCRETE_IO_HANDLE wsio_create(void* io_create_parameters, LOGGER_LOG log
 
 **SRS_WSIO_01_001: \[**wsio_create shall create an instance of a wsio and return a non-NULL handle to it.**\]**
 **SRS_WSIO_01_002: \[**If the argument io_create_parameters is NULL then wsio_create shall return NULL.**\]**
-**SRS_WSIO_01_003: \[**io_create_parameters shall be used as a WSIO_CONFIG*.**\]**
+**SRS_WSIO_01_003: \[**io_create_parameters shall be used as a WSIO_CONFIG* .**\]**
 **SRS_WSIO_01_004: \[**If any of the WSIO_CONFIG fields host, protocol_name or relative_path is NULL then wsio_create shall return NULL.**\]**
 **SRS_WSIO_01_100: \[**The trusted_ca member shall be optional (it can be NULL).**\]**
 **SRS_WSIO_01_005: \[**If allocating memory for the new wsio instance fails then wsio_create shall return NULL.**\]**

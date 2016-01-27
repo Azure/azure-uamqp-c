@@ -1094,9 +1094,7 @@ int connection_close(CONNECTION_HANDLE connection, const char* condition_value, 
 		(void)xio_close(connection->io, NULL, NULL);
 		connection->is_underlying_io_open = 1;
 
-
-
-		result = 0;
+        result = 0;
 	}
 
 	return result;

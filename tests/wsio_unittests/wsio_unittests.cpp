@@ -6,7 +6,6 @@
 #include "micromockcharstararenullterminatedstrings.h"
 #include "xio.h"
 #include "wsio.h"
-#include "amqpalloc.h"
 #include "list.h"
 #include "libwebsockets.h"
 #include "openssl/ssl.h"

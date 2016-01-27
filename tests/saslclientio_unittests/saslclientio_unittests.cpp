@@ -6,7 +6,6 @@
 #include "testrunnerswitcher.h"
 #include "micromock.h"
 #include "micromockcharstararenullterminatedstrings.h"
-#include "amqpalloc.h"
 #include "saslclientio.h"
 #include "frame_codec.h"
 #include "sasl_frame_codec.h"

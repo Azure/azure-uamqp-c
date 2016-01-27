@@ -169,9 +169,9 @@ int main(int argc, char** argv)
 			}
 		}
 
-		cbs_destroy(cbs);
 		messagesender_destroy(message_sender);
-		link_destroy(link);
+        cbs_destroy(cbs);
+        link_destroy(link);
 		session_destroy(session);
 		connection_destroy(connection);
 		xio_destroy(sasl_io);

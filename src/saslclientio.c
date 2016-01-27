@@ -656,10 +656,13 @@ static void sasl_frame_received_callback(void* context, AMQP_VALUE sasl_frame)
 											{
 												if (strcmp(sasl_mechanism_name, sasl_server_mechanism_name) == 0)
 												{
-													break;
+                                                    amqpvalue_destroy(sasl_server_mechanism);
+                                                    break;
 												}
 											}
-										}
+
+                                            amqpvalue_destroy(sasl_server_mechanism);
+                                        }
 									}
 
 									if (i == mechanisms_count)

@@ -5,7 +5,6 @@
 #include "testrunnerswitcher.h"
 #include "micromock.h"
 #include "micromockcharstararenullterminatedstrings.h"
-#include "amqpalloc.h"
 #include "sasl_anonymous.h"
 #include "logger.h"
 

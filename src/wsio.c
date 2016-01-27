@@ -411,6 +411,7 @@ static int on_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
             indicate_error(wsio_instance);
             break;
 
+        case IO_STATE_NOT_OPEN:
         case IO_STATE_OPENING:
         {
             /* Codes_SRS_WSIO_01_089: [When LWS_CALLBACK_OPENSSL_LOAD_EXTRA_CLIENT_VERIFY_CERTS is triggered, the certificates passed in the trusted_ca member of WSIO_CONFIG passed in wsio_init shall be loaded in the certificate store.] */

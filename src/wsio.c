@@ -424,7 +424,7 @@ static int on_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
 
             if (cert_store == NULL)
             {
-                /* Codes_SRS_WSIO_01_129: [If any of the APIs fails the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
+                /* Codes_SRS_WSIO_01_129: [If any of the APIs fails and an open call is pending the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
                 is_error = true;
             }
             else
@@ -434,7 +434,7 @@ static int on_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
                 BIO_METHOD* bio_method = BIO_s_mem();
                 if (bio_method == NULL)
                 {
-                    /* Codes_SRS_WSIO_01_129: [If any of the APIs fails the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
+                    /* Codes_SRS_WSIO_01_129: [If any of the APIs fails and an open call is pending the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
                     is_error = true;
                 }
                 else
@@ -442,7 +442,7 @@ static int on_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
                     cert_memory_bio = BIO_new(bio_method);
                     if (cert_memory_bio == NULL)
                     {
-                        /* Codes_SRS_WSIO_01_129: [If any of the APIs fails the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
+                        /* Codes_SRS_WSIO_01_129: [If any of the APIs fails and an open call is pending the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
                         is_error = true;
                     }
                     else
@@ -453,7 +453,7 @@ static int on_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
                         if ((puts_result < 0) || 
                             ((size_t)puts_result != strlen(wsio_instance->trusted_ca)))
                         {
-                            /* Codes_SRS_WSIO_01_129: [If any of the APIs fails the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
+                            /* Codes_SRS_WSIO_01_129: [If any of the APIs fails and an open call is pending the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
                             is_error = true;
                         }
                         else
@@ -469,17 +469,13 @@ static int on_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
                                     /* Codes_SRS_WSIO_01_127: [Adding the read certificate to the store by calling X509_STORE_add_cert] */
                                     if (!X509_STORE_add_cert(cert_store, certificate))
                                     {
+                                        /* Codes_SRS_WSIO_01_129: [If any of the APIs fails and an open call is pending the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
                                         is_error = true;
                                         X509_free(certificate);
                                         break;
                                     }
                                 }
                             } while (certificate != NULL);
-
-                            if (certificate != NULL)
-                            {
-                                /* error */
-                            }
                         }
 
                         /* Codes_SRS_WSIO_01_128: [Freeing the BIO] */
@@ -490,7 +486,11 @@ static int on_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
 
             if (is_error)
             {
-                indicate_open_complete(wsio_instance, IO_OPEN_ERROR);
+                /* Codes_SRS_WSIO_01_129: [If any of the APIs fails and an open call is pending the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
+                if (wsio_instance->io_state == IO_STATE_OPENING)
+                {
+                    indicate_open_complete(wsio_instance, IO_OPEN_ERROR);
+                }
             }
 
             break;

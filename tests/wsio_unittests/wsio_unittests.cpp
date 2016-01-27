@@ -3196,7 +3196,7 @@ TEST_FUNCTION(LOAD_EXTRA_CLIENT_VERIFY_CERTS_when_already_open_yields_an_error)
     wsio_destroy(wsio);
 }
 
-/* Tests_SRS_WSIO_01_129: [If any of the APIs fails the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
+/* Tests_SRS_WSIO_01_129: [If any of the APIs fails and an open call is pending the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
 TEST_FUNCTION(when_getting_the_cert_store_fails_in_LOAD_EXTRA_CLIENT_VERIFY_CERTS_an_on_open_complete_is_triggered_with_error)
 {
     // arrange
@@ -3224,7 +3224,7 @@ TEST_FUNCTION(when_getting_the_cert_store_fails_in_LOAD_EXTRA_CLIENT_VERIFY_CERT
     wsio_destroy(wsio);
 }
 
-/* Tests_SRS_WSIO_01_129: [If any of the APIs fails the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
+/* Tests_SRS_WSIO_01_129: [If any of the APIs fails and an open call is pending the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
 TEST_FUNCTION(when_getting_the_memory_BIO_METHOD_fails_in_LOAD_EXTRA_CLIENT_VERIFY_CERTS_an_on_open_complete_is_triggered_with_error)
 {
     // arrange
@@ -3253,7 +3253,7 @@ TEST_FUNCTION(when_getting_the_memory_BIO_METHOD_fails_in_LOAD_EXTRA_CLIENT_VERI
     wsio_destroy(wsio);
 }
 
-/* Tests_SRS_WSIO_01_129: [If any of the APIs fails the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
+/* Tests_SRS_WSIO_01_129: [If any of the APIs fails and an open call is pending the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
 TEST_FUNCTION(when_creating_the_BIO_fails_in_LOAD_EXTRA_CLIENT_VERIFY_CERTS_an_on_open_complete_is_triggered_with_error)
 {
     // arrange
@@ -3283,7 +3283,7 @@ TEST_FUNCTION(when_creating_the_BIO_fails_in_LOAD_EXTRA_CLIENT_VERIFY_CERTS_an_o
     wsio_destroy(wsio);
 }
 
-/* Tests_SRS_WSIO_01_129: [If any of the APIs fails the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
+/* Tests_SRS_WSIO_01_129: [If any of the APIs fails and an open call is pending the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
 TEST_FUNCTION(when_setting_the_input_string_for_the_memory_BIO_fails_with_0_in_LOAD_EXTRA_CLIENT_VERIFY_CERTS_an_on_open_complete_is_triggered_with_error)
 {
     // arrange
@@ -3315,7 +3315,7 @@ TEST_FUNCTION(when_setting_the_input_string_for_the_memory_BIO_fails_with_0_in_L
     wsio_destroy(wsio);
 }
 
-/* Tests_SRS_WSIO_01_129: [If any of the APIs fails the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
+/* Tests_SRS_WSIO_01_129: [If any of the APIs fails and an open call is pending the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
 TEST_FUNCTION(when_setting_the_input_string_for_the_memory_BIO_fails_with_len_minus_1_in_LOAD_EXTRA_CLIENT_VERIFY_CERTS_an_on_open_complete_is_triggered_with_error)
 {
     // arrange
@@ -3347,7 +3347,7 @@ TEST_FUNCTION(when_setting_the_input_string_for_the_memory_BIO_fails_with_len_mi
     wsio_destroy(wsio);
 }
 
-/* Tests_SRS_WSIO_01_129: [If any of the APIs fails the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
+/* Tests_SRS_WSIO_01_129: [If any of the APIs fails and an open call is pending the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
 TEST_FUNCTION(when_setting_the_input_string_for_the_memory_BIO_fails_with_len_plus_1_in_LOAD_EXTRA_CLIENT_VERIFY_CERTS_an_on_open_complete_is_triggered_with_error)
 {
     // arrange
@@ -3379,7 +3379,7 @@ TEST_FUNCTION(when_setting_the_input_string_for_the_memory_BIO_fails_with_len_pl
     wsio_destroy(wsio);
 }
 
-/* Tests_SRS_WSIO_01_129: [If any of the APIs fails the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
+/* Tests_SRS_WSIO_01_129: [If any of the APIs fails and an open call is pending the on_open_complete callback shall be triggered with IO_OPEN_ERROR.] */
 /* Tests_SRS_WSIO_01_133: [If X509_STORE_add_cert fails then the certificate obtained by calling PEM_read_bio_X509 shall be freed with X509_free.] */
 TEST_FUNCTION(when_adding_the_cert_to_the_store_fails_in_LOAD_EXTRA_CLIENT_VERIFY_CERTS_the_cert_is_freed_and_on_open_complete_is_triggered_with_error)
 {

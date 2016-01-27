@@ -54,11 +54,12 @@ typedef struct WSIO_INSTANCE_TAG
 	bool use_ssl;
 } WSIO_INSTANCE;
 
-static void indicate_error(WSIO_INSTANCE* ws_io_instance)
+static void indicate_error(WSIO_INSTANCE* wsio_instance)
 {
-	if (ws_io_instance->on_io_error != NULL)
+    wsio_instance->io_state = IO_STATE_ERROR;
+    if (wsio_instance->on_io_error != NULL)
 	{
-		ws_io_instance->on_io_error(ws_io_instance->open_callback_context);
+        wsio_instance->on_io_error(wsio_instance->open_callback_context);
 	}
 }
 
@@ -228,7 +229,6 @@ static int on_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
                 PENDING_SOCKET_IO* pending_socket_io = (PENDING_SOCKET_IO*)list_item_get_value(first_pending_io);
                 if (pending_socket_io == NULL)
                 {
-                    wsio_instance->io_state = IO_STATE_ERROR;
                     indicate_error(wsio_instance);
                 }
                 else
@@ -248,7 +248,6 @@ static int on_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
                         /* Codes_SRS_WSIO_01_113: [If allocating the memory fails for a pending IO that has been partially sent already then the on_io_error callback shall also be triggered.] */
                         if (is_partially_sent)
                         {
-                            wsio_instance->io_state = IO_STATE_ERROR;
                             indicate_error(wsio_instance);
                         }
                         else
@@ -264,7 +263,6 @@ static int on_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
                         if ((remove_pending_io(wsio_instance, first_pending_io, pending_socket_io) != 0) && !is_partially_sent)
                         {
                             /* Codes_SRS_WSIO_01_117: [on_io_error should not be triggered twice when removing a pending IO that failed and a partial send for it has already been done.] */
-                            wsio_instance->io_state = IO_STATE_ERROR;
                             indicate_error(wsio_instance);
                         }
                     }
@@ -291,7 +289,6 @@ static int on_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
                             /* Codes_SRS_WSIO_01_119: [If this error happens after the pending IO being partially sent, the on_io_error shall also be indicated.] */
                             if (pending_socket_io->is_partially_sent)
                             {
-                                wsio_instance->io_state = IO_STATE_ERROR;
                                 indicate_error(wsio_instance);
                             }
                             else
@@ -307,7 +304,6 @@ static int on_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
                             if ((remove_pending_io(wsio_instance, first_pending_io, pending_socket_io) != 0) && !is_partially_sent)
                             {
                                 /* Codes_SRS_WSIO_01_117: [on_io_error should not be triggered twice when removing a pending IO that failed and a partial send for it has already been done.] */
-                                wsio_instance->io_state = IO_STATE_ERROR;
                                 indicate_error(wsio_instance);
                             }
                         }
@@ -338,7 +334,6 @@ static int on_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
                                 if (remove_pending_io(wsio_instance, first_pending_io, pending_socket_io) != 0)
                                 {
                                     /* Codes_SRS_WSIO_01_079: [If the send was successful and any error occurs during removing the pending IO from the list then the on_io_error callback shall be triggered.]  */
-                                    wsio_instance->io_state = IO_STATE_ERROR;
                                     indicate_error(wsio_instance);
                                 }
                                 else
@@ -366,7 +361,38 @@ static int on_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
 	{
         context = lws_get_context(wsi);
         wsio_instance = lws_context_user(context);
-        wsio_instance->on_bytes_received(wsio_instance->open_callback_context, in, len);
+
+        switch (wsio_instance->io_state)
+        {
+        default:
+            break;
+
+        case IO_STATE_OPENING:
+            /* Codes_SRS_WSIO_01_122: [If an open action is in progress then the on_open_complete callback shall be invoked with IO_OPEN_ERROR.] */
+            indicate_open_complete(wsio_instance, IO_OPEN_ERROR);
+            lws_context_destroy(wsio_instance->ws_context);
+            wsio_instance->io_state = IO_STATE_NOT_OPEN;
+            break;
+
+        case IO_STATE_OPEN:
+            /* Codes_SRS_WSIO_01_087: [If the number of bytes is 0 then the on_io_error callback shall be called.] */
+            if ((len == 0) ||
+                /* Codes_SRS_WSIO_01_088: [If the number of bytes received is positive, but the buffer indicated by the in parameter is NULL, then the on_io_error callback shall be called.] */
+                (in == NULL))
+            {
+                indicate_error(wsio_instance);
+            }
+            else
+            {
+                /* Codes_SRS_WSIO_01_082: [LWS_CALLBACK_CLIENT_RECEIVE shall only be processed when the IO is open.] */
+                /* Codes_SRS_WSIO_01_083: [When LWS_CALLBACK_CLIENT_RECEIVE is triggered and the IO is open, the on_bytes_received callback passed in wsio_open shall be called.] */
+                /* Codes_SRS_WSIO_01_084: [The bytes argument shall point to the received bytes as indicated by the LWS_CALLBACK_CLIENT_RECEIVE in argument.] */
+                /* Codes_SRS_WSIO_01_085: [The length argument shall be set to the number of received bytes as indicated by the LWS_CALLBACK_CLIENT_RECEIVE len argument.] */
+                /* Codes_SRS_WSIO_01_086: [The callback_context shall be set to the callback_context that was passed in wsio_open.] */
+                wsio_instance->on_bytes_received(wsio_instance->open_callback_context, in, len);
+            }
+        }
+
 		break;
 	}
 

@@ -72,7 +72,7 @@ bool operator==<const lws_context_creation_info*>(const CMockValue<const lws_con
         else
         {
             result = result && (strcmp(lhs.GetValue()->http_proxy_address, rhs.GetValue()->http_proxy_address) == 0);
-            result = result && (lhs.GetValue()->http_proxy_port, rhs.GetValue()->http_proxy_port);
+            result = result && (lhs.GetValue()->http_proxy_port == rhs.GetValue()->http_proxy_port);
         }
 
         if (rhs.GetValue()->ssl_ca_filepath == NULL)

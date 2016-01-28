@@ -792,8 +792,11 @@ static void on_amqp_frame_received(void* context, uint16_t channel, AMQP_VALUE p
 								}
 								else
 								{
-									new_endpoint->incoming_channel = channel;
-									new_endpoint->on_endpoint_frame_received(new_endpoint->callback_context, performative, payload_size, payload_bytes);
+                                    if (new_endpoint != NULL)
+                                    {
+                                        new_endpoint->incoming_channel = channel;
+                                        new_endpoint->on_endpoint_frame_received(new_endpoint->callback_context, performative, payload_size, payload_bytes);
+                                    }
 								}
 
 								begin_destroy(begin);

@@ -86,7 +86,7 @@ static char actual_stringified_io[8192];
 TYPED_MOCK_CLASS(connection_mocks, CGlobalMock)
 {
 public:
-	/* io mocks */
+	/* xio mocks */
 	MOCK_STATIC_METHOD_3(, XIO_HANDLE, xio_create, const IO_INTERFACE_DESCRIPTION*, io_interface_description, const void*, io_create_parameters, LOGGER_LOG, logger_log)
 	MOCK_METHOD_END(XIO_HANDLE, TEST_IO_HANDLE);
 	MOCK_STATIC_METHOD_1(, void, xio_destroy, XIO_HANDLE, xio)

@@ -146,7 +146,7 @@ public:
 		saved_on_bytes_encoded_callback_context = callback_context;
 	MOCK_METHOD_END(int, 0);
 
-	/* io mocks */
+	/* xio mocks */
 	MOCK_STATIC_METHOD_5(, int, xio_open, XIO_HANDLE, xio, ON_IO_OPEN_COMPLETE, on_io_open_complete, ON_BYTES_RECEIVED, on_bytes_received, ON_IO_ERROR, on_io_error, void*, callback_context)
 		saved_on_bytes_received = on_bytes_received;
 		saved_on_io_open_complete = on_io_open_complete;

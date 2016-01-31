@@ -6,7 +6,7 @@ function(add_sample_directory whatIsBuilding)
 
     set_target_properties(${whatIsBuilding}
                PROPERTIES
-               FOLDER "uAMQP_Samples")
+               FOLDER "uamqp_samples")
 endfunction()
 
 add_sample_directory(message_sender_sample)

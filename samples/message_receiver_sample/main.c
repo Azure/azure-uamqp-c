@@ -14,6 +14,7 @@
 #include "amqpalloc.h"
 #include "saslclientio.h"
 #include "sasl_plain.h"
+#include "tlsio.h"
 #if _WIN32
 #include "tlsio_schannel.h"
 #else
@@ -67,15 +68,13 @@ int main(int argc, char** argv)
 		XIO_HANDLE tls_io;
 
 		/* create the TLS IO */
+        TLSIO_CONFIG tls_io_config = { EH_HOST, 5671 };
 #if _WIN32
-		TLSIO_SCHANNEL_CONFIG tls_io_config = { EH_HOST, 5671 };
 		const IO_INTERFACE_DESCRIPTION* tlsio_interface = tlsio_schannel_get_interface_description();
 #else
 #ifdef MBED_BUILD_TIMESTAMP
-		TLSIO_WOLFSSL_CONFIG tls_io_config = { EH_HOST, 5671 };
 		const IO_INTERFACE_DESCRIPTION* tlsio_interface = tlsio_wolfssl_get_interface_description();
 #else
-		TLSIO_OPENSSL_CONFIG tls_io_config = { EH_HOST, 5671 };
 		const IO_INTERFACE_DESCRIPTION* tlsio_interface = tlsio_openssl_get_interface_description();
 #endif
 #endif

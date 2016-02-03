@@ -15,15 +15,6 @@
 #include "saslclientio.h"
 #include "sasl_mssbcbs.h"
 #include "tlsio.h"
-#if _WIN32
-#include "tlsio_schannel.h"
-#else
-#ifdef MBED_BUILD_TIMESTAMP
-#include "tlsio_wolfssl.h"
-#else
-#include "tlsio_openssl.h"
-#endif
-#endif
 #include "consolelogger.h"
 #include "cbs.h"
 
@@ -88,15 +79,7 @@ int main(int argc, char** argv)
 
 		/* create the TLS IO */
         TLSIO_CONFIG tls_io_config = { EH_HOST, 5671 };
-#if _WIN32
-		const IO_INTERFACE_DESCRIPTION* tlsio_interface = tlsio_schannel_get_interface_description();
-#else
-#ifdef MBED_BUILD_TIMESTAMP
-		const IO_INTERFACE_DESCRIPTION* tlsio_interface = tlsio_wolfssl_get_interface_description();
-#else
-		const IO_INTERFACE_DESCRIPTION* tlsio_interface = tlsio_openssl_get_interface_description();
-#endif
-#endif
+		const IO_INTERFACE_DESCRIPTION* tlsio_interface = platform_get_default_tlsio();
 		tls_io = xio_create(tlsio_interface, &tls_io_config, NULL);
 
 		/* create the SASL client IO using the TLS IO */

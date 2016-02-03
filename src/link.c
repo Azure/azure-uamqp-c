@@ -939,7 +939,7 @@ LINK_TRANSFER_RESULT link_transfer(LINK_HANDLE link, PAYLOAD* payloads, size_t p
 							else
 							{
 								/* here we should feed data to the transfer frame */
-								switch (session_send_transfer(link->link_endpoint, transfer, payloads, payload_count, &pending_delivery->delivery_id, ((link->snd_settle_mode == sender_settle_mode_unsettled) || (settled)) ? NULL : on_send_complete, delivery_instance_list_item))
+								switch (session_send_transfer(link->link_endpoint, transfer, payloads, payload_count, &pending_delivery->delivery_id, (settled) ? on_send_complete : NULL, delivery_instance_list_item))
 								{
 								default:
 								case SESSION_SEND_TRANSFER_ERROR:

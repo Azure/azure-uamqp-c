@@ -30,7 +30,7 @@ add_definitions(-D__STDC_NO_ATOMICS__=1)
 
 if(${use_wsio})
     include_directories(libwebsockets/lib)
-    include_directories(${CMAKE_BINARY_DIR}/libwebsockets)
+    include_directories(${PROJECT_BINARY_DIR}/libwebsockets)
     add_subdirectory(libwebsockets)
 endif()
 

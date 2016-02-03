@@ -25,12 +25,21 @@ For WebSockets support uAMQP depends on libwebsockets, which is available here: 
 
 ## Setup
 
-1. Clone azure-uamqp-c ie git clone --recursive https://github.com/Azure/azure-uamqp-c.git
-
-2. Create a folder build under azure-uamqp-c
-
-3. Switch to the build folder and run
+- Clone azure-uamqp-c by:
+```
+git clone --recursive https://github.com/Azure/azure-uamqp-c.git
+```
+- Create a folder build under azure-uamqp-c
+- Switch to the build folder and run
    cmake ..
+
+## Switching branches
+
+After any switch of branches (git checkout for example), one should also update the submodule references by:
+
+```
+git submodule update --init --recursive
+```
 
 ## Websocket support
 

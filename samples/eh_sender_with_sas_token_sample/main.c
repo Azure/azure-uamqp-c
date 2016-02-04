@@ -120,7 +120,7 @@ int main(int argc, char** argv)
 
         /* Make a token that expires in one hour */
         time_t currentTime = time(NULL);
-        size_t expiry_time = (size_t)(difftime(currentTime, 0) + 36000);
+        size_t expiry_time = (size_t)(difftime(currentTime, 0) + 3600);
 
         sas_token = SASToken_Create(sas_key_value, encoded_resource_uri, sas_key_name, expiry_time);
 

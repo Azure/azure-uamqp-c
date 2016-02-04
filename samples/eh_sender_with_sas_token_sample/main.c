@@ -30,12 +30,13 @@
 #endif
 
 /* This sample connects to an Event Hub, authenticates using SASL MSSBCBS (SAS token given by a put-token) and sends 1 message to the EH specifying a publisher ID */
+/* The SAS token is generated based on the policy name/key */
 /* Replace the below settings with your own.*/
 
 #define EH_HOST "<<<Replace with your own EH host (like myeventhub.servicebus.windows.net)>>>"
+#define EH_KEY_NAME "<<<Replace with your own key name>>>"
+#define EH_KEY "<<<Replace with your own key>>>"
 #define EH_NAME "<<<Replace with your own EH name (like ingress_eh)>>>"
-#define EH_PUBLISHER "<<<Replace with your publisher ID (like publisher42)>>>"
-#define EH_SAS_TOKEN "<<<Replace with your SAS token generated for your publisher (secured path is like myeventhub.servicebus.windows.net/ingress_eh/pubslishers/publisher42 >>>"
 
 #define EH_PUBLISHER "test_publisher"
 

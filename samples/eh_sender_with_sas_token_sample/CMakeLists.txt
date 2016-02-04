@@ -9,6 +9,8 @@ add_executable(eh_sender_with_sas_token_sample
 #TODO: link to whatever else the platform has (now for windows it is just ws2_32)
 
 include_directories(.)
+include_directories(${SHARED_UTIL_INC_FOLDER})
+
 if(WIN32)
 	#windows needs this define
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS)

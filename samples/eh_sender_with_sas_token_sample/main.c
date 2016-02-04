@@ -7,6 +7,8 @@
 #endif
 #include <stdio.h>
 #include <stdbool.h>
+#include <time.h>
+
 #include "platform.h"
 #include "message_sender.h"
 #include "message.h"
@@ -17,6 +19,11 @@
 #include "tlsio.h"
 #include "consolelogger.h"
 #include "cbs.h"
+#include "strings.h"
+#include "buffer_.h"
+#include "base64.h"
+#include "urlencode.h"
+#include "sastoken.h"
 
 #if _WIN32
 #include "windows.h"
@@ -29,6 +36,8 @@
 #define EH_NAME "<<<Replace with your own EH name (like ingress_eh)>>>"
 #define EH_PUBLISHER "<<<Replace with your publisher ID (like publisher42)>>>"
 #define EH_SAS_TOKEN "<<<Replace with your SAS token generated for your publisher (secured path is like myeventhub.servicebus.windows.net/ingress_eh/pubslishers/publisher42 >>>"
+
+#define EH_PUBLISHER "test_publisher"
 
 static const size_t msg_count = 1;
 static unsigned int sent_messages = 0;
@@ -76,6 +85,12 @@ int main(int argc, char** argv)
 		/* create SASL PLAIN handler */
 		SASL_MECHANISM_HANDLE sasl_mechanism_handle = saslmechanism_create(saslmssbcbs_get_interface(), NULL);
 		XIO_HANDLE tls_io;
+        STRING_HANDLE sas_key_name;
+        STRING_HANDLE sas_key_value;
+        STRING_HANDLE resource_uri;
+        STRING_HANDLE encoded_resource_uri;
+        STRING_HANDLE sas_token;
+        BUFFER_HANDLE buffer;
 
 		/* create the TLS IO */
         TLSIO_CONFIG tls_io_config = { EH_HOST, 5671 };
@@ -92,10 +107,26 @@ int main(int argc, char** argv)
 		session_set_incoming_window(session, 2147483647);
 		session_set_outgoing_window(session, 65536);
 
+        /* Construct a SAS token */
+        sas_key_name = STRING_construct(EH_KEY_NAME);
+
+        /* unfortunately SASToken wants an encoded key - this should be fixed at a later time */
+        buffer = BUFFER_create(EH_KEY, strlen(EH_KEY));
+        sas_key_value = Base64_Encode(buffer);
+        BUFFER_delete(buffer);
+        resource_uri = STRING_construct("sb://" EH_HOST "/" EH_NAME "/publishers/" EH_PUBLISHER);
+        encoded_resource_uri = URL_EncodeString(STRING_c_str(resource_uri));
+
+        /* Make a token that expires in one hour */
+        time_t currentTime = time(NULL);
+        size_t expiry_time = (size_t)(difftime(currentTime, 0) + 36000);
+
+        sas_token = SASToken_Create(sas_key_value, encoded_resource_uri, sas_key_name, expiry_time);
+
 		CBS_HANDLE cbs = cbs_create(session, NULL, NULL);
 		if (cbs_open(cbs) == 0)
 		{
-			(void)cbs_put_token(cbs, "servicebus.windows.net:sastoken", "sb://" EH_HOST "/" EH_NAME "/publishers/" EH_PUBLISHER, EH_SAS_TOKEN, on_cbs_operation_complete, cbs);
+			(void)cbs_put_token(cbs, "servicebus.windows.net:sastoken", "sb://" EH_HOST "/" EH_NAME "/publishers/" EH_PUBLISHER, STRING_c_str(sas_token), on_cbs_operation_complete, cbs);
 
 			while (!auth)
 			{
@@ -113,6 +144,12 @@ int main(int argc, char** argv)
 				}
 			}
 		}
+
+        STRING_delete(sas_token);
+        STRING_delete(sas_key_name);
+        STRING_delete(sas_key_value);
+        STRING_delete(resource_uri);
+        STRING_delete(encoded_resource_uri);
 
 		AMQP_VALUE source = messaging_create_source("ingress");
 		AMQP_VALUE target = messaging_create_target("amqps://" EH_HOST "/" EH_NAME);

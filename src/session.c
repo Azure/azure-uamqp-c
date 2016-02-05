@@ -41,6 +41,7 @@ typedef struct SESSION_INSTANCE_TAG
 	/* Codes_SRS_SESSION_01_016: [next-outgoing-id The next-outgoing-id is the transfer-id to assign to the next transfer frame.] */
 	transfer_number next_outgoing_id;
 	transfer_number next_incoming_id;
+    uint32_t desired_incoming_window;
 	uint32_t incoming_window;
 	uint32_t outgoing_window;
 	handle handle_max;
@@ -204,7 +205,7 @@ static int send_flow(SESSION_INSTANCE* session)
 		}
 		else
 		{
-			if (flow_set_next_incoming_id(flow, session->next_incoming_id - 1) != 0)
+			if (flow_set_next_incoming_id(flow, session->next_incoming_id) != 0)
 			{
 				result = __LINE__;
 			}
@@ -571,6 +572,7 @@ static void on_frame_received(void* context, AMQP_VALUE performative, uint32_t p
 
 				if (session_instance->incoming_window == 0)
 				{
+                    session_instance->incoming_window = session_instance->desired_incoming_window;
 					send_flow(session_instance);
 				}
 			}
@@ -637,7 +639,8 @@ SESSION_HANDLE session_create(CONNECTION_HANDLE connection, ON_LINK_ATTACHED on_
 			/* Codes_SRS_SESSION_01_017: [The nextoutgoing-id MAY be initialized to an arbitrary value ] */
 			result->next_outgoing_id = 0;
 
-			result->incoming_window = 1;
+            result->desired_incoming_window = 1;
+            result->incoming_window = 1;
 			result->outgoing_window = 1;
 			result->handle_max = 4294967295u;
 			result->remote_incoming_window = 0;
@@ -840,7 +843,8 @@ int session_set_incoming_window(SESSION_HANDLE session, uint32_t incoming_window
 	{
 		SESSION_INSTANCE* session_instance = (SESSION_INSTANCE*)session;
 
-		session_instance->incoming_window = incoming_window;
+		session_instance->desired_incoming_window = incoming_window;
+        session_instance->incoming_window = incoming_window;
 
 		result = 0;
 	}
@@ -1150,7 +1154,7 @@ int session_send_flow(LINK_ENDPOINT_HANDLE link_endpoint, FLOW_HANDLE flow)
 		if ((session_instance->session_state == SESSION_STATE_BEGIN_RCVD) ||
 			((session_instance->session_state == SESSION_STATE_MAPPED)))
 		{
-			if (flow_set_next_incoming_id(flow, session_instance->next_incoming_id - 1) != 0)
+			if (flow_set_next_incoming_id(flow, session_instance->next_incoming_id) != 0)
 			{
 				result = __LINE__;
 			}

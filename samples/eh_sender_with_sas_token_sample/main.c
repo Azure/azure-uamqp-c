@@ -33,14 +33,14 @@
 /* The SAS token is generated based on the policy name/key */
 /* Replace the below settings with your own.*/
 
-#define EH_HOST "pupupupu.servicebus.windows.net"
-#define EH_NAME "ingress"
-#define EH_KEY_NAME "RootManageSharedAccessKey"
-#define EH_KEY "GZOKQjll7SoJuQcoArp26Zs3wxFj9FmA0Q7t3Gpv+90="
+#define EH_HOST "<<<Replace with your own EH host (like myeventhub.servicebus.windows.net)>>>"
+#define EH_KEY_NAME "<<<Replace with your own key name>>>"
+#define EH_KEY "<<<Replace with your own key>>>"
+#define EH_NAME "<<<Replace with your own EH name (like ingress_eh)>>>"
 
 #define EH_PUBLISHER "test_publisher"
 
-static const size_t msg_count = 10;
+static const size_t msg_count = 1;
 static unsigned int sent_messages = 0;
 static bool auth = false;
 

@@ -204,7 +204,7 @@ static int send_flow(SESSION_INSTANCE* session)
 		}
 		else
 		{
-			if (flow_set_next_incoming_id(flow, session->next_incoming_id) != 0)
+			if (flow_set_next_incoming_id(flow, session->next_incoming_id - 1) != 0)
 			{
 				result = __LINE__;
 			}
@@ -1150,7 +1150,7 @@ int session_send_flow(LINK_ENDPOINT_HANDLE link_endpoint, FLOW_HANDLE flow)
 		if ((session_instance->session_state == SESSION_STATE_BEGIN_RCVD) ||
 			((session_instance->session_state == SESSION_STATE_MAPPED)))
 		{
-			if (flow_set_next_incoming_id(flow, session_instance->next_incoming_id) != 0)
+			if (flow_set_next_incoming_id(flow, session_instance->next_incoming_id - 1) != 0)
 			{
 				result = __LINE__;
 			}

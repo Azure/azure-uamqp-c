@@ -29,7 +29,7 @@ typedef struct MESSAGE_WITH_CALLBACK_TAG
 {
 	MESSAGE_HANDLE message;
 	ON_MESSAGE_SEND_COMPLETE on_message_send_complete;
-	const void* context;
+	void* context;
 	MESSAGE_SENDER_HANDLE message_sender;
 	MESSAGE_SEND_STATE message_send_state;
 } MESSAGE_WITH_CALLBACK;
@@ -360,7 +360,7 @@ static void send_all_pending_messages(MESSAGE_SENDER_INSTANCE* message_sender_in
 			case SEND_ONE_MESSAGE_ERROR:
 			{
 				ON_MESSAGE_SEND_COMPLETE on_message_send_complete = message_sender_instance->messages[i]->on_message_send_complete;
-				const void* context = message_sender_instance->messages[i]->context;
+				void* context = message_sender_instance->messages[i]->context;
 				remove_pending_message_by_index(message_sender_instance, i);
 
 				on_message_send_complete(context, MESSAGE_SEND_ERROR);
@@ -534,7 +534,7 @@ int messagesender_close(MESSAGE_SENDER_HANDLE message_sender)
 	return result;
 }
 
-int messagesender_send(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDLE message, ON_MESSAGE_SEND_COMPLETE on_message_send_complete, const void* callback_context)
+int messagesender_send(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDLE message, ON_MESSAGE_SEND_COMPLETE on_message_send_complete, void* callback_context)
 {
 	int result;
 

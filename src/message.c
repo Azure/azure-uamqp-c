@@ -83,6 +83,7 @@ MESSAGE_HANDLE message_create(void)
 		result->body_amqp_value = NULL;
 		result->body_amqp_sequence_items = NULL;
 		result->body_amqp_sequence_count = 0;
+        result->message_format = 0;
 	}
 
 	/* Codes_SRS_MESSAGE_01_001: [message_create shall create a new AMQP message instance and on success it shall return a non-NULL handle for the newly created message instance.] */

@@ -135,8 +135,10 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
 	size_t encoded_size;
 	size_t total_encoded_size = 0;
 	MESSAGE_BODY_TYPE message_body_type;
+    message_format message_format;
 
-	if (message_get_body_type(message, &message_body_type) != 0)
+	if ((message_get_body_type(message, &message_body_type) != 0) ||
+        (message_get_message_format(message, &message_format) != 0))
 	{
 		result = SEND_ONE_MESSAGE_ERROR;
 	}
@@ -302,7 +304,7 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
 			if (result == SEND_ONE_MESSAGE_OK)
 			{
 				message_with_callback->message_send_state = MESSAGE_SEND_STATE_PENDING;
-				switch (link_transfer(message_sender_instance->link, &payload, 1, on_delivery_settled, message_with_callback))
+				switch (link_transfer(message_sender_instance->link, message_format, &payload, 1, on_delivery_settled, message_with_callback))
 				{
 				default:
 				case LINK_TRANSFER_ERROR:

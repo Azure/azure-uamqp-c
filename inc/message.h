@@ -53,6 +53,8 @@ extern "C" {
 	extern int message_add_body_amqp_sequence(MESSAGE_HANDLE message, AMQP_VALUE sequence_list);
 	extern int message_get_body_amqp_sequence(MESSAGE_HANDLE message, size_t index, AMQP_VALUE* sequence_list);
 	extern int message_get_body_amqp_sequence_count(MESSAGE_HANDLE message, size_t* count);
+    extern int message_set_message_format(MESSAGE_HANDLE message, uint32_t message_format);
+    extern int message_get_message_format(MESSAGE_HANDLE message, uint32_t *message_format);
 
 #ifdef __cplusplus
 }

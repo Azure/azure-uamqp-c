@@ -29,6 +29,7 @@ typedef struct MESSAGE_INSTANCE_TAG
 	PROPERTIES_HANDLE properties;
 	application_properties application_properties;
 	annotations footer;
+    uint32_t message_format;
 } MESSAGE_INSTANCE;
 
 static void free_all_body_data_items(MESSAGE_INSTANCE* message_instance)
@@ -106,6 +107,8 @@ MESSAGE_HANDLE message_clone(MESSAGE_HANDLE source_message)
 		/* Codes_SRS_MESSAGE_01_004: [If allocating memory for the new cloned message fails, message_clone shall fail and return NULL.] */
 		if (result != NULL)
 		{
+            result->message_format = source_message_instance->message_format;
+
 			if (source_message_instance->header != NULL)
 			{
 				/* Codes_SRS_MESSAGE_01_005: [If a header exists on the source message it shall be cloned by using header_clone.] */
@@ -973,4 +976,41 @@ int message_get_body_type(MESSAGE_HANDLE message, MESSAGE_BODY_TYPE* body_type)
 	}
 
 	return result;
+}
+
+int message_set_message_format(MESSAGE_HANDLE message, uint32_t message_format)
+{
+    int result;
+
+    if (message == NULL)
+    {
+        result = __LINE__;
+    }
+    else
+    {
+        MESSAGE_INSTANCE* message_instance = (MESSAGE_INSTANCE*)message;
+        message_instance->message_format = message_format;
+        result = 0;
+    }
+
+    return result;
+}
+
+int message_get_message_format(MESSAGE_HANDLE message, uint32_t *message_format)
+{
+    int result;
+
+    if ((message == NULL) ||
+        (message_format == NULL))
+    {
+        result = __LINE__;
+    }
+    else
+    {
+        MESSAGE_INSTANCE* message_instance = (MESSAGE_INSTANCE*)message;
+        *message_format = message_instance->message_format;
+        result = 0;
+    }
+
+    return result;
 }

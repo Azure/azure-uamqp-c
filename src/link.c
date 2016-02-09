@@ -855,7 +855,7 @@ int link_detach(LINK_HANDLE link)
 	return result;
 }
 
-LINK_TRANSFER_RESULT link_transfer(LINK_HANDLE link, PAYLOAD* payloads, size_t payload_count, ON_DELIVERY_SETTLED on_delivery_settled, void* callback_context)
+LINK_TRANSFER_RESULT link_transfer(LINK_HANDLE link, message_format message_format, PAYLOAD* payloads, size_t payload_count, ON_DELIVERY_SETTLED on_delivery_settled, void* callback_context)
 {
 	LINK_TRANSFER_RESULT result;
 
@@ -903,7 +903,7 @@ LINK_TRANSFER_RESULT link_transfer(LINK_HANDLE link, PAYLOAD* payloads, size_t p
 				}
 
 				if ((transfer_set_delivery_tag(transfer, delivery_tag) != 0) ||
-					(transfer_set_message_format(transfer, 0) != 0) ||
+					(transfer_set_message_format(transfer, message_format) != 0) ||
 					(transfer_set_settled(transfer, settled) != 0))
 				{
 					result = LINK_TRANSFER_ERROR;

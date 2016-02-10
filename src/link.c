@@ -296,43 +296,54 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
 			}
 			else
 			{
+                bool settled;
+
 				if (disposition_get_last(disposition, &last) != 0)
 				{
 					last = first;
 				}
 
-				LIST_ITEM_HANDLE pending_delivery = list_get_head_item(link_instance->pending_deliveries);
-				while (pending_delivery != NULL)
-				{
-					LIST_ITEM_HANDLE next_pending_delivery = list_get_next_item(pending_delivery);
-					DELIVERY_INSTANCE* delivery_instance = (DELIVERY_INSTANCE*)list_item_get_value(pending_delivery);
-					if (delivery_instance == NULL)
-					{
-						/* error */
-						break;
-					}
-					else
-					{
-                        if ((delivery_instance->delivery_id >= first) && (delivery_instance->delivery_id <= last))
+                if (disposition_get_settled(disposition, &settled) != 0)
+                {
+                    /* Error */
+                    settled = false;
+                }
+
+                if (settled)
+                {
+                    LIST_ITEM_HANDLE pending_delivery = list_get_head_item(link_instance->pending_deliveries);
+                    while (pending_delivery != NULL)
+                    {
+                        LIST_ITEM_HANDLE next_pending_delivery = list_get_next_item(pending_delivery);
+                        DELIVERY_INSTANCE* delivery_instance = (DELIVERY_INSTANCE*)list_item_get_value(pending_delivery);
+                        if (delivery_instance == NULL)
                         {
-                            delivery_instance->on_delivery_settled(delivery_instance->callback_context, delivery_instance->delivery_id);
-                            amqpalloc_free(delivery_instance);
-                            if (list_remove(link_instance->pending_deliveries, pending_delivery) != 0)
+                            /* error */
+                            break;
+                        }
+                        else
+                        {
+                            if ((delivery_instance->delivery_id >= first) && (delivery_instance->delivery_id <= last))
                             {
-                                /* error */
-                                break;
+                                delivery_instance->on_delivery_settled(delivery_instance->callback_context, delivery_instance->delivery_id);
+                                amqpalloc_free(delivery_instance);
+                                if (list_remove(link_instance->pending_deliveries, pending_delivery) != 0)
+                                {
+                                    /* error */
+                                    break;
+                                }
+                                else
+                                {
+                                    pending_delivery = next_pending_delivery;
+                                }
                             }
                             else
                             {
                                 pending_delivery = next_pending_delivery;
                             }
                         }
-                        else
-                        {
-                            pending_delivery = next_pending_delivery;
-                        }
-					}
-				}
+                    }
+                }
 			}
 
 			disposition_destroy(disposition);

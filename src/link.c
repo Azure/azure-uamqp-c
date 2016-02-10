@@ -313,17 +313,24 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
 					}
 					else
 					{
-						delivery_instance->on_delivery_settled(delivery_instance->callback_context, delivery_instance->delivery_id);
-						amqpalloc_free(delivery_instance);
-						if (list_remove(link_instance->pending_deliveries, pending_delivery) != 0)
-						{
-							/* error */
-							break;
-						}
-						else
-						{
-							pending_delivery = next_pending_delivery;
-						}
+                        if ((delivery_instance->delivery_id >= first) && (delivery_instance->delivery_id <= last))
+                        {
+                            delivery_instance->on_delivery_settled(delivery_instance->callback_context, delivery_instance->delivery_id);
+                            amqpalloc_free(delivery_instance);
+                            if (list_remove(link_instance->pending_deliveries, pending_delivery) != 0)
+                            {
+                                /* error */
+                                break;
+                            }
+                            else
+                            {
+                                pending_delivery = next_pending_delivery;
+                            }
+                        }
+                        else
+                        {
+                            pending_delivery = next_pending_delivery;
+                        }
 					}
 				}
 			}

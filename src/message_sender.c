@@ -151,8 +151,8 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
 		AMQP_VALUE properties_amqp_value;
 		AMQP_VALUE application_properties;
 		AMQP_VALUE application_properties_value;
-		AMQP_VALUE body_amqp_data = NULL;
 		AMQP_VALUE body_amqp_value = NULL;
+        size_t body_data_count;
 
 		message_get_header(message, &header);
 		header_amqp_value = amqpvalue_create_header(header);
@@ -216,24 +216,44 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
 			case MESSAGE_BODY_TYPE_DATA:
 			{
 				BINARY_DATA binary_data;
-				if (message_get_body_amqp_data(message, 0, &binary_data) != 0)
-				{
-					result = SEND_ONE_MESSAGE_ERROR;
-				}
-				else
-				{
-					amqp_binary binary_value = { binary_data.bytes, binary_data.length };
-					body_amqp_data = amqpvalue_create_data(binary_value);
-					if ((body_amqp_data == NULL) ||
-						(amqpvalue_get_encoded_size(body_amqp_data, &encoded_size) != 0))
-					{
-						result = SEND_ONE_MESSAGE_ERROR;
-					}
-					else
-					{
-						total_encoded_size += encoded_size;
-					}
-				}
+                size_t i;
+
+                if (message_get_body_amqp_data_count(message, &body_data_count) != 0)
+                {
+                    result = SEND_ONE_MESSAGE_ERROR;
+                }
+                else
+                {
+                    for (i = 0; i < body_data_count; i++)
+                    {
+                        if (message_get_body_amqp_data(message, i, &binary_data) != 0)
+                        {
+                            result = SEND_ONE_MESSAGE_ERROR;
+                        }
+                        else
+                        {
+                            amqp_binary binary_value = { binary_data.bytes, binary_data.length };
+                            AMQP_VALUE body_amqp_data = amqpvalue_create_data(binary_value);
+                            if (body_amqp_data == NULL)
+                            {
+                                result = SEND_ONE_MESSAGE_ERROR;
+                            }
+                            else
+                            {
+                                if (amqpvalue_get_encoded_size(body_amqp_data, &encoded_size) != 0)
+                                {
+                                    result = SEND_ONE_MESSAGE_ERROR;
+                                }
+                                else
+                                {
+                                    total_encoded_size += encoded_size;
+                                }
+
+                                amqpvalue_destroy(body_amqp_data);
+                            }
+                        }
+                    }
+                }
 				break;
 			}
 		}
@@ -290,12 +310,35 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
 				}
 				case MESSAGE_BODY_TYPE_DATA:
 				{
-					if (amqpvalue_encode(body_amqp_data, encode_bytes, &payload) != 0)
-					{
-						result = SEND_ONE_MESSAGE_ERROR;
-					}
+                    BINARY_DATA binary_data;
+                    size_t i;
 
-					log_message_chunk(message_sender_instance, "Body - amqp data:", body_amqp_data);
+                    for (i = 0; i < body_data_count; i++)
+                    {
+                        if (message_get_body_amqp_data(message, i, &binary_data) != 0)
+                        {
+                            result = SEND_ONE_MESSAGE_ERROR;
+                        }
+                        else
+                        {
+                            amqp_binary binary_value = { binary_data.bytes, binary_data.length };
+                            AMQP_VALUE body_amqp_data = amqpvalue_create_data(binary_value);
+                            if (body_amqp_data == NULL)
+                            {
+                                result = SEND_ONE_MESSAGE_ERROR;
+                            }
+                            else
+                            {
+                                if (amqpvalue_encode(body_amqp_data, encode_bytes, &payload) != 0)
+                                {
+                                    result = SEND_ONE_MESSAGE_ERROR;
+                                    break;
+                                }
+
+                                amqpvalue_destroy(body_amqp_data);
+                            }
+                        }
+                    }
 					break;
 				}
 				}
@@ -329,10 +372,6 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
 
 			amqpalloc_free(data_bytes);
 
-			if (body_amqp_data != NULL)
-			{
-				amqpvalue_destroy(body_amqp_data);
-			}
 			if (body_amqp_value != NULL)
 			{
 				amqpvalue_destroy(body_amqp_value);

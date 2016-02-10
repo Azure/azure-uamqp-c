@@ -296,36 +296,54 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
 			}
 			else
 			{
+                bool settled;
+
 				if (disposition_get_last(disposition, &last) != 0)
 				{
 					last = first;
 				}
 
-				LIST_ITEM_HANDLE pending_delivery = list_get_head_item(link_instance->pending_deliveries);
-				while (pending_delivery != NULL)
-				{
-					LIST_ITEM_HANDLE next_pending_delivery = list_get_next_item(pending_delivery);
-					DELIVERY_INSTANCE* delivery_instance = (DELIVERY_INSTANCE*)list_item_get_value(pending_delivery);
-					if (delivery_instance == NULL)
-					{
-						/* error */
-						break;
-					}
-					else
-					{
-						delivery_instance->on_delivery_settled(delivery_instance->callback_context, delivery_instance->delivery_id);
-						amqpalloc_free(delivery_instance);
-						if (list_remove(link_instance->pending_deliveries, pending_delivery) != 0)
-						{
-							/* error */
-							break;
-						}
-						else
-						{
-							pending_delivery = next_pending_delivery;
-						}
-					}
-				}
+                if (disposition_get_settled(disposition, &settled) != 0)
+                {
+                    /* Error */
+                    settled = false;
+                }
+
+                if (settled)
+                {
+                    LIST_ITEM_HANDLE pending_delivery = list_get_head_item(link_instance->pending_deliveries);
+                    while (pending_delivery != NULL)
+                    {
+                        LIST_ITEM_HANDLE next_pending_delivery = list_get_next_item(pending_delivery);
+                        DELIVERY_INSTANCE* delivery_instance = (DELIVERY_INSTANCE*)list_item_get_value(pending_delivery);
+                        if (delivery_instance == NULL)
+                        {
+                            /* error */
+                            break;
+                        }
+                        else
+                        {
+                            if ((delivery_instance->delivery_id >= first) && (delivery_instance->delivery_id <= last))
+                            {
+                                delivery_instance->on_delivery_settled(delivery_instance->callback_context, delivery_instance->delivery_id);
+                                amqpalloc_free(delivery_instance);
+                                if (list_remove(link_instance->pending_deliveries, pending_delivery) != 0)
+                                {
+                                    /* error */
+                                    break;
+                                }
+                                else
+                                {
+                                    pending_delivery = next_pending_delivery;
+                                }
+                            }
+                            else
+                            {
+                                pending_delivery = next_pending_delivery;
+                            }
+                        }
+                    }
+                }
 			}
 
 			disposition_destroy(disposition);
@@ -855,7 +873,7 @@ int link_detach(LINK_HANDLE link)
 	return result;
 }
 
-LINK_TRANSFER_RESULT link_transfer(LINK_HANDLE link, PAYLOAD* payloads, size_t payload_count, ON_DELIVERY_SETTLED on_delivery_settled, void* callback_context)
+LINK_TRANSFER_RESULT link_transfer(LINK_HANDLE link, message_format message_format, PAYLOAD* payloads, size_t payload_count, ON_DELIVERY_SETTLED on_delivery_settled, void* callback_context)
 {
 	LINK_TRANSFER_RESULT result;
 
@@ -903,7 +921,7 @@ LINK_TRANSFER_RESULT link_transfer(LINK_HANDLE link, PAYLOAD* payloads, size_t p
 				}
 
 				if ((transfer_set_delivery_tag(transfer, delivery_tag) != 0) ||
-					(transfer_set_message_format(transfer, 0) != 0) ||
+					(transfer_set_message_format(transfer, message_format) != 0) ||
 					(transfer_set_settled(transfer, settled) != 0))
 				{
 					result = LINK_TRANSFER_ERROR;

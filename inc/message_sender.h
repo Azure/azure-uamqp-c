@@ -28,14 +28,14 @@ extern "C" {
 	} MESSAGE_SENDER_STATE;
 
 	typedef struct MESSAGE_SENDER_INSTANCE_TAG* MESSAGE_SENDER_HANDLE;
-	typedef void(*ON_MESSAGE_SEND_COMPLETE)(const void* context, MESSAGE_SEND_RESULT send_result);
-	typedef void(*ON_MESSAGE_SENDER_STATE_CHANGED)(const void* context, MESSAGE_SENDER_STATE new_state, MESSAGE_SENDER_STATE previous_state);
+	typedef void(*ON_MESSAGE_SEND_COMPLETE)(void* context, MESSAGE_SEND_RESULT send_result);
+	typedef void(*ON_MESSAGE_SENDER_STATE_CHANGED)(void* context, MESSAGE_SENDER_STATE new_state, MESSAGE_SENDER_STATE previous_state);
 
 	extern MESSAGE_SENDER_HANDLE messagesender_create(LINK_HANDLE link, ON_MESSAGE_SENDER_STATE_CHANGED on_message_sender_state_changed, void* context, LOGGER_LOG logger_log);
 	extern void messagesender_destroy(MESSAGE_SENDER_HANDLE message_sender);
 	extern int messagesender_open(MESSAGE_SENDER_HANDLE message_sender);
 	extern int messagesender_close(MESSAGE_SENDER_HANDLE message_sender);
-	extern int messagesender_send(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDLE message, ON_MESSAGE_SEND_COMPLETE on_message_send_complete, const void* callback_context);
+	extern int messagesender_send(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDLE message, ON_MESSAGE_SEND_COMPLETE on_message_send_complete, void* callback_context);
 
 #ifdef __cplusplus
 }

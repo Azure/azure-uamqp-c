@@ -29,7 +29,7 @@ typedef struct MESSAGE_WITH_CALLBACK_TAG
 {
 	MESSAGE_HANDLE message;
 	ON_MESSAGE_SEND_COMPLETE on_message_send_complete;
-	const void* context;
+	void* context;
 	MESSAGE_SENDER_HANDLE message_sender;
 	MESSAGE_SEND_STATE message_send_state;
 } MESSAGE_WITH_CALLBACK;
@@ -135,8 +135,10 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
 	size_t encoded_size;
 	size_t total_encoded_size = 0;
 	MESSAGE_BODY_TYPE message_body_type;
+    message_format message_format;
 
-	if (message_get_body_type(message, &message_body_type) != 0)
+	if ((message_get_body_type(message, &message_body_type) != 0) ||
+        (message_get_message_format(message, &message_format) != 0))
 	{
 		result = SEND_ONE_MESSAGE_ERROR;
 	}
@@ -149,8 +151,8 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
 		AMQP_VALUE properties_amqp_value;
 		AMQP_VALUE application_properties;
 		AMQP_VALUE application_properties_value;
-		AMQP_VALUE body_amqp_data = NULL;
 		AMQP_VALUE body_amqp_value = NULL;
+        size_t body_data_count;
 
 		message_get_header(message, &header);
 		header_amqp_value = amqpvalue_create_header(header);
@@ -214,24 +216,44 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
 			case MESSAGE_BODY_TYPE_DATA:
 			{
 				BINARY_DATA binary_data;
-				if (message_get_body_amqp_data(message, 0, &binary_data) != 0)
-				{
-					result = SEND_ONE_MESSAGE_ERROR;
-				}
-				else
-				{
-					amqp_binary binary_value = { binary_data.bytes, binary_data.length };
-					body_amqp_data = amqpvalue_create_data(binary_value);
-					if ((body_amqp_data == NULL) ||
-						(amqpvalue_get_encoded_size(body_amqp_data, &encoded_size) != 0))
-					{
-						result = SEND_ONE_MESSAGE_ERROR;
-					}
-					else
-					{
-						total_encoded_size += encoded_size;
-					}
-				}
+                size_t i;
+
+                if (message_get_body_amqp_data_count(message, &body_data_count) != 0)
+                {
+                    result = SEND_ONE_MESSAGE_ERROR;
+                }
+                else
+                {
+                    for (i = 0; i < body_data_count; i++)
+                    {
+                        if (message_get_body_amqp_data(message, i, &binary_data) != 0)
+                        {
+                            result = SEND_ONE_MESSAGE_ERROR;
+                        }
+                        else
+                        {
+                            amqp_binary binary_value = { binary_data.bytes, binary_data.length };
+                            AMQP_VALUE body_amqp_data = amqpvalue_create_data(binary_value);
+                            if (body_amqp_data == NULL)
+                            {
+                                result = SEND_ONE_MESSAGE_ERROR;
+                            }
+                            else
+                            {
+                                if (amqpvalue_get_encoded_size(body_amqp_data, &encoded_size) != 0)
+                                {
+                                    result = SEND_ONE_MESSAGE_ERROR;
+                                }
+                                else
+                                {
+                                    total_encoded_size += encoded_size;
+                                }
+
+                                amqpvalue_destroy(body_amqp_data);
+                            }
+                        }
+                    }
+                }
 				break;
 			}
 		}
@@ -288,12 +310,35 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
 				}
 				case MESSAGE_BODY_TYPE_DATA:
 				{
-					if (amqpvalue_encode(body_amqp_data, encode_bytes, &payload) != 0)
-					{
-						result = SEND_ONE_MESSAGE_ERROR;
-					}
+                    BINARY_DATA binary_data;
+                    size_t i;
 
-					log_message_chunk(message_sender_instance, "Body - amqp data:", body_amqp_data);
+                    for (i = 0; i < body_data_count; i++)
+                    {
+                        if (message_get_body_amqp_data(message, i, &binary_data) != 0)
+                        {
+                            result = SEND_ONE_MESSAGE_ERROR;
+                        }
+                        else
+                        {
+                            amqp_binary binary_value = { binary_data.bytes, binary_data.length };
+                            AMQP_VALUE body_amqp_data = amqpvalue_create_data(binary_value);
+                            if (body_amqp_data == NULL)
+                            {
+                                result = SEND_ONE_MESSAGE_ERROR;
+                            }
+                            else
+                            {
+                                if (amqpvalue_encode(body_amqp_data, encode_bytes, &payload) != 0)
+                                {
+                                    result = SEND_ONE_MESSAGE_ERROR;
+                                    break;
+                                }
+
+                                amqpvalue_destroy(body_amqp_data);
+                            }
+                        }
+                    }
 					break;
 				}
 				}
@@ -302,7 +347,7 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
 			if (result == SEND_ONE_MESSAGE_OK)
 			{
 				message_with_callback->message_send_state = MESSAGE_SEND_STATE_PENDING;
-				switch (link_transfer(message_sender_instance->link, &payload, 1, on_delivery_settled, message_with_callback))
+				switch (link_transfer(message_sender_instance->link, message_format, &payload, 1, on_delivery_settled, message_with_callback))
 				{
 				default:
 				case LINK_TRANSFER_ERROR:
@@ -327,10 +372,6 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
 
 			amqpalloc_free(data_bytes);
 
-			if (body_amqp_data != NULL)
-			{
-				amqpvalue_destroy(body_amqp_data);
-			}
 			if (body_amqp_value != NULL)
 			{
 				amqpvalue_destroy(body_amqp_value);
@@ -360,7 +401,7 @@ static void send_all_pending_messages(MESSAGE_SENDER_INSTANCE* message_sender_in
 			case SEND_ONE_MESSAGE_ERROR:
 			{
 				ON_MESSAGE_SEND_COMPLETE on_message_send_complete = message_sender_instance->messages[i]->on_message_send_complete;
-				const void* context = message_sender_instance->messages[i]->context;
+				void* context = message_sender_instance->messages[i]->context;
 				remove_pending_message_by_index(message_sender_instance, i);
 
 				on_message_send_complete(context, MESSAGE_SEND_ERROR);
@@ -534,7 +575,7 @@ int messagesender_close(MESSAGE_SENDER_HANDLE message_sender)
 	return result;
 }
 
-int messagesender_send(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDLE message, ON_MESSAGE_SEND_COMPLETE on_message_send_complete, const void* callback_context)
+int messagesender_send(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDLE message, ON_MESSAGE_SEND_COMPLETE on_message_send_complete, void* callback_context)
 {
 	int result;
 

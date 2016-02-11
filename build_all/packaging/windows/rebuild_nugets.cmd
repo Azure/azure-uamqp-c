@@ -111,7 +111,7 @@ if exist *.nupkg (
 popd
 
 rem -- Package Nuget
-nuget pack Microsoft.Azure.uamqp.nuspec
+nuget pack %build-root%\build_all\packaging\windows\Microsoft.Azure.uamqp.nuspec -OutputDirectory %build-root%\build_all\packaging\windows
 
 rmdir /s/q %client-root%\azure_amqp_output
 rmdir /s/q %USERPROFILE%\azure_amqp_nuget

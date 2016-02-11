@@ -285,6 +285,10 @@ void message_destroy(MESSAGE_HANDLE message)
 		{
 			amqpvalue_destroy(message_instance->body_amqp_value);
 		}
+        if (message_instance->message_annotations != NULL)
+        {
+            application_properties_destroy(message_instance->message_annotations);
+        }
 
 		free_all_body_data_items(message_instance);
 		free_all_body_sequence_items(message_instance);

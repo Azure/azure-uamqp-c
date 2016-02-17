@@ -244,7 +244,7 @@ static int send_operation_messages(AMQP_MANAGEMENT_INSTANCE* amqp_management_ins
 	return result;
 }
 
-static void on_message_sender_state_changed(const void* context, MESSAGE_SENDER_STATE new_state, MESSAGE_SENDER_STATE previous_state)
+static void on_message_sender_state_changed(void* context, MESSAGE_SENDER_STATE new_state, MESSAGE_SENDER_STATE previous_state)
 {
 	AMQP_MANAGEMENT_INSTANCE* amqp_management_instance = (AMQP_MANAGEMENT_INSTANCE*)context;
 	switch (new_state)

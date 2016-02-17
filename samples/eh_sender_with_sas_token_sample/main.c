@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <time.h>
+#include <string.h>
 
 #include "platform.h"
 #include "message_sender.h"
@@ -54,7 +55,7 @@ static void on_cbs_operation_complete(void* context, CBS_OPERATION_RESULT cbs_op
 	}
 }
 
-static void on_message_send_complete(const void* context, MESSAGE_SEND_RESULT send_result)
+static void on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_result)
 {
 	(void)send_result;
 	(void)context;

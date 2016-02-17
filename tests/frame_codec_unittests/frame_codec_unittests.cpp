@@ -48,119 +48,122 @@ void stringify_bytes(const unsigned char* bytes, size_t byte_count, char* output
 TYPED_MOCK_CLASS(frame_codec_mocks, CGlobalMock)
 {
 public:
-	/* amqpalloc mocks */
-	MOCK_STATIC_METHOD_1(, void*, amqpalloc_malloc, size_t, size)
-	MOCK_METHOD_END(void*, malloc(size));
-	MOCK_STATIC_METHOD_1(, void, amqpalloc_free, void*, ptr)
-		free(ptr);
-	MOCK_VOID_METHOD_END();
+    /* amqpalloc mocks */
+    MOCK_STATIC_METHOD_1(, void*, amqpalloc_malloc, size_t, size)
+        MOCK_METHOD_END(void*, malloc(size));
+    MOCK_STATIC_METHOD_1(, void, amqpalloc_free, void*, ptr)
+        free(ptr);
+    MOCK_VOID_METHOD_END();
 
-	/* frame received callback */
-	MOCK_STATIC_METHOD_5(, void, on_frame_received_1, void*, context, const unsigned char*, type_specific, uint32_t, type_specific_size, const unsigned char*, frame_body, uint32_t, frame_body_size)
-	MOCK_VOID_METHOD_END();
-	MOCK_STATIC_METHOD_5(, void, on_frame_received_2, void*, context, const unsigned char*, type_specific, uint32_t, type_specific_size, const unsigned char*, frame_body, uint32_t, frame_body_size)
-	MOCK_VOID_METHOD_END();
-	MOCK_STATIC_METHOD_1(, void, test_frame_codec_decode_error, void*, context)
-	MOCK_VOID_METHOD_END();
+    /* frame received callback */
+    MOCK_STATIC_METHOD_5(, void, on_frame_received_1, void*, context, const unsigned char*, type_specific, uint32_t, type_specific_size, const unsigned char*, frame_body, uint32_t, frame_body_size)
+        MOCK_VOID_METHOD_END();
+    MOCK_STATIC_METHOD_5(, void, on_frame_received_2, void*, context, const unsigned char*, type_specific, uint32_t, type_specific_size, const unsigned char*, frame_body, uint32_t, frame_body_size)
+        MOCK_VOID_METHOD_END();
+    MOCK_STATIC_METHOD_1(, void, test_frame_codec_decode_error, void*, context)
+        MOCK_VOID_METHOD_END();
 
-	/* list mocks */
-	MOCK_STATIC_METHOD_0(, LIST_HANDLE, list_create)
-	MOCK_METHOD_END(LIST_HANDLE, TEST_LIST_HANDLE);
-	MOCK_STATIC_METHOD_1(, void, list_destroy, LIST_HANDLE, list)
-	MOCK_VOID_METHOD_END();
-	MOCK_STATIC_METHOD_2(, LIST_ITEM_HANDLE, list_add, LIST_HANDLE, list, const void*, item)
-		const void** items = (const void**)realloc(list_items, (list_item_count + 1) * sizeof(const void*));
-		if (items != NULL)
-		{
-			list_items = items;
-			list_items[list_item_count++] = item;
-		}
-	MOCK_METHOD_END(LIST_ITEM_HANDLE, (LIST_ITEM_HANDLE)list_item_count);
-	MOCK_STATIC_METHOD_1(, const void*, list_item_get_value, LIST_ITEM_HANDLE, item_handle)
-	MOCK_METHOD_END(const void*, (const void*)list_items[(size_t)item_handle - 1]);
-	MOCK_STATIC_METHOD_3(, LIST_ITEM_HANDLE, list_find, LIST_HANDLE, handle, LIST_MATCH_FUNCTION, match_function, const void*, match_context)
-		size_t i;
-		LIST_ITEM_HANDLE found_item = NULL;
-		for (i = 0; i < list_item_count; i++)
-		{
-			if (match_function((LIST_ITEM_HANDLE)(i + 1), match_context))
-			{
-				found_item = (LIST_ITEM_HANDLE)(i + 1);
-				break;
-			}
-		}
-	MOCK_METHOD_END(LIST_ITEM_HANDLE, found_item);
-	MOCK_STATIC_METHOD_2(, int, list_remove, LIST_HANDLE, list, LIST_ITEM_HANDLE, list_item)
-		memmove(&list_items[(size_t)list_item - 1], &list_items[(size_t)list_item], (list_item_count - 1) * sizeof(const void*));
-		list_item_count--;
-	MOCK_METHOD_END(int, 0);
+    /* list mocks */
+    MOCK_STATIC_METHOD_0(, LIST_HANDLE, list_create)
+        MOCK_METHOD_END(LIST_HANDLE, TEST_LIST_HANDLE);
+    MOCK_STATIC_METHOD_1(, void, list_destroy, LIST_HANDLE, list)
+        MOCK_VOID_METHOD_END();
+    MOCK_STATIC_METHOD_2(, LIST_ITEM_HANDLE, list_add, LIST_HANDLE, list, const void*, item)
+        const void** items = (const void**)realloc(list_items, (list_item_count + 1) * sizeof(const void*));
+    if (items != NULL)
+    {
+        list_items = items;
+        list_items[list_item_count++] = item;
+    }
+    MOCK_METHOD_END(LIST_ITEM_HANDLE, (LIST_ITEM_HANDLE)list_item_count);
+    MOCK_STATIC_METHOD_1(, const void*, list_item_get_value, LIST_ITEM_HANDLE, item_handle)
+        MOCK_METHOD_END(const void*, (const void*)list_items[(size_t)item_handle - 1]);
+    MOCK_STATIC_METHOD_3(, LIST_ITEM_HANDLE, list_find, LIST_HANDLE, handle, LIST_MATCH_FUNCTION, match_function, const void*, match_context)
+        size_t i;
+    LIST_ITEM_HANDLE found_item = NULL;
+    for (i = 0; i < list_item_count; i++)
+    {
+        if (match_function((LIST_ITEM_HANDLE)(i + 1), match_context))
+        {
+            found_item = (LIST_ITEM_HANDLE)(i + 1);
+            break;
+        }
+    }
+    MOCK_METHOD_END(LIST_ITEM_HANDLE, found_item);
+    MOCK_STATIC_METHOD_2(, int, list_remove, LIST_HANDLE, list, LIST_ITEM_HANDLE, list_item)
+        memmove(&list_items[(size_t)list_item - 1], &list_items[(size_t)list_item], (list_item_count - 1) * sizeof(const void*));
+        list_item_count--;
+        if (list_item_count == 0)
+        {
+            free(list_items);
+            list_items = NULL;
+        }
+    MOCK_METHOD_END(int, 0);
 
-	MOCK_STATIC_METHOD_4(, void, test_on_bytes_encoded, void*, context, const unsigned char*, bytes, size_t, length, bool, encode_complete)
-		unsigned char* new_bytes = (unsigned char*)realloc(sent_io_bytes, sent_io_byte_count + length);
-		if (new_bytes != NULL)
-		{
-			sent_io_bytes = new_bytes;
-			(void)memcpy(sent_io_bytes + sent_io_byte_count, bytes, length);
-			sent_io_byte_count += length;
-		}
-	MOCK_VOID_METHOD_END();
+    MOCK_STATIC_METHOD_4(, void, test_on_bytes_encoded, void*, context, const unsigned char*, bytes, size_t, length, bool, encode_complete)
+        unsigned char* new_bytes = (unsigned char*)realloc(sent_io_bytes, sent_io_byte_count + length);
+    if (new_bytes != NULL)
+    {
+        sent_io_bytes = new_bytes;
+        (void)memcpy(sent_io_bytes + sent_io_byte_count, bytes, length);
+        sent_io_byte_count += length;
+    }
+    MOCK_VOID_METHOD_END();
 };
 
 extern "C"
 {
-	DECLARE_GLOBAL_MOCK_METHOD_1(frame_codec_mocks, , void*, amqpalloc_malloc, size_t, size);
-	DECLARE_GLOBAL_MOCK_METHOD_1(frame_codec_mocks, , void, amqpalloc_free, void*, ptr);
+    DECLARE_GLOBAL_MOCK_METHOD_1(frame_codec_mocks, , void*, amqpalloc_malloc, size_t, size);
+    DECLARE_GLOBAL_MOCK_METHOD_1(frame_codec_mocks, , void, amqpalloc_free, void*, ptr);
 
-	DECLARE_GLOBAL_MOCK_METHOD_5(frame_codec_mocks, , void, on_frame_received_1, void*, context, const unsigned char*, type_specific, uint32_t, type_specific_size, const unsigned char*, frame_body, uint32_t, frame_body_size);
-	DECLARE_GLOBAL_MOCK_METHOD_5(frame_codec_mocks, , void, on_frame_received_2, void*, context, const unsigned char*, type_specific, uint32_t, type_specific_size, const unsigned char*, frame_body, uint32_t, frame_body_size);
-	DECLARE_GLOBAL_MOCK_METHOD_1(frame_codec_mocks, , void, test_frame_codec_decode_error, void*, context);
+    DECLARE_GLOBAL_MOCK_METHOD_5(frame_codec_mocks, , void, on_frame_received_1, void*, context, const unsigned char*, type_specific, uint32_t, type_specific_size, const unsigned char*, frame_body, uint32_t, frame_body_size);
+    DECLARE_GLOBAL_MOCK_METHOD_5(frame_codec_mocks, , void, on_frame_received_2, void*, context, const unsigned char*, type_specific, uint32_t, type_specific_size, const unsigned char*, frame_body, uint32_t, frame_body_size);
+    DECLARE_GLOBAL_MOCK_METHOD_1(frame_codec_mocks, , void, test_frame_codec_decode_error, void*, context);
 
-	DECLARE_GLOBAL_MOCK_METHOD_0(frame_codec_mocks, , LIST_HANDLE, list_create);
-	DECLARE_GLOBAL_MOCK_METHOD_1(frame_codec_mocks, , void, list_destroy, LIST_HANDLE, list);
-	DECLARE_GLOBAL_MOCK_METHOD_2(frame_codec_mocks, , LIST_ITEM_HANDLE, list_add, LIST_HANDLE, list, const void*, item);
-	DECLARE_GLOBAL_MOCK_METHOD_1(frame_codec_mocks, , const void*, list_item_get_value, LIST_ITEM_HANDLE, item_handle);
-	DECLARE_GLOBAL_MOCK_METHOD_3(frame_codec_mocks, , LIST_ITEM_HANDLE, list_find, LIST_HANDLE, handle, LIST_MATCH_FUNCTION, match_function, const void*, match_context);
-	DECLARE_GLOBAL_MOCK_METHOD_2(frame_codec_mocks, , int, list_remove, LIST_HANDLE, list, LIST_ITEM_HANDLE, list_item);
+    DECLARE_GLOBAL_MOCK_METHOD_0(frame_codec_mocks, , LIST_HANDLE, list_create);
+    DECLARE_GLOBAL_MOCK_METHOD_1(frame_codec_mocks, , void, list_destroy, LIST_HANDLE, list);
+    DECLARE_GLOBAL_MOCK_METHOD_2(frame_codec_mocks, , LIST_ITEM_HANDLE, list_add, LIST_HANDLE, list, const void*, item);
+    DECLARE_GLOBAL_MOCK_METHOD_1(frame_codec_mocks, , const void*, list_item_get_value, LIST_ITEM_HANDLE, item_handle);
+    DECLARE_GLOBAL_MOCK_METHOD_3(frame_codec_mocks, , LIST_ITEM_HANDLE, list_find, LIST_HANDLE, handle, LIST_MATCH_FUNCTION, match_function, const void*, match_context);
+    DECLARE_GLOBAL_MOCK_METHOD_2(frame_codec_mocks, , int, list_remove, LIST_HANDLE, list, LIST_ITEM_HANDLE, list_item);
 
-	DECLARE_GLOBAL_MOCK_METHOD_4(frame_codec_mocks, , void, test_on_bytes_encoded, void*, context, const unsigned char*, bytes, size_t, length, bool, encode_complete);
+    DECLARE_GLOBAL_MOCK_METHOD_4(frame_codec_mocks, , void, test_on_bytes_encoded, void*, context, const unsigned char*, bytes, size_t, length, bool, encode_complete);
 
-	extern void consolelogger_log(unsigned int options, char* format, ...)
-	{
-		(void)options;
-		(void)format;
-	}
+    extern void consolelogger_log(unsigned int options, char* format, ...)
+    {
+        (void)options;
+        (void)format;
+    }
 }
 
-MICROMOCK_MUTEX_HANDLE test_serialize_mutex;
+static MICROMOCK_MUTEX_HANDLE g_testByTest;
+static MICROMOCK_GLOBAL_SEMAPHORE_HANDLE g_dllByDll;
 
 BEGIN_TEST_SUITE(frame_codec_unittests)
 
 TEST_SUITE_INITIALIZE(suite_init)
 {
-	test_serialize_mutex = MicroMockCreateMutex();
-	ASSERT_IS_NOT_NULL(test_serialize_mutex);
+    INITIALIZE_MEMORY_DEBUG(g_dllByDll);
+    g_testByTest = MicroMockCreateMutex();
+    ASSERT_IS_NOT_NULL(g_testByTest);
 }
 
 TEST_SUITE_CLEANUP(suite_cleanup)
 {
-	MicroMockDestroyMutex(test_serialize_mutex);
+    MicroMockDestroyMutex(g_testByTest);
+    DEINITIALIZE_MEMORY_DEBUG(g_dllByDll);
 }
 
 TEST_FUNCTION_INITIALIZE(method_init)
 {
-	if (!MicroMockAcquireMutex(test_serialize_mutex))
-	{
-		ASSERT_FAIL("Could not acquire test serialization mutex.");
-	}
+    if (!MicroMockAcquireMutex(g_testByTest))
+    {
+        ASSERT_FAIL("our mutex is ABANDONED. Failure in test framework");
+    }
 }
 
 TEST_FUNCTION_CLEANUP(method_cleanup)
 {
-	if (list_items != NULL)
-	{
-		free(list_items);
-		list_items = NULL;
-	}
 	if (sent_io_bytes != NULL)
 	{
 		free(sent_io_bytes);
@@ -168,10 +171,11 @@ TEST_FUNCTION_CLEANUP(method_cleanup)
 	}
 	list_item_count = 0;
 	sent_io_byte_count = 0;
-	if (!MicroMockReleaseMutex(test_serialize_mutex))
-	{
-		ASSERT_FAIL("Could not release test serialization mutex.");
-	}
+
+    if (!MicroMockReleaseMutex(g_testByTest))
+    {
+        ASSERT_FAIL("failure in test framework at ReleaseMutex");
+    }
 }
 
 /* frame_codec_create */
@@ -322,6 +326,7 @@ TEST_FUNCTION(receiving_a_frame_with_more_than_512_bytes_of_total_frame_size_imm
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    frame_codec_unsubscribe(frame_codec, 0);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -356,6 +361,7 @@ TEST_FUNCTION(receiving_a_frame_with_exactly_512_bytes_of_total_frame_size_immed
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -401,6 +407,7 @@ TEST_FUNCTION(frame_codec_destroy_while_receiving_type_specific_data_frees_the_t
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT, consolelogger_log);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
+    (void)frame_codec_unsubscribe(frame_codec, 0);
 	mocks.ResetAllCalls();
 
 	STRICT_EXPECTED_CALL(mocks, list_destroy(TEST_LIST_HANDLE));
@@ -507,6 +514,7 @@ TEST_FUNCTION(receiving_a_frame_with_more_than_max_frame_size_bytes_of_total_fra
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -541,6 +549,7 @@ TEST_FUNCTION(receiving_a_frame_with_exactly_max_frame_size_bytes_of_total_frame
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -750,6 +759,7 @@ TEST_FUNCTION(frame_codec_receive_bytes_decodes_one_empty_frame)
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -779,6 +789,7 @@ TEST_FUNCTION(frame_codec_receive_bytes_with_not_enough_bytes_for_a_frame_does_n
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -813,6 +824,7 @@ TEST_FUNCTION(frame_codec_receive_bytes_with_NULL_buffer_fails)
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -834,6 +846,7 @@ TEST_FUNCTION(frame_codec_receive_bytes_with_zero_size_fails)
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -870,6 +883,7 @@ TEST_FUNCTION(when_frame_codec_receive_1_byte_in_one_call_and_the_rest_of_the_fr
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -908,6 +922,7 @@ TEST_FUNCTION(when_frame_codec_receive_the_frame_bytes_in_1_byte_per_call_a_succ
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -942,6 +957,7 @@ TEST_FUNCTION(a_frame_codec_receive_bytes_call_with_bad_args_before_any_real_fra
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -977,6 +993,7 @@ TEST_FUNCTION(a_frame_codec_receive_bytes_call_with_bad_args_in_the_middle_of_th
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -1022,6 +1039,7 @@ TEST_FUNCTION(frame_codec_receive_bytes_decodes_2_empty_frames)
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -1068,6 +1086,7 @@ TEST_FUNCTION(a_call_to_frame_codec_receive_bytes_with_bad_args_between_2_frames
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -1095,6 +1114,7 @@ TEST_FUNCTION(when_getting_the_list_item_value_fails_no_callback_is_invoked)
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -1119,6 +1139,7 @@ TEST_FUNCTION(when_frame_size_is_bad_frame_codec_receive_bytes_fails)
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -1143,6 +1164,7 @@ TEST_FUNCTION(when_frame_size_has_a_bad_doff_frame_codec_receive_bytes_fails)
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -1167,6 +1189,7 @@ TEST_FUNCTION(after_a_frame_decode_error_occurs_due_to_frame_size_a_subsequent_d
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -1191,6 +1214,7 @@ TEST_FUNCTION(after_a_frame_decode_error_occurs_due_to_bad_doff_size_a_subsequen
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -1226,6 +1250,7 @@ TEST_FUNCTION(receiving_a_frame_with_1_byte_frame_body_succeeds)
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -1258,6 +1283,7 @@ TEST_FUNCTION(when_allocating_type_specific_data_fails_frame_codec_receive_bytes
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -1286,6 +1312,7 @@ TEST_FUNCTION(when_allocating_type_specific_data_fails_a_subsequent_decode_Call_
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -1318,6 +1345,7 @@ TEST_FUNCTION(a_frame_with_2_bytes_received_together_with_the_header_passes_the_
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -1361,6 +1389,7 @@ TEST_FUNCTION(two_empty_frames_received_in_the_same_call_yields_2_callbacks)
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -1404,6 +1433,7 @@ TEST_FUNCTION(two_frames_with_1_byte_each_received_in_the_same_call_yields_2_cal
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -1434,6 +1464,7 @@ TEST_FUNCTION(frame_codec_subscribe_with_valid_args_succeeds)
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -1463,6 +1494,7 @@ TEST_FUNCTION(when_list_find_returns_NULL_a_new_subscription_is_created)
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -1491,6 +1523,7 @@ TEST_FUNCTION(when_list_item_get_value_returns_NULL_subscribe_fails)
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -1549,6 +1582,7 @@ TEST_FUNCTION(when_a_frame_type_that_has_no_subscribers_is_received_no_callback_
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -1606,6 +1640,8 @@ TEST_FUNCTION(when_2_subscriptions_exist_and_first_one_matches_the_callback_is_i
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
+    (void)frame_codec_unsubscribe(frame_codec, 1);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -1640,6 +1676,8 @@ TEST_FUNCTION(when_2_subscriptions_exist_and_second_one_matches_the_callback_is_
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
+    (void)frame_codec_unsubscribe(frame_codec, 1);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -1667,6 +1705,7 @@ TEST_FUNCTION(when_frame_codec_subscribe_is_called_twice_for_the_same_frame_type
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -1701,6 +1740,7 @@ TEST_FUNCTION(the_callbacks_for_the_2nd_frame_codec_subscribe_for_the_same_frame
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -1908,6 +1948,7 @@ TEST_FUNCTION(unsubscribe_one_of_2_subscriptions_succeeds)
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 1);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -1940,6 +1981,7 @@ TEST_FUNCTION(unsubscribe_2nd_out_of_2_subscriptions_succeeds)
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
 	frame_codec_destroy(frame_codec);
 }
 
@@ -1969,10 +2011,12 @@ TEST_FUNCTION(subscribe_unsubscribe_subscribe_succeeds)
 	mocks.AssertActualAndExpectedCalls();
 
 	// cleanup
+    (void)frame_codec_unsubscribe(frame_codec, 0);
 	frame_codec_destroy(frame_codec);
 }
 
 /* Tests_SRS_FRAME_CODEC_01_038: [frame_codec_unsubscribe removes a previous subscription for frames of type type and on success it shall return 0.] */
+
 TEST_FUNCTION(subscribe_unsubscribe_unsubscribe_fails)
 {
 	// arrange

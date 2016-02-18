@@ -920,7 +920,7 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // arrange
             amqpvalue_mocks mocks;
             uint64_t ulong_value;
-            AMQP_VALUE value = amqpvalue_create_ulong(UINT64_MAX);
+            AMQP_VALUE value = amqpvalue_create_ulong(0xFFFFFFFFFFFFFFFFUL);
             mocks.ResetAllCalls();
 
             // act

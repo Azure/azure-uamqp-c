@@ -19,7 +19,12 @@
 
 const IO_INTERFACE_DESCRIPTION test_io_interface_description = { 0 };
 
-static const void** list_items = NULL;
+typedef struct TEST_LIST_ITEM_TAG
+{
+    const void* item_value;
+} TEST_LIST_ITEM;
+
+static TEST_LIST_ITEM** list_items = NULL;
 static size_t list_item_count = 0;
 static unsigned char* sent_io_bytes;
 static size_t sent_io_byte_count;
@@ -67,36 +72,56 @@ public:
     MOCK_STATIC_METHOD_0(, LIST_HANDLE, list_create)
         MOCK_METHOD_END(LIST_HANDLE, TEST_LIST_HANDLE);
     MOCK_STATIC_METHOD_1(, void, list_destroy, LIST_HANDLE, list)
-        MOCK_VOID_METHOD_END();
+    MOCK_VOID_METHOD_END();
     MOCK_STATIC_METHOD_2(, LIST_ITEM_HANDLE, list_add, LIST_HANDLE, list, const void*, item)
-        const void** items = (const void**)realloc(list_items, (list_item_count + 1) * sizeof(const void*));
-    if (items != NULL)
-    {
-        list_items = items;
-        list_items[list_item_count++] = item;
-    }
-    MOCK_METHOD_END(LIST_ITEM_HANDLE, (LIST_ITEM_HANDLE)list_item_count);
+        TEST_LIST_ITEM** items = (TEST_LIST_ITEM**)realloc(list_items, (list_item_count + 1) * sizeof(TEST_LIST_ITEM*));
+        LIST_ITEM_HANDLE to_return = NULL;
+        if (items != NULL)
+        {
+            list_items = items;
+            list_items[list_item_count] = (TEST_LIST_ITEM*)malloc(sizeof(TEST_LIST_ITEM));
+            if (list_items[list_item_count] != NULL)
+            {
+                list_items[list_item_count]->item_value = item;
+                to_return = (LIST_ITEM_HANDLE)list_items[list_item_count];
+                list_item_count++;
+            }
+        }
+    MOCK_METHOD_END(LIST_ITEM_HANDLE, to_return);
     MOCK_STATIC_METHOD_1(, const void*, list_item_get_value, LIST_ITEM_HANDLE, item_handle)
-        MOCK_METHOD_END(const void*, (const void*)list_items[(size_t)item_handle - 1]);
+    MOCK_METHOD_END(const void*, ((TEST_LIST_ITEM*)item_handle)->item_value);
     MOCK_STATIC_METHOD_3(, LIST_ITEM_HANDLE, list_find, LIST_HANDLE, handle, LIST_MATCH_FUNCTION, match_function, const void*, match_context)
         size_t i;
-    LIST_ITEM_HANDLE found_item = NULL;
-    for (i = 0; i < list_item_count; i++)
-    {
-        if (match_function((LIST_ITEM_HANDLE)(i + 1), match_context))
+        LIST_ITEM_HANDLE found_item = NULL;
+        for (i = 0; i < list_item_count; i++)
         {
-            found_item = (LIST_ITEM_HANDLE)(i + 1);
-            break;
+            if (match_function((LIST_ITEM_HANDLE)list_items[i], match_context))
+            {
+                found_item = (LIST_ITEM_HANDLE)list_items[i];
+                break;
+            }
         }
-    }
     MOCK_METHOD_END(LIST_ITEM_HANDLE, found_item);
     MOCK_STATIC_METHOD_2(, int, list_remove, LIST_HANDLE, list, LIST_ITEM_HANDLE, list_item)
-        memmove(&list_items[(size_t)list_item - 1], &list_items[(size_t)list_item], (list_item_count - 1) * sizeof(const void*));
-        list_item_count--;
-        if (list_item_count == 0)
+        size_t i;
+        LIST_ITEM_HANDLE found_item = NULL;
+        for (i = 0; i < list_item_count; i++)
         {
-            free(list_items);
-            list_items = NULL;
+            if (((LIST_ITEM_HANDLE)list_items[i]) == list_item)
+            {
+                break;
+            }
+        }
+        if (i < list_item_count)
+        {
+            free(list_items[i]);
+            memmove(&list_items[i], &list_items[i + 1], (list_item_count - i - 1) * sizeof(TEST_LIST_ITEM*));
+            list_item_count--;
+            if (list_item_count == 0)
+            {
+                free(list_items);
+                list_items = NULL;
+            }
         }
     MOCK_METHOD_END(int, 0);
 
@@ -164,12 +189,20 @@ TEST_FUNCTION_INITIALIZE(method_init)
 
 TEST_FUNCTION_CLEANUP(method_cleanup)
 {
+    size_t i;
 	if (sent_io_bytes != NULL)
 	{
 		free(sent_io_bytes);
 		sent_io_bytes = NULL;
 	}
+    for (i = 0; i < list_item_count; i++)
+    {
+        free(list_items[i]);
+    }
+    free(list_items);
+    list_items = NULL;
 	list_item_count = 0;
+
 	sent_io_byte_count = 0;
 
     if (!MicroMockReleaseMutex(g_testByTest))

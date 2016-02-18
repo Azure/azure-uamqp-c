@@ -2147,7 +2147,7 @@ AMQP_VALUE amqpvalue_clone(AMQP_VALUE value)
 					if (result_data->value.map_value.pairs == NULL)
 					{
 						/* Codes_SRS_AMQPVALUE_01_236: [If creating the cloned value fails, amqpvalue_clone shall return NULL.] */
-						amqpalloc_free(result_data->value.map_value.pairs);
+                        amqpalloc_free(result_data);
 						result = NULL;
 					}
 					else

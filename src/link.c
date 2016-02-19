@@ -15,7 +15,7 @@
 #include "amqpalloc.h"
 #include "amqp_frame_codec.h"
 #include "consolelogger.h"
-#include "logger.h"
+#include "xlogging.h"
 #include "list.h"
 
 #define DEFAULT_LINK_CREDIT 10000

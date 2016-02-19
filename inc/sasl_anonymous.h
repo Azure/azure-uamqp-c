@@ -5,7 +5,7 @@
 #define SASL_ANONYMOUS_H
 
 #include "sasl_mechanism.h"
-#include "logger.h"
+#include "xlogging.h"
 
 #ifdef __cplusplus
 extern "C" {

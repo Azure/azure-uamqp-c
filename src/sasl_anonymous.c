@@ -8,7 +8,7 @@
 #include <string.h>
 #include "sasl_anonymous.h"
 #include "amqpalloc.h"
-#include "logger.h"
+#include "xlogging.h"
 
 typedef struct SASL_ANONYMOUS_INSTANCE_TAG
 {

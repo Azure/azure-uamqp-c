@@ -6,7 +6,7 @@
 
 #include "link.h"
 #include "message.h"
-#include "logger.h"
+#include "xlogging.h"
 
 #ifdef __cplusplus
 extern "C" {

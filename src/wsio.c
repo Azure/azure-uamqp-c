@@ -10,7 +10,7 @@
 #include <stdbool.h>
 #include "wsio.h"
 #include "amqpalloc.h"
-#include "logger.h"
+#include "xlogging.h"
 #include "list.h"
 #include "libwebsockets.h"
 #include "openssl/ssl.h"

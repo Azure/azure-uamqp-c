@@ -15,7 +15,7 @@ extern "C" {
 
 #include "xio.h"
 #include "sasl_mechanism.h"
-#include "logger.h"
+#include "xlogging.h"
 
 typedef struct WSIO_CONFIG_TAG
 {

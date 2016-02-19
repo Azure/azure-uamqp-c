@@ -4,6 +4,17 @@
 cmake_minimum_required(VERSION 2.8.11)
 project(uamqp)
 
+#making a nice global variable to know if we are on linux or not.
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set(LINUX TRUE)
+	#on Linux, enable valgrind
+	#these commands (MEMORYCHECK...) need to apear BEFORE include(CTest) or they will not have any effect
+	find_program(MEMORYCHECK_COMMAND valgrind)	
+	set(MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full --error-exitcode=1 --track-origins=yes")
+endif()
+
+include (CTest)
+
 option(run_e2e_tests "set run_e2e_tests to ON to run e2e tests (default is OFF) [if possible, they are always build]" OFF)
 option(run_longhaul_tests "set run_longhaul_tests to ON to run longhaul tests (default is OFF)[if possible, they are always build]" OFF)
 option(skip_unittests "set skip_unittests to ON to skip unittests (default is OFF)[if possible, they are always build]" OFF)

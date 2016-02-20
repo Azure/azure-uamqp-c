@@ -425,6 +425,7 @@ TEST_FUNCTION(when_reallocating_the_endpoint_array_for_the_link_endpoint_fails_t
 	EXPECTED_CALL(mocks, amqpalloc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG))
 		.SetReturn((void*)NULL);
 	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
 
 	// act
 	LINK_ENDPOINT_HANDLE link_endpoint = session_create_link_endpoint(session, "1");

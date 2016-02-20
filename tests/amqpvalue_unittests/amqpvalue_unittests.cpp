@@ -1,11 +1,19 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-#include <stdio.h>
+//
+// PUT NO INCLUDES BEFORE HERE !!!!
+//
+#include <cstdlib>
+#ifdef _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+
+#include <cstdio>
 #include "testrunnerswitcher.h"
 #include "micromock.h"
 #include "amqpvalue.h"
-#include "stdint.h"
+#include <cstdint>
 
 /* Requirements satisfied by the current implementation without any code:
 Tests_SRS_AMQPVALUE_01_270: [<encoding code="0x56" category="fixed" width="1" label="boolean with the octet 0x00 being false and octet 0x01 being true"/>]
@@ -97,29 +105,34 @@ extern "C"
 
 static void* test_context = (void*)0x4243;
 
-MICROMOCK_MUTEX_HANDLE test_serialize_mutex;
+static MICROMOCK_MUTEX_HANDLE g_testByTest;
+static MICROMOCK_GLOBAL_SEMAPHORE_HANDLE g_dllByDll;
 
 BEGIN_TEST_SUITE(amqpvalue_unittests)
 
-        TEST_SUITE_INITIALIZE(suite_init)
+        TEST_SUITE_INITIALIZE(setsBufferTempSize)
         {
-            test_serialize_mutex = MicroMockCreateMutex();
-            ASSERT_IS_NOT_NULL(test_serialize_mutex);
+            INITIALIZE_MEMORY_DEBUG(g_dllByDll);
+            g_testByTest = MicroMockCreateMutex();
+            ASSERT_IS_NOT_NULL(g_testByTest);
         }
 
-        TEST_SUITE_CLEANUP(suite_cleanup)
+        TEST_SUITE_CLEANUP(TestClassCleanup)
         {
-            MicroMockDestroyMutex(test_serialize_mutex);
+            MicroMockDestroyMutex(g_testByTest);
+            DEINITIALIZE_MEMORY_DEBUG(g_dllByDll);
         }
 
-        TEST_FUNCTION_INITIALIZE(method_init)
+        TEST_FUNCTION_INITIALIZE(f)
         {
-            if (!MicroMockAcquireMutex(test_serialize_mutex))
+            if (!MicroMockAcquireMutex(g_testByTest))
             {
-                ASSERT_FAIL("Could not acquire test serialization mutex.");
+                ASSERT_FAIL("our mutex is ABANDONED. Failure in test framework");
             }
+
             encoder_output_call_count = 0;
             when_shall_encoder_output_fail = 0;
+
         }
 
         TEST_FUNCTION_CLEANUP(method_cleanup)
@@ -146,7 +159,7 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             }
             decoded_value_count = 0;
 
-            if (!MicroMockReleaseMutex(test_serialize_mutex))
+            if (!MicroMockReleaseMutex(g_testByTest))
             {
                 ASSERT_FAIL("Could not release test serialization mutex.");
             }
@@ -168,6 +181,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_002: [If allocating the AMQP_VALUE fails then amqpvalue_create_null shall return NULL.] */
@@ -202,6 +219,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_006: [amqpvalue_create_boolean shall return a handle to an AMQP_VALUE that stores a boolean value.] */
@@ -218,6 +239,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_007: [If allocating the AMQP_VALUE fails then amqpvalue_create_boolean shall return NULL.] */
@@ -254,6 +279,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // assert
             ASSERT_ARE_EQUAL(bool, true, bool_value);
             ASSERT_ARE_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_008: [amqpvalue_get_boolean shall fill in the bool_value argument the Boolean value stored by the AMQP value indicated by the value argument.] */
@@ -272,6 +301,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // assert
             ASSERT_ARE_EQUAL(bool, false, bool_value);
             ASSERT_ARE_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_009: [If any of the arguments is NULL then amqpvalue_get_boolean shall return a non-zero value.] */
@@ -301,6 +334,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_ARE_NOT_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_011: [If the type of the value is not Boolean, then amqpvalue_get_boolean shall return a non-zero value.] */
@@ -317,6 +354,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_ARE_NOT_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* amqpvalue_create_ubyte */
@@ -335,6 +376,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_032: [amqpvalue_create_ubyte shall return a handle to an AMQP_VALUE that stores a unsigned char value.] */
@@ -351,6 +396,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_033: [If allocating the AMQP_VALUE fails then amqpvalue_create_ubyte shall return NULL.] */
@@ -387,6 +436,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // assert
             ASSERT_ARE_EQUAL(uint8_t, 0, ubyte_value);
             ASSERT_ARE_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_034: [amqpvalue_get_ubyte shall fill in the ubyte_value argument the unsigned char value stored by the AMQP value indicated by the value argument.] */
@@ -405,6 +458,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // assert
             ASSERT_ARE_EQUAL(uint8_t, 255, ubyte_value);
             ASSERT_ARE_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_036: [If any of the arguments is NULL then amqpvalue_get_ubyte shall return a non-zero value.] */
@@ -434,6 +491,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_ARE_NOT_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_037: [If the type of the value is not ubyte (was not created with amqpvalue_create_ubyte), then amqpvalue_get_ubyte shall return a non-zero value.] */
@@ -450,6 +511,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_ARE_NOT_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* amqpvalue_create_ushort */
@@ -468,6 +533,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_038: [amqpvalue_create_ushort shall return a handle to an AMQP_VALUE that stores an uint16_t value.] */
@@ -484,6 +553,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_039: [If allocating the AMQP_VALUE fails then amqpvalue_create_ushort shall return NULL.] */
@@ -520,6 +593,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // assert
             ASSERT_ARE_EQUAL(uint32_t, 0, ushort_value);
             ASSERT_ARE_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_040: [amqpvalue_get_ushort shall fill in the ushort_value argument the uint16_t value stored by the AMQP value indicated by the value argument.] */
@@ -538,6 +615,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // assert
             ASSERT_ARE_EQUAL(uint32_t, (uint32_t)65535, ushort_value);
             ASSERT_ARE_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_042: [If any of the arguments is NULL then amqpvalue_get_ushort shall return a non-zero value.] */
@@ -567,6 +648,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_ARE_NOT_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_043: [If the type of the value is not ushort (was not created with amqpvalue_create_ushort), then amqpvalue_get_ushort shall return a non-zero value.]  */
@@ -583,6 +668,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_ARE_NOT_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* amqpvalue_create_uint */
@@ -601,6 +690,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_044: [amqpvalue_create_uint shall return a handle to an AMQP_VALUE that stores an uint32_t value.] */
@@ -613,10 +706,14 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
 
             // act
-            AMQP_VALUE result = amqpvalue_create_uint(0xFFFFFFFF);
+            AMQP_VALUE result = amqpvalue_create_uint(0xFFFFFFFFU);
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_045: [If allocating the AMQP_VALUE fails then amqpvalue_create_uint shall return NULL.] */
@@ -653,6 +750,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // assert
             ASSERT_ARE_EQUAL(uint32_t, 0, uint_value);
             ASSERT_ARE_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_046: [amqpvalue_get_uint shall fill in the uint_value argument the uint32_t value stored by the AMQP value indicated by the value argument.] */
@@ -671,6 +772,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // assert
             ASSERT_ARE_EQUAL(uint32_t, (uint32_t)0xFFFFFFFF, uint_value);
             ASSERT_ARE_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_079: [If any of the arguments is NULL then amqpvalue_get_uint shall return a non-zero value.] */
@@ -700,6 +805,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_ARE_NOT_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_048: [If the type of the value is not uint (was not created with amqpvalue_create_uint), then amqpvalue_get_uint shall return a non-zero value.] */
@@ -716,6 +825,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_ARE_NOT_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* amqpvalue_create_ulong */
@@ -734,6 +847,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_049: [amqpvalue_create_ulong shall return a handle to an AMQP_VALUE that stores an uint64_t value.] */
@@ -746,10 +863,14 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
 
             // act
-            AMQP_VALUE result = amqpvalue_create_ulong(0xFFFFFFFFFFFFFFFF);
+            AMQP_VALUE result = amqpvalue_create_ulong(0xFFFFFFFFFFFFFFFFUL);
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_050: [If allocating the AMQP_VALUE fails then amqpvalue_create_ulong shall return NULL.] */
@@ -786,6 +907,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // assert
             ASSERT_ARE_EQUAL(uint64_t, 0, ulong_value);
             ASSERT_ARE_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_051: [amqpvalue_get_ulong shall fill in the ulong_value argument the ulong64_t value stored by the AMQP value indicated by the value argument.] */
@@ -795,15 +920,19 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // arrange
             amqpvalue_mocks mocks;
             uint64_t ulong_value;
-            AMQP_VALUE value = amqpvalue_create_ulong(0xFFFFFFFFFFFFFFFF);
+            AMQP_VALUE value = amqpvalue_create_ulong(0xFFFFFFFFFFFFFFFFUL);
             mocks.ResetAllCalls();
 
             // act
             int result = amqpvalue_get_ulong(value, &ulong_value);
 
             // assert
-            ASSERT_ARE_EQUAL(uint64_t, (uint64_t)0xFFFFFFFFFFFFFFFF, ulong_value);
+            ASSERT_ARE_EQUAL(uint64_t, (uint64_t)0xFFFFFFFFFFFFFFFFUL, ulong_value);
             ASSERT_ARE_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_053: [If any of the arguments is NULL then amqpvalue_get_ulong shall return a non-zero value.] */
@@ -833,6 +962,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_ARE_NOT_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_054: [If the type of the value is not ulong (was not created with amqpvalue_create_ulong), then amqpvalue_get_ulong shall return a non-zero value.] */
@@ -849,6 +982,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_ARE_NOT_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* amqpvalue_create_byte */
@@ -867,6 +1004,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_055: [amqpvalue_create_byte shall return a handle to an AMQP_VALUE that stores a char value.] */
@@ -883,6 +1024,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_056: [If allocating the AMQP_VALUE fails then amqpvalue_create_byte shall return NULL.] */
@@ -905,7 +1050,7 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
         /* Tests_SRS_AMQPVALUE_01_057: [amqpvalue_get_byte shall fill in the byte_value argument the char value stored by the AMQP value indicated by the value argument.] */
         /* Tests_SRS_AMQPVALUE_01_058: [On success amqpvalue_get_byte shall return 0.] */
-        TEST_FUNCTION(amqpvalue_get_byte_minus_127_succeeds)
+        TEST_FUNCTION(amqpvalue_get_byte_minus_128_succeeds)
         {
             // arrange
             amqpvalue_mocks mocks;
@@ -919,6 +1064,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // assert
             ASSERT_ARE_EQUAL(char, -128, byte_value);
             ASSERT_ARE_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_057: [amqpvalue_get_byte shall fill in the byte_value argument the char value stored by the AMQP value indicated by the value argument.] */
@@ -937,6 +1086,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // assert
             ASSERT_ARE_EQUAL(char, 127, byte_value);
             ASSERT_ARE_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_059: [If any of the arguments is NULL then amqpvalue_get_byte shall return a non-zero value.] */
@@ -966,6 +1119,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_ARE_NOT_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_060: [If the type of the value is not byte (was not created with amqpvalue_create_byte), then amqpvalue_get_byte shall return a non-zero value.] */
@@ -982,6 +1139,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_ARE_NOT_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* amqpvalue_create_short */
@@ -1000,6 +1161,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_055: [amqpvalue_create_short shall return a handle to an AMQP_VALUE that stores a char value.] */
@@ -1016,6 +1181,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_062: [If allocating the AMQP_VALUE fails then amqpvalue_create_short shall return NULL.] */
@@ -1052,6 +1221,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // assert
             ASSERT_ARE_EQUAL(int16_t, -32768, short_value);
             ASSERT_ARE_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_063: [amqpvalue_get_short shall fill in the short_value argument the int16_t value stored by the AMQP value indicated by the value argument.] */
@@ -1070,6 +1243,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // assert
             ASSERT_ARE_EQUAL(int16_t, 32767, short_value);
             ASSERT_ARE_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_065: [If any of the arguments is NULL then amqpvalue_get_short shall return a non-zero value.] */
@@ -1099,6 +1276,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_ARE_NOT_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_066: [If the type of the value is not short (was not created with amqpvalue_create_short), then amqpvalue_get_short shall return a non-zero value.] */
@@ -1115,6 +1296,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_ARE_NOT_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* amqpvalue_create_int */
@@ -1133,6 +1318,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_067: [amqpvalue_create_int shall return a handle to an AMQP_VALUE that stores an int32_t value.] */
@@ -1149,6 +1338,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_068: [If allocating the AMQP_VALUE fails then amqpvalue_create_int shall return NULL.] */
@@ -1185,6 +1378,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // assert
             ASSERT_ARE_EQUAL(int32_t, -2147483647 - 1, int_value);
             ASSERT_ARE_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_069: [amqpvalue_get_int shall fill in the int_value argument the int32_t value stored by the AMQP value indicated by the value argument.] */
@@ -1203,6 +1400,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // assert
             ASSERT_ARE_EQUAL(int32_t, 2147483647, int_value);
             ASSERT_ARE_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_071: [If any of the arguments is NULL then amqpvalue_get_int shall return a non-zero value.] */
@@ -1232,6 +1433,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_ARE_NOT_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_072: [If the type of the value is not int (was not created with amqpvalue_create_int), then amqpvalue_get_int shall return a non-zero value.] */
@@ -1248,6 +1453,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_ARE_NOT_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* amqpvalue_create_long */
@@ -1266,6 +1475,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_073: [amqpvalue_create_long shall return a handle to an AMQP_VALUE that stores an int64_t value.] */
@@ -1282,6 +1495,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_074: [If allocating the AMQP_VALUE fails then amqpvalue_create_long shall return NULL.] */
@@ -1318,6 +1535,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // assert
             ASSERT_ARE_EQUAL(uint64_t, (uint64_t)(-9223372036854775807LL - 1), (uint64_t)long_value);
             ASSERT_ARE_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_075: [amqpvalue_get_long shall fill in the long_value argument the int64_t value stored by the AMQP value indicated by the value argument.] */
@@ -1336,6 +1557,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // assert
             ASSERT_ARE_EQUAL(uint64_t, (uint64_t)9223372036854775807, (uint64_t)long_value);
             ASSERT_ARE_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_077: [If any of the arguments is NULL then amqpvalue_get_long shall return a non-zero value.] */
@@ -1365,6 +1590,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_ARE_NOT_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_078: [If the type of the value is not long (was not created with amqpvalue_create_long), then amqpvalue_get_long shall return a non-zero value.] */
@@ -1381,6 +1610,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_ARE_NOT_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* amqpvalue_create_float */
@@ -1399,6 +1632,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_080: [amqpvalue_create_float shall return a handle to an AMQP_VALUE that stores a float value.] */
@@ -1415,6 +1652,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_081: [If allocating the AMQP_VALUE fails then amqpvalue_create_float shall return NULL.] */
@@ -1451,6 +1692,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // assert
             ASSERT_ARE_EQUAL(float, -1.0f, float_value);
             ASSERT_ARE_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_082: [amqpvalue_get_float shall fill in the float_value argument the float value stored by the AMQP value indicated by the value argument.] */
@@ -1469,6 +1714,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // assert
             ASSERT_ARE_EQUAL(float, 42.0, float_value);
             ASSERT_ARE_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_084: [If any of the arguments is NULL then amqpvalue_get_float shall return a non-zero value.] */
@@ -1498,6 +1747,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_ARE_NOT_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_085: [If the type of the value is not float (was not created with amqpvalue_create_float), then amqpvalue_get_float shall return a non-zero value.] */
@@ -1514,6 +1767,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_ARE_NOT_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* amqpvalue_create_double */
@@ -1532,6 +1789,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_086: [amqpvalue_create_double shall return a handle to an AMQP_VALUE that stores a double value.] */
@@ -1548,6 +1809,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_087: [If allocating the AMQP_VALUE fails then amqpvalue_create_double shall return NULL.] */
@@ -1584,6 +1849,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // assert
             ASSERT_ARE_EQUAL(double, -1.0f, double_value);
             ASSERT_ARE_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_088: [amqpvalue_get_double shall fill in the double_value argument the double value stored by the AMQP value indicated by the value argument.] */
@@ -1602,6 +1871,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // assert
             ASSERT_ARE_EQUAL(double, 42.0, double_value);
             ASSERT_ARE_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_090: [If any of the arguments is NULL then amqpvalue_get_double shall return a non-zero value.] */
@@ -1631,6 +1904,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_ARE_NOT_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_091: [If the type of the value is not double (was not created with amqpvalue_create_double), then amqpvalue_get_double shall return a non-zero value.] */
@@ -1647,6 +1924,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_ARE_NOT_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* amqpvalue_create_char */
@@ -1665,6 +1946,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_092: [amqpvalue_create_char shall return a handle to an AMQP_VALUE that stores a single UTF-32 character value.] */
@@ -1681,6 +1966,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_098: [If the code point value is outside of the allowed range [0, 0x10FFFF] then amqpvalue_create_char shall return NULL.] */
@@ -1730,6 +2019,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // assert
             ASSERT_ARE_EQUAL(char, 0x0, char_value);
             ASSERT_ARE_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_094: [amqpvalue_get_char shall fill in the char_value argument the UTF32 char value stored by the AMQP value indicated by the value argument.] */
@@ -1748,6 +2041,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // assert
             ASSERT_ARE_EQUAL(uint32_t, 0x10FFFF, char_value);
             ASSERT_ARE_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_096: [If any of the arguments is NULL then amqpvalue_get_char shall return a non-zero value.] */
@@ -1777,6 +2074,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_ARE_NOT_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_097: [If the type of the value is not char (was not created with amqpvalue_create_char), then amqpvalue_get_char shall return a non-zero value.] */
@@ -1793,6 +2094,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_ARE_NOT_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* amqpvalue_create_timestamp */
@@ -1811,6 +2116,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_049: [amqpvalue_create_timestamp shall return a handle to an AMQP_VALUE that stores an uint64_t value.] */
@@ -1827,6 +2136,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_050: [If allocating the AMQP_VALUE fails then amqpvalue_create_timestamp shall return NULL.] */
@@ -1863,6 +2176,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // assert
             ASSERT_ARE_EQUAL(uint64_t, (uint64_t)0, timestamp_value);
             ASSERT_ARE_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_109: [amqpvalue_get_timestamp shall fill in the timestamp_value argument the timestamp value stored by the AMQP value indicated by the value argument.] */
@@ -1872,7 +2189,7 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // arrange
             amqpvalue_mocks mocks;
             int64_t timestamp_value;
-            AMQP_VALUE value = amqpvalue_create_timestamp(1311704463521);
+            AMQP_VALUE value = amqpvalue_create_timestamp(1311704463521LL);
             mocks.ResetAllCalls();
 
             // act
@@ -1881,6 +2198,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // assert
             ASSERT_ARE_EQUAL(uint64_t, (uint64_t)1311704463521LL, timestamp_value);
             ASSERT_ARE_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_111: [If any of the arguments is NULL then amqpvalue_get_timestamp shall return a non-zero value.] */
@@ -1910,6 +2231,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_ARE_NOT_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_112: [If the type of the value is not timestamp (was not created with amqpvalue_create_timestamp), then amqpvalue_get_timestamp shall return a non-zero value.] */
@@ -1926,6 +2251,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_ARE_NOT_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* amqpvalue_create_uuid */
@@ -1945,6 +2274,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_113: [amqpvalue_create_uuid shall return a handle to an AMQP_VALUE that stores an uuid value that represents a unique identifier per RFC-4122 section 4.1.2.] */
@@ -1962,6 +2295,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_114: [If allocating the AMQP_VALUE fails then amqpvalue_create_uuid shall return NULL.] */
@@ -2000,6 +2337,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // assert
             ASSERT_ARE_EQUAL(int, 0, memcmp(&uuid_src, &uuid_value, sizeof(uuid)));
             ASSERT_ARE_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_115: [amqpvalue_get_uuid shall fill in the uuid_value argument the uuid value stored by the AMQP value indicated by the value argument.] */
@@ -2019,6 +2360,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // assert
             ASSERT_ARE_EQUAL(int, 0, memcmp(&uuid_src, &uuid_value, sizeof(uuid)));
             ASSERT_ARE_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_117: [If any of the arguments is NULL then amqpvalue_get_uuid shall return a non-zero value.] */
@@ -2049,6 +2394,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_ARE_NOT_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_118: [If the type of the value is not uuid (was not created with amqpvalue_create_uuid), then amqpvalue_get_uuid shall return a non-zero value.] */
@@ -2065,6 +2414,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_ARE_NOT_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* amqpvalue_create_binary */
@@ -2086,6 +2439,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_127: [amqpvalue_create_binary shall return a handle to an AMQP_VALUE that stores a sequence of bytes.] */
@@ -2103,6 +2460,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_127: [amqpvalue_create_binary shall return a handle to an AMQP_VALUE that stores a sequence of bytes.] */
@@ -2122,6 +2483,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_128: [If allocating the AMQP_VALUE fails then amqpvalue_create_binary shall return NULL.] */
@@ -2196,6 +2561,12 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             ASSERT_ARE_EQUAL(int, 0, result);
             ASSERT_ARE_EQUAL(uint32_t, 1, binary_value.length);
             ASSERT_ARE_EQUAL(int, 0, memcmp(binary_value.bytes, input, sizeof(input)));
+            ASSERT_ARE_NOT_EQUAL(void_ptr, input, binary_value.bytes);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
+
         }
 
         /* Tests_SRS_AMQPVALUE_01_131: [amqpvalue_get_binary shall yield a pointer to the sequence of bytes held by the AMQP_VALUE in binary_value.data and fill in the binary_value.length argument the number of bytes held in the binary value.] */
@@ -2215,6 +2586,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // assert
             ASSERT_ARE_EQUAL(int, 0, result);
             ASSERT_ARE_EQUAL(uint32_t, 0, binary_value.length);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_132: [If any of the arguments is NULL then amqpvalue_get_binary shall return NULL.] */
@@ -2247,6 +2622,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_ARE_NOT_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* Tests_SRS_AMQPVALUE_01_133: [If the type of the value is not binary (was not created with amqpvalue_create_binary), then amqpvalue_get_binary shall return NULL.] */
@@ -2263,6 +2642,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_ARE_NOT_EQUAL(int, 0, result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(value);
         }
 
         /* amqpvalue_create_binary */
@@ -2282,6 +2665,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_135: [amqpvalue_create_string shall return a handle to an AMQP_VALUE that stores a sequence of Unicode characters.] */
@@ -2299,6 +2686,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // assert
             ASSERT_IS_NOT_NULL(result);
+            mocks.AssertActualAndExpectedCalls();
+
+            ///cleanup
+            amqpvalue_destroy(result);
         }
 
         /* Tests_SRS_AMQPVALUE_01_136: [If allocating the AMQP_VALUE fails then amqpvalue_create_string shall return NULL.] */
@@ -2939,6 +3330,7 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             // cleanup
             amqpvalue_destroy(list);
+            amqpvalue_destroy(item_1);
         }
 
         /* amqpvalue_get_list_item_count */
@@ -3784,6 +4176,7 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             amqpvalue_destroy(value1);
             amqpvalue_destroy(value2);
             amqpvalue_destroy(result_value);
+            amqpvalue_destroy(key);
         }
 
         /* Tests_SRS_AMQPVALUE_01_186: [If allocating memory to hold a new key/value pair fails, amqpvalue_set_map_value shall fail and return a non-zero value.] */
@@ -14660,5 +15053,4 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // cleanup
             amqpvalue_decoder_destroy(amqpvalue_decoder);
         }
-
 END_TEST_SUITE(amqpvalue_unittests)

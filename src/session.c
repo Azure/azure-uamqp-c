@@ -1010,6 +1010,7 @@ LINK_ENDPOINT_HANDLE session_create_link_endpoint(SESSION_HANDLE session, const 
 				if (new_link_endpoints == NULL)
 				{
 					/* Codes_SRS_SESSION_01_045: [If allocating memory for the link endpoint fails, session_create_link_endpoint shall fail and return NULL.] */
+                    amqpalloc_free(result->name);
 					amqpalloc_free(result);
 					result = NULL;
 				}

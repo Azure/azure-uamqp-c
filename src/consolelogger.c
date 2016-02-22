@@ -7,7 +7,7 @@
 #endif
 #include <stdarg.h>
 #include <stdio.h>
-#include "logger.h"
+#include "xlogging.h"
 
 void consolelogger_log(unsigned int options, char* format, ...)
 {

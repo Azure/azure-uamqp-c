@@ -13,7 +13,7 @@
 #include "amqp_definitions.h"
 #include "xio.h"
 #include "amqpalloc.h"
-#include "logger.h"
+#include "xlogging.h"
 #include "amqpvalue_to_string.h"
 #include "tickcounter.h"
 

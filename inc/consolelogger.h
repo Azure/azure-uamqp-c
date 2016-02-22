@@ -8,7 +8,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#include "logger.h"
+#include "xlogging.h"
 
 	extern void consolelogger_log(unsigned int options, char* format, ...);
 

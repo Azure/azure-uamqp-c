@@ -13,7 +13,7 @@ extern "C" {
 
 #include "xio.h"
 #include "sasl_mechanism.h"
-#include "logger.h"
+#include "xlogging.h"
 
 typedef struct SASLCLIENTIO_CONFIG_TAG
 {

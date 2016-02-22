@@ -10,7 +10,7 @@
 #include <string.h>
 #include "frame_codec.h"
 #include "amqpvalue.h"
-#include "logger.h"
+#include "xlogging.h"
 #include "xio.h"
 #include "amqpalloc.h"
 #include "list.h"

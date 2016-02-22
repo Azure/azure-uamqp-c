@@ -10,7 +10,7 @@
 #include "connection.h"
 #include "amqpalloc.h"
 #include "consolelogger.h"
-#include "logger.h"
+#include "xlogging.h"
 
 typedef struct LINK_ENDPOINT_INSTANCE_TAG
 {

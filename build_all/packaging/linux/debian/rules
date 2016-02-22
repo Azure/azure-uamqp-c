@@ -19,11 +19,10 @@ include /usr/share/dpkg/default.mk
 
 # main packaging script based on dh7 syntax
 %:
-	dh $@ --buildsystem=cmake --DSYSINSTALL_BINDINGS=ON 
+	dh $@ --buildsystem=cmake --DSYSINSTALL_BINDINGS=ON --Duse_wsio=ON
 
 override_dh_auto_configure:
-	dh_auto_configure -O--buildsystem=cmake -O--DSYSINSTALL_BINDINGS=ON -- -Duse_mqtt=OFF
-
+	dh_auto_configure -O--buildsystem=cmake -O--DSYSINSTALL_BINDINGS=ON
 
 override_dh_auto_install:
 	rm -f -r $$(pwd)/debian/tmp
@@ -31,6 +30,6 @@ override_dh_auto_install:
 	mkdir $$(pwd)/debian/tmp/usr
 	mkdir $$(pwd)/debian/tmp/usr/lib
 	mkdir $$(pwd)/debian/tmp/usr/include
-	mkdir $$(pwd)/debian/tmp/usr/include/azure-uamqp-c
+	mkdir $$(pwd)/debian/tmp/usr/include/azureiot
 	cp $$(pwd)/obj-*/*.a $$(pwd)/debian/tmp/usr/lib/
-	cp $$(pwd)/inc/* $$(pwd)/debian/tmp/usr/include/azure-uamqp-c
+	cp $$(pwd)/inc/* $$(pwd)/debian/tmp/usr/include/azureiot

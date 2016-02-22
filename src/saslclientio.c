@@ -14,7 +14,7 @@
 #include "frame_codec.h"
 #include "sasl_frame_codec.h"
 #include "amqp_definitions.h"
-#include "logger.h"
+#include "xlogging.h"
 #include "amqpvalue_to_string.h"
 
 typedef enum IO_STATE_TAG

@@ -8,9 +8,9 @@
 #include <string.h>
 #include "message_sender.h"
 #include "amqpalloc.h"
-#include "logger.h"
+#include "xlogging.h"
 #include "amqpvalue_to_string.h"
-#include "logger.h"
+#include "xlogging.h"
 
 typedef enum MESSAGE_SEND_STATE_TAG
 {

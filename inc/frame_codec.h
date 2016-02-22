@@ -5,7 +5,7 @@
 #define FRAME_CODEC_H
 
 #include "xio.h"
-#include "logger.h"
+#include "xlogging.h"
 #include "amqpvalue.h"
 
 #ifdef __cplusplus

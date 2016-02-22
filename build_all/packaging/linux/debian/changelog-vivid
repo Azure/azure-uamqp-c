@@ -1,4 +1,4 @@
-azure-uamqp-c (0.1.0-6) vivid; urgency=low
+azure-uamqp-c (0.1.0-7) vivid; urgency=low
 
   * Initial release
 
@@ -8,4 +8,6 @@ azure-uamqp-c (0.1.0-6) vivid; urgency=low
 
   * Remove const from on_message_send_complete callbacks (#adf4910)
 
- -- AzureIoT User <aziotsdklinux@outlook.com>  Wed, 3 Feb 2016 20:22:05 +0000
+  * Fix leak of message_annotations in message.c (#e48a19)
+
+ -- AzureIoT User <aziotsdklinux@outlook.com>  Tue, 26 Jan 2016 20:22:05 +0000

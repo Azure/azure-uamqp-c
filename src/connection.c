@@ -1016,7 +1016,7 @@ int connection_open(CONNECTION_HANDLE connection)
 	{
 		if (!connection->is_underlying_io_open)
 		{
-			if (xio_open(connection->io, connection_on_io_open_complete, connection_on_bytes_received, connection_on_io_error, connection) != 0)
+			if (xio_open(connection->io, connection_on_io_open_complete, connection, connection_on_bytes_received, connection, connection_on_io_error, connection) != 0)
 			{
 				connection_set_state(connection, CONNECTION_STATE_END);
 				result = __LINE__;
@@ -1051,7 +1051,7 @@ int connection_listen(CONNECTION_HANDLE connection)
 	{
 		if (!connection->is_underlying_io_open)
 		{
-			if (xio_open(connection->io, connection_on_io_open_complete, connection_on_bytes_received, connection_on_io_error, connection) != 0)
+			if (xio_open(connection->io, connection_on_io_open_complete, connection, connection_on_bytes_received, connection, connection_on_io_error, connection) != 0)
 			{
 				connection_set_state(connection, CONNECTION_STATE_END);
 				result = __LINE__;

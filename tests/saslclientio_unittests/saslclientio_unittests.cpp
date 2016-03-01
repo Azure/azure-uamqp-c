@@ -147,11 +147,11 @@ public:
 	MOCK_METHOD_END(int, 0);
 
 	/* xio mocks */
-	MOCK_STATIC_METHOD_5(, int, xio_open, XIO_HANDLE, xio, ON_IO_OPEN_COMPLETE, on_io_open_complete, ON_BYTES_RECEIVED, on_bytes_received, ON_IO_ERROR, on_io_error, void*, callback_context)
+	MOCK_STATIC_METHOD_7(, int, xio_open, XIO_HANDLE, xio, ON_IO_OPEN_COMPLETE, on_io_open_complete, void*, on_io_open_complete_context, ON_BYTES_RECEIVED, on_bytes_received, void*, on_bytes_received_context, ON_IO_ERROR, on_io_error, void*, on_io_error_context)
 		saved_on_bytes_received = on_bytes_received;
 		saved_on_io_open_complete = on_io_open_complete;
 		saved_on_io_error = on_io_error;
-		saved_io_callback_context = callback_context;
+		saved_io_callback_context = on_io_open_complete_context;
 	MOCK_METHOD_END(int, 0);
 	MOCK_STATIC_METHOD_3(, int, xio_close, XIO_HANDLE, xio, ON_IO_CLOSE_COMPLETE, on_io_close_complete, void*, callback_context)
 	MOCK_METHOD_END(int, 0);
@@ -218,7 +218,7 @@ extern "C"
 	DECLARE_GLOBAL_MOCK_METHOD_1(saslclientio_mocks, , void, sasl_frame_codec_destroy, SASL_FRAME_CODEC_HANDLE, sasl_frame_codec);
 	DECLARE_GLOBAL_MOCK_METHOD_4(saslclientio_mocks, , int, sasl_frame_codec_encode_frame, SASL_FRAME_CODEC_HANDLE, sasl_frame_codec, const AMQP_VALUE, sasl_frame_value, ON_BYTES_ENCODED, on_bytes_encoded, void*, callback_context)
 
-	DECLARE_GLOBAL_MOCK_METHOD_5(saslclientio_mocks, , int, xio_open, XIO_HANDLE, xio, ON_IO_OPEN_COMPLETE, on_io_open_complete, ON_BYTES_RECEIVED, on_bytes_received, ON_IO_ERROR, on_io_error, void*, callback_context);
+	DECLARE_GLOBAL_MOCK_METHOD_7(saslclientio_mocks, , int, xio_open, XIO_HANDLE, xio, ON_IO_OPEN_COMPLETE, on_io_open_complete, void*, on_io_open_complete_context, ON_BYTES_RECEIVED, on_bytes_received, void*, on_bytes_received_context, ON_IO_ERROR, on_io_error, void*, on_io_error_context);
 	DECLARE_GLOBAL_MOCK_METHOD_3(saslclientio_mocks, , int, xio_close, XIO_HANDLE, xio, ON_IO_CLOSE_COMPLETE, on_io_close_complete, void*, callback_context);
 	DECLARE_GLOBAL_MOCK_METHOD_5(saslclientio_mocks, , int, xio_send, XIO_HANDLE, xio, const void*, buffer, size_t, size, ON_SEND_COMPLETE, on_send_complete, void*, callback_context);
 	DECLARE_GLOBAL_MOCK_METHOD_1(saslclientio_mocks, , void, xio_dowork, XIO_HANDLE, xio);

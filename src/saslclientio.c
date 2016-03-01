@@ -53,8 +53,10 @@ typedef struct SASL_CLIENT_IO_INSTANCE_TAG
 	ON_IO_OPEN_COMPLETE on_io_open_complete;
 	ON_IO_CLOSE_COMPLETE on_io_close_complete;
 	ON_IO_ERROR on_io_error;
-	void* open_callback_context;
-	void* close_callback_context;
+    void* on_bytes_received_context;
+	void* on_io_open_complete_context;
+	void* on_io_close_complete_context;
+    void* on_io_error_context;
 	LOGGER_LOG logger_log;
 	SASL_HEADER_EXCHANGE_STATE sasl_header_exchange_state;
 	SASL_CLIENT_NEGOTIATION_STATE sasl_client_negotiation_state;
@@ -75,7 +77,7 @@ static void indicate_error(SASL_CLIENT_IO_INSTANCE* sasl_client_io_instance)
 {
 	if (sasl_client_io_instance->on_io_error != NULL)
 	{
-		sasl_client_io_instance->on_io_error(sasl_client_io_instance->open_callback_context);
+		sasl_client_io_instance->on_io_error(sasl_client_io_instance->on_io_error_context);
 	}
 }
 
@@ -83,7 +85,7 @@ static void indicate_open_complete(SASL_CLIENT_IO_INSTANCE* sasl_client_io_insta
 {
 	if (sasl_client_io_instance->on_io_open_complete != NULL)
 	{
-		sasl_client_io_instance->on_io_open_complete(sasl_client_io_instance->open_callback_context, open_result);
+		sasl_client_io_instance->on_io_open_complete(sasl_client_io_instance->on_io_open_complete_context, open_result);
 	}
 }
 
@@ -91,7 +93,7 @@ static void indicate_close_complete(SASL_CLIENT_IO_INSTANCE* sasl_client_io_inst
 {
 	if (sasl_client_io_instance->on_io_close_complete != NULL)
 	{
-		sasl_client_io_instance->on_io_close_complete(sasl_client_io_instance->close_callback_context);
+		sasl_client_io_instance->on_io_close_complete(sasl_client_io_instance->on_io_close_complete_context);
 	}
 }
 
@@ -328,7 +330,7 @@ static int saslclientio_receive_byte(SASL_CLIENT_IO_INSTANCE* sasl_client_io_ins
 			break;
 
 		case SASL_CLIENT_NEGOTIATION_OUTCOME_RCVD:
-			sasl_client_io_instance->on_bytes_received(sasl_client_io_instance->open_callback_context, &b, 1);
+			sasl_client_io_instance->on_bytes_received(sasl_client_io_instance->on_bytes_received_context, &b, 1);
 			result = 0;
 			break;
 		}
@@ -408,7 +410,7 @@ static void on_underlying_io_bytes_received(void* context, const unsigned char* 
 		case IO_STATE_OPEN:
 			/* Codes_SRS_SASLCLIENTIO_01_027: [When the on_bytes_received callback passed to the underlying IO is called and the SASL client IO state is IO_STATE_OPEN, the bytes shall be indicated to the user of SASL client IO by calling the on_bytes_received that was passed in saslclientio_open.] */
 			/* Codes_SRS_SASLCLIENTIO_01_029: [The context argument shall be set to the callback_context passed in saslclientio_open.] */
-			sasl_client_io_instance->on_bytes_received(sasl_client_io_instance->open_callback_context, buffer, size);
+			sasl_client_io_instance->on_bytes_received(sasl_client_io_instance->on_bytes_received_context, buffer, size);
 			break;
 
 		case IO_STATE_SASL_HANDSHAKE:
@@ -885,8 +887,10 @@ CONCRETE_IO_HANDLE saslclientio_create(void* io_create_parameters, LOGGER_LOG lo
 						result->on_io_error = NULL;
 						result->on_io_close_complete = NULL;
 						result->logger_log = logger_log;
-						result->open_callback_context = NULL;
-						result->close_callback_context = NULL;
+                        result->on_bytes_received_context = NULL;
+						result->on_io_open_complete_context = NULL;
+						result->on_io_close_complete_context = NULL;
+                        result->on_io_error_context = NULL;
 						result->sasl_mechanism = sasl_client_io_config->sasl_mechanism;
 
 						result->io_state = IO_STATE_NOT_OPEN;
@@ -915,7 +919,7 @@ void saslclientio_destroy(CONCRETE_IO_HANDLE sasl_client_io)
 	}
 }
 
-int saslclientio_open(CONCRETE_IO_HANDLE sasl_client_io, ON_IO_OPEN_COMPLETE on_io_open_complete, ON_BYTES_RECEIVED on_bytes_received, ON_IO_ERROR on_io_error, void* callback_context)
+int saslclientio_open(CONCRETE_IO_HANDLE sasl_client_io, ON_IO_OPEN_COMPLETE on_io_open_complete, void* on_io_open_complete_context, ON_BYTES_RECEIVED on_bytes_received, void* on_bytes_received_context, ON_IO_ERROR on_io_error, void* on_io_error_context)
 {
 	int result = 0;
 
@@ -938,7 +942,9 @@ int saslclientio_open(CONCRETE_IO_HANDLE sasl_client_io, ON_IO_OPEN_COMPLETE on_
 			sasl_client_io_instance->on_bytes_received = on_bytes_received;
 			sasl_client_io_instance->on_io_open_complete = on_io_open_complete;
 			sasl_client_io_instance->on_io_error = on_io_error;
-			sasl_client_io_instance->open_callback_context = callback_context;
+			sasl_client_io_instance->on_bytes_received_context = on_bytes_received_context;
+            sasl_client_io_instance->on_io_open_complete_context = on_io_open_complete_context;
+            sasl_client_io_instance->on_io_error_context = on_io_error_context;
 			sasl_client_io_instance->sasl_header_exchange_state = SASL_HEADER_EXCHANGE_IDLE;
 			sasl_client_io_instance->sasl_client_negotiation_state = SASL_CLIENT_NEGOTIATION_NOT_STARTED;
 			sasl_client_io_instance->header_bytes_received = 0;
@@ -946,7 +952,7 @@ int saslclientio_open(CONCRETE_IO_HANDLE sasl_client_io, ON_IO_OPEN_COMPLETE on_
 
 			/* Codes_SRS_SASLCLIENTIO_01_009: [saslclientio_open shall call xio_open on the underlying_io passed to saslclientio_create.] */
 			/* Codes_SRS_SASLCLIENTIO_01_013: [saslclientio_open shall pass to xio_open a callback for receiving bytes and a state changed callback for the underlying_io state changes.] */
-			if (xio_open(sasl_client_io_instance->underlying_io, on_underlying_io_open_complete, on_underlying_io_bytes_received, on_underlying_io_error, sasl_client_io_instance) != 0)
+			if (xio_open(sasl_client_io_instance->underlying_io, on_underlying_io_open_complete, sasl_client_io_instance, on_underlying_io_bytes_received, sasl_client_io_instance, on_underlying_io_error, sasl_client_io_instance) != 0)
 			{
 				/* Codes_SRS_SASLCLIENTIO_01_012: [If the open of the underlying_io fails, saslclientio_open shall fail and return non-zero value.] */
 				result = __LINE__;

@@ -23,8 +23,10 @@ typedef struct HEADER_DETECT_IO_INSTANCE_TAG
 	ON_IO_CLOSE_COMPLETE on_io_close_complete;
 	ON_IO_ERROR on_io_error;
 	ON_BYTES_RECEIVED on_bytes_received;
-	void* open_callback_context;
-	void* close_callback_context;
+	void* on_io_open_complete_context;
+	void* on_io_close_complete_context;
+    void* on_io_error_context;
+    void* on_bytes_received_context;
 } HEADER_DETECT_IO_INSTANCE;
 
 static const unsigned char amqp_header[] = { 'A', 'M', 'Q', 'P', 0, 1, 0, 0 };
@@ -33,7 +35,7 @@ static void indicate_error(HEADER_DETECT_IO_INSTANCE* header_detect_io_instance)
 {
 	if (header_detect_io_instance->on_io_error != NULL)
 	{
-		header_detect_io_instance->on_io_error(header_detect_io_instance->open_callback_context);
+		header_detect_io_instance->on_io_error(header_detect_io_instance->on_io_error_context);
 	}
 }
 
@@ -41,8 +43,16 @@ static void indicate_open_complete(HEADER_DETECT_IO_INSTANCE* header_detect_io_i
 {
 	if (header_detect_io_instance->on_io_open_complete != NULL)
 	{
-		header_detect_io_instance->on_io_open_complete(header_detect_io_instance->open_callback_context, open_result);
+		header_detect_io_instance->on_io_open_complete(header_detect_io_instance->on_io_open_complete_context, open_result);
 	}
+}
+
+static void indicate_close_complete(HEADER_DETECT_IO_INSTANCE* header_detect_io_instance)
+{
+    if (header_detect_io_instance->on_io_close_complete != NULL)
+    {
+        header_detect_io_instance->on_io_close_complete(header_detect_io_instance->on_io_close_complete_context);
+    }
 }
 
 static void on_underlying_io_bytes_received(void* context, const unsigned char* buffer, size_t size)
@@ -85,7 +95,7 @@ static void on_underlying_io_bytes_received(void* context, const unsigned char* 
 			break;
 
 		case IO_STATE_OPEN:
-			header_detect_io_instance->on_bytes_received(header_detect_io_instance->open_callback_context, buffer, size);
+			header_detect_io_instance->on_bytes_received(header_detect_io_instance->on_bytes_received_context, buffer, size);
 			size = 0;
 			break;
 		}
@@ -100,6 +110,11 @@ static void on_underlying_io_close_complete(void* context)
 	{
 	default:
 		break;
+
+    case IO_STATE_CLOSING:
+        header_detect_io_instance->io_state = IO_STATE_NOT_OPEN;
+        indicate_close_complete(header_detect_io_instance);
+        break;
 
 	case IO_STATE_WAIT_FOR_HEADER:
 	case IO_STATE_OPENING_UNDERLYING_IO:
@@ -174,9 +189,13 @@ CONCRETE_IO_HANDLE headerdetectio_create(void* io_create_parameters, LOGGER_LOG 
 		{
 			result->underlying_io = header_detect_io_config->underlying_io;
 			result->on_io_open_complete = NULL;
+            result->on_io_close_complete = NULL;
 			result->on_io_error = NULL;
 			result->on_bytes_received = NULL;
-			result->open_callback_context = NULL;
+			result->on_io_open_complete_context = NULL;
+            result->on_io_close_complete_context = NULL;
+            result->on_io_error_context = NULL;
+            result->on_bytes_received_context = NULL;
 
 			result->io_state = IO_STATE_NOT_OPEN;
 		}
@@ -196,7 +215,7 @@ void headerdetectio_destroy(CONCRETE_IO_HANDLE header_detect_io)
 	}
 }
 
-int headerdetectio_open(CONCRETE_IO_HANDLE header_detect_io, ON_IO_OPEN_COMPLETE on_io_open_complete, ON_BYTES_RECEIVED on_bytes_received, ON_IO_ERROR on_io_error, void* callback_context)
+int headerdetectio_open(CONCRETE_IO_HANDLE header_detect_io, ON_IO_OPEN_COMPLETE on_io_open_complete, void* on_io_open_complete_context, ON_BYTES_RECEIVED on_bytes_received, void* on_bytes_received_context, ON_IO_ERROR on_io_error, void* on_io_error_context)
 {
 	int result;
 
@@ -213,7 +232,9 @@ int headerdetectio_open(CONCRETE_IO_HANDLE header_detect_io, ON_IO_OPEN_COMPLETE
 			header_detect_io_instance->on_bytes_received = on_bytes_received;
 			header_detect_io_instance->on_io_open_complete = on_io_open_complete;
 			header_detect_io_instance->on_io_error = on_io_error;
-			header_detect_io_instance->open_callback_context = callback_context;
+            header_detect_io_instance->on_bytes_received_context = on_bytes_received_context;
+            header_detect_io_instance->on_io_open_complete_context = on_io_open_complete_context;
+            header_detect_io_instance->on_io_error_context = on_io_error_context;
 
 			result = 0;
 		}
@@ -226,7 +247,7 @@ int headerdetectio_open(CONCRETE_IO_HANDLE header_detect_io, ON_IO_OPEN_COMPLETE
 			header_detect_io_instance->header_pos = 0;
 			header_detect_io_instance->io_state = IO_STATE_OPENING_UNDERLYING_IO;
 
-			if (xio_open(header_detect_io_instance->underlying_io, on_underlying_io_open_complete, on_underlying_io_bytes_received, on_underlying_io_error, header_detect_io_instance) != 0)
+			if (xio_open(header_detect_io_instance->underlying_io, on_underlying_io_open_complete, header_detect_io_instance, on_underlying_io_bytes_received, header_detect_io_instance, on_underlying_io_error, header_detect_io_instance) != 0)
 			{
 				result = __LINE__;
 			}
@@ -260,6 +281,8 @@ int headerdetectio_close(CONCRETE_IO_HANDLE header_detect_io, ON_IO_CLOSE_COMPLE
 		else
 		{
 			header_detect_io_instance->io_state = IO_STATE_CLOSING;
+            header_detect_io_instance->on_io_close_complete = on_io_close_complete;
+            header_detect_io_instance->on_io_close_complete_context = callback_context;
 
 			if (xio_close(header_detect_io_instance->underlying_io, on_underlying_io_close_complete, header_detect_io_instance) != 0)
 			{

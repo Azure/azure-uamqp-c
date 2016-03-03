@@ -968,7 +968,7 @@ int saslclientio_open(CONCRETE_IO_HANDLE sasl_client_io, ON_IO_OPEN_COMPLETE on_
 	return result;
 }
 
-int saslclientio_close(CONCRETE_IO_HANDLE sasl_client_io, ON_IO_CLOSE_COMPLETE on_io_close_complete, void* callback_context)
+int saslclientio_close(CONCRETE_IO_HANDLE sasl_client_io, ON_IO_CLOSE_COMPLETE on_io_close_complete, void* on_io_close_complete_context)
 {
 	int result = 0;
 
@@ -990,6 +990,9 @@ int saslclientio_close(CONCRETE_IO_HANDLE sasl_client_io, ON_IO_CLOSE_COMPLETE o
 		else
 		{
 			sasl_client_io_instance->io_state = IO_STATE_CLOSING;
+
+            sasl_client_io_instance->on_io_close_complete = on_io_close_complete;
+            sasl_client_io_instance->on_io_close_complete_context = on_io_close_complete_context;
 
 			/* Codes_SRS_SASLCLIENTIO_01_015: [saslclientio_close shall close the underlying io handle passed in saslclientio_create by calling xio_close.] */
 			if (xio_close(sasl_client_io_instance->underlying_io, on_underlying_io_close_complete, sasl_client_io_instance) != 0)

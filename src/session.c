@@ -414,7 +414,11 @@ static void on_frame_received(void* context, AMQP_VALUE performative, uint32_t p
 						{
 							end_session_with_error(session_instance, "amqp:internal-error", "Cannot create link endpoint");
 						}
-						else
+                        else if (attach_get_handle(attach_handle, &new_link_endpoint->input_handle) != 0)
+                        {
+                            end_session_with_error(session_instance, "amqp:decode-error", "Cannot get input handle from ATTACH frame");
+                        }
+                        else
 						{
 							if (!session_instance->on_link_attached(session_instance->on_link_attached_callback_context, new_link_endpoint, name, role, source, target))
 							{
@@ -493,8 +497,18 @@ static void on_frame_received(void* context, AMQP_VALUE performative, uint32_t p
 			uint32_t remote_handle;
 			transfer_number flow_next_incoming_id;
 			uint32_t flow_incoming_window;
+
+            if (flow_get_next_incoming_id(flow_handle, &flow_next_incoming_id) != 0)
+            {
+                /*
+                If the next-incoming-id field of the flow frame is not set, 
+                then remote-incomingwindow is computed as follows: 
+                initial-outgoing-id(endpoint) + incoming-window(flow) - next-outgoing-id(endpoint)
+                */
+                flow_next_incoming_id = session_instance->next_outgoing_id;
+            }
+
 			if ((flow_get_next_outgoing_id(flow_handle, &session_instance->next_incoming_id) != 0) ||
-				(flow_get_next_incoming_id(flow_handle, &flow_next_incoming_id) != 0) ||
 				(flow_get_incoming_window(flow_handle, &flow_incoming_window) != 0))
 			{
 				flow_destroy(flow_handle);
@@ -1152,8 +1166,7 @@ int session_send_flow(LINK_ENDPOINT_HANDLE link_endpoint, FLOW_HANDLE flow)
 
 		result = 0;
 
-		if ((session_instance->session_state == SESSION_STATE_BEGIN_RCVD) ||
-			((session_instance->session_state == SESSION_STATE_MAPPED)))
+		if (session_instance->session_state == SESSION_STATE_BEGIN_RCVD)
 		{
 			if (flow_set_next_incoming_id(flow, session_instance->next_incoming_id) != 0)
 			{

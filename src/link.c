@@ -548,7 +548,8 @@ LINK_HANDLE link_create_from_endpoint(SESSION_HANDLE session, LINK_ENDPOINT_HAND
 		result->initial_delivery_count = 0;
 		result->max_message_size = 0;
 		result->is_underlying_session_begun = 0;
-		result->source = amqpvalue_clone(target);
+        result->attach_properties = NULL;
+        result->source = amqpvalue_clone(target);
 		result->target = amqpvalue_clone(source);
 		if (role == role_sender)
 		{
@@ -579,7 +580,6 @@ LINK_HANDLE link_create_from_endpoint(SESSION_HANDLE session, LINK_ENDPOINT_HAND
 				(void)strcpy(result->name, name);
 				result->on_link_state_changed = NULL;
 				result->callback_context = NULL;
-				set_link_state(result, LINK_STATE_HALF_ATTACHED);
 				result->link_endpoint = link_endpoint;
 			}
 		}

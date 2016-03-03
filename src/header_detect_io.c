@@ -55,6 +55,12 @@ static void indicate_close_complete(HEADER_DETECT_IO_INSTANCE* header_detect_io_
     }
 }
 
+static void on_underlying_io_error(void* context);
+static void on_send_complete_close(void* context, IO_SEND_RESULT send_result)
+{
+    on_underlying_io_error(context);
+}
+
 static void on_underlying_io_bytes_received(void* context, const unsigned char* buffer, size_t size)
 {
 	HEADER_DETECT_IO_INSTANCE* header_detect_io_instance = (HEADER_DETECT_IO_INSTANCE*)context;
@@ -69,7 +75,10 @@ static void on_underlying_io_bytes_received(void* context, const unsigned char* 
 		case IO_STATE_WAIT_FOR_HEADER:
 			if (amqp_header[header_detect_io_instance->header_pos] != buffer[0])
 			{
-				header_detect_io_instance->io_state = IO_STATE_NOT_OPEN;
+                /* Send expected header, then close as per spec.  We do not care if we fail */
+                (void)xio_send(header_detect_io_instance->underlying_io, amqp_header, sizeof(amqp_header), on_send_complete_close, context);
+
+                header_detect_io_instance->io_state = IO_STATE_NOT_OPEN;
 				indicate_open_complete(header_detect_io_instance, IO_OPEN_ERROR);
 				size = 0;
 			}
@@ -227,7 +236,12 @@ int headerdetectio_open(CONCRETE_IO_HANDLE header_detect_io, ON_IO_OPEN_COMPLETE
 	{
 		HEADER_DETECT_IO_INSTANCE* header_detect_io_instance = (HEADER_DETECT_IO_INSTANCE*)header_detect_io;
 
-		if (header_detect_io_instance->io_state == IO_STATE_OPEN)
+        if (header_detect_io_instance->io_state != IO_STATE_NOT_OPEN &&
+            header_detect_io_instance->io_state != IO_STATE_OPEN)
+        {
+            result = __LINE__;
+        }
+		else
 		{
 			header_detect_io_instance->on_bytes_received = on_bytes_received;
 			header_detect_io_instance->on_io_open_complete = on_io_open_complete;
@@ -236,25 +250,24 @@ int headerdetectio_open(CONCRETE_IO_HANDLE header_detect_io, ON_IO_OPEN_COMPLETE
             header_detect_io_instance->on_io_open_complete_context = on_io_open_complete_context;
             header_detect_io_instance->on_io_error_context = on_io_error_context;
 
-			result = 0;
-		}
-		else if (header_detect_io_instance->io_state != IO_STATE_NOT_OPEN)
-		{
-			result = __LINE__;
-		}
-		else
-		{
-			header_detect_io_instance->header_pos = 0;
-			header_detect_io_instance->io_state = IO_STATE_OPENING_UNDERLYING_IO;
+            if (header_detect_io_instance->io_state == IO_STATE_OPEN)
+            {
+                indicate_open_complete(header_detect_io_instance, IO_OPEN_OK);
+            }
+            else
+            {
+                header_detect_io_instance->header_pos = 0;
+                header_detect_io_instance->io_state = IO_STATE_OPENING_UNDERLYING_IO;
 
-			if (xio_open(header_detect_io_instance->underlying_io, on_underlying_io_open_complete, header_detect_io_instance, on_underlying_io_bytes_received, header_detect_io_instance, on_underlying_io_error, header_detect_io_instance) != 0)
-			{
-				result = __LINE__;
-			}
-			else
-			{
-				result = 0;
-			}
+                if (xio_open(header_detect_io_instance->underlying_io, on_underlying_io_open_complete, header_detect_io_instance, on_underlying_io_bytes_received, header_detect_io_instance, on_underlying_io_error, header_detect_io_instance) != 0)
+                {
+                    result = __LINE__;
+                }
+                else
+                {
+                    result = 0;
+                }
+            }
 		}
 	}
 

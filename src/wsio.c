@@ -38,10 +38,12 @@ typedef struct PENDING_SOCKET_IO_TAG
 typedef struct WSIO_INSTANCE_TAG
 {
 	ON_BYTES_RECEIVED on_bytes_received;
-	ON_IO_OPEN_COMPLETE on_io_open_complete;
-	ON_IO_ERROR on_io_error;
-	LOGGER_LOG logger_log;
-	void* open_callback_context;
+    void* on_bytes_received_context;
+    ON_IO_OPEN_COMPLETE on_io_open_complete;
+    void* on_io_open_complete_context;
+    ON_IO_ERROR on_io_error;
+    void* on_io_error_context;
+    LOGGER_LOG logger_log;
 	IO_STATE io_state;
 	LIST_HANDLE pending_io_list;
 	struct lws_context* ws_context;
@@ -60,7 +62,7 @@ static void indicate_error(WSIO_INSTANCE* wsio_instance)
     wsio_instance->io_state = IO_STATE_ERROR;
     if (wsio_instance->on_io_error != NULL)
 	{
-        wsio_instance->on_io_error(wsio_instance->open_callback_context);
+        wsio_instance->on_io_error(wsio_instance->on_io_error_context);
 	}
 }
 
@@ -70,7 +72,7 @@ static void indicate_open_complete(WSIO_INSTANCE* ws_io_instance, IO_OPEN_RESULT
     if (ws_io_instance->on_io_open_complete != NULL)
 	{
         /* Codes_SRS_WSIO_01_039: [The callback_context argument shall be passed to on_io_open_complete as is.] */
-		ws_io_instance->on_io_open_complete(ws_io_instance->open_callback_context, open_result);
+		ws_io_instance->on_io_open_complete(ws_io_instance->on_io_open_complete_context, open_result);
 	}
 }
 
@@ -390,7 +392,7 @@ static int on_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
                 /* Codes_SRS_WSIO_01_084: [The bytes argument shall point to the received bytes as indicated by the LWS_CALLBACK_CLIENT_RECEIVE in argument.] */
                 /* Codes_SRS_WSIO_01_085: [The length argument shall be set to the number of received bytes as indicated by the LWS_CALLBACK_CLIENT_RECEIVE len argument.] */
                 /* Codes_SRS_WSIO_01_086: [The callback_context shall be set to the callback_context that was passed in wsio_open.] */
-                wsio_instance->on_bytes_received(wsio_instance->open_callback_context, in, len);
+                wsio_instance->on_bytes_received(wsio_instance->on_bytes_received_context, in, len);
             }
         }
 
@@ -528,11 +530,13 @@ CONCRETE_IO_HANDLE wsio_create(void* io_create_parameters, LOGGER_LOG logger_log
 		result = amqpalloc_malloc(sizeof(WSIO_INSTANCE));
 		if (result != NULL)
 		{
-			result->on_bytes_received = NULL;
-			result->on_io_open_complete = NULL;
-			result->on_io_error = NULL;
-			result->logger_log = logger_log;
-			result->open_callback_context = NULL;
+            result->on_bytes_received = NULL;
+            result->on_bytes_received_context = NULL;
+            result->on_io_open_complete = NULL;
+            result->on_io_open_complete_context = NULL;
+            result->on_io_error = NULL;
+            result->on_io_error_context = NULL;
+            result->logger_log = logger_log;
 			result->wsi = NULL;
 			result->ws_context = NULL;
 
@@ -678,7 +682,7 @@ void wsio_destroy(CONCRETE_IO_HANDLE ws_io)
 	}
 }
 
-int wsio_open(CONCRETE_IO_HANDLE ws_io, ON_IO_OPEN_COMPLETE on_io_open_complete, ON_BYTES_RECEIVED on_bytes_received, ON_IO_ERROR on_io_error, void* callback_context)
+int wsio_open(CONCRETE_IO_HANDLE ws_io, ON_IO_OPEN_COMPLETE on_io_open_complete, void* on_io_open_complete_context, ON_BYTES_RECEIVED on_bytes_received, void* on_bytes_received_context, ON_IO_ERROR on_io_error, void* on_io_error_context)
 {
 	int result = 0;
 
@@ -698,9 +702,11 @@ int wsio_open(CONCRETE_IO_HANDLE ws_io, ON_IO_OPEN_COMPLETE on_io_open_complete,
         else
         {
             wsio_instance->on_bytes_received = on_bytes_received;
+            wsio_instance->on_bytes_received_context = on_bytes_received_context;
             wsio_instance->on_io_open_complete = on_io_open_complete;
+            wsio_instance->on_io_open_complete_context = on_io_open_complete_context;
             wsio_instance->on_io_error = on_io_error;
-            wsio_instance->open_callback_context = callback_context;
+            wsio_instance->on_io_error_context = on_io_error_context;
 
             int ietf_version = -1; /* latest */
             struct lws_context_creation_info info;
@@ -775,7 +781,7 @@ int wsio_open(CONCRETE_IO_HANDLE ws_io, ON_IO_OPEN_COMPLETE on_io_open_complete,
 	return result;
 }
 
-int wsio_close(CONCRETE_IO_HANDLE ws_io, ON_IO_CLOSE_COMPLETE on_io_close_complete, void* callback_context)
+int wsio_close(CONCRETE_IO_HANDLE ws_io, ON_IO_CLOSE_COMPLETE on_io_close_complete, void* on_io_close_complete_context)
 {
 	int result = 0;
 
@@ -844,7 +850,7 @@ int wsio_close(CONCRETE_IO_HANDLE ws_io, ON_IO_CLOSE_COMPLETE on_io_close_comple
             {
                 /* Codes_SRS_WSIO_01_047: [The callback on_io_close_complete shall be called after the close action has been completed in the context of wsio_close (wsio_close is effectively blocking).] */
                 /* Codes_SRS_WSIO_01_048: [The callback_context argument shall be passed to on_io_close_complete as is.] */
-                on_io_close_complete(callback_context);
+                on_io_close_complete(on_io_close_complete_context);
             }
 
             /* Codes_SRS_WSIO_01_044: [On success wsio_close shall return 0.] */

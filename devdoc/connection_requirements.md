@@ -59,6 +59,11 @@ extern CONNECTION_HANDLE connection_create(XIO_HANDLE xio, const char* container
 **SRS_CONNECTION_01_108: [**If amqp_frame_codec_create fails, connection_create shall return NULL.**]** 
 **SRS_CONNECTION_01_072: [**When connection_create succeeds, the state of the connection shall be CONNECTION_STATE_START.**]** 
 **SRS_CONNECTION_01_081: [**If allocating the memory for the connection fails then connection_create shall return NULL.**]** 
+**SRS_CONNECTION_22_002: [**connection_create shall allow registering connections state and io error callbacks.**]** 
+**SRS_CONNECTION_22_001: [**If a connection state changed occurs and a callback is registered the callback shall be called.**]** 
+**SRS_CONNECTION_22_005: [**If the io notifies the connection instance of an IO_STATE_ERROR state and an io error callback is registered, the connection shall call the registered callback.**]**
+**SRS_CONNECTION_22_003: [**connection_create shall allow registering a custom logger instead of default console logger.**]** 
+**SRS_CONNECTION_22_004: [**If no logger is provided, log messages are sent to console_logger.**]** 
 
 ###connection_set_max_frame_size
 

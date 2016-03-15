@@ -60,6 +60,12 @@ typedef struct CONNECTION_INSTANCE_TAG
 	ON_NEW_ENDPOINT on_new_endpoint;
 	void* on_new_endpoint_callback_context;
 
+    LOGGER_LOG logger;
+    ON_CONNECTION_STATE_CHANGED on_connection_state_changed;
+    void* on_connection_state_changed_callback_context;
+    ON_IO_ERROR on_io_error;
+    void* on_io_error_callback_context;
+
 	/* options */
 	uint32_t max_frame_size;
 	uint16_t channel_max;
@@ -80,6 +86,12 @@ static void connection_set_state(CONNECTION_INSTANCE* connection_instance, CONNE
 
 	CONNECTION_STATE previous_state = connection_instance->connection_state;
 	connection_instance->connection_state = connection_state;
+
+    /* Codes_SRS_CONNECTION_22_001: [If a connection state changed occurs and a callback is registered the callback shall be called.] */
+    if (connection_instance->on_connection_state_changed)
+    {
+        connection_instance->on_connection_state_changed(connection_instance->on_connection_state_changed_callback_context, connection_state, previous_state);
+    }
 
 	/* Codes_SRS_CONNECTION_01_260: [Each endpoint’s on_connection_state_changed shall be called.] */
 	for (i = 0; i < connection_instance->endpoint_count; i++)
@@ -108,7 +120,7 @@ static int send_header(CONNECTION_INSTANCE* connection_instance)
 	}
 	else
 	{
-		LOG(consolelogger_log, LOG_LINE, "-> Header (AMQP 0.1.0.0)");
+		LOG(connection_instance->logger, LOG_LINE, "-> Header (AMQP 0.1.0.0)");
 
 		/* Codes_SRS_CONNECTION_01_041: [HDR SENT In this state the connection header has been sent to the peer but no connection header has been received.] */
 		connection_set_state(connection_instance, CONNECTION_STATE_HDR_SENT);
@@ -166,15 +178,15 @@ static const char* get_frame_type_as_string(AMQP_VALUE descriptor)
 	return result;
 }
 
-static void log_incoming_frame(AMQP_VALUE performative)
+static void log_incoming_frame(LOGGER_LOG log, AMQP_VALUE performative)
 {
 	AMQP_VALUE descriptor = amqpvalue_get_inplace_descriptor(performative);
 	if (descriptor != NULL)
 	{
-		LOG(consolelogger_log, 0, "<- ");
-		LOG(consolelogger_log, 0, (char*)get_frame_type_as_string(descriptor));
+		LOG(log, 0, "<- ");
+		LOG(log, 0, (char*)get_frame_type_as_string(descriptor));
 		char* performative_as_string = NULL;
-		LOG(consolelogger_log, LOG_LINE, (performative_as_string = amqpvalue_to_string(performative)));
+		LOG(log, LOG_LINE, (performative_as_string = amqpvalue_to_string(performative)));
 		if (performative_as_string != NULL)
 		{
 			amqpalloc_free(performative_as_string);
@@ -182,15 +194,15 @@ static void log_incoming_frame(AMQP_VALUE performative)
 	}
 }
 
-static void log_outgoing_frame(AMQP_VALUE performative)
+static void log_outgoing_frame(LOGGER_LOG log, AMQP_VALUE performative)
 {
 	AMQP_VALUE descriptor = amqpvalue_get_inplace_descriptor(performative);
 	if (descriptor != NULL)
 	{
-		LOG(consolelogger_log, 0, "-> ");
-		LOG(consolelogger_log, 0, (char*)get_frame_type_as_string(descriptor));
+		LOG(log, 0, "-> ");
+		LOG(log, 0, (char*)get_frame_type_as_string(descriptor));
 		char* performative_as_string = NULL;
-		LOG(consolelogger_log, LOG_LINE, (performative_as_string = amqpvalue_to_string(performative)));
+		LOG(log, LOG_LINE, (performative_as_string = amqpvalue_to_string(performative)));
 		if (performative_as_string != NULL)
 		{
 			amqpalloc_free(performative_as_string);
@@ -297,7 +309,7 @@ static int send_open_frame(CONNECTION_INSTANCE* connection_instance)
 					}
 					else
 					{
-						log_outgoing_frame(open_performative_value);
+						log_outgoing_frame(connection_instance->logger, open_performative_value);
 
 						/* Codes_SRS_CONNECTION_01_046: [OPEN SENT In this state the connection headers have been exchanged. An open frame has been sent to the peer but no open frame has yet been received.] */
 						connection_set_state(connection_instance, CONNECTION_STATE_OPEN_SENT);
@@ -353,7 +365,7 @@ static int send_close_frame(CONNECTION_INSTANCE* connection_instance, ERROR_HAND
 				}
 				else
 				{
-					log_outgoing_frame(close_performative_value);
+					log_outgoing_frame(connection_instance->logger, close_performative_value);
 					result = 0;
 				}
 
@@ -475,7 +487,7 @@ static int connection_byte_received(CONNECTION_INSTANCE* connection_instance, un
 			connection_instance->header_bytes_received++;
 			if (connection_instance->header_bytes_received == sizeof(amqp_header))
 			{
-				LOG(consolelogger_log, LOG_LINE, "<- Header (AMQP 0.1.0.0)");
+				LOG(connection_instance->logger, LOG_LINE, "<- Header (AMQP 0.1.0.0)");
 
 				connection_set_state(connection_instance, CONNECTION_STATE_HDR_EXCH);
 
@@ -583,6 +595,12 @@ static void connection_on_io_error(void* context)
 {
 	CONNECTION_INSTANCE* connection_instance = (CONNECTION_INSTANCE*)context;
 
+    /* Codes_SRS_CONNECTION_22_005: [If the io notifies the connection instance of an IO_STATE_ERROR state and an io error callback is registered, the connection shall call the registered callback.] */
+    if (connection_instance->on_io_error)
+    {
+        connection_instance->on_io_error(connection_instance->on_io_error_callback_context);
+    }
+
 	if (connection_instance->connection_state != CONNECTION_STATE_END)
 	{
 		/* Codes_SRS_CONNECTION_01_202: [If the io notifies the connection instance of an IO_STATE_ERROR state the connection shall be closed and the state set to END.] */
@@ -594,7 +612,7 @@ static void connection_on_io_error(void* context)
 static void on_empty_amqp_frame_received(void* context, uint16_t channel)
 {
 	CONNECTION_INSTANCE* connection_instance = (CONNECTION_INSTANCE*)context;
-	LOG(consolelogger_log, LOG_LINE, "<- Empty frame");
+	LOG(connection_instance->logger, LOG_LINE, "<- Empty frame");
 	if (tickcounter_get_current_ms(connection_instance->tick_counter, &connection_instance->last_frame_received_time) != 0)
 	{
 		/* error */
@@ -626,7 +644,7 @@ static void on_amqp_frame_received(void* context, uint16_t channel, AMQP_VALUE p
 					AMQP_VALUE descriptor = amqpvalue_get_inplace_descriptor(performative);
 					uint64_t performative_ulong;
 
-					log_incoming_frame(performative);
+					log_incoming_frame(connection_instance->logger, performative);
 
 					if (is_open_type_by_descriptor(descriptor))
 					{
@@ -745,7 +763,7 @@ static void on_amqp_frame_received(void* context, uint16_t channel, AMQP_VALUE p
 						switch (performative_ulong)
 						{
 						default:
-							LOG(consolelogger_log, LOG_LINE, "Bad performative: %02x", performative);
+							LOG(connection_instance->logger, LOG_LINE, "Bad performative: %02x", performative);
 							break;
 
 						case AMQP_BEGIN:
@@ -859,6 +877,14 @@ static void amqp_frame_codec_error(void* context)
 /* Codes_SRS_CONNECTION_01_001: [connection_create shall open a new connection to a specified host/port.] */
 CONNECTION_HANDLE connection_create(XIO_HANDLE xio, const char* hostname, const char* container_id, ON_NEW_ENDPOINT on_new_endpoint, void* callback_context)
 {
+    return connection_create2(xio, hostname, container_id, on_new_endpoint, callback_context, NULL, NULL, NULL, NULL, NULL);
+}
+
+/* Codes_SRS_CONNECTION_01_001: [connection_create shall open a new connection to a specified host/port.] */
+/* Codes_SRS_CONNECTION_22_002: [connection_create shall allow registering connections state and io error callbacks.] */
+/* Codes_SRS_CONNECTION_22_003: [connection_create shall allow registering a custom logger instead of default console logger.] */
+CONNECTION_HANDLE connection_create2(XIO_HANDLE xio, const char* hostname, const char* container_id, ON_NEW_ENDPOINT on_new_endpoint, void* callback_context, ON_CONNECTION_STATE_CHANGED on_connection_state_changed, void* on_connection_state_changed_context, ON_IO_ERROR on_io_error, void* on_io_error_context, LOGGER_LOG logger)
+{
 	CONNECTION_INSTANCE* result;
 
 	if ((xio == NULL) ||
@@ -874,9 +900,18 @@ CONNECTION_HANDLE connection_create(XIO_HANDLE xio, const char* hostname, const 
 		if (result != NULL)
 		{
 			result->io = xio;
+            if (logger != NULL)
+            {
+                result->logger = logger;
+            }
+            else
+            {
+                /* Codes_SRS_CONNECTION_22_004: [If no logger is provided, log messages are sent to console_logger.] */
+                result->logger = consolelogger_log;
+            }
 
 			/* Codes_SRS_CONNECTION_01_082: [connection_create shall allocate a new frame_codec instance to be used for frame encoding/decoding.] */
-			result->frame_codec = frame_codec_create(frame_codec_error, result, consolelogger_log);
+			result->frame_codec = frame_codec_create(frame_codec_error, result, result->logger);
 			if (result->frame_codec == NULL)
 			{
 				/* Codes_SRS_CONNECTION_01_083: [If frame_codec_create fails then connection_create shall return NULL.] */
@@ -967,6 +1002,11 @@ CONNECTION_HANDLE connection_create(XIO_HANDLE xio, const char* hostname, const 
 
 								result->on_new_endpoint = on_new_endpoint;
 								result->on_new_endpoint_callback_context = callback_context;
+
+                                result->on_io_error = on_io_error;
+                                result->on_io_error_callback_context = on_io_error_context;
+                                result->on_connection_state_changed = on_connection_state_changed;
+                                result->on_connection_state_changed_callback_context = on_connection_state_changed_context;
 
 								/* Codes_SRS_CONNECTION_01_072: [When connection_create succeeds, the state of the connection shall be CONNECTION_STATE_START.] */
 								connection_set_state(result, CONNECTION_STATE_START);
@@ -1330,7 +1370,7 @@ void connection_dowork(CONNECTION_HANDLE connection)
 				}
 				else
 				{
-					LOG(consolelogger_log, LOG_LINE, "-> Empty frame");
+					LOG(connection->logger, LOG_LINE, "-> Empty frame");
 
 					connection->last_frame_sent_time = current_ms;
 				}
@@ -1526,7 +1566,7 @@ int connection_encode_frame(ENDPOINT_HANDLE endpoint, const AMQP_VALUE performat
 			}
 			else
 			{
-				log_outgoing_frame(performative);
+				log_outgoing_frame(connection->logger, performative);
 				if (tickcounter_get_current_ms(connection->tick_counter, &connection->last_frame_sent_time) != 0)
 				{
 					result = __LINE__;

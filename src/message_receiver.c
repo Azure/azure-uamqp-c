@@ -218,12 +218,18 @@ static void on_link_state_changed(void* context, LINK_STATE new_link_state, LINK
 		}
 		break;
 	case LINK_STATE_DETACHED:
-		if ((message_receiver_instance->message_receiver_state == MESSAGE_RECEIVER_STATE_OPEN) ||
-			(message_receiver_instance->message_receiver_state == MESSAGE_RECEIVER_STATE_CLOSING))
-		{
-			set_message_receiver_state(message_receiver_instance, MESSAGE_RECEIVER_STATE_IDLE);
-		}
-		break;
+        if ((message_receiver_instance->message_receiver_state == MESSAGE_RECEIVER_STATE_OPEN) ||
+            (message_receiver_instance->message_receiver_state == MESSAGE_RECEIVER_STATE_CLOSING))
+        {
+            /* User initiated transition, we should be good */
+            set_message_receiver_state(message_receiver_instance, MESSAGE_RECEIVER_STATE_IDLE);
+        }
+        else if (message_receiver_instance->message_receiver_state != MESSAGE_RECEIVER_STATE_IDLE)
+        {
+            /* Any other transition must be an error */
+            set_message_receiver_state(message_receiver_instance, MESSAGE_RECEIVER_STATE_ERROR);
+        }
+        break;
 	}
 }
 

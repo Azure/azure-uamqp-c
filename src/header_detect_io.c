@@ -253,6 +253,7 @@ int headerdetectio_open(CONCRETE_IO_HANDLE header_detect_io, ON_IO_OPEN_COMPLETE
             if (header_detect_io_instance->io_state == IO_STATE_OPEN)
             {
                 indicate_open_complete(header_detect_io_instance, IO_OPEN_OK);
+                result = 0;
             }
             else
             {

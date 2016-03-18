@@ -21,6 +21,8 @@ extern "C" {
 	extern int headerdetectio_close(CONCRETE_IO_HANDLE header_detect_io, ON_IO_CLOSE_COMPLETE on_io_close_complete, void* callback_context);
 	extern int headerdetectio_send(CONCRETE_IO_HANDLE header_detect_io, const void* buffer, size_t size, ON_SEND_COMPLETE on_send_complete, void* callback_context);
 	extern void headerdetectio_dowork(CONCRETE_IO_HANDLE header_detect_io);
+    extern int headerdetectio_setoption(CONCRETE_IO_HANDLE socket_io, const char* optionName, const void* value);
+    
 	extern const IO_INTERFACE_DESCRIPTION* headerdetectio_get_interface_description(void);
 
 #ifdef __cplusplus

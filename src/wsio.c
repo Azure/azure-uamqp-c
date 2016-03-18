@@ -146,7 +146,8 @@ static const IO_INTERFACE_DESCRIPTION ws_io_interface_description =
 	wsio_open,
 	wsio_close,
 	wsio_send,
-	wsio_dowork
+	wsio_dowork,
+    wsio_setoption
 };
 
 static int on_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len)
@@ -935,6 +936,11 @@ void wsio_dowork(CONCRETE_IO_HANDLE ws_io)
 			(void)lws_service(wsio_instance->ws_context, 0);
 		}
 	}
+}
+
+int wsio_setoption(CONCRETE_IO_HANDLE socket_io, const char* optionName, const void* value)
+{
+    return __LINE__;
 }
 
 /* Codes_SRS_WSIO_01_064: [wsio_get_interface_description shall return a pointer to an IO_INTERFACE_DESCRIPTION structure that contains pointers to the functions: wsio_create, wsio_destroy, wsio_open, wsio_close, wsio_send and wsio_dowork.] */

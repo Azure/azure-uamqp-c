@@ -19,6 +19,8 @@ extern int saslclientio_open(CONCRETE_IO_HANDLE sasl_client_io, ON_BYTES_RECEIVE
 extern int saslclientio_close(CONCRETE_IO_HANDLE sasl_client_io);
 extern int saslclientio_send(CONCRETE_IO_HANDLE sasl_client_io, const void* buffer, size_t size, ON_SEND_COMPLETE on_send_complete, void* callback_context);
 extern void saslclientio_dowork(CONCRETE_IO_HANDLE sasl_client_io);
+extern int saslclientio_setoption(CONCRETE_IO_HANDLE socket_io, const char* optionName, const void* value);
+
 extern const IO_INTERFACE_DESCRIPTION* saslclientio_get_interface_description(void);
 ```
 
@@ -95,6 +97,14 @@ extern void saslclientio_dowork(CONCRETE_IO_HANDLE sasl_client_io);
 **SRS_SASLCLIENTIO_01_025: [**saslclientio_dowork shall call the xio_dowork on the underlying_io passed in saslclientio_create.**]** 
 **SRS_SASLCLIENTIO_01_099: [**If the state of the IO is NOT_OPEN or ERROR, saslclientio_dowork shall make no calls to the underlying IO.**]** 
 **SRS_SASLCLIENTIO_01_026: [**If the sasl_client_io argument is NULL, saslclientio_dowork shall do nothing.**]** 
+
+###saslclientio_setoption
+
+```C
+extern int saslclientio_setoption(CONCRETE_IO_HANDLE socket_io, const char* optionName, const void* value);
+```
+
+**SRS_SASLCLIENTIO_03_001: [**saslclientio_setoption does not support any options and shall always return non-zero value.**]** 
 
 ###saslclientio_get_interface_description
 

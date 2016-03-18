@@ -862,7 +862,7 @@ int wsio_close(CONCRETE_IO_HANDLE ws_io, ON_IO_CLOSE_COMPLETE on_io_close_comple
 	return result;
 }
 
-/* Tests_SRS_WSIO_01_050: [wsio_send shall send the buffer bytes through the websockets connection.] */
+/* Codes_SRS_WSIO_01_050: [wsio_send shall send the buffer bytes through the websockets connection.] */
 int wsio_send(CONCRETE_IO_HANDLE ws_io, const void* buffer, size_t size, ON_SEND_COMPLETE on_send_complete, void* callback_context)
 {
 	int result;
@@ -938,6 +938,7 @@ void wsio_dowork(CONCRETE_IO_HANDLE ws_io)
 	}
 }
 
+/* Codes_SRS_WSIO_03_001: [wsio_setoption does not support any options and shall always return non-zero value.] */
 int wsio_setoption(CONCRETE_IO_HANDLE socket_io, const char* optionName, const void* value)
 {
     return __LINE__;

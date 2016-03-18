@@ -1077,6 +1077,7 @@ void saslclientio_dowork(CONCRETE_IO_HANDLE sasl_client_io)
 	}
 }
 
+/* Codes_SRS_SASLCLIENTIO_03_001: [saslclientio_setoption does not support any options and shall always return non-zero value.] */
 int saslclientio_setoption(CONCRETE_IO_HANDLE socket_io, const char* optionName, const void* value)
 {
     return __LINE__;

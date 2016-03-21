@@ -1372,7 +1372,8 @@ SESSION_SEND_TRANSFER_RESULT session_send_transfer(LINK_ENDPOINT_HANDLE link_end
 				/* Codes_SRS_SESSION_01_027: [sending a transfer Upon sending a transfer, the sending endpoint will increment its next-outgoing-id] */
 				*delivery_id = session_instance->next_outgoing_id;
 				if ((transfer_set_handle(transfer, link_endpoint_instance->output_handle) != 0) ||
-					(transfer_set_delivery_id(transfer, *delivery_id) != 0))
+					(transfer_set_delivery_id(transfer, *delivery_id) != 0) ||
+                    (transfer_set_more(transfer, false) != 0))
 				{
 					/* Codes_SRS_SESSION_01_058: [When any other error occurs, session_send_transfer shall fail and return a non-zero value.] */
 					result = SESSION_SEND_TRANSFER_ERROR;

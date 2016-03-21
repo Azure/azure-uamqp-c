@@ -33,6 +33,8 @@ extern int wsio_open(CONCRETE_IO_HANDLE ws_io, ON_IO_OPEN_COMPLETE on_io_open_co
 extern int wsio_close(CONCRETE_IO_HANDLE ws_io, ON_IO_CLOSE_COMPLETE on_io_close_complete, void* callback_context);
 extern int wsio_send(CONCRETE_IO_HANDLE ws_io, const void* buffer, size_t size, ON_SEND_COMPLETE on_send_complete, void* callback_context);
 extern void wsio_dowork(CONCRETE_IO_HANDLE ws_io);
+extern int wsio_setoption(CONCRETE_IO_HANDLE socket_io, const char* optionName, const void* value);
+
 extern const IO_INTERFACE_DESCRIPTION* wsio_get_interface_description(void);
 
 #ifdef __cplusplus

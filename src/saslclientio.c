@@ -1077,6 +1077,12 @@ void saslclientio_dowork(CONCRETE_IO_HANDLE sasl_client_io)
 	}
 }
 
+/* Codes_SRS_SASLCLIENTIO_03_001: [saslclientio_setoption does not support any options and shall always return non-zero value.]*/
+int saslclientio_setoption(CONCRETE_IO_HANDLE socket_io, const char* optionName, const void* value)
+{
+    return __LINE__;
+}
+
 static const IO_INTERFACE_DESCRIPTION sasl_client_io_interface_description =
 {
 	saslclientio_create,
@@ -1084,7 +1090,8 @@ static const IO_INTERFACE_DESCRIPTION sasl_client_io_interface_description =
 	saslclientio_open,
 	saslclientio_close,
 	saslclientio_send,
-	saslclientio_dowork
+	saslclientio_dowork,
+    saslclientio_setoption
 };
 
 /* Codes_SRS_SASLCLIENTIO_01_087: [saslclientio_get_interface_description shall return a pointer to an IO_INTERFACE_DESCRIPTION structure that contains pointers to the functions: saslclientio_create, saslclientio_destroy, saslclientio_open, saslclientio_close, saslclientio_send and saslclientio_dowork.] */

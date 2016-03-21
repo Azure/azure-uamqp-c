@@ -23,6 +23,8 @@ extern int wsio_open(CONCRETE_IO_HANDLE ws_io, ON_IO_OPEN_COMPLETE on_io_open_co
 extern int wsio_close(CONCRETE_IO_HANDLE ws_io, ON_IO_CLOSE_COMPLETE on_io_close_complete, void* callback_context);
 extern int wsio_send(CONCRETE_IO_HANDLE ws_io, const void* buffer, size_t size, ON_SEND_COMPLETE on_send_complete, void* callback_context);
 extern void wsio_dowork(CONCRETE_IO_HANDLE ws_io);
+extern int wsio_setoption(CONCRETE_IO_HANDLE socket_io, const char* optionName, const void* value);
+
 extern const IO_INTERFACE_DESCRIPTION* wsio_get_interface_description(void);
 ```
 
@@ -147,6 +149,14 @@ extern void wsio_dowork(CONCRETE_IO_HANDLE ws_io);
 **SRS_WSIO_01_061: \[**wsio_dowork shall service the libwebsockets context by calling lws_service and passing as argument the context obtained in wsio_open.**\]**
 **SRS_WSIO_01_112: \[**The timeout for lws_service shall be 0.**\]** **SRS_WSIO_01_062: \[**This shall be done if the IO is not closed.**\]** 
 **SRS_WSIO_01_063: \[**If the ws_io argument is NULL, wsio_dowork shall do nothing.**\]** 
+
+###wsio_setoption
+
+```C
+extern int wsio_setoption(CONCRETE_IO_HANDLE socket_io, const char* optionName, const void* value);
+```
+
+**SRS_WSIO_03_001: \[**wsio_setoption does not support any options and shall always return non-zero value.**\]**
 
 ###wsio_get_interface_description
 

@@ -358,6 +358,12 @@ void headerdetectio_dowork(CONCRETE_IO_HANDLE header_detect_io)
 	}
 }
 
+int headerdetectio_setoption(CONCRETE_IO_HANDLE socket_io, const char* optionName, const void* value)
+{
+    return __LINE__;
+}
+
+
 static const IO_INTERFACE_DESCRIPTION header_detect_io_interface_description =
 {
 	headerdetectio_create,
@@ -365,7 +371,8 @@ static const IO_INTERFACE_DESCRIPTION header_detect_io_interface_description =
 	headerdetectio_open,
 	headerdetectio_close,
 	headerdetectio_send,
-	headerdetectio_dowork
+	headerdetectio_dowork,
+    headerdetectio_setoption
 };
 
 const IO_INTERFACE_DESCRIPTION* headerdetectio_get_interface_description(void)

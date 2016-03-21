@@ -1,6 +1,8 @@
 #Copyright (c) Microsoft. All rights reserved.
 #Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+include_directories(.)
+
 add_subdirectory(amqp_frame_codec_unittests)
 add_subdirectory(amqpvalue_limits_unittests)
 add_subdirectory(amqpvalue_unittests)

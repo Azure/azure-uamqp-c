@@ -7,7 +7,7 @@ set -e
 script_dir=$(cd "$(dirname "$0")" && pwd)
 build_root=$(cd "${script_dir}/../.." && pwd)
 run_unit_tests=ON
-run_valgrind=
+run_valgrind=0
 
 usage ()
 {
@@ -68,14 +68,17 @@ process_args $*
 rm -r -f ~/azure-amqp
 mkdir ~/azure-amqp
 pushd ~/azure-amqp
-cmake -DcompileOption_C:STRING="$extracloptions" $build_root
+cmake -DcompileOption_C:STRING="$extracloptions" -Drun_valgrind:BOOL=$run_valgrind $build_root
 make --jobs=$(nproc)
-ctest -C "Debug" -V
 
 if [[ $run_valgrind == 1 ]] ;
 then
-	ctest -j $(nproc) -D ExperimentalMemCheck -VV
-
+	#use doctored openssl
+	export LD_LIBRARY_PATH=/usr/local/ssl/lib
+	ctest --output-on-failure
+	export LD_LIBRARY_PATH=
+else
+	ctest -C "Debug" --output-on-failure
 fi
 
 popd

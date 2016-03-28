@@ -11,7 +11,7 @@ Homepage: https://github.com/Azure/azure-uamqp-c.git
 Package: azure-uamqp-c-dev
 Section: libdevel
 Architecture: any
-Depends: azure-uamqp-c-lib (= ${binary:Version}), ${misc:Depends}
+Depends: azure-uamqp-c-lib (= ${binary:Version}), ${misc:Depends}, azure-c-shared-util-dev
 Description: uAMQP is a general purpose C library for AMQP.
  The goal is to be as compliant with the standard as possible while 
  optimizing for low RAM footprint and also being portable.  It is 
@@ -22,7 +22,7 @@ Description: uAMQP is a general purpose C library for AMQP.
 
 Package: azure-uamqp-c-lib
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, curl
+Depends: ${shlibs:Depends}, ${misc:Depends}, curl, azure-c-shared-util-dev
 Description: uAMQP is a general purpose C library for AMQP.
  The goal is to be as compliant with the standard as possible while
  optimizing for low RAM footprint and also being portable.  It is 

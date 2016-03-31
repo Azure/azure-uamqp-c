@@ -1,30 +1,30 @@
 set(mbed_project_files
-		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/amqp_definitions.h
-		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/amqp_frame_codec.h
-		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/amqp_management.h
-		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/amqp_types.h
-		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/amqpalloc.h
-		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/amqpvalue.h
-		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/amqpvalue_to_string.h
-		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/cbs.h
-		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/connection.h
-		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/consolelogger.h
-		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/frame_codec.h
-		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/header_detect_io.h
-		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/link.h
-		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/logger.h
-		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/message.h
-		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/message_receiver.h
-		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/message_sender.h
-		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/messaging.h
-		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/sasl_anonymous.h
-		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/sasl_frame_codec.h
-		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/sasl_mechanism.h
-		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/sasl_mssbcbs.h
-		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/sasl_plain.h
-		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/saslclientio.h
-		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/session.h
-		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/socket_listener.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_definitions.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_frame_codec.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_management.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_types.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqpalloc.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqpvalue.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqpvalue_to_string.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/cbs.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/connection.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/consolelogger.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/frame_codec.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/header_detect_io.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/link.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/logger.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/message.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/message_receiver.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/message_sender.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/messaging.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/sasl_anonymous.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/sasl_frame_codec.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/sasl_mechanism.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/sasl_mssbcbs.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/sasl_plain.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/saslclientio.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/session.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/socket_listener.h
 		${CMAKE_CURRENT_SOURCE_DIR}/../../src/amqp_definitions.c
 		${CMAKE_CURRENT_SOURCE_DIR}/../../src/amqp_frame_codec.c
 		${CMAKE_CURRENT_SOURCE_DIR}/../../src/amqp_management.c

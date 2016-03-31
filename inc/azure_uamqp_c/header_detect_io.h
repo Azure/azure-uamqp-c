@@ -4,7 +4,7 @@
 #ifndef HEADER_DETECT_IO_H
 #define HEADER_DETECT_IO_H
 
-#include "xio.h"
+#include "azure_c_shared_utility/xio.h"
 
 #ifdef __cplusplus
 extern "C" {

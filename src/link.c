@@ -15,8 +15,8 @@
 #include "amqpalloc.h"
 #include "amqp_frame_codec.h"
 #include "consolelogger.h"
-#include "xlogging.h"
-#include "list.h"
+#include "azure_c_shared_utility/xlogging.h"
+#include "azure_c_shared_utility/list.h"
 
 #define DEFAULT_LINK_CREDIT 10000
 

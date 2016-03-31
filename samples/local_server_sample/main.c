@@ -7,7 +7,8 @@
 #endif
 #include <stdio.h>
 #include <stdbool.h>
-#include "platform.h"
+#include "azure_c_shared_utility/platform.h"
+#include "azure_c_shared_utility/xio.h"
 #include "message_receiver.h"
 #include "message.h"
 #include "messaging.h"
@@ -15,7 +16,6 @@
 #include "socket_listener.h"
 #include "header_detect_io.h"
 #include "consolelogger.h"
-#include "xio.h"
 #include "connection.h"
 #include "session.h"
 #include "link.h"

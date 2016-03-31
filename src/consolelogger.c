@@ -7,7 +7,7 @@
 #endif
 #include <stdarg.h>
 #include <stdio.h>
-#include "xlogging.h"
+#include "azure_c_shared_utility/xlogging.h"
 
 void consolelogger_log(unsigned int options, char* format, ...)
 {

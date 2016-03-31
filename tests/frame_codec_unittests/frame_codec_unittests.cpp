@@ -3,13 +3,13 @@
 
 #include <cstdint>
 #include <cstdbool>
+#include "azure_c_shared_utility/xio.h"
+#include "azure_c_shared_utility/list.h"
 #include "testrunnerswitcher.h"
 #include "micromock.h"
 #include "micromockcharstararenullterminatedstrings.h"
 #include "amqpvalue.h"
 #include "frame_codec.h"
-#include "xio.h"
-#include "list.h"
 
 #define TEST_DESCRIPTION_AMQP_VALUE		(AMQP_VALUE)0x4243
 #define TEST_LIST_HANDLE				(LIST_HANDLE)0x4246

@@ -5,7 +5,7 @@
 #define SASL_ANONYMOUS_H
 
 #include "sasl_mechanism.h"
-#include "xlogging.h"
+#include "azure_c_shared_utility/xlogging.h"
 
 #ifdef __cplusplus
 extern "C" {

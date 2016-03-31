@@ -7,14 +7,14 @@
 #endif
 #include <stdio.h>
 #include <stdbool.h>
-#include "platform.h"
+#include "azure_c_shared_utility/platform.h"
+#include "azure_c_shared_utility/tlsio.h"
 #include "message_sender.h"
 #include "message.h"
 #include "messaging.h"
 #include "amqpalloc.h"
 #include "saslclientio.h"
 #include "sasl_plain.h"
-#include "tlsio.h"
 #include "consolelogger.h"
 #include "cbs.h"
 

@@ -11,9 +11,9 @@ extern "C" {
 #include <stddef.h>
 #endif /* __cplusplus */
 
-#include "xio.h"
+#include "azure_c_shared_utility/xio.h"
+#include "azure_c_shared_utility/xlogging.h"
 #include "sasl_mechanism.h"
-#include "xlogging.h"
 
 typedef struct SASLCLIENTIO_CONFIG_TAG
 {

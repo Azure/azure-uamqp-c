@@ -5,14 +5,14 @@
 #include "micromock.h"
 #include "micromockcharstararenullterminatedstrings.h"
 #include "connection.h"
-#include "xio.h"
-#include "socketio.h"
+#include "azure_c_shared_utility/xio.h"
+#include "azure_c_shared_utility/socketio.h"
+#include "azure_c_shared_utility/list.h"
+#include "azure_c_shared_utility/tickcounter.h"
 #include "frame_codec.h"
 #include "amqp_frame_codec.h"
 #include "amqp_definitions.h"
 #include "amqp_definitions_mocks.h"
-#include "list.h"
-#include "tickcounter.h"
 
 /* Requirements implicitly tested */
 /* Tests_SRS_CONNECTION_01_088: [Any data appearing beyond the protocol header MUST match the version indicated by the protocol header.] */

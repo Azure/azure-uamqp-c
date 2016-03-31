@@ -9,12 +9,12 @@
 #include <stdio.h>
 #include <string.h>
 #include "saslclientio.h"
-#include "xio.h"
+#include "azure_c_shared_utility/xio.h"
+#include "azure_c_shared_utility/xlogging.h"
 #include "amqpalloc.h"
 #include "frame_codec.h"
 #include "sasl_frame_codec.h"
 #include "amqp_definitions.h"
-#include "xlogging.h"
 #include "amqpvalue_to_string.h"
 
 typedef enum IO_STATE_TAG

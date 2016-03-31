@@ -8,9 +8,8 @@
 #include <string.h>
 #include "message_sender.h"
 #include "amqpalloc.h"
-#include "xlogging.h"
+#include "azure_c_shared_utility/xlogging.h"
 #include "amqpvalue_to_string.h"
-#include "xlogging.h"
 
 typedef enum MESSAGE_SEND_STATE_TAG
 {

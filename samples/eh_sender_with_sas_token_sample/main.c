@@ -10,21 +10,21 @@
 #include <time.h>
 #include <string.h>
 
-#include "platform.h"
+#include "azure_c_shared_utility/platform.h"
+#include "azure_c_shared_utility/strings.h"
+#include "azure_c_shared_utility/buffer_.h"
+#include "azure_c_shared_utility/base64.h"
+#include "azure_c_shared_utility/urlencode.h"
+#include "azure_c_shared_utility/sastoken.h"
+#include "azure_c_shared_utility/tlsio.h"
 #include "message_sender.h"
 #include "message.h"
 #include "messaging.h"
 #include "amqpalloc.h"
 #include "saslclientio.h"
 #include "sasl_mssbcbs.h"
-#include "tlsio.h"
 #include "consolelogger.h"
 #include "cbs.h"
-#include "strings.h"
-#include "buffer_.h"
-#include "base64.h"
-#include "urlencode.h"
-#include "sastoken.h"
 
 #if _WIN32
 #include "windows.h"

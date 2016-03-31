@@ -8,12 +8,12 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include "azure_c_shared_utility/xlogging.h"
+#include "azure_c_shared_utility/xio.h"
+#include "azure_c_shared_utility/list.h"
 #include "frame_codec.h"
 #include "amqpvalue.h"
-#include "xlogging.h"
-#include "xio.h"
 #include "amqpalloc.h"
-#include "list.h"
 
 #define FRAME_HEADER_SIZE 8
 #define MAX_TYPE_SPECIFIC_SIZE	((255 * 4) - 6)

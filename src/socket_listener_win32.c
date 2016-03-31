@@ -6,7 +6,7 @@
 #include "winsock2.h"
 #include "ws2tcpip.h"
 #include "windows.h"
-#include "socketio.h"
+#include "azure_c_shared_utility/socketio.h"
 
 typedef struct SOCKET_LISTENER_INSTANCE_TAG
 {

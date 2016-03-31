@@ -110,32 +110,32 @@ if(WIN32)
 endif()
 
 set(uamqp_h_files
-    ./inc/amqp_definitions.h
-    ./inc/amqp_frame_codec.h
-    ./inc/amqp_management.h
-    ./inc/amqp_types.h
-    ./inc/amqpalloc.h
-    ./inc/amqpvalue.h
-    ./inc/amqpvalue_to_string.h
-    ./inc/cbs.h
-    ./inc/connection.h
-    ./inc/consolelogger.h
-    ./inc/frame_codec.h
-    ./inc/header_detect_io.h
-    ./inc/link.h
-    ./inc/logger.h
-    ./inc/message.h
-    ./inc/message_receiver.h
-    ./inc/message_sender.h
-    ./inc/messaging.h
-    ./inc/sasl_anonymous.h
-    ./inc/sasl_frame_codec.h
-    ./inc/sasl_mechanism.h
-    ./inc/sasl_mssbcbs.h
-    ./inc/sasl_plain.h
-    ./inc/saslclientio.h
-    ./inc/session.h
-    ./inc/socket_listener.h
+    ./inc/azure_uamqp_c/amqp_definitions.h
+    ./inc/azure_uamqp_c/amqp_frame_codec.h
+    ./inc/azure_uamqp_c/amqp_management.h
+    ./inc/azure_uamqp_c/amqp_types.h
+    ./inc/azure_uamqp_c/amqpalloc.h
+    ./inc/azure_uamqp_c/amqpvalue.h
+    ./inc/azure_uamqp_c/amqpvalue_to_string.h
+    ./inc/azure_uamqp_c/cbs.h
+    ./inc/azure_uamqp_c/connection.h
+    ./inc/azure_uamqp_c/consolelogger.h
+    ./inc/azure_uamqp_c/frame_codec.h
+    ./inc/azure_uamqp_c/header_detect_io.h
+    ./inc/azure_uamqp_c/link.h
+    ./inc/azure_uamqp_c/logger.h
+    ./inc/azure_uamqp_c/message.h
+    ./inc/azure_uamqp_c/message_receiver.h
+    ./inc/azure_uamqp_c/message_sender.h
+    ./inc/azure_uamqp_c/messaging.h
+    ./inc/azure_uamqp_c/sasl_anonymous.h
+    ./inc/azure_uamqp_c/sasl_frame_codec.h
+    ./inc/azure_uamqp_c/sasl_mechanism.h
+    ./inc/azure_uamqp_c/sasl_mssbcbs.h
+    ./inc/azure_uamqp_c/sasl_plain.h
+    ./inc/azure_uamqp_c/saslclientio.h
+    ./inc/azure_uamqp_c/session.h
+    ./inc/azure_uamqp_c/socket_listener.h
 )
 
 set(uamqp_c_files
@@ -166,7 +166,7 @@ set(uamqp_c_files
 
 if(${use_wsio})
     set(wsio_h_files
-        ./inc/wsio.h
+        ./inc/azure_uamqp_c/wsio.h
     )
     set(wsio_c_files
         ./src/wsio.c

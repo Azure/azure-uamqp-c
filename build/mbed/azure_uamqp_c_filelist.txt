@@ -1,4 +1,4 @@
-set(mbed_project_files
+set(mbed_exported_project_files
 		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_definitions.h
 		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_frame_codec.h
 		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_management.h
@@ -25,6 +25,9 @@ set(mbed_project_files
 		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/saslclientio.h
 		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/session.h
 		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/socket_listener.h
+        )
+
+set(mbed_project_files
 		${CMAKE_CURRENT_SOURCE_DIR}/../../src/amqp_definitions.c
 		${CMAKE_CURRENT_SOURCE_DIR}/../../src/amqp_frame_codec.c
 		${CMAKE_CURRENT_SOURCE_DIR}/../../src/amqp_management.c

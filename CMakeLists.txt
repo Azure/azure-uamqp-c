@@ -45,7 +45,7 @@ if(${use_wsio})
     add_subdirectory(libwebsockets)
 endif()
 
-add_subdirectory(azure-c-shared-utility/c)
+add_subdirectory(azure-c-shared-utility)
 
 enable_testing()
 #if any compiler has a command line switch called "OFF" then it will need special care

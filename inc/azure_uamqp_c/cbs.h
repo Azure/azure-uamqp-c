@@ -4,8 +4,8 @@
 #ifndef CBS_H
 #define CBS_H
 
-#include "session.h"
-#include "amqp_management.h"
+#include "azure_uamqp_c/session.h"
+#include "azure_uamqp_c/amqp_management.h"
 
 #ifdef __cplusplus
 extern "C" {

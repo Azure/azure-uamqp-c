@@ -8,7 +8,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#include "amqpalloc.h"
+#include "azure_uamqp_c/amqpalloc.h"
 
 #ifndef SIZE_MAX
 #define SIZE_MAX ((size_t)~(size_t)0)

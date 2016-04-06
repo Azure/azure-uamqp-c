@@ -4,12 +4,12 @@
 #include "testrunnerswitcher.h"
 #include "micromock.h"
 #include "micromockcharstararenullterminatedstrings.h"
-#include "message.h"
+#include "azure_uamqp_c/message.h"
 #include "azure_c_shared_utility/xio.h"
 #include "azure_c_shared_utility/socketio.h"
-#include "frame_codec.h"
-#include "amqp_frame_codec.h"
-#include "amqp_definitions.h"
+#include "azure_uamqp_c/frame_codec.h"
+#include "azure_uamqp_c/amqp_frame_codec.h"
+#include "azure_uamqp_c/amqp_definitions.h"
 #include "amqp_definitions_mocks.h"
 
 static const HEADER_HANDLE custom_message_header = (HEADER_HANDLE)0x4242;

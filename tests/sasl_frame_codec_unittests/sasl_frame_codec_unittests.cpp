@@ -7,10 +7,10 @@
 #include "testrunnerswitcher.h"
 #include "micromock.h"
 #include "micromockcharstararenullterminatedstrings.h"
-#include "sasl_frame_codec.h"
-#include "frame_codec.h"
-#include "amqpvalue.h"
-#include "amqp_definitions.h"
+#include "azure_uamqp_c/sasl_frame_codec.h"
+#include "azure_uamqp_c/frame_codec.h"
+#include "azure_uamqp_c/amqpvalue.h"
+#include "azure_uamqp_c/amqp_definitions.h"
 #include "amqp_definitions_mocks.h"
 
 #define TEST_FRAME_CODEC_HANDLE			(FRAME_CODEC_HANDLE)0x4242

@@ -5,7 +5,7 @@
 #include "testrunnerswitcher.h"
 #include "micromock.h"
 #include "micromockcharstararenullterminatedstrings.h"
-#include "sasl_mechanism.h"
+#include "azure_uamqp_c/sasl_mechanism.h"
 
 static const CONCRETE_SASL_MECHANISM_HANDLE test_concrete_sasl_mechanism_handle = (CONCRETE_SASL_MECHANISM_HANDLE)0x4242;
 static const char* test_mechanism_name = "TestMechName";

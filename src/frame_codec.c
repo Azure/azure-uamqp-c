@@ -11,9 +11,9 @@
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_c_shared_utility/xio.h"
 #include "azure_c_shared_utility/list.h"
-#include "frame_codec.h"
-#include "amqpvalue.h"
-#include "amqpalloc.h"
+#include "azure_uamqp_c/frame_codec.h"
+#include "azure_uamqp_c/amqpvalue.h"
+#include "azure_uamqp_c/amqpalloc.h"
 
 #define FRAME_HEADER_SIZE 8
 #define MAX_TYPE_SPECIFIC_SIZE	((255 * 4) - 6)

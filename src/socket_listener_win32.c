@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-#include "socket_listener.h"
-#include "amqpalloc.h"
+#include "azure_uamqp_c/socket_listener.h"
+#include "azure_uamqp_c/amqpalloc.h"
 #include "winsock2.h"
 #include "ws2tcpip.h"
 #include "windows.h"

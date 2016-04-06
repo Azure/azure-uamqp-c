@@ -4,9 +4,9 @@
 #include "testrunnerswitcher.h"
 #include "micromock.h"
 #include "micromockcharstararenullterminatedstrings.h"
-#include "xio.h"
-#include "wsio.h"
-#include "list.h"
+#include "azure_C_shared_utility/xio.h"
+#include "azure_uamqp_c/wsio.h"
+#include "azure_c_shared_utility/list.h"
 #include "libwebsockets.h"
 #include "openssl/ssl.h"
 

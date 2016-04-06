@@ -15,7 +15,7 @@ extern "C" {
 #include <stdbool.h>
 #endif
 
-#include "amqpvalue.h"
+#include "azure_uamqp_c/amqpvalue.h"
 
 /* role */
 

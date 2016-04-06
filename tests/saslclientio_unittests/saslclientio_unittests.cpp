@@ -6,10 +6,10 @@
 #include "testrunnerswitcher.h"
 #include "micromock.h"
 #include "micromockcharstararenullterminatedstrings.h"
-#include "saslclientio.h"
-#include "frame_codec.h"
-#include "sasl_frame_codec.h"
-#include "sasl_mechanism.h"
+#include "azure_uamqp_c/saslclientio.h"
+#include "azure_uamqp_c/frame_codec.h"
+#include "azure_uamqp_c/sasl_frame_codec.h"
+#include "azure_uamqp_c/sasl_mechanism.h"
 #include "amqp_definitions_mocks.h"
 
 /* Requirements that cannot really be tested due to design choices: */

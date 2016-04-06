@@ -8,13 +8,13 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include "wsio.h"
-#include "amqpalloc.h"
-#include "xlogging.h"
-#include "list.h"
+#include "azure_uamqp_c/wsio.h"
+#include "azure_uamqp_c/amqpalloc.h"
+#include "azure_c_shared_utility/xlogging.h"
+#include "azure_c_shared_utility/list.h"
 #include "libwebsockets.h"
 #include "openssl/ssl.h"
-#include "xio.h"
+#include "azure_c_shared_utility/xio.h"
 
 typedef enum IO_STATE_TAG
 {

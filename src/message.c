@@ -6,9 +6,9 @@
 #include <crtdbg.h>
 #endif
 #include <string.h>
-#include "message.h"
-#include "amqpvalue.h"
-#include "amqpalloc.h"
+#include "azure_uamqp_c/message.h"
+#include "azure_uamqp_c/amqpvalue.h"
+#include "azure_uamqp_c/amqpalloc.h"
 
 typedef struct BODY_AMQP_DATA_TAG
 {

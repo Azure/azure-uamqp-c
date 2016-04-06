@@ -12,7 +12,7 @@
 #include <cstdio>
 #include "testrunnerswitcher.h"
 #include "micromock.h"
-#include "amqpvalue.h"
+#include "azure_uamqp_c/amqpvalue.h"
 #include <cstdint>
 
 /* Requirements satisfied by the current implementation without any code:

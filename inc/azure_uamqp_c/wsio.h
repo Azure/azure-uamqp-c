@@ -13,9 +13,9 @@ extern "C" {
 #include <stdbool.h>
 #endif /* __cplusplus */
 
-#include "xio.h"
-#include "sasl_mechanism.h"
-#include "xlogging.h"
+#include "azure_c_shared_utility/xio.h"
+#include "azure_uamqp_c/sasl_mechanism.h"
+#include "azure_c_shared_utility/xlogging.h"
 
 typedef struct WSIO_CONFIG_TAG
 {

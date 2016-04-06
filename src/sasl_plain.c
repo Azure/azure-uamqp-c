@@ -6,8 +6,8 @@
 #include <crtdbg.h>
 #endif
 #include <string.h>
-#include "sasl_plain.h"
-#include "amqpalloc.h"
+#include "azure_uamqp_c/sasl_plain.h"
+#include "azure_uamqp_c/amqpalloc.h"
 
 typedef struct SASL_PLAIN_INSTANCE_TAG
 {

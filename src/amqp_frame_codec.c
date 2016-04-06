@@ -8,10 +8,10 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
-#include "amqp_frame_codec.h"
-#include "frame_codec.h"
-#include "amqpalloc.h"
-#include "amqpvalue.h"
+#include "azure_uamqp_c/amqp_frame_codec.h"
+#include "azure_uamqp_c/frame_codec.h"
+#include "azure_uamqp_c/amqpalloc.h"
+#include "azure_uamqp_c/amqpvalue.h"
 
 typedef enum AMQP_FRAME_DECODE_STATE_TAG
 {

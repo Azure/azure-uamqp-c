@@ -92,7 +92,7 @@ endmacro(compileAsC11)
 
 option(memory_trace "set memory_trace to ON if memory usage is to be used, set to OFF to not use it" ON)
 
-include_directories(inc/azure_uamqp_c ${SHARED_UTIL_INC_FOLDER})
+include_directories(${CMAKE_CURRENT_LIST_DIR}/inc ${SHARED_UTIL_INC_FOLDER})
 
 add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 

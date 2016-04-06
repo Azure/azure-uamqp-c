@@ -7,9 +7,9 @@
 #ifdef _CRTDBG_MAP_ALLOC
 #include <crtdbg.h>
 #endif
-#include "amqpvalue.h"
-#include "amqp_definitions.h"
-#include "amqpalloc.h"
+#include "azure_uamqp_c/amqpvalue.h"
+#include "azure_uamqp_c/amqp_definitions.h"
+#include "azure_uamqp_c/amqpalloc.h"
 #include <stdlib.h>
 #include <stdbool.h>
 

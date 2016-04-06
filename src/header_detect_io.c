@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-#include "header_detect_io.h"
-#include "amqpalloc.h"
+#include "azure_uamqp_c/header_detect_io.h"
+#include "azure_uamqp_c/amqpalloc.h"
 
 typedef enum IO_STATE_TAG
 {

@@ -9,9 +9,9 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdio.h>
-#include "amqpvalue_to_string.h"
-#include "amqpvalue.h"
-#include "amqpalloc.h"
+#include "azure_uamqp_c/amqpvalue_to_string.h"
+#include "azure_uamqp_c/amqpvalue.h"
+#include "azure_uamqp_c/amqpalloc.h"
 
 #if _WIN32
 /* The MS runtime does not have snprintf */

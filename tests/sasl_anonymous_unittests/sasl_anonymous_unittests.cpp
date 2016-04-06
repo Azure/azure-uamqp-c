@@ -5,8 +5,8 @@
 #include "testrunnerswitcher.h"
 #include "micromock.h"
 #include "micromockcharstararenullterminatedstrings.h"
-#include "sasl_anonymous.h"
-#include "logger.h"
+#include "azure_uamqp_c/sasl_anonymous.h"
+#include "azure_uamqp_c/logger.h"
 
 TYPED_MOCK_CLASS(amqp_frame_codec_mocks, CGlobalMock)
 {

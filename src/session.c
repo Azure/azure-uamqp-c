@@ -330,6 +330,11 @@ static void on_connection_state_changed(void* context, CONNECTION_STATE new_conn
 	{
 		session_set_state(session_instance, SESSION_STATE_DISCARDING);
 	}
+	/* Codes_SRS_SESSION_09_001: [If the new connection state is ERROR, the state shall be switched to ERROR.] */
+	else if (new_connection_state == CONNECTION_STATE_ERROR)
+	{
+		session_set_state(session_instance, SESSION_STATE_ERROR);
+	}
 }
 
 static void on_frame_received(void* context, AMQP_VALUE performative, uint32_t payload_size, const unsigned char* payload_bytes)

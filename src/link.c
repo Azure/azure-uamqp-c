@@ -452,6 +452,10 @@ static void on_session_state_changed(void* context, SESSION_STATE new_session_st
 	{
 		set_link_state(link_instance, LINK_STATE_DETACHED);
 	}
+	else if (new_session_state == SESSION_STATE_ERROR)
+	{
+		set_link_state(link_instance, LINK_STATE_ERROR);
+	}
 }
 
 static void on_session_flow_on(void* context)
@@ -848,11 +852,13 @@ int link_detach(LINK_HANDLE link)
 	}
 	else
 	{
-		if ((link->link_state == LINK_STATE_HALF_ATTACHED) ||
+		if (link->link_state == LINK_STATE_ERROR)
+		{
+			result = __LINE__;
+		}
+		else if ((link->link_state == LINK_STATE_HALF_ATTACHED) ||
 			(link->link_state == LINK_STATE_ATTACHED))
 		{
-			link->on_link_state_changed = NULL;
-
 			if (send_detach(link, NULL) != 0)
 			{
 				result = __LINE__;
@@ -860,12 +866,14 @@ int link_detach(LINK_HANDLE link)
 			else
 			{
 				set_link_state(link, LINK_STATE_DETACHED);
+				link->on_link_state_changed = NULL;
 				result = 0;
 			}
 		}
 		else
 		{
 			set_link_state(link, LINK_STATE_DETACHED);
+			link->on_link_state_changed = NULL;
 			result = 0;
 		}
 	}

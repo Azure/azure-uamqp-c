@@ -106,6 +106,7 @@ The following shall be done when the connection_state_changed_callback is trigge
 
 -	**SRS_SESSION_01_060: [**If the previous connection state is not OPENED and the new connection state is OPENED, the BEGIN frame shall be sent out and the state shall be switched to BEGIN_SENT.**]**
 -	**SRS_SESSION_01_061: [**If the previous connection state is OPENED and the new connection state is not OPENED anymore, the state shall be switched to DISCARDING.**]** 
+-	**SRS_SESSION_09_001: [**If the new connection state is ERROR, the state shall be switched to ERROR.**]** 
 
 ##ISO section
 

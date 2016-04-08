@@ -606,7 +606,7 @@ static void connection_on_io_error(void* context)
 	if (connection_instance->connection_state != CONNECTION_STATE_END)
 	{
 		/* Codes_SRS_CONNECTION_01_202: [If the io notifies the connection instance of an IO_STATE_ERROR state the connection shall be closed and the state set to END.] */
-		connection_set_state(connection_instance, CONNECTION_STATE_END);
+		connection_set_state(connection_instance, CONNECTION_STATE_ERROR);
 		(void)xio_close(connection_instance->io, NULL, NULL);
 	}
 }

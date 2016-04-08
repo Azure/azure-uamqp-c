@@ -417,6 +417,7 @@ Figure 2.22: Simultaneous Connection Close Sequence
 **SRS_CONNECTION_01_055: [**DISCARDING The DISCARDING state is a variant of the CLOSE SENT state where the close is triggered by an error.**]** 
 **SRS_CONNECTION_01_056: [**In this case any incoming frames on the connection MUST be silently discarded until the peer's close frame is received.**]** 
 **SRS_CONNECTION_01_057: [**END In this state it is illegal for either endpoint to write anything more onto the connection. The connection can be safely closed and discarded.**]** 
+**SRS_CONNECTION_09_001: [**ERROR In this state the connection has failed, most likely due to a socket error, and should not be reused.**]** 
 
 2.4.7 Connection State Diagram
 

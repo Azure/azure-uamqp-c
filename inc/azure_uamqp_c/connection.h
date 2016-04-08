@@ -58,7 +58,10 @@ extern "C" {
 		CONNECTION_STATE_DISCARDING,
 
 		/* Codes_SRS_CONNECTION_01_057: [END In this state it is illegal for either endpoint to write anything more onto the connection. The connection can be safely closed and discarded.] */
-		CONNECTION_STATE_END
+		CONNECTION_STATE_END,
+
+		/* Codes_SRS_CONNECTION_09_001: [ERROR In this state the connection has failed, most likely due to a socket error, and should not be reused.] */
+		CONNECTION_STATE_ERROR
 	} CONNECTION_STATE;
 
 	typedef void(*ON_ENDPOINT_FRAME_RECEIVED)(void* context, AMQP_VALUE performative, uint32_t frame_payload_size, const unsigned char* payload_bytes);

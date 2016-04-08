@@ -60,6 +60,9 @@ static AMQP_FRAME_RECEIVED_CALLBACK saved_frame_received_callback;
 static AMQP_EMPTY_FRAME_RECEIVED_CALLBACK saved_empty_frame_received_callback;
 static AMQP_FRAME_CODEC_ERROR_CALLBACK saved_amqp_frame_codec_error_callback;
 static void* saved_amqp_frame_codec_callback_context;
+static void* saved_on_connection_state_changed_context;
+static CONNECTION_STATE saved_new_connection_state;
+CONNECTION_STATE saved_previous_connection_state;
 
 void stringify_bytes(const unsigned char* bytes, size_t byte_count, char* output_string)
 {
@@ -1118,6 +1121,8 @@ TEST_FUNCTION(when_sending_the_header_fails_the_io_is_closed)
 	connection_destroy_endpoint(endpoint);
 	connection_destroy(connection);
 }
+
+
 
 /* Tests_SRS_CONNECTION_01_089: [If the incoming and outgoing protocol headers do not match, both peers MUST close their outgoing stream] */
 TEST_FUNCTION(when_protocol_headers_do_not_match_connection_gets_closed)
@@ -3604,5 +3609,46 @@ TEST_FUNCTION(when_state_changes_to_CLOSE_RCVD_and_END_SENT_all_endpoints_are_no
 	connection_destroy(connection);
 }
 #endif
+
+static void TEST_on_connection_state_changed(void* context, CONNECTION_STATE new_connection_state, CONNECTION_STATE previous_connection_state)
+{
+	saved_on_connection_state_changed_context = context;
+	saved_new_connection_state = new_connection_state;
+	saved_previous_connection_state = previous_connection_state;
+}
+
+static void TEST_on_io_error(void* context)
+{
+	saved_io_callback_context = context;
+}
+
+/* Tests_SRS_CONNECTION_22_002: [connection_create shall allow registering connections state and io error callbacks.] */
+/* Tests_SRS_CONNECTION_22_003: [connection_create shall allow registering a custom logger instead of default console logger.] */
+TEST_FUNCTION(connection_create2_with_valid_args_succeeds)
+{
+	// arrange
+	connection_mocks mocks;
+	amqp_definitions_mocks definition_mocks;
+
+	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORE));
+	EXPECTED_CALL(mocks, frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+	EXPECTED_CALL(mocks, amqp_frame_codec_create(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+		.ValidateArgument(1);
+	EXPECTED_CALL(mocks, tickcounter_create());
+	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORE));
+	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORE));
+
+	// act
+	CONNECTION_HANDLE connection = connection_create2(TEST_IO_HANDLE, "testhost", test_container_id, NULL, NULL, NULL, TEST_IO_HANDLE, TEST_on_io_error, TEST_CONTEXT, NULL);
+
+	// assert
+	ASSERT_IS_NOT_NULL(connection);
+	mocks.AssertActualAndExpectedCalls();
+
+	// cleanup
+	connection_destroy(connection);
+}
+
+
 
 END_TEST_SUITE(connection_unittests)

@@ -455,6 +455,12 @@ static void on_link_state_changed(void* context, LINK_STATE new_link_state, LINK
             set_message_sender_state(message_sender_instance, MESSAGE_SENDER_STATE_ERROR);
         }
         break;
+	case LINK_STATE_ERROR:
+		if (message_sender_instance->message_sender_state != MESSAGE_SENDER_STATE_ERROR)
+		{
+			set_message_sender_state(message_sender_instance, MESSAGE_SENDER_STATE_ERROR);
+		}
+		break;
 	}
 }
 

@@ -6,8 +6,8 @@
 #include <crtdbg.h>
 #endif
 #include <string.h>
-#include "sasl_mssbcbs.h"
-#include "amqpalloc.h"
+#include "azure_uamqp_c/sasl_mssbcbs.h"
+#include "azure_uamqp_c/amqpalloc.h"
 
 typedef struct SASL_MSSBCBS_INSTANCE_TAG
 {

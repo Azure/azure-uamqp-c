@@ -8,8 +8,8 @@
 #include "testrunnerswitcher.h"
 #include "micromock.h"
 #include "micromockcharstararenullterminatedstrings.h"
-#include "amqpvalue.h"
-#include "frame_codec.h"
+#include "azure_uamqp_c/amqpvalue.h"
+#include "azure_uamqp_c/frame_codec.h"
 
 #define TEST_DESCRIPTION_AMQP_VALUE		(AMQP_VALUE)0x4243
 #define TEST_LIST_HANDLE				(LIST_HANDLE)0x4246

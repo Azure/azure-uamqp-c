@@ -5,10 +5,10 @@
 #ifdef _CRTDBG_MAP_ALLOC
 #include <crtdbg.h>
 #endif
-#include "message_receiver.h"
-#include "amqpalloc.h"
-#include "amqpvalue.h"
-#include "amqp_definitions.h"
+#include "azure_uamqp_c/message_receiver.h"
+#include "azure_uamqp_c/amqpalloc.h"
+#include "azure_uamqp_c/amqpvalue.h"
+#include "azure_uamqp_c/amqp_definitions.h"
 
 typedef struct MESSAGE_RECEIVER_INSTANCE_TAG
 {

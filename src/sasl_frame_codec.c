@@ -8,11 +8,11 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
-#include "sasl_frame_codec.h"
-#include "frame_codec.h"
-#include "amqpalloc.h"
-#include "amqpvalue.h"
-#include "amqp_definitions.h"
+#include "azure_uamqp_c/sasl_frame_codec.h"
+#include "azure_uamqp_c/frame_codec.h"
+#include "azure_uamqp_c/amqpalloc.h"
+#include "azure_uamqp_c/amqpvalue.h"
+#include "azure_uamqp_c/amqp_definitions.h"
 
 /* Requirements implemented by design or by other modules */
 /* Codes_SRS_SASL_FRAME_CODEC_01_011: [A SASL frame has a type code of 0x01.] */

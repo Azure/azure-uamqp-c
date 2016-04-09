@@ -9,14 +9,14 @@
 #include <stdbool.h>
 #include "azure_c_shared_utility/platform.h"
 #include "azure_c_shared_utility/tlsio.h"
-#include "message_sender.h"
-#include "message.h"
-#include "messaging.h"
-#include "amqpalloc.h"
-#include "saslclientio.h"
-#include "sasl_mssbcbs.h"
-#include "consolelogger.h"
-#include "cbs.h"
+#include "azure_uamqp_c/message_sender.h"
+#include "azure_uamqp_c/message.h"
+#include "azure_uamqp_c/messaging.h"
+#include "azure_uamqp_c/amqpalloc.h"
+#include "azure_uamqp_c/saslclientio.h"
+#include "azure_uamqp_c/sasl_mssbcbs.h"
+#include "azure_uamqp_c/consolelogger.h"
+#include "azure_uamqp_c/cbs.h"
 
 /* This sample connects to an IoTHub, authenticates using a CBS token and sends one message */
 /* Replace the below settings with your own.*/

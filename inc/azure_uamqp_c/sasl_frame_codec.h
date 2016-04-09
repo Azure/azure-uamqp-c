@@ -12,7 +12,7 @@ extern "C" {
 #include <stdint.h>
 #include <stddef.h>
 #endif /* __cplusplus */
-#include "frame_codec.h"
+#include "azure_uamqp_c/frame_codec.h"
 
 #define SASL_MECHANISMS		(uint64_t)0x40
 #define SASL_INIT			(uint64_t)0x41

@@ -6,8 +6,8 @@
 #include <crtdbg.h>
 #endif
 #include <stdbool.h>
-#include "amqpvalue.h"
-#include "amqp_definitions.h"
+#include "azure_uamqp_c/amqpvalue.h"
+#include "azure_uamqp_c/amqp_definitions.h"
 
 AMQP_VALUE messaging_create_source(const char* address)
 {

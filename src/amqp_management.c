@@ -8,14 +8,14 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "amqp_management.h"
-#include "link.h"
-#include "amqpalloc.h"
-#include "message_sender.h"
-#include "message_receiver.h"
-#include "messaging.h"
-#include "amqpvalue_to_string.h"
-#include "consolelogger.h"
+#include "azure_uamqp_c/amqp_management.h"
+#include "azure_uamqp_c/link.h"
+#include "azure_uamqp_c/amqpalloc.h"
+#include "azure_uamqp_c/message_sender.h"
+#include "azure_uamqp_c/message_receiver.h"
+#include "azure_uamqp_c/messaging.h"
+#include "azure_uamqp_c/amqpvalue_to_string.h"
+#include "azure_uamqp_c/consolelogger.h"
 
 typedef enum OPERATION_STATE_TAG
 {

@@ -4,7 +4,7 @@
 #ifndef ANQPVALUE_H
 #define ANQPVALUE_H
 
-#include "amqp_types.h"
+#include "azure_uamqp_c/amqp_types.h"
 
 #ifdef __cplusplus
 extern "C" {

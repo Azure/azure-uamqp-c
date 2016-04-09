@@ -4,9 +4,9 @@
 #ifndef MESSAGE_RECEIVER_H
 #define MESSAGE_RECEIVER_H
 
-#include "link.h"
-#include "message.h"
-#include "amqp_definitions.h"
+#include "azure_uamqp_c/link.h"
+#include "azure_uamqp_c/message.h"
+#include "azure_uamqp_c/amqp_definitions.h"
 
 #ifdef __cplusplus
 extern "C" {

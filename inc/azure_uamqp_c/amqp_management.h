@@ -4,8 +4,8 @@
 #ifndef AMQPMAN_H
 #define AMQPMAN_H
 
-#include "session.h"
-#include "message.h"
+#include "azure_uamqp_c/session.h"
+#include "azure_uamqp_c/message.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -8,14 +8,14 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
-#include "saslclientio.h"
+#include "azure_uamqp_c/saslclientio.h"
 #include "azure_c_shared_utility/xio.h"
 #include "azure_c_shared_utility/xlogging.h"
-#include "amqpalloc.h"
-#include "frame_codec.h"
-#include "sasl_frame_codec.h"
-#include "amqp_definitions.h"
-#include "amqpvalue_to_string.h"
+#include "azure_uamqp_c/amqpalloc.h"
+#include "azure_uamqp_c/frame_codec.h"
+#include "azure_uamqp_c/sasl_frame_codec.h"
+#include "azure_uamqp_c/amqp_definitions.h"
+#include "azure_uamqp_c/amqpvalue_to_string.h"
 
 typedef enum IO_STATE_TAG
 {

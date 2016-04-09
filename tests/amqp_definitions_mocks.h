@@ -6,7 +6,7 @@
 #ifndef AMQP_DEFINITIONS_MOCKS_H
 #define AMQP_DEFINITIONS_MOCKS_H
 
-#include "amqp_definitions.h"
+#include "azure_uamqp_c/amqp_definitions.h"
 #include "micromock.h"
 
 /* role */

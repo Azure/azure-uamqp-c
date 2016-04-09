@@ -5,9 +5,9 @@
 #define LINK_H
 
 #include <stddef.h>
-#include "session.h"
-#include "amqpvalue.h"
-#include "amqp_definitions.h"
+#include "azure_uamqp_c/session.h"
+#include "azure_uamqp_c/amqpvalue.h"
+#include "azure_uamqp_c/amqp_definitions.h"
 
 #ifdef __cplusplus
 extern "C" {

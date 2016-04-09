@@ -4,14 +4,14 @@
 #include "testrunnerswitcher.h"
 #include "micromock.h"
 #include "micromockcharstararenullterminatedstrings.h"
-#include "connection.h"
+#include "azure_uamqp_c/connection.h"
 #include "azure_c_shared_utility/xio.h"
 #include "azure_c_shared_utility/socketio.h"
 #include "azure_c_shared_utility/list.h"
 #include "azure_c_shared_utility/tickcounter.h"
-#include "frame_codec.h"
-#include "amqp_frame_codec.h"
-#include "amqp_definitions.h"
+#include "azure_uamqp_c/frame_codec.h"
+#include "azure_uamqp_c/amqp_frame_codec.h"
+#include "azure_uamqp_c/amqp_definitions.h"
 #include "amqp_definitions_mocks.h"
 
 /* Requirements implicitly tested */

@@ -9,16 +9,16 @@
 #include <stdbool.h>
 #include "azure_c_shared_utility/platform.h"
 #include "azure_c_shared_utility/xio.h"
-#include "message_receiver.h"
-#include "message.h"
-#include "messaging.h"
-#include "amqpalloc.h"
-#include "socket_listener.h"
-#include "header_detect_io.h"
-#include "consolelogger.h"
-#include "connection.h"
-#include "session.h"
-#include "link.h"
+#include "azure_uamqp_c/message_receiver.h"
+#include "azure_uamqp_c/message.h"
+#include "azure_uamqp_c/messaging.h"
+#include "azure_uamqp_c/amqpalloc.h"
+#include "azure_uamqp_c/socket_listener.h"
+#include "azure_uamqp_c/header_detect_io.h"
+#include "azure_uamqp_c/consolelogger.h"
+#include "azure_uamqp_c/connection.h"
+#include "azure_uamqp_c/session.h"
+#include "azure_uamqp_c/link.h"
 
 static unsigned int sent_messages = 0;
 static const size_t msg_count = 1;

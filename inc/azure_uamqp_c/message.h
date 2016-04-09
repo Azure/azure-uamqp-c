@@ -4,8 +4,8 @@
 #ifndef MESSAGE_H
 #define MESSAGE_H
 
-#include "amqpvalue.h"
-#include "amqp_definitions.h"
+#include "azure_uamqp_c/amqpvalue.h"
+#include "azure_uamqp_c/amqp_definitions.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -8,13 +8,13 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include "link.h"
-#include "session.h"
-#include "amqpvalue.h"
-#include "amqp_definitions.h"
-#include "amqpalloc.h"
-#include "amqp_frame_codec.h"
-#include "consolelogger.h"
+#include "azure_uamqp_c/link.h"
+#include "azure_uamqp_c/session.h"
+#include "azure_uamqp_c/amqpvalue.h"
+#include "azure_uamqp_c/amqp_definitions.h"
+#include "azure_uamqp_c/amqpalloc.h"
+#include "azure_uamqp_c/amqp_frame_codec.h"
+#include "azure_uamqp_c/consolelogger.h"
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_c_shared_utility/list.h"
 

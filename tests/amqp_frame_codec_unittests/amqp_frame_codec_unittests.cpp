@@ -6,9 +6,9 @@
 #include "testrunnerswitcher.h"
 #include "micromock.h"
 #include "micromockcharstararenullterminatedstrings.h"
-#include "amqpvalue.h"
-#include "amqp_frame_codec.h"
-#include "frame_codec.h"
+#include "azure_uamqp_c/amqpvalue.h"
+#include "azure_uamqp_c/amqp_frame_codec.h"
+#include "azure_uamqp_c/frame_codec.h"
 
 #define TEST_FRAME_CODEC_HANDLE			(FRAME_CODEC_HANDLE)0x4242
 #define TEST_DESCRIPTOR_AMQP_VALUE		(AMQP_VALUE)0x4243

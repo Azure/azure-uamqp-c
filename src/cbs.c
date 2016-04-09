@@ -8,11 +8,11 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "cbs.h"
-#include "amqp_management.h"
-#include "amqpalloc.h"
-#include "session.h"
-#include "consolelogger.h"
+#include "azure_uamqp_c/cbs.h"
+#include "azure_uamqp_c/amqp_management.h"
+#include "azure_uamqp_c/amqpalloc.h"
+#include "azure_uamqp_c/session.h"
+#include "azure_uamqp_c/consolelogger.h"
 
 typedef struct CBS_INSTANCE_TAG
 {

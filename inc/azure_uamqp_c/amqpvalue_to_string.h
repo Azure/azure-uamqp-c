@@ -3,7 +3,7 @@
 
 #ifndef AMQPVALUE_TO_STRING_H
 
-#include "amqpvalue.h"
+#include "azure_uamqp_c/amqpvalue.h"
 
 #ifdef __cplusplus
 extern "C" {

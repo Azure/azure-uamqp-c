@@ -9,13 +9,13 @@
 #include <stdbool.h>
 #include "azure_c_shared_utility/platform.h"
 #include "azure_c_shared_utility/tlsio.h"
-#include "message_receiver.h"
-#include "message.h"
-#include "messaging.h"
-#include "amqpalloc.h"
-#include "saslclientio.h"
-#include "sasl_plain.h"
-#include "consolelogger.h"
+#include "azure_uamqp_c/message_receiver.h"
+#include "azure_uamqp_c/message.h"
+#include "azure_uamqp_c/messaging.h"
+#include "azure_uamqp_c/amqpalloc.h"
+#include "azure_uamqp_c/saslclientio.h"
+#include "azure_uamqp_c/sasl_plain.h"
+#include "azure_uamqp_c/consolelogger.h"
 
 /* This sample connects to an Event Hub, authenticates using SASL PLAIN (key name/key) and then it received all messages for partition 0 */
 /* Replace the below settings with your own.*/

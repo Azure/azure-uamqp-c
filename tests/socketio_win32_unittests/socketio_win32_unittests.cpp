@@ -5,9 +5,9 @@
 #include "testrunnerswitcher.h"
 #include "micromock.h"
 #include "micromockcharstararenullterminatedstrings.h"
-#include "amqpalloc.h"
-#include "socketio.h"
-#include "list.h"
+#include "azure_uamqp_c/amqpalloc.h"
+#include "azure_c_shared_utility/socketio.h"
+#include "azure_c_shared_utility/list.h"
 
 #undef DECLSPEC_IMPORT
 

@@ -5,8 +5,8 @@
 #ifdef _CRTDBG_MAP_ALLOC
 #include <crtdbg.h>
 #endif
-#include "sasl_mechanism.h"
-#include "amqpalloc.h"
+#include "azure_uamqp_c/sasl_mechanism.h"
+#include "azure_uamqp_c/amqpalloc.h"
 
 typedef struct SASL_MECHANISM_INSTANCE_TAG
 {

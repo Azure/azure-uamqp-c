@@ -11,13 +11,13 @@
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_c_shared_utility/tickcounter.h"
 
-#include "connection.h"
-#include "consolelogger.h"
-#include "frame_codec.h"
-#include "amqp_frame_codec.h"
-#include "amqp_definitions.h"
-#include "amqpalloc.h"
-#include "amqpvalue_to_string.h"
+#include "azure_uamqp_c/connection.h"
+#include "azure_uamqp_c/consolelogger.h"
+#include "azure_uamqp_c/frame_codec.h"
+#include "azure_uamqp_c/amqp_frame_codec.h"
+#include "azure_uamqp_c/amqp_definitions.h"
+#include "azure_uamqp_c/amqpalloc.h"
+#include "azure_uamqp_c/amqpvalue_to_string.h"
 
 /* Requirements satisfied by the virtue of implementing the ISO:*/
 /* Codes_SRS_CONNECTION_01_088: [Any data appearing beyond the protocol header MUST match the version indicated by the protocol header.] */

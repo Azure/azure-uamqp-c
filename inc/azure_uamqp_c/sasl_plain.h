@@ -4,7 +4,7 @@
 #ifndef SASL_PLAIN_H
 #define SASL_PLAIN_H
 
-#include "sasl_mechanism.h"
+#include "azure_uamqp_c/sasl_mechanism.h"
 
 #ifdef __cplusplus
 extern "C" {

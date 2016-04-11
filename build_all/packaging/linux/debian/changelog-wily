@@ -1,4 +1,4 @@
-azure-uamqp-c (0.1.0.0-4) wily; urgency=low
+azure-uamqp-c (0.1.0.0-5) wily; urgency=low
 
   * Initial release
 
@@ -13,5 +13,7 @@ azure-uamqp-c (0.1.0.0-4) wily; urgency=low
   * Update xio definition to deal with connection opens (#1b13a97b)
 
   * Adding the wsio_open changes required due to xio_open signature change (#070db5c0)
+
+  * Update uamqp to use namespacing for includes (#f1667a4)
 
  -- AzureIoT User <aziotsdklinux@outlook.com>  Fri, 11 Mar 2016 20:22:05 +0000

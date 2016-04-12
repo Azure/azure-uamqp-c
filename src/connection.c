@@ -1340,48 +1340,86 @@ int connection_get_remote_max_frame_size(CONNECTION_HANDLE connection, uint32_t*
 	return result;
 }
 
+uint64_t connection_handle_deadlines(CONNECTION_HANDLE connection)
+{
+    uint64_t local_deadline = (uint64_t )-1;
+    uint64_t remote_deadline = (uint64_t)-1;
+
+    if (connection != NULL)
+    {
+        uint64_t current_ms;
+
+        if (tickcounter_get_current_ms(connection->tick_counter, &current_ms) != 0)
+        {
+            close_connection_with_error(connection, "amqp:internal-error", "Could not get tick count");
+        }
+        else
+        {
+            if (connection->idle_timeout_specified && (connection->idle_timeout != 0))
+            {
+                /* Calculate time until configured idle timeout expires */
+
+                uint64_t time_since_last_received = current_ms - connection->last_frame_received_time;
+                if (time_since_last_received < connection->idle_timeout)
+                {
+                    local_deadline = connection->idle_timeout - time_since_last_received;
+                }
+                else
+                {
+                    local_deadline = 0;
+
+                    /* close connection */
+                    close_connection_with_error(connection, "amqp:internal-error", "No frame received for the idle timeout");
+                }
+            }
+
+            if (local_deadline != 0 && connection->remote_idle_timeout != 0)
+            {
+                /* Calculate time until remote idle timeout expires */
+
+                uint64_t remote_idle_timeout = (connection->remote_idle_timeout / 2);
+                uint64_t time_since_last_sent = current_ms - connection->last_frame_sent_time;
+
+                if (time_since_last_sent < remote_idle_timeout)
+                {
+                    remote_deadline = remote_idle_timeout - time_since_last_sent;
+                }
+                else
+                {
+                    connection->on_send_complete = NULL;
+                    if (amqp_frame_codec_encode_empty_frame(connection->amqp_frame_codec, 0, on_bytes_encoded, connection) != 0)
+                    {
+                        /* close connection */
+                        close_connection_with_error(connection, "amqp:internal-error", "Cannot send empty frame");
+                    }
+                    else
+                    {
+                        LOG(connection->logger, LOG_LINE, "-> Empty frame");
+
+                        connection->last_frame_sent_time = current_ms;
+
+                        remote_deadline = remote_idle_timeout;
+                    }
+                }
+            }
+        }
+    }
+
+    /* Return the shorter of each deadline, or 0 to indicate connection closed */
+    return local_deadline > remote_deadline ? remote_deadline : local_deadline;
+}
+
 void connection_dowork(CONNECTION_HANDLE connection)
 {
 	/* Codes_SRS_CONNECTION_01_078: [If handle is NULL, connection_dowork shall do nothing.] */
-	if (connection != NULL)
-	{
-		uint64_t current_ms;
-
-		if (tickcounter_get_current_ms(connection->tick_counter, &current_ms) != 0)
-		{
-			close_connection_with_error(connection, "amqp:internal-error", "Could not get tick count");
-		}
-		else
-		{
-			if (connection->idle_timeout_specified &&
-				(connection->idle_timeout != 0) &&
-				(current_ms - connection->last_frame_received_time > connection->idle_timeout))
-			{
-				/* close connection */
-				close_connection_with_error(connection, "amqp:internal-error", "No frame received for the idle timeout");
-			}
-
-			if ((connection->remote_idle_timeout != 0) &&
-				(current_ms - connection->last_frame_sent_time > connection->remote_idle_timeout / 2))
-			{
-				connection->on_send_complete = NULL;
-				if (amqp_frame_codec_encode_empty_frame(connection->amqp_frame_codec, 0, on_bytes_encoded, connection) != 0)
-				{
-					/* close connection */
-					close_connection_with_error(connection, "amqp:internal-error", "Cannot send empty frame");
-				}
-				else
-				{
-					LOG(connection->logger, LOG_LINE, "-> Empty frame");
-
-					connection->last_frame_sent_time = current_ms;
-				}
-			}
-		}
-
-		/* Codes_SRS_CONNECTION_01_076: [connection_dowork shall schedule the underlying IO interface to do its work by calling xio_dowork.] */
-		xio_dowork(connection->io);
-	}
+    if (connection != NULL)
+    {
+        if (connection_handle_deadlines(connection) > 0)
+        {
+            /* Codes_SRS_CONNECTION_01_076: [connection_dowork shall schedule the underlying IO interface to do its work by calling xio_dowork.] */
+            xio_dowork(connection->io);
+        }
+    }
 }
 
 ENDPOINT_HANDLE connection_create_endpoint(CONNECTION_HANDLE connection)

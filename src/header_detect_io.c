@@ -358,11 +358,30 @@ void headerdetectio_dowork(CONCRETE_IO_HANDLE header_detect_io)
 	}
 }
 
-int headerdetectio_setoption(CONCRETE_IO_HANDLE socket_io, const char* optionName, const void* value)
+int headerdetectio_setoption(CONCRETE_IO_HANDLE header_detect_io, const char* optionName, const void* value)
 {
-    return __LINE__;
-}
+    int result;
 
+    if (header_detect_io == NULL)
+    {
+        result = __LINE__;
+    }
+    else
+    {
+        HEADER_DETECT_IO_INSTANCE* header_detect_io_instance = (HEADER_DETECT_IO_INSTANCE*)header_detect_io;
+
+        if (header_detect_io_instance->underlying_io == NULL)
+        {
+            result = __LINE__;
+        }
+        else
+        {
+            result = xio_setoption(header_detect_io_instance->underlying_io, optionName, value);
+        }
+    }
+
+    return result;
+}
 
 static const IO_INTERFACE_DESCRIPTION header_detect_io_interface_description =
 {

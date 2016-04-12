@@ -164,8 +164,10 @@ public:
 			io_send_byte_count += size;
 		}
 	MOCK_METHOD_END(int, 0);
-	MOCK_STATIC_METHOD_1(, void, xio_dowork, XIO_HANDLE, xio)
-	MOCK_VOID_METHOD_END();
+    MOCK_STATIC_METHOD_1(, void, xio_dowork, XIO_HANDLE, xio)
+    MOCK_VOID_METHOD_END();
+    MOCK_STATIC_METHOD_3(, int, xio_setoption, XIO_HANDLE, xio, const char*, optionName, const void*, value)
+    MOCK_METHOD_END(int, 0);
 
 	/* sasl_mechanism mocks */
 	MOCK_STATIC_METHOD_2(, int, saslmechanism_get_init_bytes, SASL_MECHANISM_HANDLE, sasl_mechanism, SASL_MECHANISM_BYTES*, init_bytes)
@@ -221,7 +223,8 @@ extern "C"
 	DECLARE_GLOBAL_MOCK_METHOD_7(saslclientio_mocks, , int, xio_open, XIO_HANDLE, xio, ON_IO_OPEN_COMPLETE, on_io_open_complete, void*, on_io_open_complete_context, ON_BYTES_RECEIVED, on_bytes_received, void*, on_bytes_received_context, ON_IO_ERROR, on_io_error, void*, on_io_error_context);
 	DECLARE_GLOBAL_MOCK_METHOD_3(saslclientio_mocks, , int, xio_close, XIO_HANDLE, xio, ON_IO_CLOSE_COMPLETE, on_io_close_complete, void*, callback_context);
 	DECLARE_GLOBAL_MOCK_METHOD_5(saslclientio_mocks, , int, xio_send, XIO_HANDLE, xio, const void*, buffer, size_t, size, ON_SEND_COMPLETE, on_send_complete, void*, callback_context);
-	DECLARE_GLOBAL_MOCK_METHOD_1(saslclientio_mocks, , void, xio_dowork, XIO_HANDLE, xio);
+    DECLARE_GLOBAL_MOCK_METHOD_1(saslclientio_mocks, , void, xio_dowork, XIO_HANDLE, xio);
+    DECLARE_GLOBAL_MOCK_METHOD_3(saslclientio_mocks, , int, xio_setoption, XIO_HANDLE, xio, const char*, optionName, const void*, value);
 
 	DECLARE_GLOBAL_MOCK_METHOD_2(saslclientio_mocks, , int, saslmechanism_get_init_bytes, SASL_MECHANISM_HANDLE, sasl_mechanism, SASL_MECHANISM_BYTES*, init_bytes);
 	DECLARE_GLOBAL_MOCK_METHOD_1(saslclientio_mocks, , const char*, saslmechanism_get_mechanism_name, SASL_MECHANISM_HANDLE, sasl_mechanism);

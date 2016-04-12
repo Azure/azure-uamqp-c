@@ -68,7 +68,7 @@ static void remove_operation_message_by_index(AMQP_MANAGEMENT_INSTANCE* amqp_man
 
 	if (amqp_management_instance->operation_message_count - index > 1)
 	{
-		memmove(&amqp_management_instance->operation_messages[index], &amqp_management_instance->operation_messages[index + 1], sizeof(OPERATION_MESSAGE_INSTANCE*));
+		memmove(&amqp_management_instance->operation_messages[index], &amqp_management_instance->operation_messages[index + 1], sizeof(OPERATION_MESSAGE_INSTANCE*) * (amqp_management_instance->operation_message_count - index - 1));
 	}
 
 	if (amqp_management_instance->operation_message_count == 1)
@@ -107,8 +107,10 @@ static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE messag
 		}
 		else
 		{
-			AMQP_VALUE key;
-			AMQP_VALUE value;
+            AMQP_VALUE key;
+            AMQP_VALUE value;
+            AMQP_VALUE desc_key;
+			AMQP_VALUE desc_value;
 			AMQP_VALUE map;
 			AMQP_VALUE correlation_id_value;
 
@@ -144,52 +146,80 @@ static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE messag
 							{
 								/* error */
 							}
-							else
-							{
-								size_t i = 0;
-								while (i < amqp_management_instance->operation_message_count)
-								{
-									if (amqp_management_instance->operation_messages[i]->operation_state == OPERATION_STATE_AWAIT_REPLY)
-									{
-										AMQP_VALUE expected_message_id = amqpvalue_create_ulong(amqp_management_instance->operation_messages[i]->message_id);
-										OPERATION_RESULT operation_result;
+                            else
+                            {
+                                desc_key = amqpvalue_create_string("status-description");
+                                if (desc_key == NULL)
+                                {
+                                    /* error */
+                                }
+                                else
+                                {
+                                    const char* status_description = NULL;
 
-										if (expected_message_id == NULL)
-										{
-											break;
-										}
-										else
-										{
-											if (amqpvalue_are_equal(correlation_id_value, expected_message_id))
-											{
-												/* 202 is not mentioned in the draft in any way, this is a workaround for an EH bug for now */
-												if ((status_code != 200) && (status_code != 202))
-												{
-													operation_result = OPERATION_RESULT_OPERATION_FAILED;
-												}
-												else
-												{
-													operation_result = OPERATION_RESULT_OK;
-												}
+                                    desc_value = amqpvalue_get_map_value(map, desc_key);
+                                    if (desc_value != NULL)
+                                    {
+                                        amqpvalue_get_string(desc_value, &status_description);
+                                    }
 
-												amqp_management_instance->operation_messages[i]->on_operation_complete(amqp_management_instance->operation_messages[i]->callback_context, operation_result, 0, NULL);
+                                    size_t i = 0;
+                                    while (i < amqp_management_instance->operation_message_count)
+                                    {
+                                        if (amqp_management_instance->operation_messages[i]->operation_state == OPERATION_STATE_AWAIT_REPLY)
+                                        {
+                                            AMQP_VALUE expected_message_id = amqpvalue_create_ulong(amqp_management_instance->operation_messages[i]->message_id);
+                                            OPERATION_RESULT operation_result;
 
-												remove_operation_message_by_index(amqp_management_instance, i);
+                                            if (expected_message_id == NULL)
+                                            {
+                                                break;
+                                            }
+                                            else
+                                            {
+                                                if (amqpvalue_are_equal(correlation_id_value, expected_message_id))
+                                                {
+                                                    /* 202 is not mentioned in the draft in any way, this is a workaround for an EH bug for now */
+                                                    if ((status_code != 200) && (status_code != 202))
+                                                    {
+                                                        operation_result = OPERATION_RESULT_OPERATION_FAILED;
+                                                    }
+                                                    else
+                                                    {
+                                                        operation_result = OPERATION_RESULT_OK;
+                                                    }
 
-												amqpvalue_destroy(expected_message_id);
+                                                    amqp_management_instance->operation_messages[i]->on_operation_complete(amqp_management_instance->operation_messages[i]->callback_context, operation_result, status_code, status_description);
 
-												break;
-											}
+                                                    remove_operation_message_by_index(amqp_management_instance, i);
 
-											amqpvalue_destroy(expected_message_id);
-										}
-									}
+                                                    amqpvalue_destroy(expected_message_id);
+
+                                                    break;
+                                                }
+                                                else
+                                                {
+                                                    i++;
+                                                }
+
+                                                amqpvalue_destroy(expected_message_id);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            i++;
+                                        }
+                                    }
+
+                                    if (desc_value != NULL)
+                                    {
+                                        amqpvalue_destroy(desc_value);
+                                    }
+                                    amqpvalue_destroy(desc_key);
 								}
 							}
-
 							amqpvalue_destroy(value);
 						}
-
 						amqpvalue_destroy(key);
 					}
 				}

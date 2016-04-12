@@ -1077,10 +1077,30 @@ void saslclientio_dowork(CONCRETE_IO_HANDLE sasl_client_io)
 	}
 }
 
-/* Codes_SRS_SASLCLIENTIO_03_001: [saslclientio_setoption does not support any options and shall always return non-zero value.]*/
-int saslclientio_setoption(CONCRETE_IO_HANDLE socket_io, const char* optionName, const void* value)
+/* Codes_SRS_SASLCLIENTIO_03_001: [saslclientio_setoption shall forward options to underlying io.]*/
+int saslclientio_setoption(CONCRETE_IO_HANDLE sasl_client_io, const char* optionName, const void* value)
 {
-    return __LINE__;
+    int result;
+
+    if (sasl_client_io == NULL)
+    {
+        result = __LINE__;
+    }
+    else
+    {
+        SASL_CLIENT_IO_INSTANCE* sasl_client_io_instance = (SASL_CLIENT_IO_INSTANCE*)sasl_client_io;
+
+        if (sasl_client_io_instance->underlying_io == NULL)
+        {
+            result = __LINE__;
+        }
+        else
+        {
+            result = xio_setoption(sasl_client_io_instance->underlying_io, optionName, value);
+        }
+    }
+
+    return result;
 }
 
 static const IO_INTERFACE_DESCRIPTION sasl_client_io_interface_description =

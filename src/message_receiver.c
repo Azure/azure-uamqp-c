@@ -159,10 +159,10 @@ static AMQP_VALUE on_transfer_received(void* context, TRANSFER_HANDLE transfer, 
 {
 	AMQP_VALUE result = NULL;
 
-    MESSAGE_RECEIVER_INSTANCE* message_receiver_instance = (MESSAGE_RECEIVER_INSTANCE*)context;
-    if (message_receiver_instance->on_message_received != NULL)
-    {
-        MESSAGE_HANDLE message = message_create();
+	MESSAGE_RECEIVER_INSTANCE* message_receiver_instance = (MESSAGE_RECEIVER_INSTANCE*)context;
+	if (message_receiver_instance->on_message_received != NULL)
+	{
+		MESSAGE_HANDLE message = message_create();
 		if (message == NULL)
 		{
 			set_message_receiver_state(message_receiver_instance, MESSAGE_RECEIVER_STATE_ERROR);
@@ -200,7 +200,7 @@ static AMQP_VALUE on_transfer_received(void* context, TRANSFER_HANDLE transfer, 
 
 			message_destroy(message);
 		}
-    }
+	}
 
 	return result;
 }
@@ -218,18 +218,18 @@ static void on_link_state_changed(void* context, LINK_STATE new_link_state, LINK
 		}
 		break;
 	case LINK_STATE_DETACHED:
-        if ((message_receiver_instance->message_receiver_state == MESSAGE_RECEIVER_STATE_OPEN) ||
-            (message_receiver_instance->message_receiver_state == MESSAGE_RECEIVER_STATE_CLOSING))
-        {
-            /* User initiated transition, we should be good */
-            set_message_receiver_state(message_receiver_instance, MESSAGE_RECEIVER_STATE_IDLE);
-        }
-        else if (message_receiver_instance->message_receiver_state != MESSAGE_RECEIVER_STATE_IDLE)
-        {
-            /* Any other transition must be an error */
-            set_message_receiver_state(message_receiver_instance, MESSAGE_RECEIVER_STATE_ERROR);
-        }
-        break;
+		if ((message_receiver_instance->message_receiver_state == MESSAGE_RECEIVER_STATE_OPEN) ||
+			(message_receiver_instance->message_receiver_state == MESSAGE_RECEIVER_STATE_CLOSING))
+		{
+			/* User initiated transition, we should be good */
+			set_message_receiver_state(message_receiver_instance, MESSAGE_RECEIVER_STATE_IDLE);
+		}
+		else if (message_receiver_instance->message_receiver_state != MESSAGE_RECEIVER_STATE_IDLE)
+		{
+			/* Any other transition must be an error */
+			set_message_receiver_state(message_receiver_instance, MESSAGE_RECEIVER_STATE_ERROR);
+		}
+		break;
 	}
 }
 
@@ -251,6 +251,7 @@ void messagereceiver_destroy(MESSAGE_RECEIVER_HANDLE message_receiver)
 {
 	if (message_receiver != NULL)
 	{
+		(void)messagereceiver_close(message_receiver);
 		amqpalloc_free(message_receiver);
 	}
 }

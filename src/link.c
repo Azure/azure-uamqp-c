@@ -370,6 +370,8 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                 (void)error_get_description(error, &description);
                 */
 
+                error_destroy(error);
+
                 set_link_state(link_instance, LINK_STATE_ERROR);
             }
             else

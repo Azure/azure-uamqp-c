@@ -40,7 +40,7 @@ static void on_amqp_management_state_chaged(void* context, AMQP_MANAGEMENT_STATE
 	}
 }
 
-void on_message_send_complete(const void* context, MESSAGE_SEND_RESULT send_result)
+void on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_result)
 {
 	(void)send_result;
 	(void)context;

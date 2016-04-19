@@ -1858,12 +1858,12 @@ TEST_FUNCTION(wsio_get_interface_description_fills_the_interface_structure)
     const IO_INTERFACE_DESCRIPTION* if_description = wsio_get_interface_description();
 
     // assert
-    ASSERT_ARE_EQUAL(void_ptr, wsio_create, if_description->concrete_io_create);
-    ASSERT_ARE_EQUAL(void_ptr, wsio_destroy, if_description->concrete_io_destroy);
-    ASSERT_ARE_EQUAL(void_ptr, wsio_open, if_description->concrete_io_open);
-    ASSERT_ARE_EQUAL(void_ptr, wsio_close, if_description->concrete_io_close);
-    ASSERT_ARE_EQUAL(void_ptr, wsio_send, if_description->concrete_io_send);
-    ASSERT_ARE_EQUAL(void_ptr, wsio_dowork, if_description->concrete_io_dowork);
+    ASSERT_ARE_EQUAL(void_ptr, (void_ptr)wsio_create, (void_ptr)if_description->concrete_io_create);
+    ASSERT_ARE_EQUAL(void_ptr, (void_ptr)wsio_destroy, (void_ptr)if_description->concrete_io_destroy);
+    ASSERT_ARE_EQUAL(void_ptr, (void_ptr)wsio_open, (void_ptr)if_description->concrete_io_open);
+    ASSERT_ARE_EQUAL(void_ptr, (void_ptr)wsio_close, (void_ptr)if_description->concrete_io_close);
+    ASSERT_ARE_EQUAL(void_ptr, (void_ptr)wsio_send, (void_ptr)if_description->concrete_io_send);
+    ASSERT_ARE_EQUAL(void_ptr, (void_ptr)wsio_dowork, (void_ptr)if_description->concrete_io_dowork);
 }
 
 /* on_ws_callback */

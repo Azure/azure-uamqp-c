@@ -362,14 +362,6 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
             ERROR_HANDLE error;
             if (detach_get_error(detach, &error) == 0)
             {
-                /*
-                const char* condition = NULL;
-                const char* description = NULL;
-
-                (void)error_get_condition(error, &condition);
-                (void)error_get_description(error, &description);
-                */
-
                 error_destroy(error);
 
                 set_link_state(link_instance, LINK_STATE_ERROR);

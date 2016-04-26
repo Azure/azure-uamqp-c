@@ -1,4 +1,4 @@
-azure-uamqp-c (0.1.0.0-5) wily; urgency=low
+azure-uamqp-c (0.1.0.0-6) wily; urgency=low
 
   * Initial release
 
@@ -16,4 +16,7 @@ azure-uamqp-c (0.1.0.0-5) wily; urgency=low
 
   * Update uamqp to use namespacing for includes (#f1667a4)
 
- -- AzureIoT User <aziotsdklinux@outlook.com>  Fri, 11 Mar 2016 20:22:05 +0000
+  * Fix messagereceiver_destroy by calling messagereceiver_close (#0309f57)
+
+ -- AzureIoT User <aziotsdklinux@outlook.com>  Fri, 22 Apr 2016 20:22:05 +0000
+

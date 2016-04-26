@@ -7,6 +7,7 @@ set -e
 script_dir=$(cd "$(dirname "$0")" && pwd)
 build_root=$(cd "${script_dir}/../.." && pwd)
 run_unit_tests=ON
+use_wsio=OFF
 run_valgrind=0
 
 usage ()
@@ -15,6 +16,7 @@ usage ()
     echo "options"
     echo " -cl, --compileoption <value>  specify a compile option to be passed to gcc"
     echo "   Example: -cl -O1 -cl ..."
+	echo " --use-websockets              Enables the support for AMQP over WebSockets."
 	echo "-rv, --run_valgrind will execute ctest with valgrind"
     echo ""
     exit 1
@@ -56,6 +58,7 @@ process_args ()
       else
           case "$arg" in
               "-cl" | "--compileoption" ) save_next_arg=1;;
+			  "--use-websockets" ) use_wsio=ON;;
 			  "-rv" | "--run_valgrind" ) run_valgrind=1;;
               * ) usage;;
           esac
@@ -68,7 +71,7 @@ process_args $*
 rm -r -f ~/azure-amqp
 mkdir ~/azure-amqp
 pushd ~/azure-amqp
-cmake -DcompileOption_C:STRING="$extracloptions" -Drun_valgrind:BOOL=$run_valgrind $build_root
+cmake -DcompileOption_C:STRING="$extracloptions" -Duse_wsio:BOOL=$use_wsio -Drun_valgrind:BOOL=$run_valgrind $build_root
 make --jobs=$(nproc)
 
 if [[ $run_valgrind == 1 ]] ;

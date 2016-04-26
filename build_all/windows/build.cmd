@@ -46,6 +46,7 @@ rem // default build options
 set build-clean=0
 set build-config=Debug
 set build-platform=Win32
+set CMAKE_use_wsio=OFF
 
 :args-loop
 if "%1" equ "" goto args-done
@@ -53,6 +54,7 @@ if "%1" equ "-c" goto arg-build-clean
 if "%1" equ "--clean" goto arg-build-clean
 if "%1" equ "--config" goto arg-build-config
 if "%1" equ "--platform" goto arg-build-platform
+if "%1" equ "--use-websockets" goto arg-use-websockets
 call :usage && exit /b 1
 
 :arg-build-clean
@@ -69,6 +71,11 @@ goto args-continue
 shift
 if "%1" equ "" call :usage && exit /b 1
 set build-platform=%1
+goto args-continue
+
+:arg-use-websockets
+shift
+set CMAKE_use_wsio=ON
 goto args-continue
 
 :args-continue
@@ -99,7 +106,7 @@ rem no error checking
 
 pushd %USERPROFILE%\solution_azure_amqp
 
-cmake %build-root%
+cmake %build-root% -Duse_wsio:BOOL=%CMAKE_use_wsio%
 if not %errorlevel%==0 exit /b %errorlevel%
 
 msbuild /m uamqp.sln

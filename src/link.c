@@ -907,7 +907,8 @@ LINK_TRANSFER_RESULT link_transfer(LINK_HANDLE link, message_format message_form
 	}
 	else
 	{
-		if (link->role != role_sender)
+		if ((link->role != role_sender) ||
+            (link->link_state != LINK_STATE_ATTACHED))
 		{
 			result = LINK_TRANSFER_ERROR;
 		}

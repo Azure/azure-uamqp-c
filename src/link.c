@@ -612,11 +612,9 @@ void link_destroy(LINK_HANDLE link)
 {
 	if (link != NULL)
 	{
-		/* Any registered callback context might be destroyed by now */
 		link->on_link_state_changed = NULL;
-		
 		link_detach(link);
-		
+
 		session_destroy_link_endpoint(link->link_endpoint);
 		amqpvalue_destroy(link->source);
 		amqpvalue_destroy(link->target);
@@ -989,16 +987,16 @@ LINK_TRANSFER_RESULT link_transfer(LINK_HANDLE link, message_format message_form
 								{
 								default:
 								case SESSION_SEND_TRANSFER_ERROR:
-                                    list_remove(link->pending_deliveries, delivery_instance_list_item);
-                                    amqpalloc_free(pending_delivery);
-                                    result = LINK_TRANSFER_ERROR;
+									list_remove(link->pending_deliveries, delivery_instance_list_item);
+									amqpalloc_free(pending_delivery);
+									result = LINK_TRANSFER_ERROR;
 									break;
 
 								case SESSION_SEND_TRANSFER_BUSY:
-                                    /* Ensure we remove from list again since sender will attempt to transfer again on flow on */
-                                    list_remove(link->pending_deliveries, delivery_instance_list_item);
-                                    amqpalloc_free(pending_delivery);
-                                    result = LINK_TRANSFER_BUSY;
+									/* Ensure we remove from list again since sender will attempt to transfer again on flow on */
+									list_remove(link->pending_deliveries, delivery_instance_list_item);
+									amqpalloc_free(pending_delivery);
+									result = LINK_TRANSFER_BUSY;
 									break;
 
 								case SESSION_SEND_TRANSFER_OK:

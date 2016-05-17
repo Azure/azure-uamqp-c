@@ -1,4 +1,4 @@
-azure-uamqp-c (0.1.0-18) vivid; urgency=low
+azure-uamqp-c (0.1.0-19) vivid; urgency=low
 
   * Initial release
 
@@ -18,5 +18,7 @@ azure-uamqp-c (0.1.0-18) vivid; urgency=low
 
   * Fix messagereceiver_destroy by calling messagereceiver_close (#0309f57)
 
- -- AzureIoT User <aziotsdklinux@outlook.com>  Fri, 22 Apr 2016 20:22:05 +0000
+  * fix av in teardown of message_sender/receiver (#3c59616)
+
+ -- AzureIoT User <aziotsdklinux@outlook.com>  Fri, 6 May 2016 20:22:05 +0000
 

@@ -3671,9 +3671,8 @@ TEST_FUNCTION(connection_set_trace_succeeds)
 {
     // arrange
     connection_mocks mocks;
-    CONNECTION_HANDLE connection = connection_create(TEST_IO_HANDLE, "testhost", test_container_id);
+    CONNECTION_HANDLE connection = connection_create2(TEST_IO_HANDLE, "testhost", test_container_id, NULL, NULL, NULL, TEST_IO_HANDLE, TEST_on_io_error, TEST_CONTEXT, NULL);
     mocks.ResetAllCalls();
-
 
     // act
     bool traceOn = false;

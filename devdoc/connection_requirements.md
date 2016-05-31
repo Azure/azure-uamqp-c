@@ -46,6 +46,7 @@ connection is module that implements the connection layer in the AMQP ISO.
 	extern ENDPOINT_HANDLE connection_create_endpoint(CONNECTION_HANDLE connection, ON_ENDPOINT_FRAME_RECEIVED on_frame_received, ON_CONNECTION_STATE_CHANGED on_connection_state_changed, void* context);
 	extern void connection_destroy_endpoint(ENDPOINT_HANDLE endpoint);
 	extern int connection_encode_frame(ENDPOINT_HANDLE endpoint, const AMQP_VALUE performative, PAYLOAD* payloads, size_t payload_count);
+    extern void connection_set_trace(CONNECTION_HANDLE connection, bool traceOn);	
 ```
 
 ###connection_create
@@ -212,6 +213,13 @@ extern int connection_encode_frame(ENDPOINT_HANDLE endpoint, const AMQP_VALUE pe
 **SRS_CONNECTION_01_253: [**If amqp_frame_codec_begin_encode_frame or amqp_frame_codec_encode_payload_bytes fails, then connection_encode_frame shall fail and return a non-zero value.**]** 
 **SRS_CONNECTION_01_254: [**If connection_encode_frame is called before the connection is in the OPENED state, connection_encode_frame shall fail and return a non-zero value.**]** 
 **SRS_CONNECTION_01_256: [**Each payload passed in the payloads array shall be passed to amqp_frame_codec by calling amqp_frame_codec_encode_payload_bytes.**]** 
+
+###connection_set_trace
+```C
+    extern void connection_set_trace(CONNECTION_HANDLE connection, bool traceOn);
+```
+**SRS_CONNECTION_07_001: [**connection_set_trace shall set the ability to turn on and off trace logging.**]**
+**SRS_CONNECTION_07_002: [**If connection is NULL then connection_set_trace shall do nothing.**]** 
 
 ###on_connection_state_changed
 

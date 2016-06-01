@@ -4,8 +4,6 @@
 @setlocal EnableExtensions EnableDelayedExpansion
 @echo off
 
-set shared-util-repo=https://github.com/Azure/azure-c-shared-utility.git
-
 set current-path=%~dp0
 rem // remove trailing slash
 set current-path=%current-path:~0,-1%
@@ -20,23 +18,12 @@ set repo_root=%build-root%\..\..
 rem // resolve to fully qualified path
 for %%i in ("%repo_root%") do set repo_root=%%~fi
 
-echo Repo Root: %build-root%
+echo Build Root: %build-root%
 echo Repo Root: %repo_root%
 
 rem -----------------------------------------------------------------------------
 rem -- check prerequisites
 rem -----------------------------------------------------------------------------
-
-rem -- Check Shared-Library
-if not defined SHARED_UTIL_LIB (
-    set SHARED_UTIL_LIB=%repo_root%\azure-c-shared-utility
-)
-
-if not exist %SHARED_UTIL_LIB% (
-	echo The Azure_Shared_Util does not exist, it shall be download and built
-	git clone %shared-util-repo%
-	call %SHARED_UTIL_LIB%\c\build_all\windows\build.cmd
-)
 
 rem -----------------------------------------------------------------------------
 rem -- parse script arguments
@@ -47,6 +34,8 @@ set build-clean=0
 set build-config=Debug
 set build-platform=Win32
 set CMAKE_use_wsio=OFF
+set CMAKE_DIR=uamqp_win32
+set MAKE_NUGET_PKG=no
 
 :args-loop
 if "%1" equ "" goto args-done
@@ -55,6 +44,7 @@ if "%1" equ "--clean" goto arg-build-clean
 if "%1" equ "--config" goto arg-build-config
 if "%1" equ "--platform" goto arg-build-platform
 if "%1" equ "--use-websockets" goto arg-use-websockets
+if "%1" equ "--make_nuget" goto arg-build-nuget
 call :usage && exit /b 1
 
 :arg-build-clean
@@ -71,11 +61,23 @@ goto args-continue
 shift
 if "%1" equ "" call :usage && exit /b 1
 set build-platform=%1
+if %build-platform% == x64 (
+    set CMAKE_DIR=uamqp_x64
+) else if %build-platform% == arm (
+    set CMAKE_DIR=uamqp_arm
+)
 goto args-continue
 
 :arg-use-websockets
 shift
 set CMAKE_use_wsio=ON
+goto args-continue
+
+:arg-build-nuget
+shift
+if "%1" equ "" call :usage && exit /b 1
+set MAKE_NUGET_PKG=%1
+set CMAKE_skip_unittests=ON
 goto args-continue
 
 :args-continue
@@ -98,23 +100,83 @@ rem ----------------------------------------------------------------------------
 rem -- build with CMAKE and run tests
 rem -----------------------------------------------------------------------------
 
-rmdir /s/q %USERPROFILE%\solution_azure_amqp
+echo CMAKE Output Path: %build-root%\cmake\%CMAKE_DIR%
+
+if EXIST %build-root%\cmake\%CMAKE_DIR% (
+    rmdir /s/q %build-root%\cmake\%CMAKE_DIR%
+    rem no error checking
+)
+
+echo %build-root%\cmake\%CMAKE_DIR%
+mkdir %build-root%\cmake\%CMAKE_DIR%
 rem no error checking
+pushd %build-root%\cmake\%CMAKE_DIR%
 
-mkdir %USERPROFILE%\solution_azure_amqp
-rem no error checking
+if %MAKE_NUGET_PKG% == yes (
+    echo ***Running CMAKE for Win32***
+    cmake %build-root% -Dskip_unittests:BOOL=%CMAKE_skip_unittests% -Duse_wsio:BOOL=%CMAKE_use_wsio% 
+    if not %errorlevel%==0 exit /b %errorlevel%
+    popd
+    
+    echo ***Running CMAKE for Win64***
+    if EXIST %build-root%\cmake\uamqp_x64 (
+        rmdir /s/q %build-root%\cmake\uamqp_x64
+    )
+    mkdir %build-root%\cmake\uamqp_x64
+    pushd %build-root%\cmake\uamqp_x64
+    cmake %build-root% -Dskip_unittests:BOOL=%CMAKE_skip_unittests% -Duse_wsio:BOOL=%CMAKE_use_wsio% -G "Visual Studio 14 Win64" 
+    if not %errorlevel%==0 exit /b %errorlevel%
+    popd
+    
+    echo ***Running CMAKE for ARM***
+    if EXIST %build-root%\cmake\uamqp_arm (
+        rmdir /s/q %build-root%\cmake\uamqp_arm
+    )    
+    mkdir %build-root%\cmake\uamqp_arm
+    pushd %build-root%\cmake\uamqp_arm
+    cmake %build-root% -Dskip_unittests:BOOL=%CMAKE_skip_unittests% -Duse_wsio:BOOL=%CMAKE_use_wsio% -G "Visual Studio 14 ARM" 
+    if not %errorlevel%==0 exit /b %errorlevel%
+    
+) else if %build-platform% == Win32 (
+    echo ***Running CMAKE for Win32***   
+    cmake %build-root% -Duse_wsio:BOOL=%CMAKE_use_wsio% 
+    if not %errorlevel%==0 exit /b %errorlevel%
+) else if %build-platform% == arm (
+    echo ***Running CMAKE for ARM***
+    cmake %build-root% -Duse_wsio:BOOL=%CMAKE_use_wsio% -G "Visual Studio 14 ARM" 
+    if not %errorlevel%==0 exit /b %errorlevel%
+) else (
+    echo ***Running CMAKE for Win64***    
+    cmake %build-root% -Duse_wsio:BOOL=%CMAKE_use_wsio% -G "Visual Studio 14 Win64" 
+    if not %errorlevel%==0 exit /b %errorlevel%
+)
 
-pushd %USERPROFILE%\solution_azure_amqp
+if %MAKE_NUGET_PKG% == yes (
+    echo ***Building all configurations***    
+    msbuild /m %build-root%\cmake\uamqp_win32\uamqp.sln /p:Configuration=Release
+    msbuild /m %build-root%\cmake\uamqp_win32\uamqp.sln /p:Configuration=Debug
+    if not %errorlevel%==0 exit /b %errorlevel%
+    
+    msbuild /m %build-root%\cmake\uamqp_x64\uamqp.sln /p:Configuration=Release
+    msbuild /m %build-root%\cmake\uamqp_x64\uamqp.sln /p:Configuration=Debug
+    if not %errorlevel%==0 exit /b %errorlevel%
 
-cmake %build-root% -Duse_wsio:BOOL=%CMAKE_use_wsio%
-if not %errorlevel%==0 exit /b %errorlevel%
-
-msbuild /m uamqp.sln
-if not %errorlevel%==0 exit /b %errorlevel%
-
-ctest -C "debug" -V
-if not %errorlevel%==0 exit /b %errorlevel%
-
+    msbuild /m %build-root%\cmake\uamqp_arm\uamqp.sln /p:Configuration=Release
+    msbuild /m %build-root%\cmake\uamqp_arm\uamqp.sln /p:Configuration=Debug
+    if not %errorlevel%==0 exit /b %errorlevel%    
+) else (
+    call :_run-msbuild "Build" uamqp.sln %2 %3
+    if not %errorlevel%==0 exit /b %errorlevel%
+    
+    if %build-platform% neq arm (
+        echo Build Platform: %build-platform%
+        
+        if "%build-config%" == "Debug" (
+            ctest -C "debug" -V
+            if not %errorlevel%==0 exit /b %errorlevel%
+        )
+    )    
+)
 popd
 goto :eof
 
@@ -139,7 +201,7 @@ echo build.cmd [options]
 echo options:
 echo  -c, --clean           delete artifacts from previous build before building
 echo  --config ^<value^>      [Debug] build configuration (e.g. Debug, Release)
-echo  --platform ^<value^>    [Win32] build platform (e.g. Win32, x64, ...)
+echo  --platform ^<value^>    [Win32] build platform (e.g. Win32, x64, arm, ...)
 goto :eof
 
 rem -----------------------------------------------------------------------------

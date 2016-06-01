@@ -9,6 +9,7 @@ build_root=$(cd "${script_dir}/../.." && pwd)
 run_unit_tests=ON
 use_wsio=OFF
 run_valgrind=0
+build_folder=$build_root"/cmake/uamqp_linux"
 
 usage ()
 {
@@ -68,9 +69,9 @@ process_args ()
 
 process_args $*
 
-rm -r -f ~/azure-amqp
-mkdir ~/azure-amqp
-pushd ~/azure-amqp
+rm -r -f $build_folder
+mkdir -p $build_folder
+pushd $build_folder
 cmake -DcompileOption_C:STRING="$extracloptions" -Duse_wsio:BOOL=$use_wsio -Drun_valgrind:BOOL=$run_valgrind $build_root
 make --jobs=$(nproc)
 

@@ -1,4 +1,4 @@
-azure-uamqp-c (0.1.0-19) vivid; urgency=low
+azure-uamqp-c (0.1.0-20) vivid; urgency=low
 
   * Initial release
 
@@ -20,5 +20,7 @@ azure-uamqp-c (0.1.0-19) vivid; urgency=low
 
   * fix av in teardown of message_sender/receiver (#3c59616)
 
- -- AzureIoT User <aziotsdklinux@outlook.com>  Fri, 6 May 2016 20:22:05 +0000
+  * Fix tlsio_schannel bug (not all input bytes were being read) (#451ab97)
+
+ -- AzureIoT User <aziotsdklinux@outlook.com>  Fri, 20 May 2016 20:22:05 +0000
 

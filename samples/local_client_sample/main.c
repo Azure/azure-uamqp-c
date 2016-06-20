@@ -9,11 +9,12 @@
 #include <stdbool.h>
 #include "azure_c_shared_utility/platform.h"
 #include "azure_c_shared_utility/socketio.h"
+#include "azure_c_shared_utility/xlogging.h"
+#include "azure_c_shared_utility/consolelogger.h"
 #include "azure_uamqp_c/message_sender.h"
 #include "azure_uamqp_c/message.h"
 #include "azure_uamqp_c/messaging.h"
 #include "azure_uamqp_c/amqpalloc.h"
-#include "azure_uamqp_c/consolelogger.h"
 
 #if _WIN32
 #include "windows.h"
@@ -34,7 +35,8 @@ int main(int argc, char** argv)
 {
 	int result;
 
-	amqpalloc_set_memory_tracing_enabled(true);
+    xlogging_set_log_function(consolelogger_log);
+    amqpalloc_set_memory_tracing_enabled(true);
 
 	if (platform_init() != 0)
 	{
@@ -54,7 +56,7 @@ int main(int argc, char** argv)
 		XIO_HANDLE socket_io;
 
 		SOCKETIO_CONFIG socketio_config = { "localhost", 5672, NULL };
-		socket_io = xio_create(socketio_get_interface_description(), &socketio_config, NULL);
+		socket_io = xio_create(socketio_get_interface_description(), &socketio_config);
 
 		/* create the connection, session and link */
 		connection = connection_create(socket_io, "localhost", "some", NULL, NULL);

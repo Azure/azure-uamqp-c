@@ -12,7 +12,7 @@ frame_codec is module that encodes/decodes frames (regardless of their type).
 	typedef void(*ON_FRAME_CODEC_ERROR)(void* context);
 	typedef void(*ON_BYTES_ENCODED)(void* context, const unsigned char* bytes, size_t length, bool encode_complete);
 
-	extern FRAME_CODEC_HANDLE frame_codec_create(ON_FRAME_CODEC_ERROR on_frame_codec_error, void* callback_context, LOGGER_LOG logger_log);
+	extern FRAME_CODEC_HANDLE frame_codec_create(ON_FRAME_CODEC_ERROR on_frame_codec_error, void* callback_context);
 	extern void frame_codec_destroy(FRAME_CODEC_HANDLE frame_codec);
 	extern int frame_codec_set_max_frame_size(FRAME_CODEC_HANDLE frame_codec, uint32_t max_frame_size);
 	extern int frame_codec_subscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type, ON_FRAME_RECEIVED on_frame_received, void* callback_context);
@@ -24,7 +24,7 @@ frame_codec is module that encodes/decodes frames (regardless of their type).
 ###frame_codec_create
 
 ```C
-extern FRAME_CODEC_HANDLE frame_codec_create(ON_FRAME_CODEC_ERROR on_frame_codec_error, void* callback_context, LOGGER_LOG logger_log);
+extern FRAME_CODEC_HANDLE frame_codec_create(ON_FRAME_CODEC_ERROR on_frame_codec_error, void* callback_context);
 ```
 
 **SRS_FRAME_CODEC_01_021: [**frame_codec_create shall create a new instance of frame_codec and return a non-NULL handle to it on success.**]** 

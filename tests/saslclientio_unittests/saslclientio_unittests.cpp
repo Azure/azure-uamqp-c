@@ -109,7 +109,7 @@ public:
 	MOCK_VOID_METHOD_END();
 
 	/* frame_codec mocks */
-	MOCK_STATIC_METHOD_3(, FRAME_CODEC_HANDLE, frame_codec_create, ON_FRAME_CODEC_ERROR, on_frame_codec_error, void*, callback_context, LOGGER_LOG, logger_log)
+	MOCK_STATIC_METHOD_2(, FRAME_CODEC_HANDLE, frame_codec_create, ON_FRAME_CODEC_ERROR, on_frame_codec_error, void*, callback_context)
 		saved_on_frame_codec_error = on_frame_codec_error;
 		saved_on_frame_codec_error_callback_context = callback_context;
 	MOCK_METHOD_END(FRAME_CODEC_HANDLE, test_frame_codec);
@@ -209,7 +209,7 @@ extern "C"
 	DECLARE_GLOBAL_MOCK_METHOD_1(saslclientio_mocks, , void*, amqpalloc_malloc, size_t, size);
 	DECLARE_GLOBAL_MOCK_METHOD_1(saslclientio_mocks, , void, amqpalloc_free, void*, ptr);
 
-	DECLARE_GLOBAL_MOCK_METHOD_3(saslclientio_mocks, , FRAME_CODEC_HANDLE, frame_codec_create, ON_FRAME_CODEC_ERROR, on_frame_codec_error, void*, callback_context, LOGGER_LOG, logger_log);
+	DECLARE_GLOBAL_MOCK_METHOD_2(saslclientio_mocks, , FRAME_CODEC_HANDLE, frame_codec_create, ON_FRAME_CODEC_ERROR, on_frame_codec_error, void*, callback_context);
 	DECLARE_GLOBAL_MOCK_METHOD_1(saslclientio_mocks, , void, frame_codec_destroy, FRAME_CODEC_HANDLE, frame_codec);
 	DECLARE_GLOBAL_MOCK_METHOD_3(saslclientio_mocks, , int, frame_codec_receive_bytes, FRAME_CODEC_HANDLE, frame_codec, const unsigned char*, buffer, size_t, size)
 	DECLARE_GLOBAL_MOCK_METHOD_4(saslclientio_mocks, , int, frame_codec_subscribe, FRAME_CODEC_HANDLE, frame_codec, uint8_t, type, ON_FRAME_RECEIVED, frame_received_callback, void*, callback_context);
@@ -242,12 +242,6 @@ extern "C"
 	DECLARE_GLOBAL_MOCK_METHOD_2(saslclientio_mocks, , void, test_on_io_open_complete, void*, context, IO_OPEN_RESULT, io_open_result);
 	DECLARE_GLOBAL_MOCK_METHOD_1(saslclientio_mocks, , void, test_on_io_error, void*, context);
 	DECLARE_GLOBAL_MOCK_METHOD_2(saslclientio_mocks, , void, test_on_send_complete, void*, context, IO_SEND_RESULT, send_result);
-
-	void test_logger_log(unsigned int options, char* format, ...)
-	{
-		(void)options;
-		(void)format;
-	}
 }
 
 MICROMOCK_MUTEX_HANDLE test_serialize_mutex;
@@ -307,12 +301,12 @@ TEST_FUNCTION(saslclientio_create_with_valid_args_succeeds)
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 
 	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	EXPECTED_CALL(mocks, frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+	EXPECTED_CALL(mocks, frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
 	EXPECTED_CALL(mocks, sasl_frame_codec_create(test_frame_codec, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgument(1);
 
 	// act
-	CONCRETE_IO_HANDLE result = saslclientio_create(&saslclientio_config, test_logger_log);
+	CONCRETE_IO_HANDLE result = saslclientio_create(&saslclientio_config);
 
 	// assert
 	ASSERT_IS_NOT_NULL(result);
@@ -329,7 +323,7 @@ TEST_FUNCTION(saslclientio_create_with_NULL_config_fails)
 	saslclientio_mocks mocks;
 
 	// act
-	CONCRETE_IO_HANDLE result = saslclientio_create(NULL, test_logger_log);
+	CONCRETE_IO_HANDLE result = saslclientio_create(NULL);
 
 	// assert
 	ASSERT_IS_NULL(result);
@@ -346,7 +340,7 @@ TEST_FUNCTION(when_allocating_memory_for_the_new_instance_fails_then_saslclienti
 		.SetReturn((void*)NULL);
 
 	// act
-	CONCRETE_IO_HANDLE result = saslclientio_create(&saslclientio_config, test_logger_log);
+	CONCRETE_IO_HANDLE result = saslclientio_create(&saslclientio_config);
 
 	// assert
 	ASSERT_IS_NULL(result);
@@ -360,12 +354,12 @@ TEST_FUNCTION(when_creating_the_frame_codec_fails_then_saslclientio_create_fails
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 
 	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	EXPECTED_CALL(mocks, frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(mocks, frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.SetReturn((FRAME_CODEC_HANDLE)NULL);
 	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
 
 	// act
-	CONCRETE_IO_HANDLE result = saslclientio_create(&saslclientio_config, test_logger_log);
+	CONCRETE_IO_HANDLE result = saslclientio_create(&saslclientio_config);
 
 	// assert
 	ASSERT_IS_NULL(result);
@@ -379,7 +373,7 @@ TEST_FUNCTION(when_creating_the_sasl_frame_codec_fails_then_saslclientio_create_
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 
 	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	EXPECTED_CALL(mocks, frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+	EXPECTED_CALL(mocks, frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
 	EXPECTED_CALL(mocks, sasl_frame_codec_create(test_frame_codec, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgument(1)
 		.SetReturn((SASL_FRAME_CODEC_HANDLE)NULL);
@@ -387,7 +381,7 @@ TEST_FUNCTION(when_creating_the_sasl_frame_codec_fails_then_saslclientio_create_
 	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
 
 	// act
-	CONCRETE_IO_HANDLE result = saslclientio_create(&saslclientio_config, test_logger_log);
+	CONCRETE_IO_HANDLE result = saslclientio_create(&saslclientio_config);
 
 	// assert
 	ASSERT_IS_NULL(result);
@@ -401,7 +395,7 @@ TEST_FUNCTION(saslclientio_create_with_a_NULL_underlying_io_fails)
 	SASLCLIENTIO_CONFIG saslclientio_config = { NULL, test_sasl_mechanism };
 
 	// act
-	CONCRETE_IO_HANDLE result = saslclientio_create(&saslclientio_config, test_logger_log);
+	CONCRETE_IO_HANDLE result = saslclientio_create(&saslclientio_config);
 
 	// assert
 	ASSERT_IS_NULL(result);
@@ -415,7 +409,7 @@ TEST_FUNCTION(saslclientio_create_with_a_NULL_sasl_mechanism_fails)
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, NULL };
 
 	// act
-	CONCRETE_IO_HANDLE result = saslclientio_create(&saslclientio_config, test_logger_log);
+	CONCRETE_IO_HANDLE result = saslclientio_create(&saslclientio_config);
 
 	// assert
 	ASSERT_IS_NULL(result);
@@ -431,7 +425,7 @@ TEST_FUNCTION(saslclientio_destroy_frees_the_resources_allocated_in_create)
 	// arrange
 	saslclientio_mocks mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config);
 	mocks.ResetAllCalls();
 
 	EXPECTED_CALL(mocks, frame_codec_destroy(test_frame_codec));

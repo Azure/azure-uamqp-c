@@ -17,7 +17,7 @@ typedef struct WSIO_CONFIG_TAG
 	const char* trusted_ca;
 } WSIO_CONFIG;
 
-extern CONCRETE_IO_HANDLE wsio_create(void* io_create_parameters, LOGGER_LOG logger_log);
+extern CONCRETE_IO_HANDLE wsio_create(void* io_create_parameters);
 extern void wsio_destroy(CONCRETE_IO_HANDLE ws_io);
 extern int wsio_open(CONCRETE_IO_HANDLE ws_io, ON_IO_OPEN_COMPLETE on_io_open_complete, ON_BYTES_RECEIVED on_bytes_received, ON_IO_ERROR on_io_error, void* callback_context);
 extern int wsio_close(CONCRETE_IO_HANDLE ws_io, ON_IO_CLOSE_COMPLETE on_io_close_complete, void* callback_context);
@@ -31,7 +31,7 @@ extern const IO_INTERFACE_DESCRIPTION* wsio_get_interface_description(void);
 ###wsio_create
 
 ```C
-extern CONCRETE_IO_HANDLE wsio_create(void* io_create_parameters, LOGGER_LOG logger_log);
+extern CONCRETE_IO_HANDLE wsio_create(void* io_create_parameters);
 ```
 
 **SRS_WSIO_01_001: \[**wsio_create shall create an instance of a wsio and return a non-NULL handle to it.**\]**

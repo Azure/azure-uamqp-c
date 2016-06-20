@@ -182,7 +182,7 @@ static void on_underlying_io_error(void* context)
 	}
 }
 
-CONCRETE_IO_HANDLE headerdetectio_create(void* io_create_parameters, LOGGER_LOG logger_log)
+CONCRETE_IO_HANDLE headerdetectio_create(void* io_create_parameters)
 {
 	HEADER_DETECT_IO_INSTANCE* result;
 

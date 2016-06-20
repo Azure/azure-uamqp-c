@@ -9,7 +9,6 @@
 #include "azure_uamqp_c/session.h"
 #include "azure_uamqp_c/connection.h"
 #include "azure_uamqp_c/amqpalloc.h"
-#include "azure_uamqp_c/consolelogger.h"
 #include "azure_c_shared_utility/xlogging.h"
 
 typedef struct LINK_ENDPOINT_INSTANCE_TAG

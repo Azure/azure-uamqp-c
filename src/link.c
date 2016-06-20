@@ -14,7 +14,6 @@
 #include "azure_uamqp_c/amqp_definitions.h"
 #include "azure_uamqp_c/amqpalloc.h"
 #include "azure_uamqp_c/amqp_frame_codec.h"
-#include "azure_uamqp_c/consolelogger.h"
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_c_shared_utility/list.h"
 

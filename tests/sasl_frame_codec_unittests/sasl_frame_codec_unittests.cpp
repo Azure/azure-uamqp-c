@@ -93,7 +93,7 @@ public:
 	MOCK_VOID_METHOD_END();
 
 	/* frame_codec mocks */
-	MOCK_STATIC_METHOD_3(, FRAME_CODEC_HANDLE, frame_codec_create, ON_FRAME_CODEC_ERROR, frame_codec_error_callback, void*, frame_codec_error_callback_context, LOGGER_LOG, logger_log);
+	MOCK_STATIC_METHOD_2(, FRAME_CODEC_HANDLE, frame_codec_create, ON_FRAME_CODEC_ERROR, frame_codec_error_callback, void*, frame_codec_error_callback_context);
 	MOCK_METHOD_END(FRAME_CODEC_HANDLE, TEST_FRAME_CODEC_HANDLE);
 	MOCK_STATIC_METHOD_1(, void, frame_codec_destroy, FRAME_CODEC_HANDLE, frame_codec);
 	MOCK_VOID_METHOD_END();
@@ -156,7 +156,7 @@ extern "C"
 	DECLARE_GLOBAL_MOCK_METHOD_1(sasl_frame_codec_mocks, , AMQP_VALUE, amqpvalue_get_inplace_descriptor, AMQP_VALUE, value);
 	DECLARE_GLOBAL_MOCK_METHOD_1(sasl_frame_codec_mocks, , void, amqpvalue_destroy, AMQP_VALUE, value);
 
-	DECLARE_GLOBAL_MOCK_METHOD_3(sasl_frame_codec_mocks, , FRAME_CODEC_HANDLE, frame_codec_create, ON_FRAME_CODEC_ERROR, frame_codec_error_callback, void*, frame_codec_error_callback_context, LOGGER_LOG, logger_log);
+	DECLARE_GLOBAL_MOCK_METHOD_2(sasl_frame_codec_mocks, , FRAME_CODEC_HANDLE, frame_codec_create, ON_FRAME_CODEC_ERROR, frame_codec_error_callback, void*, frame_codec_error_callback_context);
 	DECLARE_GLOBAL_MOCK_METHOD_1(sasl_frame_codec_mocks, , void, frame_codec_destroy, FRAME_CODEC_HANDLE, frame_codec);
 	DECLARE_GLOBAL_MOCK_METHOD_4(sasl_frame_codec_mocks, , int, frame_codec_subscribe, FRAME_CODEC_HANDLE, frame_codec, uint8_t, type, ON_FRAME_RECEIVED, frame_received_callback, void*, callback_context);
 	DECLARE_GLOBAL_MOCK_METHOD_2(sasl_frame_codec_mocks, , int, frame_codec_unsubscribe, FRAME_CODEC_HANDLE, frame_codec, uint8_t, type);
@@ -171,11 +171,6 @@ extern "C"
 
 	DECLARE_GLOBAL_MOCK_METHOD_2(sasl_frame_codec_mocks, , void, test_on_sasl_frame_received, void*, context, AMQP_VALUE, sasl_frame_value);
 	DECLARE_GLOBAL_MOCK_METHOD_1(sasl_frame_codec_mocks, , void, test_on_sasl_frame_codec_error, void*, context);
-
-	extern void consolelogger_log(char* format, ...)
-	{
-		(void)format;
-	}
 
 	extern void test_on_bytes_encoded(void* context, const unsigned char* bytes, size_t length, bool encode_complete)
 	{

@@ -5,7 +5,6 @@
 #define FRAME_CODEC_H
 
 #include "azure_c_shared_utility/xio.h"
-#include "azure_c_shared_utility/xlogging.h"
 #include "azure_uamqp_c/amqpvalue.h"
 
 #ifdef __cplusplus
@@ -42,7 +41,7 @@ typedef struct PAYLOAD_TAG
 	typedef void(*ON_FRAME_CODEC_ERROR)(void* context);
 	typedef void(*ON_BYTES_ENCODED)(void* context, const unsigned char* bytes, size_t length, bool encode_complete);
 
-	extern FRAME_CODEC_HANDLE frame_codec_create(ON_FRAME_CODEC_ERROR on_frame_codec_error, void* callback_context, LOGGER_LOG logger_log);
+	extern FRAME_CODEC_HANDLE frame_codec_create(ON_FRAME_CODEC_ERROR on_frame_codec_error, void* callback_context);
 	extern void frame_codec_destroy(FRAME_CODEC_HANDLE frame_codec);
 	extern int frame_codec_set_max_frame_size(FRAME_CODEC_HANDLE frame_codec, uint32_t max_frame_size);
 	extern int frame_codec_subscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type, ON_FRAME_RECEIVED on_frame_received, void* callback_context);

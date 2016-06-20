@@ -57,7 +57,6 @@ typedef struct SASL_CLIENT_IO_INSTANCE_TAG
 	void* on_io_open_complete_context;
 	void* on_io_close_complete_context;
     void* on_io_error_context;
-	LOGGER_LOG logger_log;
 	SASL_HEADER_EXCHANGE_STATE sasl_header_exchange_state;
 	SASL_CLIENT_NEGOTIATION_STATE sasl_client_negotiation_state;
 	size_t header_bytes_received;
@@ -155,7 +154,7 @@ static int send_sasl_header(SASL_CLIENT_IO_INSTANCE* sasl_client_io_instance)
 	}
 	else
 	{
-		LOG(sasl_client_io_instance->logger_log, LOG_LINE, "-> Header (AMQP 3.1.0.0)");
+		LOG(LOG_TRACE, LOG_LINE, "-> Header (AMQP 3.1.0.0)");
 
 		result = 0;
 	}
@@ -262,15 +261,15 @@ static const char* get_frame_type_as_string(AMQP_VALUE descriptor)
 
 static void log_incoming_frame(SASL_CLIENT_IO_INSTANCE* sasl_client_io_instance, AMQP_VALUE performative)
 {
-	if (sasl_client_io_instance->logger_log != NULL)
+	if (xlogging_get_log_function() != NULL)
 	{
 		AMQP_VALUE descriptor = amqpvalue_get_inplace_descriptor(performative);
 		if (descriptor != NULL)
 		{
-			LOG(sasl_client_io_instance->logger_log, 0, "<- ");
-			LOG(sasl_client_io_instance->logger_log, 0, (char*)get_frame_type_as_string(descriptor));
+			LOG(LOG_TRACE, 0, "<- ");
+			LOG(LOG_TRACE, 0, (char*)get_frame_type_as_string(descriptor));
 			char* performative_as_string = NULL;
-			LOG(sasl_client_io_instance->logger_log, LOG_LINE, (performative_as_string = amqpvalue_to_string(performative)));
+			LOG(LOG_TRACE, LOG_LINE, (performative_as_string = amqpvalue_to_string(performative)));
 			if (performative_as_string != NULL)
 			{
 				amqpalloc_free(performative_as_string);
@@ -281,15 +280,15 @@ static void log_incoming_frame(SASL_CLIENT_IO_INSTANCE* sasl_client_io_instance,
 
 static void log_outgoing_frame(SASL_CLIENT_IO_INSTANCE* sasl_client_io_instance, AMQP_VALUE performative)
 {
-	if (sasl_client_io_instance->logger_log != NULL)
+	if (xlogging_get_log_function() != NULL)
 	{
 		AMQP_VALUE descriptor = amqpvalue_get_inplace_descriptor(performative);
 		if (descriptor != NULL)
 		{
-			LOG(sasl_client_io_instance->logger_log, 0, "-> ");
-			LOG(sasl_client_io_instance->logger_log, 0, (char*)get_frame_type_as_string(descriptor));
+			LOG(LOG_TRACE, 0, "-> ");
+			LOG(LOG_TRACE, 0, (char*)get_frame_type_as_string(descriptor));
 			char* performative_as_string = NULL;
-			LOG(sasl_client_io_instance->logger_log, LOG_LINE, (performative_as_string = amqpvalue_to_string(performative)));
+			LOG(LOG_TRACE, LOG_LINE, (performative_as_string = amqpvalue_to_string(performative)));
 			if (performative_as_string != NULL)
 			{
 				amqpalloc_free(performative_as_string);
@@ -349,7 +348,7 @@ static int saslclientio_receive_byte(SASL_CLIENT_IO_INSTANCE* sasl_client_io_ins
 			sasl_client_io_instance->header_bytes_received++;
 			if (sasl_client_io_instance->header_bytes_received == sizeof(sasl_header))
 			{
-				LOG(sasl_client_io_instance->logger_log, LOG_LINE, "<- Header (AMQP 3.1.0.0)");
+				LOG(LOG_TRACE, LOG_LINE, "<- Header (AMQP 3.1.0.0)");
 
 				switch (sasl_client_io_instance->sasl_header_exchange_state)
 				{
@@ -808,7 +807,7 @@ static void sasl_frame_received_callback(void* context, AMQP_VALUE sasl_frame)
 				}
 				else
 				{
-					LOG(sasl_client_io_instance->logger_log, LOG_LINE, "Bad SASL frame");
+					LogError("Bad SASL frame");
 				}
 			}
 		}
@@ -834,7 +833,7 @@ static void on_sasl_frame_codec_error(void* context)
 	handle_error(sasl_client_io_instance);
 }
 
-CONCRETE_IO_HANDLE saslclientio_create(void* io_create_parameters, LOGGER_LOG logger_log)
+CONCRETE_IO_HANDLE saslclientio_create(void* io_create_parameters)
 {
 	SASLCLIENTIO_CONFIG* sasl_client_io_config = io_create_parameters;
 	SASL_CLIENT_IO_INSTANCE* result;
@@ -862,7 +861,7 @@ CONCRETE_IO_HANDLE saslclientio_create(void* io_create_parameters, LOGGER_LOG lo
 			else
 			{
 				/* Codes_SRS_SASLCLIENTIO_01_089: [saslclientio_create shall create a frame_codec to be used for encoding/decoding frames bycalling frame_codec_create and passing the underlying_io as argument.] */
-				result->frame_codec = frame_codec_create(on_frame_codec_error, result, logger_log);
+				result->frame_codec = frame_codec_create(on_frame_codec_error, result);
 				if (result->frame_codec == NULL)
 				{
 					/* Codes_SRS_SASLCLIENTIO_01_090: [If frame_codec_create fails, then saslclientio_create shall fail and return NULL.] */
@@ -886,7 +885,6 @@ CONCRETE_IO_HANDLE saslclientio_create(void* io_create_parameters, LOGGER_LOG lo
 						result->on_io_open_complete = NULL;
 						result->on_io_error = NULL;
 						result->on_io_close_complete = NULL;
-						result->logger_log = logger_log;
                         result->on_bytes_received_context = NULL;
 						result->on_io_open_complete_context = NULL;
 						result->on_io_close_complete_context = NULL;
@@ -1028,12 +1026,12 @@ int saslclientio_send(CONCRETE_IO_HANDLE sasl_client_io, const void* buffer, siz
 	{
 		SASL_CLIENT_IO_INSTANCE* sasl_client_io_instance = (SASL_CLIENT_IO_INSTANCE*)sasl_client_io;
 
-		if (sasl_client_io_instance->logger_log != NULL)
+		if (xlogging_get_log_function() != NULL)
 		{
 			size_t i;
 			for (i = 0; i < size; i++)
 			{
-				LOG(sasl_client_io_instance->logger_log, 0, " %02x", ((const unsigned char*)buffer)[i]);
+				LOG(LOG_TRACE, 0, " %02x", ((const unsigned char*)buffer)[i]);
 			}
 		}
 

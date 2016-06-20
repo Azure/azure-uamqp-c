@@ -9,13 +9,14 @@
 #include <stdbool.h>
 #include "azure_c_shared_utility/platform.h"
 #include "azure_c_shared_utility/tlsio.h"
+#include "azure_c_shared_utility/xlogging.h"
+#include "azure_c_shared_utility/consolelogger.h"
 #include "azure_uamqp_c/message_sender.h"
 #include "azure_uamqp_c/message.h"
 #include "azure_uamqp_c/messaging.h"
 #include "azure_uamqp_c/amqpalloc.h"
 #include "azure_uamqp_c/saslclientio.h"
 #include "azure_uamqp_c/sasl_mssbcbs.h"
-#include "azure_uamqp_c/consolelogger.h"
 #include "azure_uamqp_c/cbs.h"
 
 /* This sample connects to an IoTHub, authenticates using a CBS token and sends one message */
@@ -63,6 +64,7 @@ int main(int argc, char** argv)
 {
 	int result;
 
+    xlogging_set_log_function(consolelogger_log);
 	amqpalloc_set_memory_tracing_enabled(true);
 
 	if (platform_init() != 0)
@@ -87,11 +89,11 @@ int main(int argc, char** argv)
 		/* create the TLS IO */
         TLSIO_CONFIG tls_io_config = { IOT_HUB_HOST, 5671 };
 		const IO_INTERFACE_DESCRIPTION* tlsio_interface = platform_get_default_tlsio();
-		tls_io = xio_create(tlsio_interface, &tls_io_config, NULL);
+		tls_io = xio_create(tlsio_interface, &tls_io_config);
 
 		/* create the SASL client IO using the TLS IO */
 		SASLCLIENTIO_CONFIG sasl_io_config = { tls_io, sasl_mechanism_handle };
-		sasl_io = xio_create(saslclientio_get_interface_description(), &sasl_io_config, NULL);
+		sasl_io = xio_create(saslclientio_get_interface_description(), &sasl_io_config);
 
 		/* create the connection, session and link */
 		connection = connection_create(sasl_io, IOT_HUB_HOST, "some", NULL, NULL);

@@ -69,7 +69,7 @@ extern "C" {
     typedef bool(*ON_NEW_ENDPOINT)(void* context, ENDPOINT_HANDLE new_endpoint);
 
     extern CONNECTION_HANDLE connection_create(XIO_HANDLE io, const char* hostname, const char* container_id, ON_NEW_ENDPOINT on_new_endpoint, void* callback_context);
-    extern CONNECTION_HANDLE connection_create2(XIO_HANDLE xio, const char* hostname, const char* container_id, ON_NEW_ENDPOINT on_new_endpoint, void* callback_context, ON_CONNECTION_STATE_CHANGED on_connection_state_changed, void* on_connection_state_changed_context, ON_IO_ERROR on_io_error, void* on_io_error_context, LOGGER_LOG logger);
+    extern CONNECTION_HANDLE connection_create2(XIO_HANDLE xio, const char* hostname, const char* container_id, ON_NEW_ENDPOINT on_new_endpoint, void* callback_context, ON_CONNECTION_STATE_CHANGED on_connection_state_changed, void* on_connection_state_changed_context, ON_IO_ERROR on_io_error, void* on_io_error_context);
     extern void connection_destroy(CONNECTION_HANDLE connection);
     extern int connection_open(CONNECTION_HANDLE connection);
     extern int connection_listen(CONNECTION_HANDLE connection);

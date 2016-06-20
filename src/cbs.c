@@ -12,7 +12,6 @@
 #include "azure_uamqp_c/amqp_management.h"
 #include "azure_uamqp_c/amqpalloc.h"
 #include "azure_uamqp_c/session.h"
-#include "azure_uamqp_c/consolelogger.h"
 
 typedef struct CBS_INSTANCE_TAG
 {

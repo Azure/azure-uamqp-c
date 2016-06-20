@@ -31,7 +31,7 @@ connection is module that implements the connection layer in the AMQP ISO.
 	typedef void(*ON_CONNECTION_STATE_CHANGED)(void* context, CONNECTION_STATE new_connection_state, CONNECTION_STATE previous_connection_state);
 
 	extern CONNECTION_HANDLE connection_create(XIO_HANDLE xio, const char* hostname, const char* container_id);
-        extern CONNECTION_HANDLE connection_create2(XIO_HANDLE xio, const char* hostname, const char* container_id, ON_NEW_ENDPOINT on_new_endpoint, void* callback_context, ON_CONNECTION_STATE_CHANGED on_connection_state_changed, void* on_connection_state_changed_context, ON_IO_ERROR on_io_error, void* on_io_error_context, LOGGER_LOG logger);
+        extern CONNECTION_HANDLE connection_create2(XIO_HANDLE xio, const char* hostname, const char* container_id, ON_NEW_ENDPOINT on_new_endpoint, void* callback_context, ON_CONNECTION_STATE_CHANGED on_connection_state_changed, void* on_connection_state_changed_context, ON_IO_ERROR on_io_error, void* on_io_error_context);
 	extern int connection_set_max_frame_size(CONNECTION_HANDLE connection, uint32_t max_frame_size);
 	extern int connection_get_max_frame_size(CONNECTION_HANDLE connection, uint32_t* max_frame_size);
 	extern int connection_set_channel_max(CONNECTION_HANDLE connection, uint16_t channel_max);
@@ -66,8 +66,6 @@ extern CONNECTION_HANDLE connection_create(XIO_HANDLE xio, const char* container
 **SRS_CONNECTION_22_002: [**connection_create shall allow registering connections state and io error callbacks.**]** 
 **SRS_CONNECTION_22_001: [**If a connection state changed occurs and a callback is registered the callback shall be called.**]** 
 **SRS_CONNECTION_22_005: [**If the io notifies the connection instance of an IO_STATE_ERROR state and an io error callback is registered, the connection shall call the registered callback.**]**
-**SRS_CONNECTION_22_003: [**connection_create shall allow registering a custom logger instead of default console logger.**]** 
-**SRS_CONNECTION_22_004: [**If no logger is provided, log messages are sent to console_logger.**]** 
 
 ###connection_set_max_frame_size
 

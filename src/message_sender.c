@@ -118,8 +118,8 @@ static void log_message_chunk(MESSAGE_SENDER_INSTANCE* message_sender_instance, 
 	if (message_sender_instance->logger_log != NULL)
 	{
 		char* value_as_string = NULL;
-		LOG(message_sender_instance->logger_log, 0, "%s", name);
-		LOG(message_sender_instance->logger_log, 0, "%s", (value_as_string = amqpvalue_to_string(value)));
+		LOG(LOG_TRACE, 0, "%s", name);
+		LOG(LOG_TRACE, 0, "%s", (value_as_string = amqpvalue_to_string(value)));
 		if (value_as_string != NULL)
 		{
 			amqpalloc_free(value_as_string);

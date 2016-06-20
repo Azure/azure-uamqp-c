@@ -9,13 +9,14 @@
 #include <stdbool.h>
 #include "azure_c_shared_utility/platform.h"
 #include "azure_c_shared_utility/xio.h"
+#include "azure_c_shared_utility/xlogging.h"
+#include "azure_c_shared_utility/consolelogger.h"
 #include "azure_uamqp_c/message_receiver.h"
 #include "azure_uamqp_c/message.h"
 #include "azure_uamqp_c/messaging.h"
 #include "azure_uamqp_c/amqpalloc.h"
 #include "azure_uamqp_c/socket_listener.h"
 #include "azure_uamqp_c/header_detect_io.h"
-#include "azure_uamqp_c/consolelogger.h"
 #include "azure_uamqp_c/connection.h"
 #include "azure_uamqp_c/session.h"
 #include "azure_uamqp_c/link.h"
@@ -61,7 +62,7 @@ static bool on_new_session_endpoint(void* context, ENDPOINT_HANDLE new_endpoint)
 static void on_socket_accepted(void* context, XIO_HANDLE io)
 {
 	HEADERDETECTIO_CONFIG header_detect_io_config = { io };
-	XIO_HANDLE header_detect_io = xio_create(headerdetectio_get_interface_description(), &header_detect_io_config, NULL);
+	XIO_HANDLE header_detect_io = xio_create(headerdetectio_get_interface_description(), &header_detect_io_config);
 	connection = connection_create(header_detect_io, NULL, "1", on_new_session_endpoint, NULL);
 	connection_listen(connection);
 }
@@ -70,6 +71,7 @@ int main(int argc, char** argv)
 {
 	int result;
 
+    xlogging_set_log_function(consolelogger_log);
 	amqpalloc_set_memory_tracing_enabled(true);
 
 	if (platform_init() != 0)

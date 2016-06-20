@@ -15,7 +15,6 @@
 #include "azure_uamqp_c/message_receiver.h"
 #include "azure_uamqp_c/messaging.h"
 #include "azure_uamqp_c/amqpvalue_to_string.h"
-#include "azure_uamqp_c/consolelogger.h"
 
 typedef enum OPERATION_STATE_TAG
 {

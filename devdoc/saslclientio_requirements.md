@@ -13,7 +13,7 @@ typedef struct SASLCLIENTIO_CONFIG_TAG
 	SASL_MECHANISM_HANDLE sasl_mechanism;
 } SASLCLIENTIO_CONFIG;
 
-extern CONCRETE_IO_HANDLE saslclientio_create(void* io_create_parameters, LOGGER_LOG logger_log);
+extern CONCRETE_IO_HANDLE saslclientio_create(void* io_create_parameters);
 extern void saslclientio_destroy(CONCRETE_IO_HANDLE sasl_client_io);
 extern int saslclientio_open(CONCRETE_IO_HANDLE sasl_client_io, ON_BYTES_RECEIVED on_bytes_received, ON_IO_STATE_CHANGED on_io_state_changed, void* callback_context);
 extern int saslclientio_close(CONCRETE_IO_HANDLE sasl_client_io);
@@ -27,7 +27,7 @@ extern const IO_INTERFACE_DESCRIPTION* saslclientio_get_interface_description(vo
 ###saslclientio_create
 
 ```C
-extern CONCRETE_IO_HANDLE saslclientio_create(void* io_create_parameters, LOGGER_LOG logger_log);
+extern CONCRETE_IO_HANDLE saslclientio_create(void* io_create_parameters);
 ```
 
 **SRS_SASLCLIENTIO_01_004: [**saslclientio_create shall return on success a non-NULL handle to a new SASL client IO instance.**]** 

@@ -147,11 +147,9 @@ set(uamqp_h_files
     ./inc/azure_uamqp_c/amqpvalue_to_string.h
     ./inc/azure_uamqp_c/cbs.h
     ./inc/azure_uamqp_c/connection.h
-    ./inc/azure_uamqp_c/consolelogger.h
     ./inc/azure_uamqp_c/frame_codec.h
     ./inc/azure_uamqp_c/header_detect_io.h
     ./inc/azure_uamqp_c/link.h
-    ./inc/azure_uamqp_c/logger.h
     ./inc/azure_uamqp_c/message.h
     ./inc/azure_uamqp_c/message_receiver.h
     ./inc/azure_uamqp_c/message_sender.h
@@ -175,7 +173,6 @@ set(uamqp_c_files
     ./src/amqpvalue_to_string.c
     ./src/cbs.c
     ./src/connection.c
-    ./src/consolelogger.c
     ./src/frame_codec.c
     ./src/header_detect_io.c
     ./src/link.c

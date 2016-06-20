@@ -90,7 +90,7 @@ TYPED_MOCK_CLASS(connection_mocks, CGlobalMock)
 {
 public:
     /* xio mocks */
-    MOCK_STATIC_METHOD_3(, XIO_HANDLE, xio_create, const IO_INTERFACE_DESCRIPTION*, io_interface_description, const void*, io_create_parameters, LOGGER_LOG, logger_log)
+    MOCK_STATIC_METHOD_2(, XIO_HANDLE, xio_create, const IO_INTERFACE_DESCRIPTION*, io_interface_description, const void*, io_create_parameters)
     MOCK_METHOD_END(XIO_HANDLE, TEST_IO_HANDLE);
     MOCK_STATIC_METHOD_1(, void, xio_destroy, XIO_HANDLE, xio)
     MOCK_VOID_METHOD_END();
@@ -117,7 +117,7 @@ public:
     MOCK_VOID_METHOD_END();
 
     /* frame_codec */
-    MOCK_STATIC_METHOD_3(, FRAME_CODEC_HANDLE, frame_codec_create, ON_FRAME_CODEC_ERROR, on_frame_codec_error, void*, callback_context, LOGGER_LOG, logger_log)
+    MOCK_STATIC_METHOD_2(, FRAME_CODEC_HANDLE, frame_codec_create, ON_FRAME_CODEC_ERROR, on_frame_codec_error, void*, callback_context)
     MOCK_METHOD_END(FRAME_CODEC_HANDLE, TEST_FRAME_CODEC_HANDLE);
     MOCK_STATIC_METHOD_1(, void, frame_codec_destroy, FRAME_CODEC_HANDLE, frame_codec)
     MOCK_VOID_METHOD_END();
@@ -213,7 +213,7 @@ public:
 
 extern "C"
 {
-    DECLARE_GLOBAL_MOCK_METHOD_3(connection_mocks, , XIO_HANDLE, xio_create, const IO_INTERFACE_DESCRIPTION*, io_interface_description, const void*, io_create_parameters, LOGGER_LOG, logger_log);
+    DECLARE_GLOBAL_MOCK_METHOD_2(connection_mocks, , XIO_HANDLE, xio_create, const IO_INTERFACE_DESCRIPTION*, io_interface_description, const void*, io_create_parameters);
     DECLARE_GLOBAL_MOCK_METHOD_1(connection_mocks, , void, xio_destroy, XIO_HANDLE, xio);
     DECLARE_GLOBAL_MOCK_METHOD_7(connection_mocks, , int, xio_open, XIO_HANDLE, xio, ON_IO_OPEN_COMPLETE, on_io_open_complete, void*, on_io_open_complete_context, ON_BYTES_RECEIVED, on_bytes_received, void*, on_bytes_received_context, ON_IO_ERROR, on_io_error, void*, on_io_error_context);
     DECLARE_GLOBAL_MOCK_METHOD_3(connection_mocks, , int, xio_close, XIO_HANDLE, xio, ON_IO_CLOSE_COMPLETE, on_io_close_complete, void*, callback_context);
@@ -224,7 +224,7 @@ extern "C"
     DECLARE_GLOBAL_MOCK_METHOD_2(connection_mocks, , void*, amqpalloc_realloc, void*, ptr, size_t, size);
     DECLARE_GLOBAL_MOCK_METHOD_1(connection_mocks, , void, amqpalloc_free, void*, ptr);
 
-    DECLARE_GLOBAL_MOCK_METHOD_3(connection_mocks, , FRAME_CODEC_HANDLE, frame_codec_create, ON_FRAME_CODEC_ERROR, on_frame_codec_error, void*, callback_context, LOGGER_LOG, logger_log);
+    DECLARE_GLOBAL_MOCK_METHOD_2(connection_mocks, , FRAME_CODEC_HANDLE, frame_codec_create, ON_FRAME_CODEC_ERROR, on_frame_codec_error, void*, callback_context);
     DECLARE_GLOBAL_MOCK_METHOD_1(connection_mocks, , void, frame_codec_destroy, FRAME_CODEC_HANDLE, frame_codec);
     DECLARE_GLOBAL_MOCK_METHOD_3(connection_mocks, , int, frame_codec_receive_bytes, FRAME_CODEC_HANDLE, frame_codec, const unsigned char*, buffer, size_t, size);
     DECLARE_GLOBAL_MOCK_METHOD_2(connection_mocks, , int, frame_codec_set_max_frame_size, FRAME_CODEC_HANDLE, frame_codec, uint32_t, max_frame_size);
@@ -3623,7 +3623,6 @@ static void TEST_on_io_error(void* context)
 }
 
 /* Tests_SRS_CONNECTION_22_002: [connection_create shall allow registering connections state and io error callbacks.] */
-/* Tests_SRS_CONNECTION_22_003: [connection_create shall allow registering a custom logger instead of default console logger.] */
 TEST_FUNCTION(connection_create2_with_valid_args_succeeds)
 {
     // arrange
@@ -3631,7 +3630,7 @@ TEST_FUNCTION(connection_create2_with_valid_args_succeeds)
     amqp_definitions_mocks definition_mocks;
 
     EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORE));
-    EXPECTED_CALL(mocks, frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    EXPECTED_CALL(mocks, frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
     EXPECTED_CALL(mocks, amqp_frame_codec_create(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgument(1);
     EXPECTED_CALL(mocks, tickcounter_create());
@@ -3639,7 +3638,7 @@ TEST_FUNCTION(connection_create2_with_valid_args_succeeds)
     EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORE));
 
     // act
-    CONNECTION_HANDLE connection = connection_create2(TEST_IO_HANDLE, "testhost", test_container_id, NULL, NULL, NULL, TEST_IO_HANDLE, TEST_on_io_error, TEST_CONTEXT, NULL);
+    CONNECTION_HANDLE connection = connection_create2(TEST_IO_HANDLE, "testhost", test_container_id, NULL, NULL, NULL, TEST_IO_HANDLE, TEST_on_io_error, TEST_CONTEXT);
 
     // assert
     ASSERT_IS_NOT_NULL(connection);
@@ -3671,7 +3670,7 @@ TEST_FUNCTION(connection_set_trace_succeeds)
 {
     // arrange
     connection_mocks mocks;
-    CONNECTION_HANDLE connection = connection_create2(TEST_IO_HANDLE, "testhost", test_container_id, NULL, NULL, NULL, TEST_IO_HANDLE, TEST_on_io_error, TEST_CONTEXT, NULL);
+    CONNECTION_HANDLE connection = connection_create2(TEST_IO_HANDLE, "testhost", test_container_id, NULL, NULL, NULL, TEST_IO_HANDLE, TEST_on_io_error, TEST_CONTEXT);
     mocks.ResetAllCalls();
 
     // act

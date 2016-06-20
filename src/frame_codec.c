@@ -43,8 +43,6 @@ typedef struct SUBSCRIPTION_TAG
 
 typedef struct FRAME_CODEC_INSTANCE_TAG
 {
-	LOGGER_LOG logger_log;
-
 	/* subscriptions */
 	LIST_HANDLE subscription_list;
 
@@ -84,7 +82,7 @@ static bool find_subscription_by_frame_type(LIST_ITEM_HANDLE list_item, const vo
 	return result;
 }
 
-FRAME_CODEC_HANDLE frame_codec_create(ON_FRAME_CODEC_ERROR on_frame_codec_error, void* callback_context, LOGGER_LOG logger_log)
+FRAME_CODEC_HANDLE frame_codec_create(ON_FRAME_CODEC_ERROR on_frame_codec_error, void* callback_context)
 {
 	FRAME_CODEC_INSTANCE* result;
 
@@ -101,7 +99,6 @@ FRAME_CODEC_HANDLE frame_codec_create(ON_FRAME_CODEC_ERROR on_frame_codec_error,
 		if (result != NULL)
 		{
 			/* Codes_SRS_FRAME_CODEC_01_021: [frame_codec_create shall create a new instance of frame_codec and return a non-NULL handle to it on success.] */
-			result->logger_log = logger_log;
 			result->encode_frame_state = ENCODE_FRAME_STATE_IDLE;
 			result->receive_frame_state = RECEIVE_FRAME_STATE_FRAME_SIZE;
 			result->on_frame_codec_error = on_frame_codec_error;

@@ -145,7 +145,7 @@ void socketlistener_dowork(SOCKET_LISTENER_HANDLE socket_listener)
 			if (socket_listener_instance->on_socket_accepted != NULL)
 			{
 				SOCKETIO_CONFIG socketio_config = { NULL, socket_listener_instance->port, &accepted_socket };
-				XIO_HANDLE io = xio_create(socketio_get_interface_description(), &socketio_config, NULL);
+				XIO_HANDLE io = xio_create(socketio_get_interface_description(), &socketio_config);
 				if (io == NULL)
 				{
 					(void)closesocket(accepted_socket);

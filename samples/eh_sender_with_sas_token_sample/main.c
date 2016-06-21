@@ -170,7 +170,7 @@ int main(int argc, char** argv)
 		message_add_body_amqp_data(message, binary_data);
 
 		/* create a message sender */
-		message_sender = messagesender_create(link, NULL, NULL, NULL);
+		message_sender = messagesender_create(link, NULL, NULL);
 		if (messagesender_open(message_sender) == 0)
 		{
 			uint32_t i;

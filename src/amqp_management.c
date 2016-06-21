@@ -476,7 +476,7 @@ AMQP_MANAGEMENT_HANDLE amqpmanagement_create(SESSION_HANDLE session, const char*
 									}
 									else
 									{
-										result->message_sender = messagesender_create(result->sender_link, on_message_sender_state_changed, result, NULL);
+										result->message_sender = messagesender_create(result->sender_link, on_message_sender_state_changed, result);
 										if (result->message_sender == NULL)
 										{
 											link_destroy(result->sender_link);

@@ -5,7 +5,7 @@ uAMQP is a general purpose C library for AMQP.
 The goal is to be as compliant with the standard as possible while optimizing for low RAM footprint and also being portable.
 
 It is currently a client side implementation only. Although much of the standard is symmetrical, there are parts that are asymmetrical, like the SASL handshake.
-Currently uAMQP does not provide the server side for these asymmetrical protions of the ISO.
+Currently uAMQP does not provide the server side for these asymmetrical portions of the ISO.
 
 ## Dependencies
 

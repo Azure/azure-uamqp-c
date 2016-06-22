@@ -1026,15 +1026,6 @@ int saslclientio_send(CONCRETE_IO_HANDLE sasl_client_io, const void* buffer, siz
 	{
 		SASL_CLIENT_IO_INSTANCE* sasl_client_io_instance = (SASL_CLIENT_IO_INSTANCE*)sasl_client_io;
 
-		if (xlogging_get_log_function() != NULL)
-		{
-			size_t i;
-			for (i = 0; i < size; i++)
-			{
-				LOG(LOG_TRACE, 0, " %02x", ((const unsigned char*)buffer)[i]);
-			}
-		}
-
 		/* Codes_SRS_SASLCLIENTIO_01_019: [If saslclientio_send is called while the SASL client IO state is not IO_STATE_OPEN, saslclientio_send shall fail and return a non-zero value.] */
 		if (sasl_client_io_instance->io_state != IO_STATE_OPEN)
 		{

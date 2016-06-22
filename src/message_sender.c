@@ -6,9 +6,9 @@
 #include <crtdbg.h>
 #endif
 #include <string.h>
+#include "azure_c_shared_utility/xlogging.h"
 #include "azure_uamqp_c/message_sender.h"
 #include "azure_uamqp_c/amqpalloc.h"
-#include "azure_c_shared_utility/xlogging.h"
 #include "azure_uamqp_c/amqpvalue_to_string.h"
 
 typedef enum MESSAGE_SEND_STATE_TAG
@@ -41,7 +41,6 @@ typedef struct MESSAGE_SENDER_INSTANCE_TAG
 	MESSAGE_SENDER_STATE message_sender_state;
 	ON_MESSAGE_SENDER_STATE_CHANGED on_message_sender_state_changed;
 	void* on_message_sender_state_changed_context;
-	LOGGER_LOG logger_log;
 } MESSAGE_SENDER_INSTANCE;
 
 static void remove_pending_message_by_index(MESSAGE_SENDER_INSTANCE* message_sender_instance, size_t index)
@@ -115,7 +114,7 @@ static int encode_bytes(void* context, const unsigned char* bytes, size_t length
 
 static void log_message_chunk(MESSAGE_SENDER_INSTANCE* message_sender_instance, const char* name, AMQP_VALUE value)
 {
-	if (message_sender_instance->logger_log != NULL)
+	if (xlogging_get_log_function() != NULL)
 	{
 		char* value_as_string = NULL;
 		LOG(LOG_TRACE, 0, "%s", name);
@@ -496,7 +495,7 @@ static void on_link_flow_on(void* context)
 	send_all_pending_messages(message_sender_instance);
 }
 
-MESSAGE_SENDER_HANDLE messagesender_create(LINK_HANDLE link, ON_MESSAGE_SENDER_STATE_CHANGED on_message_sender_state_changed, void* context, LOGGER_LOG logger_log)
+MESSAGE_SENDER_HANDLE messagesender_create(LINK_HANDLE link, ON_MESSAGE_SENDER_STATE_CHANGED on_message_sender_state_changed, void* context)
 {
 	MESSAGE_SENDER_INSTANCE* result = amqpalloc_malloc(sizeof(MESSAGE_SENDER_INSTANCE));
 	if (result != NULL)
@@ -507,7 +506,6 @@ MESSAGE_SENDER_HANDLE messagesender_create(LINK_HANDLE link, ON_MESSAGE_SENDER_S
 		result->on_message_sender_state_changed = on_message_sender_state_changed;
 		result->on_message_sender_state_changed_context = context;
 		result->message_sender_state = MESSAGE_SENDER_STATE_IDLE;
-		result->logger_log = logger_log;
 	}
 
 	return result;

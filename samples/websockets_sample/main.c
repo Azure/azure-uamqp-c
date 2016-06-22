@@ -15,7 +15,6 @@
 #include "azure_uamqp_c/saslclientio.h"
 #include "azure_uamqp_c/sasl_mssbcbs.h"
 #include "azure_uamqp_c/wsio.h"
-#include "azure_uamqp_c/consolelogger.h"
 #include "azure_uamqp_c/cbs.h"
 #include "iothub_certs.h"
 

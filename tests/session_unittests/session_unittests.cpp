@@ -121,11 +121,6 @@ extern "C"
 	DECLARE_GLOBAL_MOCK_METHOD_3(session_mocks, , void, test_on_session_state_changed, void*, context, SESSION_STATE, new_session_state, SESSION_STATE, previous_session_state);
 	DECLARE_GLOBAL_MOCK_METHOD_1(session_mocks, , void, test_on_flow_on, void*, context);
 	DECLARE_GLOBAL_MOCK_METHOD_2(session_mocks, , void, test_on_send_complete, void*, context, IO_SEND_RESULT, send_result);
-
-	extern void consolelogger_log(char* format, ...)
-	{
-		(void)format;
-	}
 }
 
 MICROMOCK_MUTEX_HANDLE test_serialize_mutex;

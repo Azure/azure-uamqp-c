@@ -15,8 +15,6 @@
 #include "azure_uamqp_c/amqpalloc.h"
 #include "azure_uamqp_c/saslclientio.h"
 #include "azure_uamqp_c/sasl_plain.h"
-#include "azure_c_shared_utility/consolelogger.h"
-#include "azure_c_shared_utility/xlogging.h"
 #include "azure_uamqp_c/cbs.h"
 
 #if _WIN32
@@ -46,7 +44,6 @@ int main(int argc, char** argv)
 {
 	int result;
 
-    xlogging_set_log_function(consolelogger_log);
 	amqpalloc_set_memory_tracing_enabled(true);
 
 	if (platform_init() != 0)

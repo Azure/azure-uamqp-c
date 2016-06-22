@@ -9,8 +9,6 @@
 #include <stdbool.h>
 #include "azure_c_shared_utility/platform.h"
 #include "azure_c_shared_utility/tlsio.h"
-#include "azure_c_shared_utility/xlogging.h"
-#include "azure_c_shared_utility/consolelogger.h"
 #include "azure_uamqp_c/message_sender.h"
 #include "azure_uamqp_c/message.h"
 #include "azure_uamqp_c/messaging.h"
@@ -64,7 +62,6 @@ int main(int argc, char** argv)
 {
 	int result;
 
-    xlogging_set_log_function(consolelogger_log);
 	amqpalloc_set_memory_tracing_enabled(true);
 
 	if (platform_init() != 0)

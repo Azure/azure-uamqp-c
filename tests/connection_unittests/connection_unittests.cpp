@@ -257,11 +257,6 @@ extern "C"
     DECLARE_GLOBAL_MOCK_METHOD_1(connection_mocks, , void, tickcounter_destroy, TICK_COUNTER_HANDLE, tick_counter);
     DECLARE_GLOBAL_MOCK_METHOD_2(connection_mocks, , int, tickcounter_get_current_ms, TICK_COUNTER_HANDLE, tick_counter, uint64_t*, current_ms);
 
-    extern void consolelogger_log(char* format, ...)
-    {
-        (void)format;
-    }
-
     extern void test_on_send_complete(void* context, IO_SEND_RESULT io_send_result)
     {
         (void)context, io_send_result;

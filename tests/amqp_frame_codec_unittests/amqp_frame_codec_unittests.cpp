@@ -205,11 +205,6 @@ extern "C"
     DECLARE_GLOBAL_MOCK_METHOD_5(amqp_frame_codec_mocks, , void, amqp_frame_received_callback_1, void*, context, uint16_t, channel, AMQP_VALUE, performative, const unsigned char*, payload_bytes, uint32_t, frame_payload_size);
     DECLARE_GLOBAL_MOCK_METHOD_1(amqp_frame_codec_mocks, , void, test_amqp_frame_codec_error, void*, context);
 
-    extern void consolelogger_log(char* format, ...)
-    {
-        (void)format;
-    }
-
     extern void test_on_bytes_encoded(void* context, const unsigned char* bytes, size_t length, bool encode_complete)
     {
         (void)context, bytes, length, encode_complete;

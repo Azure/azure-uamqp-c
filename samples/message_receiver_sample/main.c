@@ -15,8 +15,6 @@
 #include "azure_uamqp_c/amqpalloc.h"
 #include "azure_uamqp_c/saslclientio.h"
 #include "azure_uamqp_c/sasl_plain.h"
-#include "azure_c_shared_utility/xlogging.h"
-#include "azure_c_shared_utility/consolelogger.h"
 
 /* This sample connects to an Event Hub, authenticates using SASL PLAIN (key name/key) and then it received all messages for partition 0 */
 /* Replace the below settings with your own.*/
@@ -44,7 +42,6 @@ int main(int argc, char** argv)
 	LINK_HANDLE link = NULL;
 	MESSAGE_RECEIVER_HANDLE message_receiver = NULL;
 
-    xlogging_set_log_function(consolelogger_log);
 	amqpalloc_set_memory_tracing_enabled(true);
 
 	if (platform_init() != 0)

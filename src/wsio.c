@@ -418,6 +418,8 @@ static int on_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
         case IO_STATE_NOT_OPEN:
         case IO_STATE_OPENING:
         {
+            if (wsio_instance->trusted_ca != NULL)
+            {
             /* Codes_SRS_WSIO_01_089: [When LWS_CALLBACK_OPENSSL_LOAD_EXTRA_CLIENT_VERIFY_CERTS is triggered, the certificates passed in the trusted_ca member of WSIO_CONFIG passed in wsio_init shall be loaded in the certificate store.] */
             /* Codes_SRS_WSIO_01_131: [Get the certificate store for the OpenSSL context by calling SSL_CTX_get_cert_store] */
             /* Codes_SRS_WSIO_01_090: [The OpenSSL certificate store is passed in the user argument.] */
@@ -500,7 +502,7 @@ static int on_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
             break;
         }
         }
-
+        }
 		break;
 	}
 

@@ -86,11 +86,11 @@ int main(int argc, char** argv)
 		/* create the TLS IO */
 		WSIO_CONFIG ws_io_config = { IOT_HUB_HOST, 443, "AMQPWSB10",  "/$iothub/websocket", true, iothub_certs };
 		const IO_INTERFACE_DESCRIPTION* tlsio_interface = wsio_get_interface_description();
-		ws_io = xio_create(tlsio_interface, &ws_io_config, NULL);
+		ws_io = xio_create(tlsio_interface, &ws_io_config);
 
 		/* create the SASL IO using the WS IO */
 		SASLCLIENTIO_CONFIG sasl_io_config = { ws_io, sasl_mechanism_handle };
-		sasl_io = xio_create(saslclientio_get_interface_description(), &sasl_io_config, NULL);
+		sasl_io = xio_create(saslclientio_get_interface_description(), &sasl_io_config);
 
 		/* create the connection, session and link */
 		connection = connection_create(sasl_io, IOT_HUB_HOST, "some", NULL, NULL);
@@ -134,7 +134,7 @@ int main(int argc, char** argv)
 		message_add_body_amqp_data(message, binary_data);
 
 		/* create a message sender */
-		message_sender = messagesender_create(link, NULL, NULL, NULL);
+		message_sender = messagesender_create(link, NULL, NULL);
 		if (messagesender_open(message_sender) == 0)
 		{
 			uint32_t i;

@@ -318,12 +318,6 @@ extern "C"
     DECLARE_GLOBAL_MOCK_METHOD_1(wsio_mocks, , void, test_on_io_error, void*, context);
     DECLARE_GLOBAL_MOCK_METHOD_1(wsio_mocks, , void, test_on_io_close_complete, void*, context);
     DECLARE_GLOBAL_MOCK_METHOD_2(wsio_mocks, , void, test_on_send_complete, void*, context, IO_SEND_RESULT, send_result);
-
-    extern void test_logger_log(unsigned int options, char* format, ...)
-	{
-        (void)options;
-		(void)format;
-	}
 }
 
 MICROMOCK_MUTEX_HANDLE test_serialize_mutex;
@@ -380,7 +374,7 @@ TEST_FUNCTION(wsio_create_with_valid_args_succeeds)
     EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
 
 	// act
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
 
 	// assert
 	ASSERT_IS_NOT_NULL(wsio);
@@ -397,7 +391,7 @@ TEST_FUNCTION(wsio_create_with_NULL_io_create_parameters_fails)
     wsio_mocks mocks;
 
     // act
-    CONCRETE_IO_HANDLE wsio = wsio_create(NULL, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(NULL);
 
     // assert
     ASSERT_IS_NULL(wsio);
@@ -419,7 +413,7 @@ TEST_FUNCTION(wsio_create_with_NULL_hostname_fails)
     };
 
     // act
-    CONCRETE_IO_HANDLE wsio = wsio_create(&test_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&test_wsio_config);
 
     // assert
     ASSERT_IS_NULL(wsio);
@@ -441,7 +435,7 @@ TEST_FUNCTION(wsio_create_with_NULL_protocol_name_fails)
     };
 
     // act
-    CONCRETE_IO_HANDLE wsio = wsio_create(&test_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&test_wsio_config);
 
     // assert
     ASSERT_IS_NULL(wsio);
@@ -463,7 +457,7 @@ TEST_FUNCTION(wsio_create_with_NULL_relative_path_fails)
     };
 
     // act
-    CONCRETE_IO_HANDLE wsio = wsio_create(&test_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&test_wsio_config);
 
     // assert
     ASSERT_IS_NULL(wsio);
@@ -493,7 +487,7 @@ TEST_FUNCTION(wsio_create_with_NULL_trusted_ca_and_the_Rest_of_the_args_valid_su
     EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
 
     // act
-    CONCRETE_IO_HANDLE wsio = wsio_create(&test_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&test_wsio_config);
 
     // assert
     ASSERT_IS_NOT_NULL(wsio);
@@ -513,7 +507,7 @@ TEST_FUNCTION(when_allocating_memory_for_the_instance_fails_wsio_create_fails)
         .SetReturn((void*)NULL);
 
     // act
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
 
     // assert
     ASSERT_IS_NULL(wsio);
@@ -531,7 +525,7 @@ TEST_FUNCTION(when_creating_the_pending_io_list_fails_wsio_create_fails)
     EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
 
     // act
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
 
     // assert
     ASSERT_IS_NULL(wsio);
@@ -551,7 +545,7 @@ TEST_FUNCTION(when_allocating_memory_for_the_host_name_fails_wsio_create_fails)
     EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
 
     // act
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
 
     // assert
     ASSERT_IS_NULL(wsio);
@@ -573,7 +567,7 @@ TEST_FUNCTION(when_allocating_memory_for_the_protocol_name_fails_wsio_create_fai
     EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
 
     // act
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
 
     // assert
     ASSERT_IS_NULL(wsio);
@@ -597,7 +591,7 @@ TEST_FUNCTION(when_allocating_memory_for_the_relative_path_fails_wsio_create_fai
     EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
 
     // act
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
 
     // assert
     ASSERT_IS_NULL(wsio);
@@ -623,7 +617,7 @@ TEST_FUNCTION(when_allocating_memory_for_the_protocols_fails_wsio_create_fails)
     EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
 
     // act
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
 
     // assert
     ASSERT_IS_NULL(wsio);
@@ -651,7 +645,7 @@ TEST_FUNCTION(when_allocating_memory_for_the_trusted_ca_fails_wsio_create_fails)
     EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
 
     // act
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
 
     // assert
     ASSERT_IS_NULL(wsio);
@@ -664,7 +658,7 @@ TEST_FUNCTION(when_wsio_destroy_is_called_all_resources_are_freed)
 {
     // arrange
     wsio_mocks mocks;
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     mocks.ResetAllCalls();
 
     STRICT_EXPECTED_CALL(mocks, list_destroy(TEST_LIST_HANDLE));
@@ -700,7 +694,7 @@ TEST_FUNCTION(wsio_destroy_closes_the_underlying_lws_before_destroying_all_resou
 {
     // arrange
     wsio_mocks mocks;
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
 
@@ -755,7 +749,7 @@ TEST_FUNCTION(wsio_open_with_proper_arguments_succeeds)
 {
     // arrange
     wsio_mocks mocks;
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     mocks.ResetAllCalls();
 
     lws_context_creation_info lws_context_info;
@@ -821,7 +815,7 @@ TEST_FUNCTION(wsio_open_with_different_config_succeeds)
         true,
         "booohoo"
     };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&wsio_config);
     mocks.ResetAllCalls();
 
     lws_context_creation_info lws_context_info;
@@ -870,7 +864,7 @@ TEST_FUNCTION(when_creating_the_libwebsockets_context_fails_then_wsio_open_fails
 {
     // arrange
     wsio_mocks mocks;
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     mocks.ResetAllCalls();
 
     lws_context_creation_info lws_context_info;
@@ -914,7 +908,7 @@ TEST_FUNCTION(when_lws_client_connect_fails_then_wsio_open_fails)
 {
     // arrange
     wsio_mocks mocks;
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     mocks.ResetAllCalls();
 
     lws_context_creation_info lws_context_info;
@@ -960,7 +954,7 @@ TEST_FUNCTION(a_second_wsio_open_while_opening_fails)
 {
     // arrange
     wsio_mocks mocks;
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
 
@@ -981,7 +975,7 @@ TEST_FUNCTION(when_ws_callback_indicates_a_connect_complete_then_the_on_open_com
 {
     // arrange
     wsio_mocks mocks;
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
 
@@ -1006,7 +1000,7 @@ TEST_FUNCTION(when_ws_callback_indicates_a_connection_error_then_the_on_open_com
 {
     // arrange
     wsio_mocks mocks;
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
 
@@ -1032,7 +1026,7 @@ TEST_FUNCTION(when_wsio_close_is_called_while_an_open_action_is_in_progress_the_
 {
     // arrange
     wsio_mocks mocks;
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
 
@@ -1054,7 +1048,7 @@ TEST_FUNCTION(when_ws_callback_indicates_a_connection_error_then_the_on_open_com
 {
     // arrange
     wsio_mocks mocks;
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, NULL, test_on_bytes_received, NULL, test_on_io_error, NULL);
     mocks.ResetAllCalls();
 
@@ -1079,7 +1073,7 @@ TEST_FUNCTION(when_ws_callback_indicates_a_connect_complete_then_the_on_open_com
 {
     // arrange
     wsio_mocks mocks;
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, NULL, test_on_bytes_received, NULL, test_on_io_error, NULL);
     mocks.ResetAllCalls();
 
@@ -1103,7 +1097,7 @@ TEST_FUNCTION(when_ws_callback_indicates_a_connect_complete_and_no_on_open_compl
 {
     // arrange
     wsio_mocks mocks;
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, NULL, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
 
@@ -1126,7 +1120,7 @@ TEST_FUNCTION(when_ws_callback_indicates_a_connect_error_and_no_on_open_complete
 {
     // arrange
     wsio_mocks mocks;
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, NULL, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
 
@@ -1155,7 +1149,7 @@ TEST_FUNCTION(wsio_close_destroys_the_ws_context)
 {
     // arrange
     wsio_mocks mocks;
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
 
@@ -1179,7 +1173,7 @@ TEST_FUNCTION(wsio_close_destroys_the_ws_context_and_calls_the_io_close_complete
 {
     // arrange
     wsio_mocks mocks;
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
 
@@ -1206,7 +1200,7 @@ TEST_FUNCTION(wsio_close_after_ws_connected_calls_the_io_close_complete_callback
 {
     // arrange
     wsio_mocks mocks;
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -1246,7 +1240,7 @@ TEST_FUNCTION(wsio_close_when_not_open_fails)
 {
     // arrange
     wsio_mocks mocks;
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     mocks.ResetAllCalls();
 
     // act
@@ -1265,7 +1259,7 @@ TEST_FUNCTION(wsio_close_when_already_closed_fails)
 {
     // arrange
     wsio_mocks mocks;
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     (void)wsio_close(wsio, test_on_io_close_complete, (void*)0x4242);
     mocks.ResetAllCalls();
@@ -1293,7 +1287,7 @@ TEST_FUNCTION(wsio_send_adds_the_bytes_to_the_list_and_triggers_on_writable_when
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -1323,7 +1317,7 @@ TEST_FUNCTION(when_allocating_memory_for_the_list_item_fails_wsio_send_fails)
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -1350,7 +1344,7 @@ TEST_FUNCTION(when_allocating_memory_for_the_pending_bytes_fails_wsio_send_fails
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -1379,7 +1373,7 @@ TEST_FUNCTION(when_list_add_fails_wsio_send_fails)
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -1411,7 +1405,7 @@ TEST_FUNCTION(when_callback_on_writable_fails_then_wsio_send_fails)
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -1444,7 +1438,7 @@ TEST_FUNCTION(when_lws_wants_to_send_bytes_they_are_pushed_to_lws)
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -1484,7 +1478,7 @@ TEST_FUNCTION(when_lws_wants_to_send_bytes_they_are_pushed_to_lws_but_no_callbac
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -1523,7 +1517,7 @@ TEST_FUNCTION(when_ws_io_is_not_opened_yet_wsio_send_fails)
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     mocks.ResetAllCalls();
 
     // act
@@ -1543,7 +1537,7 @@ TEST_FUNCTION(when_ws_io_is_opening_wsio_send_fails)
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
 
@@ -1564,7 +1558,7 @@ TEST_FUNCTION(when_wsio_is_NULL_wsio_send_fails)
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -1588,7 +1582,7 @@ TEST_FUNCTION(when_buffer_is_NULL_wsio_send_fails)
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -1612,7 +1606,7 @@ TEST_FUNCTION(when_size_is_zero_wsio_send_fails)
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -1639,7 +1633,7 @@ TEST_FUNCTION(wsio_close_with_a_pending_send_cancels_the_send)
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -1673,7 +1667,7 @@ TEST_FUNCTION(wsio_close_with_a_pending_send_cancels_the_send_and_passes_the_app
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -1713,7 +1707,7 @@ TEST_FUNCTION(wsio_close_with_a_pending_send_cancels_the_send_but_doen_not_call_
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -1748,7 +1742,7 @@ TEST_FUNCTION(wsio_dowork_services_lws)
 {
     // arrange
     wsio_mocks mocks;
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -1787,7 +1781,7 @@ TEST_FUNCTION(wsio_dowork_services_lws_when_still_opening)
 {
     // arrange
     wsio_mocks mocks;
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -1810,7 +1804,7 @@ TEST_FUNCTION(wsio_dowork_does_not_service_lws_when_not_yet_open)
 {
     // arrange
     wsio_mocks mocks;
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     mocks.ResetAllCalls();
 
     // act
@@ -1828,7 +1822,7 @@ TEST_FUNCTION(wsio_dowork_does_not_service_lws_when_closed)
 {
     // arrange
     wsio_mocks mocks;
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -1873,7 +1867,7 @@ TEST_FUNCTION(CLIENT_CONNECTED_when_opening_triggers_an_open_complete_callback)
 {
     // arrange
     wsio_mocks mocks;
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
 
@@ -1897,7 +1891,7 @@ TEST_FUNCTION(CLIENT_CONNECTED_when_already_open_triggers_an_error)
 {
     // arrange
     wsio_mocks mocks;
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -1924,7 +1918,7 @@ TEST_FUNCTION(CLIENT_CONNECTION_ERROR_when_opening_yields_open_complete_with_err
 {
     // arrange
     wsio_mocks mocks;
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
 
@@ -1949,7 +1943,7 @@ TEST_FUNCTION(CLIENT_CONNECTION_ERROR_when_opening_with_NULL_open_complete_callb
 {
     // arrange
     wsio_mocks mocks;
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, NULL, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
 
@@ -1973,7 +1967,7 @@ TEST_FUNCTION(CLIENT_CONNECTION_ERROR_when_already_open_indicates_an_error_to_th
 {
     // arrange
     wsio_mocks mocks;
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -2007,7 +2001,7 @@ TEST_FUNCTION(CLIENT_WRITABLE_when_open_and_one_chunk_queued_sends_the_chunk)
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -2046,7 +2040,7 @@ TEST_FUNCTION(CLIENT_WRITABLE_when_opening_yields_an_open_complete_error)
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
 
@@ -2072,7 +2066,7 @@ TEST_FUNCTION(when_no_items_are_pending_in_CLIENT_WRITABLE_nothing_happens)
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -2102,7 +2096,7 @@ TEST_FUNCTION(when_getting_the_pending_io_data_in_CLIENT_WRITABLE_fails_then_an_
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -2135,7 +2129,7 @@ TEST_FUNCTION(when_allocating_memory_for_lws_in_CLIENT_WRITABLE_fails_then_an_er
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -2173,7 +2167,7 @@ TEST_FUNCTION(when_lws_write_fails_in_CLIENT_WRITABLE_then_an_error_is_indicated
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -2214,7 +2208,7 @@ TEST_FUNCTION(when_allocating_memory_for_the_lws_write_fails_in_CLIENT_WRITABLE_
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42, 0x43 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -2258,7 +2252,7 @@ TEST_FUNCTION(when_lws_write_fails_in_CLIENT_WRITABLE_for_a_pending_io_that_was_
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42, 0x43 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -2305,7 +2299,7 @@ TEST_FUNCTION(when_removing_the_pending_IO_after_a_succesfull_write_lws_write_fa
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42, 0x43 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -2347,7 +2341,7 @@ TEST_FUNCTION(when_allocating_memory_for_lws_in_CLIENT_WRITABLE_and_another_pend
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -2386,7 +2380,7 @@ TEST_FUNCTION(when_lws_write_in_CLIENT_WRITABLE_fails_and_another_pending_IO_exi
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -2428,7 +2422,7 @@ TEST_FUNCTION(when_allocating_memory_in_CLIENT_WRITABLE_fails_after_a_partial_wr
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42, 0x43 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -2472,7 +2466,7 @@ TEST_FUNCTION(when_lws_write_in_CLIENT_WRITABLE_fails_after_a_partial_write_and_
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42, 0x43 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -2519,7 +2513,7 @@ TEST_FUNCTION(when_send_is_succesfull_and_there_is_another_pending_IO_in_CLIENT_
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42, 0x43 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -2567,7 +2561,7 @@ TEST_FUNCTION(when_removing_the_pending_IO_due_to_lws_write_failing_in_CLIENT_WR
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42, 0x43 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -2614,7 +2608,7 @@ TEST_FUNCTION(when_removing_the_pending_IO_due_to_allocating_memory_failing_in_C
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42, 0x43 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -2658,7 +2652,7 @@ TEST_FUNCTION(sending_partial_content_leaves_the_bytes_for_the_next_writable_eve
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42, 0x43 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -2704,7 +2698,7 @@ TEST_FUNCTION(sending_partial_content_of_2_bytes_works_and_leaves_the_bytes_for_
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42, 0x43, 0x44 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -2750,7 +2744,7 @@ TEST_FUNCTION(when_more_bytes_than_requested_are_indicated_by_lws_write_on_send_
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -2791,7 +2785,7 @@ TEST_FUNCTION(when_more_bytes_than_requested_are_indicated_by_lws_write_and_a_pa
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42, 0x43 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -2842,7 +2836,7 @@ TEST_FUNCTION(CLIENT_RECEIVE_while_the_IO_is_open_indicates_the_byte_as_received
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -2874,7 +2868,7 @@ TEST_FUNCTION(CLIENT_RECEIVE_while_the_IO_is_open_indicates_the_2_bytes_as_recei
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42, 0x43 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -2903,7 +2897,7 @@ TEST_FUNCTION(CLIENT_RECEIVE_while_opening_triggers_an_open_complete_with_IO_OPE
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
 
@@ -2929,7 +2923,7 @@ TEST_FUNCTION(CLIENT_RECEIVE_passes_the_proper_context_to_on_bytes_received)
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42, 0x43 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4546, test_on_bytes_received, (void*)0x4546, test_on_io_error, (void*)0x4546);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -2958,7 +2952,7 @@ TEST_FUNCTION(CLIENT_RECEIVE_with_0_bytes_yields_an_error)
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer[] = { 0x42, 0x43 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4546, test_on_bytes_received, (void*)0x4546, test_on_io_error, (void*)0x4546);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -2985,7 +2979,7 @@ TEST_FUNCTION(CLIENT_RECEIVE_with_NULL_input_buffer_yields_an_error)
 {
     // arrange
     wsio_mocks mocks;
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4546, test_on_bytes_received, (void*)0x4546, test_on_io_error, (void*)0x4546);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -3017,7 +3011,7 @@ TEST_FUNCTION(CLIENT_RECEIVE_twice_indicates_2_receives)
     wsio_mocks mocks;
     unsigned char test_buffer1[] = { 0x42, 0x43 };
     unsigned char test_buffer2[] = { 0x44 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -3063,7 +3057,7 @@ TEST_FUNCTION(LOAD_EXTRA_CLIENT_VERIFY_CERTS_with_a_string_that_has_no_certs_add
     wsio_mocks mocks;
     unsigned char test_buffer1[] = { 0x42, 0x43 };
     unsigned char test_buffer2[] = { 0x44 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
 
@@ -3097,7 +3091,7 @@ TEST_FUNCTION(LOAD_EXTRA_CLIENT_VERIFY_CERTS_with_a_string_that_has_1_cert_loads
     wsio_mocks mocks;
     unsigned char test_buffer1[] = { 0x42, 0x43 };
     unsigned char test_buffer2[] = { 0x44 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
 
@@ -3134,7 +3128,7 @@ TEST_FUNCTION(LOAD_EXTRA_CLIENT_VERIFY_CERTS_with_a_string_that_has_2_certs_load
     wsio_mocks mocks;
     unsigned char test_buffer1[] = { 0x42, 0x43 };
     unsigned char test_buffer2[] = { 0x44 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
 
@@ -3173,7 +3167,7 @@ TEST_FUNCTION(LOAD_EXTRA_CLIENT_VERIFY_CERTS_when_already_open_yields_an_error)
     wsio_mocks mocks;
     unsigned char test_buffer1[] = { 0x42, 0x43 };
     unsigned char test_buffer2[] = { 0x44 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
         .SetReturn(saved_ws_callback_context);
@@ -3202,7 +3196,7 @@ TEST_FUNCTION(when_getting_the_cert_store_fails_in_LOAD_EXTRA_CLIENT_VERIFY_CERT
     wsio_mocks mocks;
     unsigned char test_buffer1[] = { 0x42, 0x43 };
     unsigned char test_buffer2[] = { 0x44 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
 
@@ -3230,7 +3224,7 @@ TEST_FUNCTION(when_getting_the_memory_BIO_METHOD_fails_in_LOAD_EXTRA_CLIENT_VERI
     wsio_mocks mocks;
     unsigned char test_buffer1[] = { 0x42, 0x43 };
     unsigned char test_buffer2[] = { 0x44 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
 
@@ -3259,7 +3253,7 @@ TEST_FUNCTION(when_creating_the_BIO_fails_in_LOAD_EXTRA_CLIENT_VERIFY_CERTS_an_o
     wsio_mocks mocks;
     unsigned char test_buffer1[] = { 0x42, 0x43 };
     unsigned char test_buffer2[] = { 0x44 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
 
@@ -3289,7 +3283,7 @@ TEST_FUNCTION(when_setting_the_input_string_for_the_memory_BIO_fails_with_0_in_L
     wsio_mocks mocks;
     unsigned char test_buffer1[] = { 0x42, 0x43 };
     unsigned char test_buffer2[] = { 0x44 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
 
@@ -3321,7 +3315,7 @@ TEST_FUNCTION(when_setting_the_input_string_for_the_memory_BIO_fails_with_len_mi
     wsio_mocks mocks;
     unsigned char test_buffer1[] = { 0x42, 0x43 };
     unsigned char test_buffer2[] = { 0x44 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
 
@@ -3353,7 +3347,7 @@ TEST_FUNCTION(when_setting_the_input_string_for_the_memory_BIO_fails_with_len_pl
     wsio_mocks mocks;
     unsigned char test_buffer1[] = { 0x42, 0x43 };
     unsigned char test_buffer2[] = { 0x44 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
 
@@ -3386,7 +3380,7 @@ TEST_FUNCTION(when_adding_the_cert_to_the_store_fails_in_LOAD_EXTRA_CLIENT_VERIF
     wsio_mocks mocks;
     unsigned char test_buffer1[] = { 0x42, 0x43 };
     unsigned char test_buffer2[] = { 0x44 };
-    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config, test_logger_log);
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
 

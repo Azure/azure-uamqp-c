@@ -27,7 +27,7 @@ typedef struct WSIO_CONFIG_TAG
 	const char* trusted_ca;
 } WSIO_CONFIG;
 
-extern CONCRETE_IO_HANDLE wsio_create(void* io_create_parameters, LOGGER_LOG logger_log);
+extern CONCRETE_IO_HANDLE wsio_create(void* io_create_parameters);
 extern void wsio_destroy(CONCRETE_IO_HANDLE ws_io);
 extern int wsio_open(CONCRETE_IO_HANDLE ws_io, ON_IO_OPEN_COMPLETE on_io_open_complete, void* on_io_open_complete_context, ON_BYTES_RECEIVED on_bytes_received, void* on_bytes_received_context, ON_IO_ERROR on_io_error, void* on_io_error_context);
 extern int wsio_close(CONCRETE_IO_HANDLE ws_io, ON_IO_CLOSE_COMPLETE on_io_close_complete, void* callback_context);

@@ -43,7 +43,6 @@ typedef struct WSIO_INSTANCE_TAG
     void* on_io_open_complete_context;
     ON_IO_ERROR on_io_error;
     void* on_io_error_context;
-    LOGGER_LOG logger_log;
 	IO_STATE io_state;
 	LIST_HANDLE pending_io_list;
 	struct lws_context* ws_context;
@@ -513,7 +512,7 @@ static int on_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, voi
 	return 0;
 }
 
-CONCRETE_IO_HANDLE wsio_create(void* io_create_parameters, LOGGER_LOG logger_log)
+CONCRETE_IO_HANDLE wsio_create(void* io_create_parameters)
 {
     /* Codes_SRS_WSIO_01_003: [io_create_parameters shall be used as a WSIO_CONFIG*.] */
     WSIO_CONFIG* ws_io_config = io_create_parameters;
@@ -539,7 +538,6 @@ CONCRETE_IO_HANDLE wsio_create(void* io_create_parameters, LOGGER_LOG logger_log
             result->on_io_open_complete_context = NULL;
             result->on_io_error = NULL;
             result->on_io_error_context = NULL;
-            result->logger_log = logger_log;
 			result->wsi = NULL;
 			result->ws_context = NULL;
 
@@ -888,15 +886,6 @@ int wsio_send(CONCRETE_IO_HANDLE ws_io, const void* buffer, size_t size, ON_SEND
 		}
 		else
 		{
-			if (wsio_instance->logger_log != NULL)
-			{
-				size_t i;
-				for (i = 0; i < size; i++)
-				{
-					LOG(wsio_instance->logger_log, 0, " %02x", ((const unsigned char*)buffer)[i]);
-				}
-			}
-
             /* Codes_SRS_WSIO_01_054: [wsio_send shall queue the buffer and size until the libwebsockets callback is invoked with the event LWS_CALLBACK_CLIENT_WRITEABLE.] */
             if (add_pending_io(wsio_instance, buffer, size, on_send_complete, callback_context) != 0)
 			{

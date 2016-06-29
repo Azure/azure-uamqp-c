@@ -1,4 +1,4 @@
-azure-uamqp-c (0.1.0-20) vivid; urgency=low
+azure-uamqp-c (0.1.0-22) vivid; urgency=low
 
   * Initial release
 
@@ -22,5 +22,9 @@ azure-uamqp-c (0.1.0-20) vivid; urgency=low
 
   * Fix tlsio_schannel bug (not all input bytes were being read) (#451ab97)
 
- -- AzureIoT User <aziotsdklinux@outlook.com>  Fri, 20 May 2016 20:22:05 +0000
+  * Added ability to turn on/off logging (#32f1585)
+
+  * calling a new connection_create function (#6d91225)
+
+ -- AzureIoT User <aziotsdklinux@outlook.com>  Fri, 17 Jun 2016 20:22:05 +0000
 

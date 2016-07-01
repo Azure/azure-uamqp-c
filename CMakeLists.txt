@@ -228,3 +228,9 @@ endif()
 # The following "set" statetement exports across the project a global variable
 set(UAMQP_INC_FOLDER ${CMAKE_CURRENT_LIST_DIR}/inc CACHE INTERNAL "This is the include folder for UAMQP" FORCE)
 set(UAMQP_SRC_FOLDER ${CMAKE_CURRENT_LIST_DIR}/src CACHE INTERNAL "This is the lib folder for UAMQP" FORCE)
+
+if(WIN32)
+else()
+    install (TARGETS uamqp DESTINATION lib)
+    install (FILES ${uamqp_h_files} DESTINATION include/azureiot/azure_uamqp_c)
+endif (WIN32)

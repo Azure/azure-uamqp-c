@@ -2017,7 +2017,7 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             int result = amqpvalue_get_char(value, &char_value);
 
             // assert
-            ASSERT_ARE_EQUAL(char, 0x0, char_value);
+            ASSERT_ARE_EQUAL(uint32_t, 0x0, char_value);
             ASSERT_ARE_EQUAL(int, 0, result);
             mocks.AssertActualAndExpectedCalls();
 
@@ -2574,7 +2574,6 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
         {
             // arrange
             amqpvalue_mocks mocks;
-            unsigned char input[] = { 0x42 };
             amqp_binary binary_input = { NULL, 0 };
             AMQP_VALUE value = amqpvalue_create_binary(binary_input);
             mocks.ResetAllCalls();
@@ -2612,7 +2611,6 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
         {
             // arrange
             amqpvalue_mocks mocks;
-            unsigned char input[] = { 0x42 };
             amqp_binary binary_input = { NULL, 0 };
             AMQP_VALUE value = amqpvalue_create_binary(binary_input);
             mocks.ResetAllCalls();
@@ -8266,7 +8264,6 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             (void)amqpvalue_encode(source, test_encoder_output, NULL);
             mocks->ResetAllCalls();
 
-            int encoder_calls = encoder_output_call_count;
             int i;
             for (i = 0; i < 1; i++)
             {
@@ -8869,15 +8866,15 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
         {
             amqpvalue_mocks mocks;
             unsigned char bytes[255];
-            int i;
+            unsigned int i;
             for (i = 0; i < 255; i++)
             {
-                bytes[i] = i;
+                bytes[i] = (unsigned char)i;
             }
             unsigned char expected_bytes[257] = { 0xA0, 0xFF };
             for (i = 0; i < 255; i++)
             {
-                expected_bytes[i + 2] = i;
+                expected_bytes[i + 2] = (unsigned char)i;
             }
             amqp_binary binary = { &bytes, sizeof(bytes) };
             AMQP_VALUE source = amqpvalue_create_binary(binary);
@@ -8890,10 +8887,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
         {
             amqpvalue_mocks mocks;
             unsigned char bytes[255];
-            int i;
+            unsigned int i;
             for (i = 0; i < 255; i++)
             {
-                bytes[i] = i;
+                bytes[i] = (unsigned char)i;
             }
             amqp_binary binary = { &bytes, sizeof(bytes) };
             AMQP_VALUE source = amqpvalue_create_binary(binary);
@@ -8905,15 +8902,15 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
         {
             amqpvalue_mocks mocks;
             unsigned char bytes[256];
-            int i;
+            unsigned int i;
             for (i = 0; i < 256; i++)
             {
-                bytes[i] = i;
+                bytes[i] = (unsigned char)i;
             }
             unsigned char expected_bytes[261] = { 0xB0, 0x00, 0x00, 0x01, 0x00 };
             for (i = 0; i < 256; i++)
             {
-                expected_bytes[i + 5] = i;
+                expected_bytes[i + 5] = (unsigned char)i;
             }
             amqp_binary binary = { &bytes, sizeof(bytes) };
             AMQP_VALUE source = amqpvalue_create_binary(binary);
@@ -8926,10 +8923,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
         {
             amqpvalue_mocks mocks;
             unsigned char bytes[256];
-            int i;
+            unsigned int i;
             for (i = 0; i < 256; i++)
             {
-                bytes[i] = i;
+                bytes[i] = (unsigned char)i;
             }
             amqp_binary binary = { &bytes, sizeof(bytes) };
             AMQP_VALUE source = amqpvalue_create_binary(binary);
@@ -9391,7 +9388,7 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
         {
             amqpvalue_mocks mocks;
             AMQP_VALUE source = amqpvalue_create_map();
-            int i;
+            unsigned char i;
 
             AMQP_VALUE key = amqpvalue_create_uint(0);
             AMQP_VALUE value = amqpvalue_create_null();
@@ -9401,8 +9398,8 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             for (i = 0; i < 84; i++)
             {
-                AMQP_VALUE key = amqpvalue_create_uint(i + 1);
-                AMQP_VALUE value = amqpvalue_create_null();
+                key = amqpvalue_create_uint(i + 1);
+                value = amqpvalue_create_null();
                 amqpvalue_set_map_value(source, key, value);
                 amqpvalue_destroy(key);
                 amqpvalue_destroy(value);
@@ -9448,7 +9445,7 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
         {
             amqpvalue_mocks mocks;
             AMQP_VALUE source = amqpvalue_create_map();
-            int i;
+            unsigned char i;
 
             for (i = 0; i < 85; i++)
             {
@@ -9484,8 +9481,8 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             for (i = 1; i < 85; i++)
             {
-                AMQP_VALUE key = amqpvalue_create_uint(i);
-                AMQP_VALUE value = amqpvalue_create_null();
+                key = amqpvalue_create_uint(i);
+                value = amqpvalue_create_null();
                 amqpvalue_set_map_value(source, key, value);
                 amqpvalue_destroy(key);
                 amqpvalue_destroy(value);
@@ -9500,7 +9497,7 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
         {
             amqpvalue_mocks mocks;
             AMQP_VALUE source = amqpvalue_create_map();
-            int i;
+            unsigned char i;
             for (i = 0; i < 128; i++)
             {
                 AMQP_VALUE key = amqpvalue_create_uint(i + 1);
@@ -13171,11 +13168,11 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             AMQPVALUE_DECODER_HANDLE amqpvalue_decoder = amqpvalue_decoder_create(value_decoded_callback, test_context);
             mocks.ResetAllCalls();
             unsigned char bytes[255 + 2] = { 0xA0, 0xFF };
-            int i;
+            unsigned int i;
 
             for (i = 0; i < 255; i++)
             {
-                bytes[2 + i] = i;
+                bytes[2 + i] = (unsigned char)i;
             }
 
             EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG))
@@ -13209,11 +13206,11 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             AMQPVALUE_DECODER_HANDLE amqpvalue_decoder = amqpvalue_decoder_create(value_decoded_callback, test_context);
             mocks.ResetAllCalls();
             unsigned char bytes[255 + 2] = { 0xA0, 0xFF };
-            int i;
+            unsigned int i;
 
             for (i = 0; i < 255; i++)
             {
-                bytes[2 + i] = i;
+                bytes[2 + i] = (unsigned char)i;
             }
 
             EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG))
@@ -13314,11 +13311,11 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             AMQPVALUE_DECODER_HANDLE amqpvalue_decoder = amqpvalue_decoder_create(value_decoded_callback, test_context);
             mocks.ResetAllCalls();
             unsigned char bytes[254 + 2] = { 0xA0, 0xFF };
-            int i;
+            unsigned int i;
 
             for (i = 0; i < 254; i++)
             {
-                bytes[2 + i] = i;
+                bytes[2 + i] = (unsigned char)i;
             }
 
             EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));

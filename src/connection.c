@@ -626,6 +626,9 @@ static void connection_on_io_error(void* context)
 static void on_empty_amqp_frame_received(void* context, uint16_t channel)
 {
     CONNECTION_INSTANCE* connection_instance = (CONNECTION_INSTANCE*)context;
+
+    /* It does not matter on which channel we received the frame */
+    (void)channel;
     LOG(LOG_TRACE, LOG_LINE, "<- Empty frame");
     if (tickcounter_get_current_ms(connection_instance->tick_counter, &connection_instance->last_frame_received_time) != 0)
     {
@@ -885,10 +888,16 @@ static void on_amqp_frame_received(void* context, uint16_t channel, AMQP_VALUE p
 
 static void frame_codec_error(void* context)
 {
+    /* Bug: some error handling should happen here 
+    Filed: uAMQP: frame_codec error and amqp_frame_codec_error should handle the errors */
+    (void)context;
 }
 
 static void amqp_frame_codec_error(void* context)
 {
+    /* Bug: some error handling should happen here
+    Filed: uAMQP: frame_codec error and amqp_frame_codec_error should handle the errors */
+    (void)context;
 }
 
 /* Codes_SRS_CONNECTION_01_001: [connection_create shall open a new connection to a specified host/port.] */
@@ -1145,22 +1154,6 @@ int connection_close(CONNECTION_HANDLE connection, const char* condition_value, 
         (void)xio_close(connection->io, NULL, NULL);
         connection->is_underlying_io_open = 1;
 
-        result = 0;
-    }
-
-    return result;
-}
-
-int connection_set_on_new_session_endpoint(CONNECTION_HANDLE connection, ON_NEW_ENDPOINT on_new_endpoint, void* on_new_endpoint_callback_context)
-{
-    int result;
-
-    if (connection == NULL)
-    {
-        result = __LINE__;
-    }
-    else
-    {
         result = 0;
     }
 
@@ -1469,7 +1462,7 @@ ENDPOINT_HANDLE connection_create_endpoint(CONNECTION_HANDLE connection)
                 result->on_endpoint_frame_received = NULL;
                 result->on_connection_state_changed = NULL;
                 result->callback_context = NULL;
-                result->outgoing_channel = i;
+                result->outgoing_channel = (uint16_t)i;
                 result->connection = connection;
 
                 /* Codes_SRS_CONNECTION_01_197: [The newly created endpoint shall be added to the endpoints list, so that it can be tracked.] */

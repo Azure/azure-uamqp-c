@@ -40,6 +40,7 @@ void stringify_bytes(const unsigned char* bytes, size_t byte_count, char* output
 int test_encoder_output(void* context, const unsigned char* bytes, size_t length)
 {
 	unsigned char* new_bytes = (unsigned char*)realloc(encoded_bytes, encoded_byte_count + length);
+    (void)context;
 	if (new_bytes != NULL)
 	{
 		encoded_bytes = new_bytes;

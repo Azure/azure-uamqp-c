@@ -3323,6 +3323,9 @@ static void internal_decoder_destroy(INTERNAL_DECODER_DATA* internal_decoder)
 
 static void inner_decoder_callback(void* context, AMQP_VALUE decoded_value)
 {
+    /* API issue: the decoded_value should be removed completely:
+    Filed: uAMQP: inner_decoder_callback in amqpvalue.c could probably do without the decoded_value ... */
+    (void)decoded_value;
 	INTERNAL_DECODER_DATA* internal_decoder_data = (INTERNAL_DECODER_DATA*)context;
 	INTERNAL_DECODER_DATA* inner_decoder = (INTERNAL_DECODER_DATA*)internal_decoder_data->inner_decoder;
 	inner_decoder->decoder_state = DECODER_STATE_DONE;
@@ -3766,16 +3769,16 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 
 					case DECODE_DESCRIBED_VALUE_STEP_DESCRIPTOR:
 					{
-						size_t used_bytes;
-						if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, buffer, size, &used_bytes) != 0)
+						size_t inner_used_bytes;
+						if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, buffer, size, &inner_used_bytes) != 0)
 						{
 							result = __LINE__;
 						}
 						else
 						{
 							INTERNAL_DECODER_DATA* inner_decoder = (INTERNAL_DECODER_DATA*)internal_decoder_data->inner_decoder;
-							buffer += used_bytes;
-							size -= used_bytes;
+							buffer += inner_used_bytes;
+							size -= inner_used_bytes;
 
 							if (inner_decoder->decoder_state == DECODER_STATE_DONE)
 							{
@@ -3813,16 +3816,16 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 					}
 					case DECODE_DESCRIBED_VALUE_STEP_VALUE:
 					{
-						size_t used_bytes;
-						if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, buffer, size, &used_bytes) != 0)
+						size_t inner_used_bytes;
+						if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, buffer, size, &inner_used_bytes) != 0)
 						{
 							result = __LINE__;
 						}
 						else
 						{
 							INTERNAL_DECODER_DATA* inner_decoder = (INTERNAL_DECODER_DATA*)internal_decoder_data->inner_decoder;
-							buffer += used_bytes;
-							size -= used_bytes;
+							buffer += inner_used_bytes;
+							size -= inner_used_bytes;
 
 							if (inner_decoder->decoder_state == DECODER_STATE_DONE)
 							{
@@ -4684,7 +4687,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 
 					case DECODE_LIST_STEP_ITEMS:
 					{
-						size_t used_bytes;
+						size_t inner_used_bytes;
 
 						if (internal_decoder_data->bytes_decoded == 0)
 						{
@@ -4715,16 +4718,16 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 						{
 							result = __LINE__;
 						}
-						else if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, buffer, size, &used_bytes) != 0)
+						else if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, buffer, size, &inner_used_bytes) != 0)
 						{
 							result = __LINE__;
 						}
 						else
 						{
 							INTERNAL_DECODER_DATA* inner_decoder = (INTERNAL_DECODER_DATA*)internal_decoder_data->inner_decoder;
-							internal_decoder_data->bytes_decoded += used_bytes;
-							buffer += used_bytes;
-							size -= used_bytes;
+							internal_decoder_data->bytes_decoded += inner_used_bytes;
+							buffer += inner_used_bytes;
+							size -= inner_used_bytes;
 
 							if (inner_decoder->decoder_state == DECODER_STATE_DONE)
 							{
@@ -4885,7 +4888,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 
 					case DECODE_MAP_STEP_PAIRS:
 					{
-						size_t used_bytes;
+						size_t inner_used_bytes;
 
 						if (internal_decoder_data->bytes_decoded == 0)
 						{
@@ -4923,16 +4926,16 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 						{
 							result = __LINE__;
 						}
-						else if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, buffer, size, &used_bytes) != 0)
+						else if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, buffer, size, &inner_used_bytes) != 0)
 						{
 							result = __LINE__;
 						}
 						else
 						{
 							INTERNAL_DECODER_DATA* inner_decoder = (INTERNAL_DECODER_DATA*)internal_decoder_data->inner_decoder;
-							internal_decoder_data->bytes_decoded += used_bytes;
-							buffer += used_bytes;
-							size -= used_bytes;
+							internal_decoder_data->bytes_decoded += inner_used_bytes;
+							buffer += inner_used_bytes;
+							size -= inner_used_bytes;
 
 							if (inner_decoder->decoder_state == DECODER_STATE_DONE)
 							{
@@ -5083,7 +5086,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 
 					case DECODE_ARRAY_STEP_ITEMS:
 					{
-						size_t used_bytes;
+						size_t inner_used_bytes;
 
 						if (internal_decoder_data->bytes_decoded == 0)
 						{
@@ -5116,16 +5119,16 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 						{
 							result = __LINE__;
 						}
-						else if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, buffer, size, &used_bytes) != 0)
+						else if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, buffer, size, &inner_used_bytes) != 0)
 						{
 							result = __LINE__;
 						}
 						else
 						{
 							INTERNAL_DECODER_DATA* inner_decoder = (INTERNAL_DECODER_DATA*)internal_decoder_data->inner_decoder;
-							internal_decoder_data->bytes_decoded += used_bytes;
-							buffer += used_bytes;
-							size -= used_bytes;
+							internal_decoder_data->bytes_decoded += inner_used_bytes;
+							buffer += inner_used_bytes;
+							size -= inner_used_bytes;
 
 							if (inner_decoder->decoder_state == DECODER_STATE_DONE)
 							{

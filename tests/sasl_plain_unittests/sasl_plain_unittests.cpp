@@ -435,7 +435,6 @@ TEST_FUNCTION(saslplain_get_init_bytes_with_NULL_init_bytes_fails)
 {
 	// arrange
 	amqp_frame_codec_mocks mocks;
-	unsigned char expected_bytes[] = "\0" "test_authcid" "\0" "test_pwd";
 	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", NULL };
 	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_create(&sasl_plain_config);
 	mocks.ResetAllCalls();

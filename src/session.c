@@ -46,8 +46,11 @@ typedef struct SESSION_INSTANCE_TAG
 	handle handle_max;
 	uint32_t remote_incoming_window;
 	uint32_t remote_outgoing_window;
-	unsigned char is_underlying_connection_open : 1;
+	int is_underlying_connection_open : 1;
 } SESSION_INSTANCE;
+
+#define UNDERLYING_CONNECTION_NOT_OPEN 0
+#define UNDERLYING_CONNECTION_OPEN -1
 
 static void session_set_state(SESSION_INSTANCE* session_instance, SESSION_STATE session_state)
 {
@@ -664,7 +667,7 @@ SESSION_HANDLE session_create(CONNECTION_HANDLE connection, ON_LINK_ATTACHED on_
 			result->remote_incoming_window = 0;
 			result->remote_outgoing_window = 0;
 			result->previous_session_state = SESSION_STATE_UNMAPPED;
-			result->is_underlying_connection_open = 0;
+			result->is_underlying_connection_open = UNDERLYING_CONNECTION_NOT_OPEN;
 			result->session_state = SESSION_STATE_UNMAPPED;
 			result->on_link_attached = on_link_attached;
 			result->on_link_attached_callback_context = callback_context;
@@ -713,7 +716,7 @@ SESSION_HANDLE session_create_from_endpoint(CONNECTION_HANDLE connection, ENDPOI
 			result->remote_incoming_window = 0;
 			result->remote_outgoing_window = 0;
 			result->previous_session_state = SESSION_STATE_UNMAPPED;
-			result->is_underlying_connection_open = 0;
+			result->is_underlying_connection_open = UNDERLYING_CONNECTION_NOT_OPEN;
 			result->session_state = SESSION_STATE_UNMAPPED;
 			result->on_link_attached = on_link_attached;
 			result->on_link_attached_callback_context = callback_context;
@@ -769,12 +772,12 @@ int session_begin(SESSION_HANDLE session)
 			{
 				if (connection_open(session_instance->connection) != 0)
 				{
-					session_instance->is_underlying_connection_open = 0;
+					session_instance->is_underlying_connection_open = UNDERLYING_CONNECTION_NOT_OPEN;
 					result = __LINE__;
 				}
 				else
 				{
-					session_instance->is_underlying_connection_open = 1;
+					session_instance->is_underlying_connection_open = UNDERLYING_CONNECTION_OPEN;
 					result = 0;
 				}
 			}
@@ -1268,7 +1271,6 @@ int session_send_disposition(LINK_ENDPOINT_HANDLE link_endpoint, DISPOSITION_HAN
 	}
 	else
 	{
-		LINK_ENDPOINT_INSTANCE* link_endpoint_instance = (LINK_ENDPOINT_INSTANCE*)link_endpoint;
 		AMQP_VALUE disposition_performative_value = amqpvalue_create_disposition(disposition);
 		if (disposition_performative_value == NULL)
 		{
@@ -1404,8 +1406,7 @@ SESSION_SEND_TRANSFER_RESULT session_send_transfer(LINK_ENDPOINT_HANDLE link_end
 						}
 						else
 						{
-							uint32_t payload_size = 0;
-							size_t i;
+							payload_size = 0;
 
 							for (i = 0; i < payload_count; i++)
 							{

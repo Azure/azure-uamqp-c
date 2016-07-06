@@ -113,7 +113,7 @@ extern int frame_codec_encode_frame(FRAME_CODEC_HANDLE frame_codec, uint8_t type
 **SRS_FRAME_CODEC_01_043: [**On success it shall return 0.**]** 
 **SRS_FRAME_CODEC_01_044: [**If the argument frame_codec is NULL, frame_codec_encode_frame shall return a non-zero value.**]** 
 **SRS_FRAME_CODEC_01_107: [**If the argument payloads is NULL and payload_count is non-zero, frame_codec_encode_frame shall return a non-zero value.**]** 
-**SRS_FRAME_CODEC_01_090: [**If the type_specific_size – 2 does not divide by 4, frame_codec_encode_frame shall pad the type_specific bytes with zeroes so that type specific data is according to the AMQP ISO.**]** 
+**SRS_FRAME_CODEC_01_090: [**If the type_specific_size - 2 does not divide by 4, frame_codec_encode_frame shall pad the type_specific bytes with zeroes so that type specific data is according to the AMQP ISO.**]** 
 **SRS_FRAME_CODEC_01_092: [**If type_specific_size is too big to allow encoding the frame according to the AMQP ISO then frame_codec_encode_frame shall return a non-zero value.**]** 
 **SRS_FRAME_CODEC_01_091: [**If the argument type_specific_size is greater than 0 and type_specific_bytes is NULL, frame_codec_encode_frame shall return a non-zero value.**]** 
 **SRS_FRAME_CODEC_01_105: [**The frame_payload_size shall be computed by summing up the lengths of the payload segments identified by the payloads argument.**]** 

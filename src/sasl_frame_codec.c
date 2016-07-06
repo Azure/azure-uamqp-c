@@ -264,7 +264,10 @@ int sasl_frame_codec_encode_frame(SASL_FRAME_CODEC_HANDLE sasl_frame_codec, cons
 			}
 			else
 			{
-				PAYLOAD payload = { sasl_frame_bytes, 0 };
+				PAYLOAD payload;
+
+                payload.bytes = sasl_frame_bytes;
+                payload.length = 0;
 
 				if (amqpvalue_encode(sasl_frame_value, encode_bytes, &payload) != 0)
 				{

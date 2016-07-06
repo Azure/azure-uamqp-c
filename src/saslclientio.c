@@ -259,7 +259,7 @@ static const char* get_frame_type_as_string(AMQP_VALUE descriptor)
 	return result;
 }
 
-static void log_incoming_frame(SASL_CLIENT_IO_INSTANCE* sasl_client_io_instance, AMQP_VALUE performative)
+static void log_incoming_frame(AMQP_VALUE performative)
 {
 	if (xlogging_get_log_function() != NULL)
 	{
@@ -278,7 +278,7 @@ static void log_incoming_frame(SASL_CLIENT_IO_INSTANCE* sasl_client_io_instance,
 	}
 }
 
-static void log_outgoing_frame(SASL_CLIENT_IO_INSTANCE* sasl_client_io_instance, AMQP_VALUE performative)
+static void log_outgoing_frame(AMQP_VALUE performative)
 {
 	if (xlogging_get_log_function() != NULL)
 	{
@@ -478,7 +478,9 @@ static int send_sasl_init(SASL_CLIENT_IO_INSTANCE* sasl_client_io, const char* s
 		}
 		else
 		{
-			amqp_binary creds = { init_bytes.bytes, init_bytes.length };
+			amqp_binary creds;
+            creds.bytes = init_bytes.bytes;
+            creds.length = init_bytes.length;
 			if ((init_bytes.length > 0) &&
 				/* Codes_SRS_SASLCLIENTIO_01_047: [A block of opaque data passed to the security mechanism.] */
 				(sasl_init_set_initial_response(sasl_init, creds) != 0))
@@ -504,7 +506,7 @@ static int send_sasl_init(SASL_CLIENT_IO_INSTANCE* sasl_client_io, const char* s
 					}
 					else
 					{
-						log_outgoing_frame(sasl_client_io, sasl_init_value);
+						log_outgoing_frame(sasl_init_value);
 
 						result = 0;
 					}
@@ -525,7 +527,10 @@ static int send_sasl_response(SASL_CLIENT_IO_INSTANCE* sasl_client_io, SASL_MECH
 	int result;
 
 	SASL_RESPONSE_HANDLE sasl_response_handle;
-	amqp_binary response_binary_value = { sasl_response.bytes, sasl_response.length };
+	amqp_binary response_binary_value;
+
+    response_binary_value.bytes = sasl_response.bytes;
+    response_binary_value.length = sasl_response.length;
 
 	/* Codes_SRS_SASLCLIENTIO_01_055: [Send the SASL response data as defined by the SASL specification.] */
 	/* Codes_SRS_SASLCLIENTIO_01_056: [A block of opaque data passed to the security mechanism.] */
@@ -549,7 +554,7 @@ static int send_sasl_response(SASL_CLIENT_IO_INSTANCE* sasl_client_io, SASL_MECH
 			}
 			else
 			{
-				log_outgoing_frame(sasl_client_io, sasl_response_value);
+				log_outgoing_frame(sasl_response_value);
 
 				result = 0;
 			}
@@ -596,7 +601,7 @@ static void sasl_frame_received_callback(void* context, AMQP_VALUE sasl_frame)
 			}
 			else
 			{
-				log_incoming_frame(sasl_client_io_instance, sasl_frame);
+				log_incoming_frame(sasl_frame);
 
 				/* Codes_SRS_SASLCLIENTIO_01_032: [The peer acting as the SASL server MUST announce supported authentication mechanisms using the sasl-mechanisms frame.] */
 				/* Codes_SRS_SASLCLIENTIO_01_040: [The peer playing the role of the SASL client and the peer playing the role of the SASL server MUST correspond to the TCP client and server respectively.] */
@@ -731,7 +736,10 @@ static void sasl_frame_received_callback(void* context, AMQP_VALUE sasl_frame)
 							}
 							else
 							{
-								SASL_MECHANISM_BYTES challenge = { challenge_binary_value.bytes, challenge_binary_value.length };
+								SASL_MECHANISM_BYTES challenge;
+
+                                challenge.bytes = challenge_binary_value.bytes;
+                                challenge.length = challenge_binary_value.length;
 
 								/* Codes_SRS_SASLCLIENTIO_01_057: [The contents of this data are defined by the SASL security mechanism.] */
 								/* Codes_SRS_SASLCLIENTIO_01_037: [SASL-RESPONSE -->] */

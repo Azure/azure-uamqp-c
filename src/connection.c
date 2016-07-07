@@ -625,11 +625,13 @@ static void connection_on_io_error(void* context)
 
 static void on_empty_amqp_frame_received(void* context, uint16_t channel)
 {
-    CONNECTION_INSTANCE* connection_instance = (CONNECTION_INSTANCE*)context;
-
-    /* It does not matter on which channel we received the frame */
     (void)channel;
-    LOG(LOG_TRACE, LOG_LINE, "<- Empty frame");
+    /* It does not matter on which channel we received the frame */
+    CONNECTION_INSTANCE* connection_instance = (CONNECTION_INSTANCE*)context;
+    if (connection_instance->is_trace_on == 1)
+    {
+        LOG(LOG_TRACE, LOG_LINE, "<- Empty frame");
+    }
     if (tickcounter_get_current_ms(connection_instance->tick_counter, &connection_instance->last_frame_received_time) != 0)
     {
         /* error */
@@ -638,6 +640,7 @@ static void on_empty_amqp_frame_received(void* context, uint16_t channel)
 
 static void on_amqp_frame_received(void* context, uint16_t channel, AMQP_VALUE performative, const unsigned char* payload_bytes, uint32_t payload_size)
 {
+    (void)channel;
     CONNECTION_INSTANCE* connection_instance = (CONNECTION_INSTANCE*)context;
 
     if (tickcounter_get_current_ms(connection_instance->tick_counter, &connection_instance->last_frame_received_time) != 0)
@@ -783,7 +786,7 @@ static void on_amqp_frame_received(void* context, uint16_t channel, AMQP_VALUE p
                         switch (performative_ulong)
                         {
                         default:
-                            LOG(LOG_TRACE, LOG_LINE, "Bad performative: %02x", performative);
+                            LOG(LOG_ERROR, LOG_LINE, "Bad performative: %02x", performative);
                             break;
 
                         case AMQP_BEGIN:
@@ -1393,7 +1396,10 @@ uint64_t connection_handle_deadlines(CONNECTION_HANDLE connection)
                     }
                     else
                     {
-                        LOG(LOG_TRACE, LOG_LINE, "-> Empty frame");
+                        if (connection->is_trace_on == 1)
+                        {
+                            LOG(LOG_TRACE, LOG_LINE, "-> Empty frame");
+                        }
 
                         connection->last_frame_sent_time = current_ms;
 

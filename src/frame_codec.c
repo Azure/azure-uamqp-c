@@ -318,7 +318,7 @@ int frame_codec_receive_bytes(FRAME_CODEC_HANDLE frame_codec, const unsigned cha
 
 			case RECEIVE_FRAME_STATE_TYPE_SPECIFIC:
 			{
-				uint32_t to_copy = frame_codec_data->type_specific_size - frame_codec_data->receive_frame_pos;
+				size_t to_copy = frame_codec_data->type_specific_size - frame_codec_data->receive_frame_pos;
 				if (to_copy > size)
 				{
 					to_copy = size;
@@ -372,7 +372,7 @@ int frame_codec_receive_bytes(FRAME_CODEC_HANDLE frame_codec, const unsigned cha
 			case RECEIVE_FRAME_STATE_FRAME_BODY:
 			{
 				uint32_t frame_body_size = frame_codec_data->receive_frame_size - (frame_codec_data->receive_frame_doff * 4);
-				uint32_t to_copy = frame_body_size - frame_codec_data->receive_frame_pos;
+				size_t to_copy = frame_body_size - frame_codec_data->receive_frame_pos;
 
 				if (to_copy > size)
 				{
@@ -558,7 +558,7 @@ int frame_codec_encode_frame(FRAME_CODEC_HANDLE frame_codec, uint8_t type, const
         uint8_t doff = (uint8_t)((frame_body_offset + 3) / 4);
         size_t i;
         size_t frame_size;
-        uint32_t frame_body_size = 0;
+        size_t frame_body_size = 0;
         frame_body_offset = doff * 4;
         padding_byte_count = (uint8_t)(frame_body_offset - type_specific_size - 6);
 

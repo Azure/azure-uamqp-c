@@ -78,7 +78,7 @@ int socketlistener_start(SOCKET_LISTENER_HANDLE socket_listener, ON_SOCKET_ACCEP
 			{
 				u_long iMode = 1;
 
-				if (bind(socket_listener_instance->socket, addrInfo->ai_addr, addrInfo->ai_addrlen) == SOCKET_ERROR)
+				if (bind(socket_listener_instance->socket, addrInfo->ai_addr, (int)addrInfo->ai_addrlen) == SOCKET_ERROR)
 				{
 					(void)closesocket(socket_listener_instance->socket);
 					socket_listener_instance->socket = INVALID_SOCKET;

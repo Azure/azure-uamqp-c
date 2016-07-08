@@ -504,7 +504,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 			}
 			else
 			{
-				size_t i;
+				uint32_t i;
 				for (i = 0; i < count; i++)
 				{
 					AMQP_VALUE key;
@@ -579,7 +579,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 			}
 			else
 			{
-				size_t i;
+				uint32_t i;
 				for (i = 0; i < count; i++)
 				{
 					AMQP_VALUE item = amqpvalue_get_array_item(amqp_value, i);

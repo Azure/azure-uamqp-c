@@ -515,9 +515,9 @@ TEST_FUNCTION(encoding_a_frame_succeeds)
 
     // assert
     ASSERT_ARE_EQUAL(int, 0, result);
-    ASSERT_ARE_EQUAL(uint32_t, expected_payloads[0].length, actual_payloads[0].length);
+    ASSERT_ARE_EQUAL(size_t, expected_payloads[0].length, actual_payloads[0].length);
     ASSERT_ARE_EQUAL(int, 0, memcmp(expected_payloads[0].bytes, actual_payloads[0].bytes, actual_payloads[0].length));
-    ASSERT_ARE_EQUAL(uint32_t, test_user_payload.length, actual_payloads[1].length);
+    ASSERT_ARE_EQUAL(size_t, test_user_payload.length, actual_payloads[1].length);
     ASSERT_ARE_EQUAL(int, 0, memcmp(test_user_payload.bytes, actual_payloads[1].bytes, actual_payloads[1].length));
     mocks.AssertActualAndExpectedCalls();
 
@@ -595,7 +595,7 @@ TEST_FUNCTION(encoding_a_frame_with_no_payloads_send_down_to_frame_codec_just_th
 
     // assert
     ASSERT_ARE_EQUAL(int, 0, result);
-    ASSERT_ARE_EQUAL(uint32_t, expected_payloads[0].length, actual_payloads[0].length);
+    ASSERT_ARE_EQUAL(size_t, expected_payloads[0].length, actual_payloads[0].length);
     ASSERT_ARE_EQUAL(int, 0, memcmp(expected_payloads[0].bytes, actual_payloads[0].bytes, actual_payloads[0].length));
     mocks.AssertActualAndExpectedCalls();
 

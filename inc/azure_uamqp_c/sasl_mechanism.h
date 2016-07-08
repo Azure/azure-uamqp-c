@@ -6,6 +6,9 @@
 
 #ifdef __cplusplus
 extern "C" {
+#include "cstdint"
+#else
+#include "stdint.h"
 #endif /* __cplusplus */
 
 	typedef struct SASL_MECHANISM_INSTANCE_TAG* SASL_MECHANISM_HANDLE;
@@ -14,7 +17,7 @@ extern "C" {
 	typedef struct SASL_MECHANISM_BYTES_TAG
 	{
 		const void* bytes;
-		size_t length;
+		uint32_t length;
 	} SASL_MECHANISM_BYTES;
 
 	typedef CONCRETE_SASL_MECHANISM_HANDLE(*SASL_MECHANISM_CREATE)(void* config);

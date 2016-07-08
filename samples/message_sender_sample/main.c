@@ -123,7 +123,7 @@ int main(int argc, char** argv)
 
 				if (current_memory_used != last_memory_used)
 				{
-					printf("Current memory usage:%lu (max:%lu)\r\n", (unsigned long)current_memory_used, (unsigned long)maximum_memory_used);
+					(void)printf("Current memory usage:%lu (max:%lu)\r\n", (unsigned long)current_memory_used, (unsigned long)maximum_memory_used);
 					last_memory_used = current_memory_used;
 				}
 
@@ -136,7 +136,7 @@ int main(int argc, char** argv)
 #if _WIN32
 			unsigned long endTime = (unsigned long)GetTickCount64();
 
-			printf("Send %lu messages in %lu ms: %.02f msgs/sec\r\n", msg_count, (endTime - startTime), (float)msg_count / ((float)(endTime - startTime) / 1000));
+			(void)printf("Send %zu messages in %lu ms: %.02f msgs/sec\r\n", msg_count, (endTime - startTime), (float)msg_count / ((float)(endTime - startTime) / 1000));
 #endif
 		}
 
@@ -149,8 +149,8 @@ int main(int argc, char** argv)
 		saslmechanism_destroy(sasl_mechanism_handle);
 		platform_deinit();
 
-		printf("Max memory usage:%lu\r\n", (unsigned long)amqpalloc_get_maximum_memory_used());
-		printf("Current memory usage:%lu\r\n", (unsigned long)amqpalloc_get_current_memory_used());
+		(void)printf("Max memory usage:%lu\r\n", (unsigned long)amqpalloc_get_maximum_memory_used());
+		(void)printf("Current memory usage:%lu\r\n", (unsigned long)amqpalloc_get_current_memory_used());
 
 		result = 0;
 	}

@@ -2947,6 +2947,8 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             ASSERT_IS_NULL(result);
         }
 
+/* This test would allocate 4Gb and some people might not like that */
+#if 0
         /* Tests_SRS_AMQPVALUE_01_401: [ If the string pointed to by value is longer than 2^32-1 then amqpvalue_create_symbol shall return NULL. ]*/
         TEST_FUNCTION(when_creating_a_symbol_from_a_string_longer_than_2_32_minus_1_amqpvalue_create_symbol_fails)
         {
@@ -2955,7 +2957,9 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             {
                 // arrange
                 amqpvalue_mocks mocks;
-                char* very_big_string = (char*)malloc((size_t)UINT32_MAX + 1);
+                char* very_big_string = (char*)malloc((size_t)UINT32_MAX + 2);
+                (void)memset(very_big_string, 'x', (size_t)UINT32_MAX + 1);
+                very_big_string[(size_t)UINT32_MAX + 1] = '\0';
                 ASSERT_IS_NOT_NULL(very_big_string);
 
                 // act
@@ -2965,6 +2969,7 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
                 ASSERT_IS_NULL(result);
             }
         }
+#endif
 
         /* amqpvalue_get_symbol */
 
@@ -9137,6 +9142,8 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             test_amqpvalue_encode(&mocks, source, "[0x45]");
         }
 
+        /* This test would allocate 4Gb and some people might not like that */
+#if 0
         TEST_FUNCTION(when_encoding_would_result_in_more_than_the_max_size_for_a_list_amqpvalue_encode_fails)
         {
             amqpvalue_mocks mocks;
@@ -9168,6 +9175,7 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // cleanup
             amqpvalue_destroy(source);
         }
+#endif
 
         /* Tests_SRS_AMQPVALUE_01_304: [<encoding name="list8" code="0xc0" category="compound" width="1" label="up to 2^8 - 1 list elements with total size less than 2^8 octets"/>] */
         TEST_FUNCTION(amqpvalue_encode_list_with_one_null_item_succeeds)
@@ -9577,6 +9585,8 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             test_amqpvalue_encode_failure(&mocks, source);
         }
 
+        /* This test would allocate 4Gb and some people might not like that */
+#if 0
         TEST_FUNCTION(when_encoding_would_result_in_more_than_the_max_size_for_a_map_amqpvalue_encode_fails)
         {
             amqpvalue_mocks mocks;
@@ -9610,6 +9620,7 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // cleanup
             amqpvalue_destroy(source);
         }
+#endif
 
         /* amqpvalue_get_encoded_size */
 

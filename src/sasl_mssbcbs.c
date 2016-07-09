@@ -11,7 +11,7 @@
 
 typedef struct SASL_MSSBCBS_INSTANCE_TAG
 {
-	unsigned char dummy : 1;
+	unsigned char dummy;
 } SASL_MSSBCBS_INSTANCE;
 
 static const SASL_MECHANISM_INTERFACE_DESCRIPTION saslmssbcbs_interface =
@@ -25,6 +25,7 @@ static const SASL_MECHANISM_INTERFACE_DESCRIPTION saslmssbcbs_interface =
 
 CONCRETE_SASL_MECHANISM_HANDLE saslmssbcbs_create(void* config)
 {
+    (void)config;
 	return amqpalloc_malloc(sizeof(SASL_MSSBCBS_INSTANCE));
 }
 
@@ -73,6 +74,7 @@ const char* saslmssbcbs_get_mechanism_name(CONCRETE_SASL_MECHANISM_HANDLE sasl_m
 
 int saslmssbcbs_challenge(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism, const SASL_MECHANISM_BYTES* challenge_bytes, SASL_MECHANISM_BYTES* response_bytes)
 {
+    (void)concrete_sasl_mechanism, challenge_bytes, response_bytes;
 	return 0;
 }
 

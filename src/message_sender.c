@@ -97,6 +97,7 @@ static void on_delivery_settled(void* context, delivery_number delivery_no)
 {
     MESSAGE_WITH_CALLBACK* message_with_callback = (MESSAGE_WITH_CALLBACK*)context;
     MESSAGE_SENDER_INSTANCE* message_sender_instance = (MESSAGE_SENDER_INSTANCE*)message_with_callback->message_sender;
+    (void)delivery_no;
 
     if (message_with_callback->on_message_send_complete != NULL)
     {
@@ -152,7 +153,7 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
         AMQP_VALUE application_properties;
         AMQP_VALUE application_properties_value;
         AMQP_VALUE body_amqp_value = NULL;
-        size_t body_data_count;
+        size_t body_data_count = 0;
 
         message_get_header(message, &header);
         header_amqp_value = amqpvalue_create_header(header);
@@ -232,7 +233,9 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
                         }
                         else
                         {
-                            amqp_binary binary_value = { binary_data.bytes, (uint32_t)binary_data.length };
+                            amqp_binary binary_value;
+                            binary_value.bytes = binary_data.bytes;
+                            binary_value.length = (uint32_t)binary_data.length;
                             AMQP_VALUE body_amqp_data = amqpvalue_create_data(binary_value);
                             if (body_amqp_data == NULL)
                             {
@@ -261,7 +264,9 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
         if (result == 0)
         {
             void* data_bytes = amqpalloc_malloc(total_encoded_size);
-            PAYLOAD payload = { data_bytes, 0 };
+            PAYLOAD payload;
+            payload.bytes = data_bytes;
+            payload.length = 0;
             result = SEND_ONE_MESSAGE_OK;
 
             if (header != NULL)
@@ -321,7 +326,9 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
                         }
                         else
                         {
-                            amqp_binary binary_value = { binary_data.bytes, (uint32_t)binary_data.length };
+                            amqp_binary binary_value;
+                            binary_value.bytes = binary_data.bytes;
+                            binary_value.length = binary_data.length;
                             AMQP_VALUE body_amqp_data = amqpvalue_create_data(binary_value);
                             if (body_amqp_data == NULL)
                             {
@@ -458,6 +465,7 @@ static void indicate_all_messages_as_error(MESSAGE_SENDER_INSTANCE* message_send
 static void on_link_state_changed(void* context, LINK_STATE new_link_state, LINK_STATE previous_link_state)
 {
     MESSAGE_SENDER_INSTANCE* message_sender_instance = (MESSAGE_SENDER_INSTANCE*)context;
+    (void)previous_link_state;
 
     switch (new_link_state)
     {

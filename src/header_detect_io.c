@@ -58,6 +58,7 @@ static void indicate_close_complete(HEADER_DETECT_IO_INSTANCE* header_detect_io_
 static void on_underlying_io_error(void* context);
 static void on_send_complete_close(void* context, IO_SEND_RESULT send_result)
 {
+    (void)send_result;
     on_underlying_io_error(context);
 }
 

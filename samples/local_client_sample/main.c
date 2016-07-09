@@ -33,6 +33,7 @@ int main(int argc, char** argv)
 {
 	int result;
 
+    (void)argc, argv;
     amqpalloc_set_memory_tracing_enabled(true);
 
 	if (platform_init() != 0)
@@ -72,7 +73,9 @@ int main(int argc, char** argv)
 
 		message = message_create();
 		unsigned char hello[] = { 'H', 'e', 'l', 'l', 'o' };
-		BINARY_DATA binary_data = { hello, sizeof(hello) };
+		BINARY_DATA binary_data;
+        binary_data.bytes = hello;
+        binary_data.length = sizeof(hello);
 		message_add_body_amqp_data(message, binary_data);
 
 		/* create a message sender */

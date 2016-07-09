@@ -46,8 +46,8 @@ typedef struct AMQP_MANAGEMENT_INSTANCE_TAG
     void* callback_context;
     AMQP_MANAGEMENT_STATE amqp_management_state;
     AMQP_MANAGEMENT_STATE previous_amqp_management_state;
-    unsigned char sender_connected : 1;
-    unsigned char receiver_connected : 1;
+    int sender_connected : 1;
+    int receiver_connected : 1;
 } AMQP_MANAGEMENT_INSTANCE;
 
 static void amqpmanagement_set_state(AMQP_MANAGEMENT_INSTANCE* amqp_management_instance, AMQP_MANAGEMENT_STATE amqp_management_state)
@@ -277,6 +277,7 @@ static int send_operation_messages(AMQP_MANAGEMENT_INSTANCE* amqp_management_ins
 static void on_message_sender_state_changed(void* context, MESSAGE_SENDER_STATE new_state, MESSAGE_SENDER_STATE previous_state)
 {
     AMQP_MANAGEMENT_INSTANCE* amqp_management_instance = (AMQP_MANAGEMENT_INSTANCE*)context;
+    (void)previous_state;
     switch (new_state)
     {
     default:
@@ -298,6 +299,7 @@ static void on_message_sender_state_changed(void* context, MESSAGE_SENDER_STATE 
 static void on_message_receiver_state_changed(const void* context, MESSAGE_RECEIVER_STATE new_state, MESSAGE_RECEIVER_STATE previous_state)
 {
     AMQP_MANAGEMENT_INSTANCE* amqp_management_instance = (AMQP_MANAGEMENT_INSTANCE*)context;
+    (void)previous_state;
     switch (new_state)
     {
     default:

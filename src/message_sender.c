@@ -328,7 +328,7 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
                         {
                             amqp_binary binary_value;
                             binary_value.bytes = binary_data.bytes;
-                            binary_value.length = binary_data.length;
+                            binary_value.length = (uint32_t)binary_data.length;
                             AMQP_VALUE body_amqp_data = amqpvalue_create_data(binary_value);
                             if (body_amqp_data == NULL)
                             {

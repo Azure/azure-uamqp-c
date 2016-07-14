@@ -1,4 +1,4 @@
-azure-uamqp-c (0.1.0-22) vivid; urgency=low
+azure-uamqp-c (0.1.0-23) vivid; urgency=low
 
   * Initial release
 
@@ -26,5 +26,9 @@ azure-uamqp-c (0.1.0-22) vivid; urgency=low
 
   * calling a new connection_create function (#6d91225)
 
- -- AzureIoT User <aziotsdklinux@outlook.com>  Fri, 17 Jun 2016 20:22:05 +0000
+  * Remove logger argument from message_sender
+
+  * Bug fix: WSIO.c on_ws_callback should not update certs if wsio_instance->trusted_ca is NULL
+
+ -- AzureIoT User <aziotsdklinux@outlook.com>  Fri, 30 Jun 2016 17:00:00 +0000
 

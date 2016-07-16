@@ -18,7 +18,7 @@ call "%repo-build-root%\azure-c-shared-utility\tools\compilembed\build.cmd" --cl
 if not %errorlevel%==0 exit /b %errorlevel%
 
 rem -----------------------------------------------------------------------------
-rem -- build iothub client samples
+rem -- build uAMQP and samples
 rem -----------------------------------------------------------------------------
 
 call %repo-build-root%\azure-c-shared-utility\tools\mbed_build_scripts\release_mbed_project.cmd %repo-build-root%\build_all

@@ -1120,8 +1120,39 @@ int saslclientio_setoption(CONCRETE_IO_HANDLE sasl_client_io, const char* option
     return result;
 }
 
+/*this function will clone an option given by name and value*/
+static void* saslclientio_CloneOption(const char* name, const void* value)
+{
+    (void)(name, value);
+    return NULL;
+}
+
+/*this function destroys an option previously created*/
+static void saslclientio_DestroyOption(const char* name, const void* value)
+{
+    (void)(name, value);
+}
+
+static OPTIONHANDLER_HANDLE saslclientio_retrieveoptions(CONCRETE_IO_HANDLE handle)
+{
+    OPTIONHANDLER_HANDLE result;
+    (void)handle;
+    result = OptionHandler_Create(saslclientio_CloneOption, saslclientio_DestroyOption, saslclientio_setoption);
+    if (result == NULL)
+    {
+        LogError("unable to OptionHandler_Create");
+        /*return as is*/
+    }
+    else
+    {
+        /*insert here work to add the options to "result" handle*/
+    }
+    return result;
+}
+
 static const IO_INTERFACE_DESCRIPTION sasl_client_io_interface_description =
 {
+    saslclientio_retrieveoptions,
     saslclientio_create,
     saslclientio_destroy,
     saslclientio_open,

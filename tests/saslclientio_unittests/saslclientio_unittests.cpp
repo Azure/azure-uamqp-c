@@ -202,6 +202,10 @@ public:
 	MOCK_VOID_METHOD_END();
 	MOCK_STATIC_METHOD_2(, void, test_on_send_complete, void*, context, IO_SEND_RESULT, send_result)
 	MOCK_VOID_METHOD_END();
+
+    /*mocks for OptionHandler*/
+    MOCK_STATIC_METHOD_3(,OPTIONHANDLER_HANDLE, OptionHandler_Create, pfCloneOption, cloneOption, pfDestroyOption, destroyOption, pfSetOption, setOption)
+    MOCK_METHOD_END(OPTIONHANDLER_HANDLE, (OPTIONHANDLER_HANDLE)NULL);
 };
 
 extern "C"
@@ -242,6 +246,7 @@ extern "C"
 	DECLARE_GLOBAL_MOCK_METHOD_2(saslclientio_mocks, , void, test_on_io_open_complete, void*, context, IO_OPEN_RESULT, io_open_result);
 	DECLARE_GLOBAL_MOCK_METHOD_1(saslclientio_mocks, , void, test_on_io_error, void*, context);
 	DECLARE_GLOBAL_MOCK_METHOD_2(saslclientio_mocks, , void, test_on_send_complete, void*, context, IO_SEND_RESULT, send_result);
+    DECLARE_GLOBAL_MOCK_METHOD_3(saslclientio_mocks, , OPTIONHANDLER_HANDLE, OptionHandler_Create, pfCloneOption, cloneOption, pfDestroyOption, destroyOption, pfSetOption, setOption)
 }
 
 MICROMOCK_MUTEX_HANDLE test_serialize_mutex;

@@ -1,12 +1,12 @@
-#wsio requirements
+# wsio requirements
  
-##Overview
+## Overview
 
 wsio is module that implements a concrete IO that transports data over WebSockets using libwebsockets.
 
-##Exposed API
+## Exposed API
 
-```C
+```c
 typedef struct WSIO_CONFIG_TAG
 {
 	const char* host;
@@ -17,6 +17,7 @@ typedef struct WSIO_CONFIG_TAG
 	const char* trusted_ca;
 } WSIO_CONFIG;
 
+static wsio_retrieveoptions(CONCRETE_IO_HANDLE handle);
 extern CONCRETE_IO_HANDLE wsio_create(void* io_create_parameters);
 extern void wsio_destroy(CONCRETE_IO_HANDLE ws_io);
 extern int wsio_open(CONCRETE_IO_HANDLE ws_io, ON_IO_OPEN_COMPLETE on_io_open_complete, ON_BYTES_RECEIVED on_bytes_received, ON_IO_ERROR on_io_error, void* callback_context);
@@ -28,9 +29,9 @@ extern int wsio_setoption(CONCRETE_IO_HANDLE socket_io, const char* optionName, 
 extern const IO_INTERFACE_DESCRIPTION* wsio_get_interface_description(void);
 ```
 
-###wsio_create
+### wsio_create
 
-```C
+```c
 extern CONCRETE_IO_HANDLE wsio_create(void* io_create_parameters);
 ```
 
@@ -44,9 +45,9 @@ extern CONCRETE_IO_HANDLE wsio_create(void* io_create_parameters);
 **SRS_WSIO_01_098: \[**wsio_create shall create a pending IO list that is to be used when sending buffers over the libwebsockets IO by calling list_create.**\]** 
 **SRS_WSIO_01_099: \[**If list_create fails then wsio_create shall fail and return NULL.**\]** 
 
-###wsio_destroy
+### wsio_destroy
 
-```C
+```c
 extern void wsio_destroy(CONCRETE_IO_HANDLE ws_io);
 ```
 
@@ -54,9 +55,9 @@ extern void wsio_destroy(CONCRETE_IO_HANDLE ws_io);
 **SRS_WSIO_01_008: \[**If ws_io is NULL, wsio_destroy shall do nothing.**\]** 
 **SRS_WSIO_01_009: \[**wsio_destroy shall execute a close action if the IO has already been open or an open action is already pending.**\]** 
 
-###wsio_open
+### wsio_open
 
-```C
+```c
 extern int wsio_open(CONCRETE_IO_HANDLE ws_io, ON_IO_OPEN_COMPLETE on_io_open_complete, ON_BYTES_RECEIVED on_bytes_received, ON_IO_ERROR on_io_error, void* callback_context);
 ```
 
@@ -101,9 +102,9 @@ The first protocol entry shall have:
 **SRS_WSIO_01_039: \[**The callback_context argument shall be passed to on_io_open_complete as is.**\]** 
 **SRS_WSIO_01_040: \[**The argument on_io_open_complete shall be optional, if NULL is passed by the caller then no open complete callback shall be triggered.**\]** 
 
-###wsio_close
+### wsio_close
 
-```C
+```c
 extern int wsio_close(CONCRETE_IO_HANDLE ws_io, ON_IO_CLOSE_COMPLETE on_io_close_complete, void* callback_context);
 ```
 
@@ -120,9 +121,9 @@ extern int wsio_close(CONCRETE_IO_HANDLE ws_io, ON_IO_CLOSE_COMPLETE on_io_close
 **SRS_WSIO_01_109: \[**For each pending item the send complete callback shall be called with IO_SEND_CANCELLED.**\]**
 **SRS_WSIO_01_110: \[**The callback context passed to the on_send_complete callback shall be the context given to wsio_send.**\]** 
 
-###wsio_send
+### wsio_send
 
-```C
+```c
 extern int wsio_send(CONCRETE_IO_HANDLE ws_io, const void* buffer, size_t size, ON_SEND_COMPLETE on_send_complete, void* callback_context);
 ```
 
@@ -140,9 +141,9 @@ extern int wsio_send(CONCRETE_IO_HANDLE ws_io, const void* buffer, size_t size, 
 **SRS_WSIO_01_059: \[**The callback_context argument shall be passed to on_send_complete as is.**\]** 
 **SRS_WSIO_01_060: \[**The argument on_send_complete shall be optional, if NULL is passed by the caller then no send complete callback shall be triggered.**\]** 
 
-###wsio_dowork
+### wsio_dowork
 
-```C
+```c
 extern void wsio_dowork(CONCRETE_IO_HANDLE ws_io);
 ```
 
@@ -150,37 +151,37 @@ extern void wsio_dowork(CONCRETE_IO_HANDLE ws_io);
 **SRS_WSIO_01_112: \[**The timeout for lws_service shall be 0.**\]** **SRS_WSIO_01_062: \[**This shall be done if the IO is not closed.**\]** 
 **SRS_WSIO_01_063: \[**If the ws_io argument is NULL, wsio_dowork shall do nothing.**\]** 
 
-###wsio_setoption
+### wsio_setoption
 
-```C
+```c
 extern int wsio_setoption(CONCRETE_IO_HANDLE socket_io, const char* optionName, const void* value);
 ```
 
 **SRS_WSIO_03_001: \[**wsio_setoption does not support any options and shall always return non-zero value.**\]**
 
-###wsio_get_interface_description
+### wsio_get_interface_description
 
-```C
+```c
 extern const IO_INTERFACE_DESCRIPTION* wsio_get_interface_description(void);
 ```
 
-**SRS_WSIO_01_064: \[**wsio_get_interface_description shall return a pointer to an IO_INTERFACE_DESCRIPTION structure that contains pointers to the functions: wsio_create, wsio_destroy, wsio_open, wsio_close, wsio_send and wsio_dowork.**\]** 
+**SRS_WSIO_01_064: \[**wsio_get_interface_description shall return a pointer to an IO_INTERFACE_DESCRIPTION structure that contains pointers to the functions: wsio_retrieveoptions, wsio_create, wsio_destroy, wsio_open, wsio_close, wsio_send and wsio_dowork.**\]** 
 
-###on_ws_callback
+### on_ws_callback
 
 The on_ws_callback is to be invoked by the libwebsockets library whenever a libwebsockets event occurs. 
 
-####LWS_CALLBACK_CLIENT_ESTABLISHED
+#### LWS_CALLBACK_CLIENT_ESTABLISHED
 
 **SRS_WSIO_01_066: \[**If an open action is pending, the on_io_open_complete callback shall be triggered with IO_OPEN_OK and from now on it shall be possible to send/receive data.**\]**
 **SRS_WSIO_01_068: \[**If the IO is already open, the on_io_error callback shall be triggered.**\]** 
 
-####LWS_CALLBACK_CLIENT_CONNECTION_ERROR
+#### LWS_CALLBACK_CLIENT_CONNECTION_ERROR
 
 **SRS_WSIO_01_069: \[**If an open action is pending, the on_io_open_complete callback shall be triggered with IO_OPEN_ERROR.**\]**
 **SRS_WSIO_01_070: \[**If the IO is already open, the on_io_error callback shall be triggered.**\]** 
 
-####LWS_CALLBACK_CLIENT_WRITEABLE
+#### LWS_CALLBACK_CLIENT_WRITEABLE
 
 **SRS_WSIO_01_120: \[**This event shall only be processed if the IO is open.**\]**
 **SRS_WSIO_01_121: \[**If this event is received in while an open action is incomplete, the open_complete callback shall be called with IO_OPEN_ERROR.**\]** 
@@ -203,7 +204,7 @@ The on_ws_callback is to be invoked by the libwebsockets library whenever a libw
 -	**SRS_WSIO_01_115: \[**The send over websockets was successful**\]** 
 -	**SRS_WSIO_01_116: \[**The send failed writing to lws or allocating memory for the data to be passed to lws and no partial data has been sent previously for the pending IO.**\]** 
 
-####LWS_CALLBACK_CLIENT_RECEIVE
+#### LWS_CALLBACK_CLIENT_RECEIVE
 
 **SRS_WSIO_01_082: \[**LWS_CALLBACK_CLIENT_RECEIVE shall only be processed when the IO is open.**\]**
 **SRS_WSIO_01_122: \[**If an open action is in progress then the on_open_complete callback shall be invoked with IO_OPEN_ERROR.**\]**
@@ -214,7 +215,7 @@ The on_ws_callback is to be invoked by the libwebsockets library whenever a libw
 **SRS_WSIO_01_087: \[**If the number of bytes is 0 then the on_io_error callback shall be called.**\]** 
 **SRS_WSIO_01_088: \[**If the number of bytes received is positive, but the buffer indicated by the in parameter is NULL, then the on_io_error callback shall be called.**\]** 
 
-####LWS_CALLBACK_OPENSSL_LOAD_EXTRA_CLIENT_VERIFY_CERTS
+#### LWS_CALLBACK_OPENSSL_LOAD_EXTRA_CLIENT_VERIFY_CERTS
 
 **SRS_WSIO_01_089: \[**When LWS_CALLBACK_OPENSSL_LOAD_EXTRA_CLIENT_VERIFY_CERTS is triggered, the certificates passed in the trusted_ca member of WSIO_CONFIG passed in wsio_init shall be loaded in the certificate store.**\]**
 **SRS_WSIO_01_090: \[**The OpenSSL certificate store is passed in the user argument.**\]**	
@@ -227,3 +228,14 @@ Loading the certificates in the certificate store shall be done by:
 -	**SRS_WSIO_01_128: \[**Freeing the BIO**\]** 
 **SRS_WSIO_01_129: \[**If any of the APIs fails and an open call is pending the on_open_complete callback shall be triggered with IO_OPEN_ERROR.**\]** 
 **SRS_WSIO_01_130: \[**If the event is received when the IO is already open the on_io_error callback shall be triggered.**\]** 
+
+### wsio_retrieveoptions
+```c
+OPTIONHANDLER_HANDLE wsio_retrieveoptions(CONCRETE_IO_HANDLE handle)
+```
+
+wsio_retrieveoptions produces an OPTIONHANDLER_HANDLE. Because of SRS_WSIO_03_001, the produced object is empty. 
+
+ **SRS_WSIO_02_001: [** If parameter handle is `NULL` then `wsio_retrieveoptions` shall fail and return NULL. **]**
+ **SRS_WSIO_02_002: [** wsio_retrieveoptions shall produce an empty OPTIOHANDLER_HANDLE. **]**
+ **SRS_WSIO_02_003: [** If producing the OPTIONHANDLER_HANDLE fails then wsio_retrieveoptions shall fail and return NULL. **]** 

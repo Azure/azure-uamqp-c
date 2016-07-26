@@ -5,6 +5,7 @@
 #include "micromock.h"
 #include "micromockcharstararenullterminatedstrings.h"
 #include "azure_c_shared_utility/xio.h"
+#include "azure_c_shared_utility/optionhandler.h"
 #include "azure_uamqp_c/wsio.h"
 #include "azure_c_shared_utility/list.h"
 #include "libwebsockets.h"
@@ -277,6 +278,10 @@ public:
     MOCK_VOID_METHOD_END()
     MOCK_STATIC_METHOD_2(, void, test_on_send_complete, void*, context, IO_SEND_RESULT, send_result)
     MOCK_VOID_METHOD_END()
+
+    MOCK_STATIC_METHOD_3(, OPTIONHANDLER_HANDLE, OptionHandler_Create, pfCloneOption, clone, pfDestroyOption, destroy, pfSetOption, setoption);
+		OPTIONHANDLER_HANDLE r = (OPTIONHANDLER_HANDLE) malloc(1);
+    MOCK_METHOD_END(OPTIONHANDLER_HANDLE, r)
 };
 
 extern "C"
@@ -318,6 +323,8 @@ extern "C"
     DECLARE_GLOBAL_MOCK_METHOD_1(wsio_mocks, , void, test_on_io_error, void*, context);
     DECLARE_GLOBAL_MOCK_METHOD_1(wsio_mocks, , void, test_on_io_close_complete, void*, context);
     DECLARE_GLOBAL_MOCK_METHOD_2(wsio_mocks, , void, test_on_send_complete, void*, context, IO_SEND_RESULT, send_result);
+
+    DECLARE_GLOBAL_MOCK_METHOD_3(wsio_mocks, , OPTIONHANDLER_HANDLE, OptionHandler_Create, pfCloneOption, clone, pfDestroyOption, destroy, pfSetOption, setoption);
 }
 
 MICROMOCK_MUTEX_HANDLE test_serialize_mutex;
@@ -901,6 +908,10 @@ TEST_FUNCTION(when_creating_the_libwebsockets_context_fails_then_wsio_open_fails
 
     // assert
     ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    mocks.AssertActualAndExpectedCalls();
+
+    ///cleanup 
+    wsio_destroy(wsio);
 }
 
 /* Tests_SRS_WSIO_01_033: [If lws_client_connect fails then wsio_open shall fail and return a non-zero value.] */
@@ -944,9 +955,13 @@ TEST_FUNCTION(when_lws_client_connect_fails_then_wsio_open_fails)
 
     // act
     int result = wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
+    mocks.AssertActualAndExpectedCalls();
 
     // assert
     ASSERT_ARE_NOT_EQUAL(int, 0, result);
+
+    ///cleanup
+    wsio_destroy(wsio);
 }
 
 /* Tests_SRS_WSIO_01_034: [If another open is in progress or has completed successfully (the IO is open), wsio_open shall fail and return a non-zero value without performing any connection related activities.] */
@@ -3407,6 +3422,67 @@ TEST_FUNCTION(when_adding_the_cert_to_the_store_fails_in_LOAD_EXTRA_CLIENT_VERIF
     mocks.AssertActualAndExpectedCalls();
 
     // cleanup
+    wsio_destroy(wsio);
+}
+
+/*Tests_SRS_WSIO_02_001: [ If parameter handle is NULL then wsio_retrieveoptions shall fail and return NULL. ]*/
+TEST_FUNCTION(wsio_retrieveoptions_with_NULL_handle_returns_NULL)
+{
+    ///arrange
+    wsio_mocks mocks;
+
+    ///act
+    OPTIONHANDLER_HANDLE h = wsio_get_interface_description()->concrete_io_retrieveoptions(NULL);
+
+    ///assert
+    ASSERT_IS_NULL(h);
+    mocks.AssertActualAndExpectedCalls();
+
+}
+
+/*Tests_SRS_WSIO_02_002: [ wsio_retrieveoptions shall produce an empty OPTIOHANDLER_HANDLE. ]*/
+TEST_FUNCTION(wsio_retrieveoptions_returns_non_NULL_empty)
+{
+    ///arrange
+    wsio_mocks mocks;
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
+    mocks.ResetAllCalls();
+
+    STRICT_EXPECTED_CALL(mocks, OptionHandler_Create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .IgnoreAllArguments();
+
+    ///act
+    OPTIONHANDLER_HANDLE h = wsio_get_interface_description()->concrete_io_retrieveoptions(wsio);
+
+    ///assert
+    ASSERT_IS_NOT_NULL(h);
+    mocks.AssertActualAndExpectedCalls();
+
+    ///cleanup
+    wsio_destroy(wsio);
+    free(h);
+}
+
+/*Tests_SRS_WSIO_02_003: [ If producing the OPTIONHANDLER_HANDLE fails then wsio_retrieveoptions shall fail and return NULL. ]*/
+TEST_FUNCTION(wsio_retrieveoptions_when_OptionHandler_Create_fails_it_fails)
+{
+    ///arrange
+    wsio_mocks mocks;
+    CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
+    mocks.ResetAllCalls();
+
+    STRICT_EXPECTED_CALL(mocks, OptionHandler_Create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .IgnoreAllArguments()
+        .SetFailReturn((OPTIONHANDLER_HANDLE)NULL);
+
+    ///act
+    OPTIONHANDLER_HANDLE h = wsio_get_interface_description()->concrete_io_retrieveoptions(wsio);
+
+    ///assert
+    ASSERT_IS_NULL(h);
+    mocks.AssertActualAndExpectedCalls();
+
+    ///cleanup
     wsio_destroy(wsio);
 }
 

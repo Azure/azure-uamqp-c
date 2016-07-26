@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft. All rights reserved.
+ // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 #include <stdlib.h>
@@ -12,6 +12,7 @@
 #include "azure_uamqp_c/amqpalloc.h"
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_c_shared_utility/list.h"
+#include "azure_c_shared_utility/optionhandler.h"
 #include "libwebsockets.h"
 #include "openssl/ssl.h"
 #include "azure_c_shared_utility/xio.h"
@@ -137,17 +138,6 @@ static int remove_pending_io(WSIO_INSTANCE* wsio_instance, LIST_ITEM_HANDLE item
 
     return result;
 }
-
-static const IO_INTERFACE_DESCRIPTION ws_io_interface_description =
-{
-	wsio_create,
-	wsio_destroy,
-	wsio_open,
-	wsio_close,
-	wsio_send,
-	wsio_dowork,
-    wsio_setoption
-};
 
 static int on_ws_callback(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len)
 {
@@ -660,29 +650,6 @@ CONCRETE_IO_HANDLE wsio_create(void* io_create_parameters)
 	return result;
 }
 
-void wsio_destroy(CONCRETE_IO_HANDLE ws_io)
-{
-    /* Codes_SRS_WSIO_01_008: [If ws_io is NULL, wsio_destroy shall do nothing.] */
-    if (ws_io != NULL)
-	{
-		WSIO_INSTANCE* wsio_instance = (WSIO_INSTANCE*)ws_io;
-
-        /* Codes_SRS_WSIO_01_009: [wsio_destroy shall execute a close action if the IO has already been open or an open action is already pending.] */
-        (void)wsio_close(wsio_instance, NULL, NULL);
-
-        /* Codes_SRS_WSIO_01_007: [wsio_destroy shall free all resources associated with the wsio instance.] */
-        amqpalloc_free(wsio_instance->protocols);
-		amqpalloc_free(wsio_instance->host);
-        amqpalloc_free(wsio_instance->protocol_name);
-		amqpalloc_free(wsio_instance->relative_path);
-		amqpalloc_free(wsio_instance->trusted_ca);
-
-		list_destroy(wsio_instance->pending_io_list);
-
-		amqpalloc_free(ws_io);
-	}
-}
-
 int wsio_open(CONCRETE_IO_HANDLE ws_io, ON_IO_OPEN_COMPLETE on_io_open_complete, void* on_io_open_complete_context, ON_BYTES_RECEIVED on_bytes_received, void* on_bytes_received_context, ON_IO_ERROR on_io_error, void* on_io_error_context)
 {
 	int result = 0;
@@ -862,6 +829,29 @@ int wsio_close(CONCRETE_IO_HANDLE ws_io, ON_IO_CLOSE_COMPLETE on_io_close_comple
 	return result;
 }
 
+void wsio_destroy(CONCRETE_IO_HANDLE ws_io)
+{
+    /* Codes_SRS_WSIO_01_008: [If ws_io is NULL, wsio_destroy shall do nothing.] */
+    if (ws_io != NULL)
+    {
+        WSIO_INSTANCE* wsio_instance = (WSIO_INSTANCE*)ws_io;
+
+        /* Codes_SRS_WSIO_01_009: [wsio_destroy shall execute a close action if the IO has already been open or an open action is already pending.] */
+        (void)wsio_close(wsio_instance, NULL, NULL);
+
+        /* Codes_SRS_WSIO_01_007: [wsio_destroy shall free all resources associated with the wsio instance.] */
+        amqpalloc_free(wsio_instance->protocols);
+        amqpalloc_free(wsio_instance->host);
+        amqpalloc_free(wsio_instance->protocol_name);
+        amqpalloc_free(wsio_instance->relative_path);
+        amqpalloc_free(wsio_instance->trusted_ca);
+
+        list_destroy(wsio_instance->pending_io_list);
+
+        amqpalloc_free(ws_io);
+    }
+}
+
 /* Codes_SRS_WSIO_01_050: [wsio_send shall send the buffer bytes through the websockets connection.] */
 int wsio_send(CONCRETE_IO_HANDLE ws_io, const void* buffer, size_t size, ON_SEND_COMPLETE on_send_complete, void* callback_context)
 {
@@ -935,8 +925,62 @@ int wsio_setoption(CONCRETE_IO_HANDLE socket_io, const char* optionName, const v
     return __LINE__;
 }
 
+/*this function will clone an option given by name and value*/
+static void* wsio_CloneOption(const char* name, const void* value)
+{
+    (void)(name, value);
+    return NULL;
+}
+
+/*this function destroys an option previously created*/
+static void wsio_DestroyOption(const char* name, const void* value)
+{
+    (void)(name, value);
+}
+
+static OPTIONHANDLER_HANDLE wsio_retrieveoptions(CONCRETE_IO_HANDLE handle)
+{
+    OPTIONHANDLER_HANDLE result;
+    /*Codes_SRS_WSIO_02_001: [ If parameter handle is NULL then wsio_retrieveoptions shall fail and return NULL. */
+    if (handle == NULL)
+    {
+        LogError(" parameter CONCRETE_IO_HANDLE handle=%p", handle);
+        result = NULL;
+    }
+    else
+    {
+        /*Codes_SRS_WSIO_02_002: [ wsio_retrieveoptions shall produce an empty OPTIOHANDLER_HANDLE. ]*/
+        result = OptionHandler_Create(wsio_CloneOption, wsio_DestroyOption, wsio_setoption);
+        if (result == NULL)
+        {
+            /*Codes_SRS_WSIO_02_003: [ If producing the OPTIONHANDLER_HANDLE fails then wsio_retrieveoptions shall fail and return NULL. ]*/
+            LogError("unable to OptionHandler_Create");
+            /*return as is*/
+        }
+        else
+        {
+            /*return as is, no calls to OptionHandler_AddOption*/
+        }
+    }
+    return result;
+}
+
+
+static const IO_INTERFACE_DESCRIPTION ws_io_interface_description =
+{
+    wsio_retrieveoptions,
+    wsio_create,
+    wsio_destroy,
+    wsio_open,
+    wsio_close,
+    wsio_send,
+    wsio_dowork,
+    wsio_setoption
+};
+
 /* Codes_SRS_WSIO_01_064: [wsio_get_interface_description shall return a pointer to an IO_INTERFACE_DESCRIPTION structure that contains pointers to the functions: wsio_create, wsio_destroy, wsio_open, wsio_close, wsio_send and wsio_dowork.] */
 const IO_INTERFACE_DESCRIPTION* wsio_get_interface_description(void)
 {
 	return &ws_io_interface_description;
 }
+

@@ -90,7 +90,13 @@ add_definitions(-D__STDC_NO_ATOMICS__=1)
 if(${use_wsio})
     include_directories(libwebsockets/lib)
     include_directories(${PROJECT_BINARY_DIR}/libwebsockets)
+
+    #because libwebsockets? is sensible to -Werror, it shall be removed, and re-added after
+    string(REPLACE "-Werror" "" CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
+    string(REPLACE "-Werror" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
     add_subdirectory(libwebsockets)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
 endif()
 
 add_subdirectory(azure-c-shared-utility)

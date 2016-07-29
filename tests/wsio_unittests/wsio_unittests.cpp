@@ -1596,7 +1596,6 @@ TEST_FUNCTION(when_buffer_is_NULL_wsio_send_fails)
 {
     // arrange
     wsio_mocks mocks;
-    unsigned char test_buffer[] = { 0x42 };
     CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
@@ -1605,7 +1604,7 @@ TEST_FUNCTION(when_buffer_is_NULL_wsio_send_fails)
     mocks.ResetAllCalls();
 
     // act
-    int result = wsio_send(wsio, NULL, sizeof(test_buffer), test_on_send_complete, (void*)0x4243);
+    int result = wsio_send(wsio, NULL, 1, test_on_send_complete, (void*)0x4243);
 
     // assert
     mocks.AssertActualAndExpectedCalls();
@@ -2054,7 +2053,6 @@ TEST_FUNCTION(CLIENT_WRITABLE_when_opening_yields_an_open_complete_error)
 {
     // arrange
     wsio_mocks mocks;
-    unsigned char test_buffer[] = { 0x42 };
     CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
@@ -3071,7 +3069,6 @@ TEST_FUNCTION(LOAD_EXTRA_CLIENT_VERIFY_CERTS_with_a_string_that_has_no_certs_add
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer1[] = { 0x42, 0x43 };
-    unsigned char test_buffer2[] = { 0x44 };
     CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
@@ -3105,7 +3102,6 @@ TEST_FUNCTION(LOAD_EXTRA_CLIENT_VERIFY_CERTS_with_a_string_that_has_1_cert_loads
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer1[] = { 0x42, 0x43 };
-    unsigned char test_buffer2[] = { 0x44 };
     CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
@@ -3142,7 +3138,6 @@ TEST_FUNCTION(LOAD_EXTRA_CLIENT_VERIFY_CERTS_with_a_string_that_has_2_certs_load
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer1[] = { 0x42, 0x43 };
-    unsigned char test_buffer2[] = { 0x44 };
     CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
@@ -3181,7 +3176,6 @@ TEST_FUNCTION(LOAD_EXTRA_CLIENT_VERIFY_CERTS_when_already_open_yields_an_error)
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer1[] = { 0x42, 0x43 };
-    unsigned char test_buffer2[] = { 0x44 };
     CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     STRICT_EXPECTED_CALL(mocks, lws_context_user(TEST_LIBWEBSOCKET_CONTEXT))
@@ -3210,7 +3204,6 @@ TEST_FUNCTION(when_getting_the_cert_store_fails_in_LOAD_EXTRA_CLIENT_VERIFY_CERT
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer1[] = { 0x42, 0x43 };
-    unsigned char test_buffer2[] = { 0x44 };
     CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
@@ -3238,7 +3231,6 @@ TEST_FUNCTION(when_getting_the_memory_BIO_METHOD_fails_in_LOAD_EXTRA_CLIENT_VERI
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer1[] = { 0x42, 0x43 };
-    unsigned char test_buffer2[] = { 0x44 };
     CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
@@ -3267,7 +3259,6 @@ TEST_FUNCTION(when_creating_the_BIO_fails_in_LOAD_EXTRA_CLIENT_VERIFY_CERTS_an_o
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer1[] = { 0x42, 0x43 };
-    unsigned char test_buffer2[] = { 0x44 };
     CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
@@ -3297,7 +3288,6 @@ TEST_FUNCTION(when_setting_the_input_string_for_the_memory_BIO_fails_with_0_in_L
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer1[] = { 0x42, 0x43 };
-    unsigned char test_buffer2[] = { 0x44 };
     CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
@@ -3329,7 +3319,6 @@ TEST_FUNCTION(when_setting_the_input_string_for_the_memory_BIO_fails_with_len_mi
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer1[] = { 0x42, 0x43 };
-    unsigned char test_buffer2[] = { 0x44 };
     CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
@@ -3361,7 +3350,6 @@ TEST_FUNCTION(when_setting_the_input_string_for_the_memory_BIO_fails_with_len_pl
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer1[] = { 0x42, 0x43 };
-    unsigned char test_buffer2[] = { 0x44 };
     CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();
@@ -3394,7 +3382,7 @@ TEST_FUNCTION(when_adding_the_cert_to_the_store_fails_in_LOAD_EXTRA_CLIENT_VERIF
     // arrange
     wsio_mocks mocks;
     unsigned char test_buffer1[] = { 0x42, 0x43 };
-    unsigned char test_buffer2[] = { 0x44 };
+
     CONCRETE_IO_HANDLE wsio = wsio_create(&default_wsio_config);
     (void)wsio_open(wsio, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4242, test_on_io_error, (void*)0x4242);
     mocks.ResetAllCalls();

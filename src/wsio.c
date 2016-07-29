@@ -922,6 +922,7 @@ void wsio_dowork(CONCRETE_IO_HANDLE ws_io)
 /* Codes_SRS_WSIO_03_001: [wsio_setoption does not support any options and shall always return non-zero value.] */
 int wsio_setoption(CONCRETE_IO_HANDLE socket_io, const char* optionName, const void* value)
 {
+	(void)(socket_io, optionName, value);
     return __LINE__;
 }
 

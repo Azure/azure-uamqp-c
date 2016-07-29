@@ -60,6 +60,7 @@ void on_cbs_operation_complete(void* context, CBS_OPERATION_RESULT cbs_operation
 
 int main(int argc, char** argv)
 {
+	(void)(argc, argv);
 	int result;
 
 	amqpalloc_set_memory_tracing_enabled(true);
@@ -89,7 +90,10 @@ int main(int argc, char** argv)
 		ws_io = xio_create(tlsio_interface, &ws_io_config);
 
 		/* create the SASL IO using the WS IO */
-		SASLCLIENTIO_CONFIG sasl_io_config = { ws_io, sasl_mechanism_handle };
+		SASLCLIENTIO_CONFIG sasl_io_config;
+		sasl_io_config.underlying_io = ws_io;
+		sasl_io_config.sasl_mechanism = sasl_mechanism_handle;
+
 		sasl_io = xio_create(saslclientio_get_interface_description(), &sasl_io_config);
 
 		/* create the connection, session and link */
@@ -130,7 +134,9 @@ int main(int argc, char** argv)
 
 		message = message_create();
 		unsigned char hello[5] = { 'h', 'e', 'l', 'l', 'o' };
-		BINARY_DATA binary_data = { hello, sizeof(hello) };
+		BINARY_DATA binary_data;
+		binary_data.bytes = hello;
+		binary_data.length = sizeof(hello);
 		message_add_body_amqp_data(message, binary_data);
 
 		/* create a message sender */

@@ -12,7 +12,7 @@
 typedef struct SASL_PLAIN_INSTANCE_TAG
 {
 	unsigned char* init_bytes;
-	size_t init_bytes_length;
+	uint32_t init_bytes_length;
 } SASL_PLAIN_INSTANCE;
 
 static const SASL_MECHANISM_INTERFACE_DESCRIPTION saslplain_interface =
@@ -92,7 +92,7 @@ CONCRETE_SASL_MECHANISM_HANDLE saslplain_create(void* config)
 						(void)memcpy(result->init_bytes + authzid_length + 1, sasl_plain_config->authcid, authcid_length);
 						result->init_bytes[authzid_length + authcid_length + 1] = 0;
 						(void)memcpy(result->init_bytes + authzid_length + authcid_length + 2, sasl_plain_config->passwd, passwd_length);
-						result->init_bytes_length = authzid_length + authcid_length + passwd_length + 2;
+						result->init_bytes_length = (uint32_t)(authzid_length + authcid_length + passwd_length + 2);
 					}
 				}
 			}

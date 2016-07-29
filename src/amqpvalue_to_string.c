@@ -177,7 +177,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 		case AMQP_TYPE_BYTE:
 		{
 			char str_value[5];
-			int8_t value;
+			uint8_t value;
 			if (amqpvalue_get_ubyte(amqp_value, &value) != 0)
 			{
 				amqpalloc_free(result);
@@ -198,7 +198,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 		case AMQP_TYPE_SHORT:
 		{
 			char str_value[7];
-			int16_t value;
+			uint16_t value;
 			if (amqpvalue_get_ushort(amqp_value, &value) != 0)
 			{
 				amqpalloc_free(result);
@@ -240,7 +240,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 		case AMQP_TYPE_LONG:
 		{
 			char str_value[21];
-			int64_t value;
+			uint64_t value;
 			if (amqpvalue_get_ulong(amqp_value, &value) != 0)
 			{
 				amqpalloc_free(result);
@@ -504,7 +504,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 			}
 			else
 			{
-				size_t i;
+				uint32_t i;
 				for (i = 0; i < count; i++)
 				{
 					AMQP_VALUE key;
@@ -579,7 +579,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 			}
 			else
 			{
-				size_t i;
+				uint32_t i;
 				for (i = 0; i < count; i++)
 				{
 					AMQP_VALUE item = amqpvalue_get_array_item(amqp_value, i);

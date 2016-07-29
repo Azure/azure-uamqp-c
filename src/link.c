@@ -51,7 +51,7 @@ typedef struct LINK_INSTANCE_TAG
 	uint32_t link_credit;
 	uint32_t available;
     fields attach_properties;
-	unsigned char is_underlying_session_begun : 1;
+	int is_underlying_session_begun : 1;
 } LINK_INSTANCE;
 
 static void set_link_state(LINK_INSTANCE* link_instance, LINK_STATE link_state)
@@ -452,6 +452,7 @@ static int send_detach(LINK_INSTANCE* link_instance, ERROR_HANDLE error)
 static void on_session_state_changed(void* context, SESSION_STATE new_session_state, SESSION_STATE previous_session_state)
 {
 	LINK_INSTANCE* link_instance = (LINK_INSTANCE*)context;
+    (void)previous_session_state;
 
 	if (new_session_state == SESSION_STATE_MAPPED)
 	{
@@ -487,6 +488,7 @@ static void on_send_complete(void* context, IO_SEND_RESULT send_result)
 	LIST_ITEM_HANDLE delivery_instance_list_item = (LIST_ITEM_HANDLE)context;
 	DELIVERY_INSTANCE* delivery_instance = (DELIVERY_INSTANCE*)list_item_get_value(delivery_instance_list_item);
 	LINK_INSTANCE* link_instance = (LINK_INSTANCE*)delivery_instance->link;
+    (void)send_result;
 	if (link_instance->snd_settle_mode == sender_settle_mode_settled)
 	{
 		delivery_instance->on_delivery_settled(delivery_instance->callback_context, delivery_instance->delivery_id);

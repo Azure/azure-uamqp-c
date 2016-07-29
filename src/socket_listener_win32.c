@@ -78,7 +78,7 @@ int socketlistener_start(SOCKET_LISTENER_HANDLE socket_listener, ON_SOCKET_ACCEP
 			{
 				u_long iMode = 1;
 
-				if (bind(socket_listener_instance->socket, addrInfo->ai_addr, addrInfo->ai_addrlen) == SOCKET_ERROR)
+				if (bind(socket_listener_instance->socket, addrInfo->ai_addr, (int)addrInfo->ai_addrlen) == SOCKET_ERROR)
 				{
 					(void)closesocket(socket_listener_instance->socket);
 					socket_listener_instance->socket = INVALID_SOCKET;
@@ -144,8 +144,11 @@ void socketlistener_dowork(SOCKET_LISTENER_HANDLE socket_listener)
 		{
 			if (socket_listener_instance->on_socket_accepted != NULL)
 			{
-				SOCKETIO_CONFIG socketio_config = { NULL, socket_listener_instance->port, &accepted_socket };
-				XIO_HANDLE io = xio_create(socketio_get_interface_description(), &socketio_config);
+				SOCKETIO_CONFIG socketio_config;
+                socketio_config.hostname = NULL;
+                socketio_config.port = socket_listener_instance->port;
+                socketio_config.accepted_socket = &accepted_socket;
+                XIO_HANDLE io = xio_create(socketio_get_interface_description(), &socketio_config);
 				if (io == NULL)
 				{
 					(void)closesocket(accepted_socket);

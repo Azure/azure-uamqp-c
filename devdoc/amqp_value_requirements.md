@@ -425,6 +425,7 @@ extern AMQP_VALUE amqpvalue_create_symbol(const char* value);
 **SRS_AMQPVALUE_01_142: [**amqpvalue_create_symbol shall return a handle to an AMQP_VALUE that stores a symbol (ASCII string) value.**]**
 **SRS_AMQPVALUE_01_400: [**If value is NULL, amqpvalue_create_symbol shall fail and return NULL.**]**
 **SRS_AMQPVALUE_01_143: [**If allocating the AMQP_VALUE fails then amqpvalue_create_symbol shall return NULL.**]**
+**SRS_AMQPVALUE_01_401: [** If the string pointed to by value is longer than 2^32-1 then amqpvalue_create_symbol shall return NULL. **]**
 
 ###amqpvalue_get_symbol
 

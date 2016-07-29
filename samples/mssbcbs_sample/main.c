@@ -62,6 +62,7 @@ int main(int argc, char** argv)
 {
 	int result;
 
+    (void)argc, argv;
 	amqpalloc_set_memory_tracing_enabled(true);
 
 	if (platform_init() != 0)
@@ -89,7 +90,9 @@ int main(int argc, char** argv)
 		tls_io = xio_create(tlsio_interface, &tls_io_config);
 
 		/* create the SASL client IO using the TLS IO */
-		SASLCLIENTIO_CONFIG sasl_io_config = { tls_io, sasl_mechanism_handle };
+		SASLCLIENTIO_CONFIG sasl_io_config;
+        sasl_io_config.underlying_io = tls_io;
+        sasl_io_config.sasl_mechanism = sasl_mechanism_handle;
 		sasl_io = xio_create(saslclientio_get_interface_description(), &sasl_io_config);
 
 		/* create the connection, session and link */
@@ -130,7 +133,9 @@ int main(int argc, char** argv)
 
 		message = message_create();
 		unsigned char hello[] = { 'H', 'e', 'l', 'l', 'o' };
-		BINARY_DATA binary_data = { hello, sizeof(hello) };
+		BINARY_DATA binary_data;
+        binary_data.bytes = hello;
+        binary_data.length = sizeof(hello);
 		message_add_body_amqp_data(message, binary_data);
 
         fields attach_properties = amqpvalue_create_map();

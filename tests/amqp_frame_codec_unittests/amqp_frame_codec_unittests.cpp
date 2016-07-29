@@ -146,7 +146,6 @@ public:
     MOCK_VOID_METHOD_END();
     MOCK_STATIC_METHOD_3(, int, amqpvalue_decode_bytes, AMQPVALUE_DECODER_HANDLE, handle, const unsigned char*, buffer, size_t, size);
         unsigned char* new_bytes = (unsigned char*)realloc(performative_decoded_bytes, performative_decoded_byte_count + size);
-        int my_result = 0;
         if (new_bytes != NULL)
         {
             performative_decoded_bytes = new_bytes;
@@ -516,9 +515,9 @@ TEST_FUNCTION(encoding_a_frame_succeeds)
 
     // assert
     ASSERT_ARE_EQUAL(int, 0, result);
-    ASSERT_ARE_EQUAL(uint32_t, expected_payloads[0].length, actual_payloads[0].length);
+    ASSERT_ARE_EQUAL(size_t, expected_payloads[0].length, actual_payloads[0].length);
     ASSERT_ARE_EQUAL(int, 0, memcmp(expected_payloads[0].bytes, actual_payloads[0].bytes, actual_payloads[0].length));
-    ASSERT_ARE_EQUAL(uint32_t, test_user_payload.length, actual_payloads[1].length);
+    ASSERT_ARE_EQUAL(size_t, test_user_payload.length, actual_payloads[1].length);
     ASSERT_ARE_EQUAL(int, 0, memcmp(test_user_payload.bytes, actual_payloads[1].bytes, actual_payloads[1].length));
     mocks.AssertActualAndExpectedCalls();
 
@@ -596,7 +595,7 @@ TEST_FUNCTION(encoding_a_frame_with_no_payloads_send_down_to_frame_codec_just_th
 
     // assert
     ASSERT_ARE_EQUAL(int, 0, result);
-    ASSERT_ARE_EQUAL(uint32_t, expected_payloads[0].length, actual_payloads[0].length);
+    ASSERT_ARE_EQUAL(size_t, expected_payloads[0].length, actual_payloads[0].length);
     ASSERT_ARE_EQUAL(int, 0, memcmp(expected_payloads[0].bytes, actual_payloads[0].bytes, actual_payloads[0].length));
     mocks.AssertActualAndExpectedCalls();
 
@@ -986,7 +985,6 @@ TEST_FUNCTION(encoding_of_an_empty_frame_succeeds)
     AMQP_FRAME_CODEC_HANDLE amqp_frame_codec = amqp_frame_codec_create(TEST_FRAME_CODEC_HANDLE, amqp_frame_received_callback_1, amqp_empty_frame_received_callback_1, test_amqp_frame_codec_error, TEST_CONTEXT);
     mocks.ResetAllCalls();
 
-    uint16_t channel = 0;
     unsigned char channel_bytes[] = { 0, 0 };
     STRICT_EXPECTED_CALL(mocks, frame_codec_encode_frame(TEST_FRAME_CODEC_HANDLE, FRAME_TYPE_AMQP, NULL, 0, channel_bytes, sizeof(channel_bytes), test_on_bytes_encoded, (void*)0x4242))
         .ValidateArgumentBuffer(5, &channel_bytes, sizeof(channel_bytes));
@@ -1031,7 +1029,6 @@ TEST_FUNCTION(when_frame_codec_encode_frame_fails_then_amqp_frame_codec_encode_e
     AMQP_FRAME_CODEC_HANDLE amqp_frame_codec = amqp_frame_codec_create(TEST_FRAME_CODEC_HANDLE, amqp_frame_received_callback_1, amqp_empty_frame_received_callback_1, test_amqp_frame_codec_error, TEST_CONTEXT);
     mocks.ResetAllCalls();
 
-    uint16_t channel = 0;
     unsigned char channel_bytes[] = { 0, 0 };
     STRICT_EXPECTED_CALL(mocks, frame_codec_encode_frame(TEST_FRAME_CODEC_HANDLE, FRAME_TYPE_AMQP, NULL, 0, channel_bytes, sizeof(channel_bytes), test_on_bytes_encoded, (void*)0x4242))
         .ValidateArgumentBuffer(5, &channel_bytes, sizeof(channel_bytes))

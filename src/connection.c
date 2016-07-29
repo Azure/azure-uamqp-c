@@ -625,8 +625,13 @@ static void connection_on_io_error(void* context)
 
 static void on_empty_amqp_frame_received(void* context, uint16_t channel)
 {
+    (void)channel;
+    /* It does not matter on which channel we received the frame */
     CONNECTION_INSTANCE* connection_instance = (CONNECTION_INSTANCE*)context;
-    LOG(LOG_TRACE, LOG_LINE, "<- Empty frame");
+    if (connection_instance->is_trace_on == 1)
+    {
+        LOG(LOG_TRACE, LOG_LINE, "<- Empty frame");
+    }
     if (tickcounter_get_current_ms(connection_instance->tick_counter, &connection_instance->last_frame_received_time) != 0)
     {
         /* error */
@@ -635,6 +640,7 @@ static void on_empty_amqp_frame_received(void* context, uint16_t channel)
 
 static void on_amqp_frame_received(void* context, uint16_t channel, AMQP_VALUE performative, const unsigned char* payload_bytes, uint32_t payload_size)
 {
+    (void)channel;
     CONNECTION_INSTANCE* connection_instance = (CONNECTION_INSTANCE*)context;
 
     if (tickcounter_get_current_ms(connection_instance->tick_counter, &connection_instance->last_frame_received_time) != 0)
@@ -780,7 +786,7 @@ static void on_amqp_frame_received(void* context, uint16_t channel, AMQP_VALUE p
                         switch (performative_ulong)
                         {
                         default:
-                            LOG(LOG_TRACE, LOG_LINE, "Bad performative: %02x", performative);
+                            LOG(LOG_ERROR, LOG_LINE, "Bad performative: %02x", performative);
                             break;
 
                         case AMQP_BEGIN:
@@ -885,10 +891,16 @@ static void on_amqp_frame_received(void* context, uint16_t channel, AMQP_VALUE p
 
 static void frame_codec_error(void* context)
 {
+    /* Bug: some error handling should happen here 
+    Filed: uAMQP: frame_codec error and amqp_frame_codec_error should handle the errors */
+    (void)context;
 }
 
 static void amqp_frame_codec_error(void* context)
 {
+    /* Bug: some error handling should happen here
+    Filed: uAMQP: frame_codec error and amqp_frame_codec_error should handle the errors */
+    (void)context;
 }
 
 /* Codes_SRS_CONNECTION_01_001: [connection_create shall open a new connection to a specified host/port.] */
@@ -1151,22 +1163,6 @@ int connection_close(CONNECTION_HANDLE connection, const char* condition_value, 
     return result;
 }
 
-int connection_set_on_new_session_endpoint(CONNECTION_HANDLE connection, ON_NEW_ENDPOINT on_new_endpoint, void* on_new_endpoint_callback_context)
-{
-    int result;
-
-    if (connection == NULL)
-    {
-        result = __LINE__;
-    }
-    else
-    {
-        result = 0;
-    }
-
-    return result;
-}
-
 int connection_set_max_frame_size(CONNECTION_HANDLE connection, uint32_t max_frame_size)
 {
     int result;
@@ -1400,7 +1396,10 @@ uint64_t connection_handle_deadlines(CONNECTION_HANDLE connection)
                     }
                     else
                     {
-                        LOG(LOG_TRACE, LOG_LINE, "-> Empty frame");
+                        if (connection->is_trace_on == 1)
+                        {
+                            LOG(LOG_TRACE, LOG_LINE, "-> Empty frame");
+                        }
 
                         connection->last_frame_sent_time = current_ms;
 
@@ -1469,7 +1468,7 @@ ENDPOINT_HANDLE connection_create_endpoint(CONNECTION_HANDLE connection)
                 result->on_endpoint_frame_received = NULL;
                 result->on_connection_state_changed = NULL;
                 result->callback_context = NULL;
-                result->outgoing_channel = i;
+                result->outgoing_channel = (uint16_t)i;
                 result->connection = connection;
 
                 /* Codes_SRS_CONNECTION_01_197: [The newly created endpoint shall be added to the endpoints list, so that it can be tracked.] */

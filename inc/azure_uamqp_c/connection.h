@@ -5,6 +5,7 @@
 #define CONNECTION_H
 
 #include <stddef.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include "azure_uamqp_c/amqp_frame_codec.h"
 #include "azure_uamqp_c/amqp_definitions.h"

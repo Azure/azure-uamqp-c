@@ -93,7 +93,7 @@ void stringify_bytes(const unsigned char* bytes, size_t byte_count, char* output
 
 static const unsigned char test_challenge_bytes[] = { 0x42 };
 static const unsigned char test_response_bytes[] = { 0x43, 0x44 };
-static const amqp_binary challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
+static const amqp_binary some_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
 static const SASL_MECHANISM_BYTES sasl_mechanism_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
 static const SASL_MECHANISM_BYTES sasl_mechanism_response_bytes = { test_response_bytes, sizeof(test_response_bytes) };
 static const amqp_binary response_binary_value = { test_response_bytes, sizeof(test_response_bytes) };
@@ -202,6 +202,10 @@ public:
 	MOCK_VOID_METHOD_END();
 	MOCK_STATIC_METHOD_2(, void, test_on_send_complete, void*, context, IO_SEND_RESULT, send_result)
 	MOCK_VOID_METHOD_END();
+
+    /*mocks for OptionHandler*/
+    MOCK_STATIC_METHOD_3(,OPTIONHANDLER_HANDLE, OptionHandler_Create, pfCloneOption, cloneOption, pfDestroyOption, destroyOption, pfSetOption, setOption)
+    MOCK_METHOD_END(OPTIONHANDLER_HANDLE, (OPTIONHANDLER_HANDLE)NULL);
 };
 
 extern "C"
@@ -242,6 +246,7 @@ extern "C"
 	DECLARE_GLOBAL_MOCK_METHOD_2(saslclientio_mocks, , void, test_on_io_open_complete, void*, context, IO_OPEN_RESULT, io_open_result);
 	DECLARE_GLOBAL_MOCK_METHOD_1(saslclientio_mocks, , void, test_on_io_error, void*, context);
 	DECLARE_GLOBAL_MOCK_METHOD_2(saslclientio_mocks, , void, test_on_send_complete, void*, context, IO_SEND_RESULT, send_result);
+    DECLARE_GLOBAL_MOCK_METHOD_3(saslclientio_mocks, , OPTIONHANDLER_HANDLE, OptionHandler_Create, pfCloneOption, cloneOption, pfDestroyOption, destroyOption, pfSetOption, setOption)
 }
 
 MICROMOCK_MUTEX_HANDLE test_serialize_mutex;
@@ -2525,7 +2530,7 @@ static void setup_succesfull_challenge_response(saslclientio_mocks* mocks, amqp_
 	STRICT_EXPECTED_CALL((*definitions_mocks), amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle));
 	STRICT_EXPECTED_CALL((*definitions_mocks), sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &challenge_bytes, sizeof(challenge_bytes));
+		.CopyOutArgumentBuffer(2, &some_challenge_bytes, sizeof(some_challenge_bytes));
 	STRICT_EXPECTED_CALL((*mocks), saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(3, &sasl_mechanism_response_bytes, sizeof(sasl_mechanism_response_bytes));
 	STRICT_EXPECTED_CALL((*definitions_mocks), sasl_response_create(response_binary_value));
@@ -2652,9 +2657,9 @@ TEST_FUNCTION(when_getting_the_challenge_bytes_fails_then_the_state_is_set_to_ER
 		.SetReturn(true);
 	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle));
-	amqp_binary challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
+	amqp_binary some_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
 	STRICT_EXPECTED_CALL(definitions_mocks, sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &challenge_bytes, sizeof(challenge_bytes))
+		.CopyOutArgumentBuffer(2, &some_challenge_bytes, sizeof(some_challenge_bytes))
 		.SetReturn(1);
 	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 	STRICT_EXPECTED_CALL(definitions_mocks, sasl_challenge_destroy(test_sasl_challenge_handle));
@@ -2700,9 +2705,9 @@ TEST_FUNCTION(when_the_sasl_mechanism_challenge_response_function_fails_then_the
 		.SetReturn(true);
 	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle));
-	amqp_binary challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
+	amqp_binary some_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
 	STRICT_EXPECTED_CALL(definitions_mocks, sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &challenge_bytes, sizeof(challenge_bytes));
+		.CopyOutArgumentBuffer(2, &some_challenge_bytes, sizeof(some_challenge_bytes));
 	SASL_MECHANISM_BYTES sasl_mechanism_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
 	SASL_MECHANISM_BYTES sasl_mechanism_response_bytes = { test_response_bytes, sizeof(test_response_bytes) };
 	STRICT_EXPECTED_CALL(mocks, saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_PTR_ARG))
@@ -2752,9 +2757,9 @@ TEST_FUNCTION(when_creating_the_sasl_response_fails_the_state_is_set_to_ERROR)
 		.SetReturn(true);
 	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle));
-	amqp_binary challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
+	amqp_binary some_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
 	STRICT_EXPECTED_CALL(definitions_mocks, sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &challenge_bytes, sizeof(challenge_bytes));
+		.CopyOutArgumentBuffer(2, &some_challenge_bytes, sizeof(some_challenge_bytes));
 	SASL_MECHANISM_BYTES sasl_mechanism_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
 	SASL_MECHANISM_BYTES sasl_mechanism_response_bytes = { test_response_bytes, sizeof(test_response_bytes) };
 	STRICT_EXPECTED_CALL(mocks, saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_PTR_ARG))
@@ -2806,9 +2811,9 @@ TEST_FUNCTION(when_creating_the_AMQP_VALUE_for_sasl_response_fails_the_state_is_
 		.SetReturn(true);
 	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle));
-	amqp_binary challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
+	amqp_binary some_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
 	STRICT_EXPECTED_CALL(definitions_mocks, sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &challenge_bytes, sizeof(challenge_bytes));
+		.CopyOutArgumentBuffer(2, &some_challenge_bytes, sizeof(some_challenge_bytes));
 	SASL_MECHANISM_BYTES sasl_mechanism_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
 	SASL_MECHANISM_BYTES sasl_mechanism_response_bytes = { test_response_bytes, sizeof(test_response_bytes) };
 	STRICT_EXPECTED_CALL(mocks, saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_PTR_ARG))
@@ -2862,9 +2867,9 @@ TEST_FUNCTION(when_encoding_the_sasl_frame_for_sasl_response_fails_the_state_is_
 		.SetReturn(true);
 	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle));
-	amqp_binary challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
+	amqp_binary some_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
 	STRICT_EXPECTED_CALL(definitions_mocks, sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &challenge_bytes, sizeof(challenge_bytes));
+		.CopyOutArgumentBuffer(2, &some_challenge_bytes, sizeof(some_challenge_bytes));
 	SASL_MECHANISM_BYTES sasl_mechanism_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
 	SASL_MECHANISM_BYTES sasl_mechanism_response_bytes = { test_response_bytes, sizeof(test_response_bytes) };
 	STRICT_EXPECTED_CALL(mocks, saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_PTR_ARG))

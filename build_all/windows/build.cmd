@@ -93,7 +93,7 @@ rem ----------------------------------------------------------------------------
 if %build-clean%==1 (
     rem -- call nuget restore "%build-root%\iothub_client\samples\iothub_client_sample_amqp\windows\iothub_client_sample_amqp.sln"
     rem -- call :clean-a-solution "%build-root%\iothub_client\samples\iothub_client_sample_amqp\windows\iothub_client_sample_amqp.sln"
-    rem -- if not %errorlevel%==0 exit /b %errorlevel%
+    rem -- if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
 )
 
 rem -----------------------------------------------------------------------------
@@ -115,7 +115,7 @@ pushd %build-root%\cmake\%CMAKE_DIR%
 if %MAKE_NUGET_PKG% == yes (
     echo ***Running CMAKE for Win32***
     cmake %build-root% -Dskip_unittests:BOOL=%CMAKE_skip_unittests% -Duse_wsio:BOOL=%CMAKE_use_wsio% 
-    if not %errorlevel%==0 exit /b %errorlevel%
+    if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
     popd
     
     echo ***Running CMAKE for Win64***
@@ -125,7 +125,7 @@ if %MAKE_NUGET_PKG% == yes (
     mkdir %build-root%\cmake\uamqp_x64
     pushd %build-root%\cmake\uamqp_x64
     cmake %build-root% -Dskip_unittests:BOOL=%CMAKE_skip_unittests% -Duse_wsio:BOOL=%CMAKE_use_wsio% -G "Visual Studio 14 Win64" 
-    if not %errorlevel%==0 exit /b %errorlevel%
+    if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
     popd
     
     echo ***Running CMAKE for ARM***
@@ -135,45 +135,45 @@ if %MAKE_NUGET_PKG% == yes (
     mkdir %build-root%\cmake\uamqp_arm
     pushd %build-root%\cmake\uamqp_arm
     cmake %build-root% -Dskip_unittests:BOOL=%CMAKE_skip_unittests% -Duse_wsio:BOOL=%CMAKE_use_wsio% -G "Visual Studio 14 ARM" 
-    if not %errorlevel%==0 exit /b %errorlevel%
+    if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
     
 ) else if %build-platform% == Win32 (
     echo ***Running CMAKE for Win32***   
     cmake %build-root% -Duse_wsio:BOOL=%CMAKE_use_wsio% 
-    if not %errorlevel%==0 exit /b %errorlevel%
+    if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
 ) else if %build-platform% == arm (
     echo ***Running CMAKE for ARM***
     cmake %build-root% -Duse_wsio:BOOL=%CMAKE_use_wsio% -G "Visual Studio 14 ARM" 
-    if not %errorlevel%==0 exit /b %errorlevel%
+    if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
 ) else (
     echo ***Running CMAKE for Win64***    
     cmake %build-root% -Duse_wsio:BOOL=%CMAKE_use_wsio% -G "Visual Studio 14 Win64" 
-    if not %errorlevel%==0 exit /b %errorlevel%
+    if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
 )
 
 if %MAKE_NUGET_PKG% == yes (
     echo ***Building all configurations***    
     msbuild /m %build-root%\cmake\uamqp_win32\uamqp.sln /p:Configuration=Release
     msbuild /m %build-root%\cmake\uamqp_win32\uamqp.sln /p:Configuration=Debug
-    if not %errorlevel%==0 exit /b %errorlevel%
+    if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
     
     msbuild /m %build-root%\cmake\uamqp_x64\uamqp.sln /p:Configuration=Release
     msbuild /m %build-root%\cmake\uamqp_x64\uamqp.sln /p:Configuration=Debug
-    if not %errorlevel%==0 exit /b %errorlevel%
+    if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
 
     msbuild /m %build-root%\cmake\uamqp_arm\uamqp.sln /p:Configuration=Release
     msbuild /m %build-root%\cmake\uamqp_arm\uamqp.sln /p:Configuration=Debug
-    if not %errorlevel%==0 exit /b %errorlevel%    
+    if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!    
 ) else (
     call :_run-msbuild "Build" uamqp.sln %2 %3
-    if not %errorlevel%==0 exit /b %errorlevel%
+    if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
     
     if %build-platform% neq arm (
         echo Build Platform: %build-platform%
         
         if "%build-config%" == "Debug" (
             ctest -C "debug" -V
-            if not %errorlevel%==0 exit /b %errorlevel%
+            if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
         )
     )    
 )
@@ -217,7 +217,7 @@ if "%~3" neq "" set build-config=%~3
 if "%~4" neq "" set build-platform=%~4
 
 msbuild /m %build-target% "/p:Configuration=%build-config%;Platform=%build-platform%" %2
-if not %errorlevel%==0 exit /b %errorlevel%
+if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
 goto :eof
 
 
@@ -237,7 +237,7 @@ echo Test DLLs: %test-dlls-list%
 echo.
 vstest.console.exe %test-dlls-list%
 
-if not %errorlevel%==0 exit /b %errorlevel%
+if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
 goto :eof
 
 echo done

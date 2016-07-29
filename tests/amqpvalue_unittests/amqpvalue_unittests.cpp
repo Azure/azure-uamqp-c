@@ -2017,7 +2017,7 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             int result = amqpvalue_get_char(value, &char_value);
 
             // assert
-            ASSERT_ARE_EQUAL(char, 0x0, char_value);
+            ASSERT_ARE_EQUAL(uint32_t, 0x0, char_value);
             ASSERT_ARE_EQUAL(int, 0, result);
             mocks.AssertActualAndExpectedCalls();
 
@@ -2574,7 +2574,6 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
         {
             // arrange
             amqpvalue_mocks mocks;
-            unsigned char input[] = { 0x42 };
             amqp_binary binary_input = { NULL, 0 };
             AMQP_VALUE value = amqpvalue_create_binary(binary_input);
             mocks.ResetAllCalls();
@@ -2612,7 +2611,6 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
         {
             // arrange
             amqpvalue_mocks mocks;
-            unsigned char input[] = { 0x42 };
             amqp_binary binary_input = { NULL, 0 };
             AMQP_VALUE value = amqpvalue_create_binary(binary_input);
             mocks.ResetAllCalls();
@@ -2948,6 +2946,30 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             // assert
             ASSERT_IS_NULL(result);
         }
+
+/* This test would allocate 4Gb and some people might not like that */
+#if 0
+        /* Tests_SRS_AMQPVALUE_01_401: [ If the string pointed to by value is longer than 2^32-1 then amqpvalue_create_symbol shall return NULL. ]*/
+        TEST_FUNCTION(when_creating_a_symbol_from_a_string_longer_than_2_32_minus_1_amqpvalue_create_symbol_fails)
+        {
+            size_t size_t_size = sizeof(size_t);
+            if (size_t_size > sizeof(uint32_t))
+            {
+                // arrange
+                amqpvalue_mocks mocks;
+                char* very_big_string = (char*)malloc((size_t)UINT32_MAX + 2);
+                (void)memset(very_big_string, 'x', (size_t)UINT32_MAX + 1);
+                very_big_string[(size_t)UINT32_MAX + 1] = '\0';
+                ASSERT_IS_NOT_NULL(very_big_string);
+
+                // act
+                AMQP_VALUE result = amqpvalue_create_symbol(very_big_string);
+
+                // assert
+                ASSERT_IS_NULL(result);
+            }
+        }
+#endif
 
         /* amqpvalue_get_symbol */
 
@@ -8266,7 +8288,6 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             (void)amqpvalue_encode(source, test_encoder_output, NULL);
             mocks->ResetAllCalls();
 
-            int encoder_calls = encoder_output_call_count;
             int i;
             for (i = 0; i < 1; i++)
             {
@@ -8869,15 +8890,15 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
         {
             amqpvalue_mocks mocks;
             unsigned char bytes[255];
-            int i;
+            unsigned int i;
             for (i = 0; i < 255; i++)
             {
-                bytes[i] = i;
+                bytes[i] = (unsigned char)i;
             }
             unsigned char expected_bytes[257] = { 0xA0, 0xFF };
             for (i = 0; i < 255; i++)
             {
-                expected_bytes[i + 2] = i;
+                expected_bytes[i + 2] = (unsigned char)i;
             }
             amqp_binary binary = { &bytes, sizeof(bytes) };
             AMQP_VALUE source = amqpvalue_create_binary(binary);
@@ -8890,10 +8911,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
         {
             amqpvalue_mocks mocks;
             unsigned char bytes[255];
-            int i;
+            unsigned int i;
             for (i = 0; i < 255; i++)
             {
-                bytes[i] = i;
+                bytes[i] = (unsigned char)i;
             }
             amqp_binary binary = { &bytes, sizeof(bytes) };
             AMQP_VALUE source = amqpvalue_create_binary(binary);
@@ -8905,15 +8926,15 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
         {
             amqpvalue_mocks mocks;
             unsigned char bytes[256];
-            int i;
+            unsigned int i;
             for (i = 0; i < 256; i++)
             {
-                bytes[i] = i;
+                bytes[i] = (unsigned char)i;
             }
             unsigned char expected_bytes[261] = { 0xB0, 0x00, 0x00, 0x01, 0x00 };
             for (i = 0; i < 256; i++)
             {
-                expected_bytes[i + 5] = i;
+                expected_bytes[i + 5] = (unsigned char)i;
             }
             amqp_binary binary = { &bytes, sizeof(bytes) };
             AMQP_VALUE source = amqpvalue_create_binary(binary);
@@ -8926,10 +8947,10 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
         {
             amqpvalue_mocks mocks;
             unsigned char bytes[256];
-            int i;
+            unsigned int i;
             for (i = 0; i < 256; i++)
             {
-                bytes[i] = i;
+                bytes[i] = (unsigned char)i;
             }
             amqp_binary binary = { &bytes, sizeof(bytes) };
             AMQP_VALUE source = amqpvalue_create_binary(binary);
@@ -9121,13 +9142,40 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             test_amqpvalue_encode(&mocks, source, "[0x45]");
         }
 
-        /* Tests_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-        TEST_FUNCTION(when_encoder_output_fails_amqpvalue_encode_list_empty_list_fails)
+        /* This test would allocate 4Gb and some people might not like that */
+#if 0
+        TEST_FUNCTION(when_encoding_would_result_in_more_than_the_max_size_for_a_list_amqpvalue_encode_fails)
         {
             amqpvalue_mocks mocks;
             AMQP_VALUE source = amqpvalue_create_list();
-            test_amqpvalue_encode_failure(&mocks, source);
+            char* very_big_string = (char*)malloc((UINT32_MAX / 4) + 2);
+            (void)memset(very_big_string, 'x', (UINT32_MAX / 4) + 1);
+            very_big_string[(UINT32_MAX / 4) + 1] = '\0';
+            AMQP_VALUE item1 = amqpvalue_create_symbol(very_big_string);
+            AMQP_VALUE item2 = amqpvalue_create_symbol(very_big_string);
+            AMQP_VALUE item3 = amqpvalue_create_symbol(very_big_string);
+            AMQP_VALUE item4 = amqpvalue_create_symbol(very_big_string);
+            free(very_big_string);
+            (void)amqpvalue_set_list_item(source, 0, item1);
+            (void)amqpvalue_set_list_item(source, 1, item2);
+            (void)amqpvalue_set_list_item(source, 2, item3);
+            (void)amqpvalue_set_list_item(source, 3, item4);
+            amqpvalue_destroy(item1);
+            amqpvalue_destroy(item2);
+            amqpvalue_destroy(item3);
+            amqpvalue_destroy(item4);
+
+            // act
+            int result = amqpvalue_encode(source, test_encoder_output, NULL);
+            mocks.SetPerformAutomaticCallComparison(AUTOMATIC_CALL_COMPARISON_OFF);
+
+            // assert
+            ASSERT_ARE_NOT_EQUAL(int, 0, result);
+
+            // cleanup
+            amqpvalue_destroy(source);
         }
+#endif
 
         /* Tests_SRS_AMQPVALUE_01_304: [<encoding name="list8" code="0xc0" category="compound" width="1" label="up to 2^8 - 1 list elements with total size less than 2^8 octets"/>] */
         TEST_FUNCTION(amqpvalue_encode_list_with_one_null_item_succeeds)
@@ -9391,7 +9439,7 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
         {
             amqpvalue_mocks mocks;
             AMQP_VALUE source = amqpvalue_create_map();
-            int i;
+            unsigned char i;
 
             AMQP_VALUE key = amqpvalue_create_uint(0);
             AMQP_VALUE value = amqpvalue_create_null();
@@ -9401,8 +9449,8 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             for (i = 0; i < 84; i++)
             {
-                AMQP_VALUE key = amqpvalue_create_uint(i + 1);
-                AMQP_VALUE value = amqpvalue_create_null();
+                key = amqpvalue_create_uint(i + 1);
+                value = amqpvalue_create_null();
                 amqpvalue_set_map_value(source, key, value);
                 amqpvalue_destroy(key);
                 amqpvalue_destroy(value);
@@ -9448,7 +9496,7 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
         {
             amqpvalue_mocks mocks;
             AMQP_VALUE source = amqpvalue_create_map();
-            int i;
+            unsigned char i;
 
             for (i = 0; i < 85; i++)
             {
@@ -9484,8 +9532,8 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
 
             for (i = 1; i < 85; i++)
             {
-                AMQP_VALUE key = amqpvalue_create_uint(i);
-                AMQP_VALUE value = amqpvalue_create_null();
+                key = amqpvalue_create_uint(i);
+                value = amqpvalue_create_null();
                 amqpvalue_set_map_value(source, key, value);
                 amqpvalue_destroy(key);
                 amqpvalue_destroy(value);
@@ -9500,7 +9548,7 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
         {
             amqpvalue_mocks mocks;
             AMQP_VALUE source = amqpvalue_create_map();
-            int i;
+            unsigned char i;
             for (i = 0; i < 128; i++)
             {
                 AMQP_VALUE key = amqpvalue_create_uint(i + 1);
@@ -9536,6 +9584,43 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             }
             test_amqpvalue_encode_failure(&mocks, source);
         }
+
+        /* This test would allocate 4Gb and some people might not like that */
+#if 0
+        TEST_FUNCTION(when_encoding_would_result_in_more_than_the_max_size_for_a_map_amqpvalue_encode_fails)
+        {
+            amqpvalue_mocks mocks;
+            AMQP_VALUE source = amqpvalue_create_map();
+            char* very_big_string = (char*)malloc((UINT32_MAX / 4) + 2);
+            (void)memset(very_big_string, 'x', (UINT32_MAX / 4) + 1);
+            very_big_string[(UINT32_MAX / 4) + 1] = '\0';
+            AMQP_VALUE some_symbol = amqpvalue_create_symbol(very_big_string);
+            free(very_big_string);
+            AMQP_VALUE key1 = amqpvalue_create_int(1);
+            AMQP_VALUE key2 = amqpvalue_create_int(2);
+            AMQP_VALUE key3 = amqpvalue_create_int(3);
+            AMQP_VALUE key4 = amqpvalue_create_int(4);
+            (void)amqpvalue_set_map_value(source, key1, some_symbol);
+            (void)amqpvalue_set_map_value(source, key2, some_symbol);
+            (void)amqpvalue_set_map_value(source, key3, some_symbol);
+            (void)amqpvalue_set_map_value(source, key4, some_symbol);
+            amqpvalue_destroy(key1);
+            amqpvalue_destroy(key2);
+            amqpvalue_destroy(key3);
+            amqpvalue_destroy(key4);
+            amqpvalue_destroy(some_symbol);
+
+            // act
+            int result = amqpvalue_encode(source, test_encoder_output, NULL);
+            mocks.SetPerformAutomaticCallComparison(AUTOMATIC_CALL_COMPARISON_OFF);
+
+            // assert
+            ASSERT_ARE_NOT_EQUAL(int, 0, result);
+
+            // cleanup
+            amqpvalue_destroy(source);
+        }
+#endif
 
         /* amqpvalue_get_encoded_size */
 
@@ -13171,11 +13256,11 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             AMQPVALUE_DECODER_HANDLE amqpvalue_decoder = amqpvalue_decoder_create(value_decoded_callback, test_context);
             mocks.ResetAllCalls();
             unsigned char bytes[255 + 2] = { 0xA0, 0xFF };
-            int i;
+            unsigned int i;
 
             for (i = 0; i < 255; i++)
             {
-                bytes[2 + i] = i;
+                bytes[2 + i] = (unsigned char)i;
             }
 
             EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG))
@@ -13209,11 +13294,11 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             AMQPVALUE_DECODER_HANDLE amqpvalue_decoder = amqpvalue_decoder_create(value_decoded_callback, test_context);
             mocks.ResetAllCalls();
             unsigned char bytes[255 + 2] = { 0xA0, 0xFF };
-            int i;
+            unsigned int i;
 
             for (i = 0; i < 255; i++)
             {
-                bytes[2 + i] = i;
+                bytes[2 + i] = (unsigned char)i;
             }
 
             EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG))
@@ -13314,11 +13399,11 @@ BEGIN_TEST_SUITE(amqpvalue_unittests)
             AMQPVALUE_DECODER_HANDLE amqpvalue_decoder = amqpvalue_decoder_create(value_decoded_callback, test_context);
             mocks.ResetAllCalls();
             unsigned char bytes[254 + 2] = { 0xA0, 0xFF };
-            int i;
+            unsigned int i;
 
             for (i = 0; i < 254; i++)
             {
-                bytes[2 + i] = i;
+                bytes[2 + i] = (unsigned char)i;
             }
 
             EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));

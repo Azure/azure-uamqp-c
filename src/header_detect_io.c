@@ -58,6 +58,7 @@ static void indicate_close_complete(HEADER_DETECT_IO_INSTANCE* header_detect_io_
 static void on_underlying_io_error(void* context);
 static void on_send_complete_close(void* context, IO_SEND_RESULT send_result)
 {
+    (void)send_result;
     on_underlying_io_error(context);
 }
 
@@ -383,8 +384,39 @@ int headerdetectio_setoption(CONCRETE_IO_HANDLE header_detect_io, const char* op
     return result;
 }
 
+/*this function will clone an option given by name and value*/
+static void* headerdetectio_CloneOption(const char* name, const void* value)
+{
+    (void)(name, value);
+    return NULL;
+}
+
+/*this function destroys an option previously created*/
+static void headerdetectio_DestroyOption(const char* name, const void* value)
+{
+    (void)(name, value);
+}
+
+static OPTIONHANDLER_HANDLE headerdetectio_retrieveoptions(CONCRETE_IO_HANDLE handle)
+{
+    OPTIONHANDLER_HANDLE result;
+    (void)handle;
+    result = OptionHandler_Create(headerdetectio_CloneOption, headerdetectio_DestroyOption, headerdetectio_setoption);
+    if (result == NULL)
+    {
+        LogError("unable to OptionHandler_Create");
+        /*return as is*/
+    }
+    else
+    {
+        /*insert here work to add the options to "result" handle*/
+    }
+    return result;
+}
+
 static const IO_INTERFACE_DESCRIPTION header_detect_io_interface_description =
 {
+    headerdetectio_retrieveoptions,
 	headerdetectio_create,
 	headerdetectio_destroy,
 	headerdetectio_open,

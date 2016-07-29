@@ -44,6 +44,7 @@ int main(int argc, char** argv)
 {
 	int result;
 
+    (void)argc, argv;
 	amqpalloc_set_memory_tracing_enabled(true);
 
 	if (platform_init() != 0)
@@ -72,7 +73,9 @@ int main(int argc, char** argv)
 		tls_io = xio_create(tlsio_interface, &tls_io_config);
 
 		/* create the SASL client IO using the TLS IO */
-		SASLCLIENTIO_CONFIG sasl_io_config = { tls_io, sasl_mechanism_handle };
+		SASLCLIENTIO_CONFIG sasl_io_config;
+        sasl_io_config.underlying_io = tls_io;
+        sasl_io_config.sasl_mechanism = sasl_mechanism_handle;
 		sasl_io = xio_create(saslclientio_get_interface_description(), &sasl_io_config);
 
 		/* create the connection, session and link */
@@ -92,7 +95,9 @@ int main(int argc, char** argv)
 
 		message = message_create();
 		unsigned char hello[] = { 'H', 'e', 'l', 'l', 'o' };
-		BINARY_DATA binary_data = { hello, sizeof(hello) };
+		BINARY_DATA binary_data;
+        binary_data.bytes = hello;
+        binary_data.length = sizeof(hello);
 		message_add_body_amqp_data(message, binary_data);
 
 		/* create a message sender */
@@ -123,7 +128,7 @@ int main(int argc, char** argv)
 
 				if (current_memory_used != last_memory_used)
 				{
-					printf("Current memory usage:%lu (max:%lu)\r\n", (unsigned long)current_memory_used, (unsigned long)maximum_memory_used);
+					(void)printf("Current memory usage:%lu (max:%lu)\r\n", (unsigned long)current_memory_used, (unsigned long)maximum_memory_used);
 					last_memory_used = current_memory_used;
 				}
 
@@ -136,7 +141,7 @@ int main(int argc, char** argv)
 #if _WIN32
 			unsigned long endTime = (unsigned long)GetTickCount64();
 
-			printf("Send %lu messages in %lu ms: %.02f msgs/sec\r\n", msg_count, (endTime - startTime), (float)msg_count / ((float)(endTime - startTime) / 1000));
+			(void)printf("Send %zu messages in %lu ms: %.02f msgs/sec\r\n", msg_count, (endTime - startTime), (float)msg_count / ((float)(endTime - startTime) / 1000));
 #endif
 		}
 
@@ -149,8 +154,8 @@ int main(int argc, char** argv)
 		saslmechanism_destroy(sasl_mechanism_handle);
 		platform_deinit();
 
-		printf("Max memory usage:%lu\r\n", (unsigned long)amqpalloc_get_maximum_memory_used());
-		printf("Current memory usage:%lu\r\n", (unsigned long)amqpalloc_get_current_memory_used());
+		(void)printf("Max memory usage:%lu\r\n", (unsigned long)amqpalloc_get_maximum_memory_used());
+		(void)printf("Current memory usage:%lu\r\n", (unsigned long)amqpalloc_get_current_memory_used());
 
 		result = 0;
 	}

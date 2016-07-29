@@ -36,6 +36,8 @@ static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE messag
 int main(int argc, char** argv)
 {
 	int result;
+    (void)argc, argv;
+
 	XIO_HANDLE sasl_io = NULL;
 	CONNECTION_HANDLE connection = NULL;
 	SESSION_HANDLE session = NULL;
@@ -63,7 +65,9 @@ int main(int argc, char** argv)
 		tls_io = xio_create(tlsio_interface, &tls_io_config);
 
 		/* create the SASL client IO using the TLS IO */
-		SASLCLIENTIO_CONFIG sasl_io_config = { tls_io, sasl_mechanism_handle };
+		SASLCLIENTIO_CONFIG sasl_io_config;
+        sasl_io_config.underlying_io = tls_io;
+        sasl_io_config.sasl_mechanism = sasl_mechanism_handle;
 		sasl_io = xio_create(saslclientio_get_interface_description(), &sasl_io_config);
 
 		/* create the connection, session and link */

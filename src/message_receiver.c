@@ -145,7 +145,9 @@ static void decode_message_value_callback(void* context, AMQP_VALUE decoded_valu
 			}
 			else
 			{
-				BINARY_DATA binary_data = { data_value.bytes, data_value.length };
+                BINARY_DATA binary_data;
+                binary_data.bytes = data_value.bytes;
+                binary_data.length = data_value.length;
 				if (message_add_body_amqp_data(decoded_message, binary_data) != 0)
 				{
 					message_receiver_instance->decode_error = true;
@@ -160,6 +162,7 @@ static AMQP_VALUE on_transfer_received(void* context, TRANSFER_HANDLE transfer, 
 	AMQP_VALUE result = NULL;
 
 	MESSAGE_RECEIVER_INSTANCE* message_receiver_instance = (MESSAGE_RECEIVER_INSTANCE*)context;
+    (void)transfer;
 	if (message_receiver_instance->on_message_received != NULL)
 	{
 		MESSAGE_HANDLE message = message_create();
@@ -208,6 +211,7 @@ static AMQP_VALUE on_transfer_received(void* context, TRANSFER_HANDLE transfer, 
 static void on_link_state_changed(void* context, LINK_STATE new_link_state, LINK_STATE previous_link_state)
 {
 	MESSAGE_RECEIVER_INSTANCE* message_receiver_instance = (MESSAGE_RECEIVER_INSTANCE*)context;
+    (void)previous_link_state;
 
 	switch (new_link_state)
 	{

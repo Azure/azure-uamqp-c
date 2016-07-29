@@ -12,7 +12,7 @@
 
 typedef struct SASL_ANONYMOUS_INSTANCE_TAG
 {
-	unsigned char dummy : 1;
+	unsigned char dummy;
 } SASL_ANONYMOUS_INSTANCE;
 
 /* Codes_SRS_SASL_ANONYMOUS_01_010: [saslanonymous_get_interface shall return a pointer to a SASL_MECHANISM_INTERFACE_DESCRIPTION  structure that contains pointers to the functions: saslanonymous_create, saslanonymous_destroy, saslanonymous_get_init_bytes, saslanonymous_get_mechanism_name, saslanonymous_challenge.] */

@@ -11,6 +11,8 @@ extern "C" {
 #include <stddef.h>
 #endif /* __cplusplus */
 
+#include <stdbool.h>
+
 #include "azure_c_shared_utility/xio.h"
 #include "azure_uamqp_c/sasl_mechanism.h"
 
@@ -27,6 +29,7 @@ extern int saslclientio_close(CONCRETE_IO_HANDLE sasl_client_io, ON_IO_CLOSE_COM
 extern int saslclientio_send(CONCRETE_IO_HANDLE sasl_client_io, const void* buffer, size_t size, ON_SEND_COMPLETE on_send_complete, void* callback_context);
 extern void saslclientio_dowork(CONCRETE_IO_HANDLE sasl_client_io);
 extern int saslclientio_setoption(CONCRETE_IO_HANDLE socket_io, const char* optionName, const void* value);
+extern void saslclientio_set_trace(CONCRETE_IO_HANDLE sasl_client_io, bool traceOn);
 
 extern const IO_INTERFACE_DESCRIPTION* saslclientio_get_interface_description(void);
 

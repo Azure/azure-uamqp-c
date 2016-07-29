@@ -28,6 +28,7 @@ static MESSAGE_RECEIVER_HANDLE message_receiver;
 
 static void on_message_receiver_state_changed(const void* context, MESSAGE_RECEIVER_STATE new_state, MESSAGE_RECEIVER_STATE previous_state)
 {
+    (void)context, new_state, previous_state;
 }
 
 static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE message)
@@ -42,6 +43,7 @@ static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE messag
 
 static bool on_new_link_attached(void* context, LINK_ENDPOINT_HANDLE new_link_endpoint, const char* name, role role, AMQP_VALUE source, AMQP_VALUE target)
 {
+    (void)context;
 	link = link_create_from_endpoint(session, new_link_endpoint, name, role, source, target);
 	link_set_rcv_settle_mode(link, receiver_settle_mode_first);
 	message_receiver = messagereceiver_create(link, on_message_receiver_state_changed, NULL);
@@ -51,6 +53,7 @@ static bool on_new_link_attached(void* context, LINK_ENDPOINT_HANDLE new_link_en
 
 static bool on_new_session_endpoint(void* context, ENDPOINT_HANDLE new_endpoint)
 {
+    (void)context;
 	session = session_create_from_endpoint(connection, new_endpoint, on_new_link_attached, NULL);
 	session_set_incoming_window(session, 10000);
 	session_begin(session);
@@ -59,7 +62,9 @@ static bool on_new_session_endpoint(void* context, ENDPOINT_HANDLE new_endpoint)
 
 static void on_socket_accepted(void* context, XIO_HANDLE io)
 {
-	HEADERDETECTIO_CONFIG header_detect_io_config = { io };
+	HEADERDETECTIO_CONFIG header_detect_io_config;
+    (void)context;
+    header_detect_io_config.underlying_io = io;
 	XIO_HANDLE header_detect_io = xio_create(headerdetectio_get_interface_description(), &header_detect_io_config);
 	connection = connection_create(header_detect_io, NULL, "1", on_new_session_endpoint, NULL);
 	connection_listen(connection);
@@ -69,6 +74,7 @@ int main(int argc, char** argv)
 {
 	int result;
 
+    (void)argc, argv;
 	amqpalloc_set_memory_tracing_enabled(true);
 
 	if (platform_init() != 0)

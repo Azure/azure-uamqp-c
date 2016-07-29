@@ -2,6 +2,7 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
+*.jar
 *.lastbuildstate
 *.log
 *.opensdf
@@ -105,6 +106,5 @@
 /sb.der
 /sb.pem
 /uamqp_generator/obj/Debug
-/build
 /devdoc/~$*.docm
 /cmake

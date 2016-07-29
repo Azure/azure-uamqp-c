@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
+#include "azure_c_shared_utility/xlogging.h"
 #include "azure_uamqp_c/amqp_types.h"
 #include "azure_uamqp_c/amqpvalue.h"
 #include "azure_uamqp_c/amqpalloc.h"
@@ -1001,28 +1002,43 @@ AMQP_VALUE amqpvalue_create_symbol(const char* value)
 	if (value == NULL)
 	{
 		/* Codes_SRS_AMQPVALUE_01_400: [If value is NULL, amqpvalue_create_symbol shall fail and return NULL.] */
+        LogError("NULL argument");
 		result = NULL;
 	}
 	else
 	{
-		/* Codes_SRS_AMQPVALUE_01_143: [If allocating the AMQP_VALUE fails then amqpvalue_create_symbol shall return NULL.] */
-		result = (AMQP_VALUE_DATA*)amqpalloc_malloc(sizeof(AMQP_VALUE_DATA));
-		if (result != NULL)
-		{
-			uint32_t length = strlen(value);
-
-			/* Codes_SRS_AMQPVALUE_01_142: [amqpvalue_create_symbol shall return a handle to an AMQP_VALUE that stores a symbol (ASCII string) value.] */
-			result->type = AMQP_TYPE_SYMBOL;
-			result->value.symbol_value.chars = (char*)amqpalloc_malloc(length + 1);
-			if (result->value.symbol_value.chars == NULL)
-			{
-				amqpalloc_free(result);
-				result = NULL;
-			}
-			else
-			{
-				(void)strcpy(result->value.symbol_value.chars, value);
-			}
+        size_t length = strlen(value);
+        if (length > UINT32_MAX)
+        {
+            /* Codes_SRS_AMQPVALUE_01_401: [ If the string pointed to by value is longer than 2^32-1 then amqpvalue_create_symbol shall return NULL. ]*/
+            LogError("string too long to be represented as a symbol");
+            result = NULL;
+        }
+        else
+        {
+            /* Codes_SRS_AMQPVALUE_01_143: [If allocating the AMQP_VALUE fails then amqpvalue_create_symbol shall return NULL.] */
+		    result = (AMQP_VALUE_DATA*)amqpalloc_malloc(sizeof(AMQP_VALUE_DATA));
+            if (result == NULL)
+            {
+                LogError("Cannot allocate memory for AMQP value");
+                result = NULL;
+            }
+            else
+            {
+                /* Codes_SRS_AMQPVALUE_01_142: [amqpvalue_create_symbol shall return a handle to an AMQP_VALUE that stores a symbol (ASCII string) value.] */
+                result->type = AMQP_TYPE_SYMBOL;
+                result->value.symbol_value.chars = (char*)amqpalloc_malloc(length + 1);
+                if (result->value.symbol_value.chars == NULL)
+                {
+                    LogError("Cannot allocate memory for symbol string");
+                    amqpalloc_free(result);
+                    result = NULL;
+                }
+                else
+                {
+                    (void)memcpy(result->value.symbol_value.chars, value, length + 1);
+                }
+            }
 		}
 	}
 
@@ -2752,7 +2768,7 @@ static int encode_binary(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context,
 static int encode_string(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, const char* value)
 {
 	int result;
-	uint32_t length = strlen(value);
+	size_t length = strlen(value);
 
 	if (length <= 255)
 	{
@@ -2796,7 +2812,7 @@ static int encode_string(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context,
 static int encode_symbol(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, const char* value)
 {
 	int result;
-	uint32_t length = strlen(value);
+	size_t length = strlen(value);
 
 	if (length <= 255)
 	{
@@ -2849,6 +2865,7 @@ static int encode_list(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, u
 		if (output_byte(encoder_output, context, 0x45) != 0)
 		{
 			/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+            LogError("Could not output list constructor byte");
 			result = __LINE__;
 		}
 		else
@@ -2867,11 +2884,19 @@ static int encode_list(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, u
 			size_t item_size;
 			if (amqpvalue_get_encoded_size(items[i], &item_size) != 0)
 			{
+                LogError("Could not get encoded size for element %zu of the list", i);
 				break;
 			}
 
-			size += item_size;
-		}
+            if ((item_size > UINT32_MAX) ||
+                size + (uint32_t)item_size < size)
+            {
+                LogError("Overflow in list size computation");
+                break;
+            }
+
+            size = (uint32_t)(size + item_size);
+        }
 
 		if (i < count)
 		{
@@ -2892,6 +2917,7 @@ static int encode_list(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, u
 					(output_byte(encoder_output, context, (count & 0xFF)) != 0))
 				{
 					/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+                    LogError("Failed encoding list");
 					result = __LINE__;
 				}
 				else
@@ -2918,6 +2944,7 @@ static int encode_list(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, u
 					(output_byte(encoder_output, context, count & 0xFF) != 0))
 				{
 					/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+                    LogError("Failed encoding list");
 					result = __LINE__;
 				}
 				else
@@ -2939,6 +2966,7 @@ static int encode_list(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, u
 
 				if (i < count)
 				{
+                    LogError("Failed encoding element %zu of the list", i);
 					result = __LINE__;
 				}
 				else
@@ -2968,19 +2996,34 @@ static int encode_map(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, ui
 		size_t item_size;
 		if (amqpvalue_get_encoded_size(pairs[i].key, &item_size) != 0)
 		{
+            LogError("Could not get encoded size for key element %zu of the map", i);
 			break;
 		}
 
-		size += item_size;
+        if ((item_size > UINT32_MAX) ||
+            size + (uint32_t)item_size < size)
+        {
+            LogError("Encoded data is more than the max size for a map");
+            break;
+        }
+        
+        size = (uint32_t)(size + item_size);
 
 		if (amqpvalue_get_encoded_size(pairs[i].value, &item_size) != 0)
 		{
+            LogError("Could not get encoded size for value element %zu of the map", i);
 			break;
 		}
 
-		size += item_size;
-	}
+        if ((item_size > UINT32_MAX) ||
+            size + (uint32_t)item_size < size)
+        {
+            LogError("Encoded data is more than the max size for a map");
+            break;
+        }
 
+		size = (uint32_t)(size + item_size);
+	}
 
 	if (i < count)
 	{
@@ -3001,6 +3044,7 @@ static int encode_map(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, ui
                 (output_byte(encoder_output, context, (elements & 0xFF)) != 0))
 			{
 				/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+                LogError("Could not encode map header");
 				result = __LINE__;
 			}
 			else
@@ -3027,6 +3071,7 @@ static int encode_map(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, ui
                 (output_byte(encoder_output, context, elements & 0xFF) != 0))
 			{
 				/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+                LogError("Could not encode map header");
 				result = __LINE__;
 			}
 			else
@@ -3050,6 +3095,7 @@ static int encode_map(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, ui
 
 			if (i < count)
 			{
+                LogError("Could not encode map");
 				result = __LINE__;
 			}
 			else
@@ -3323,6 +3369,9 @@ static void internal_decoder_destroy(INTERNAL_DECODER_DATA* internal_decoder)
 
 static void inner_decoder_callback(void* context, AMQP_VALUE decoded_value)
 {
+    /* API issue: the decoded_value should be removed completely:
+    Filed: uAMQP: inner_decoder_callback in amqpvalue.c could probably do without the decoded_value ... */
+    (void)decoded_value;
 	INTERNAL_DECODER_DATA* internal_decoder_data = (INTERNAL_DECODER_DATA*)context;
 	INTERNAL_DECODER_DATA* inner_decoder = (INTERNAL_DECODER_DATA*)internal_decoder_data->inner_decoder;
 	inner_decoder->decoder_state = DECODER_STATE_DONE;
@@ -3766,16 +3815,16 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 
 					case DECODE_DESCRIBED_VALUE_STEP_DESCRIPTOR:
 					{
-						size_t used_bytes;
-						if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, buffer, size, &used_bytes) != 0)
+						size_t inner_used_bytes;
+						if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, buffer, size, &inner_used_bytes) != 0)
 						{
 							result = __LINE__;
 						}
 						else
 						{
 							INTERNAL_DECODER_DATA* inner_decoder = (INTERNAL_DECODER_DATA*)internal_decoder_data->inner_decoder;
-							buffer += used_bytes;
-							size -= used_bytes;
+							buffer += inner_used_bytes;
+							size -= inner_used_bytes;
 
 							if (inner_decoder->decoder_state == DECODER_STATE_DONE)
 							{
@@ -3813,16 +3862,16 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 					}
 					case DECODE_DESCRIBED_VALUE_STEP_VALUE:
 					{
-						size_t used_bytes;
-						if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, buffer, size, &used_bytes) != 0)
+						size_t inner_used_bytes;
+						if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, buffer, size, &inner_used_bytes) != 0)
 						{
 							result = __LINE__;
 						}
 						else
 						{
 							INTERNAL_DECODER_DATA* inner_decoder = (INTERNAL_DECODER_DATA*)internal_decoder_data->inner_decoder;
-							buffer += used_bytes;
-							size -= used_bytes;
+							buffer += inner_used_bytes;
+							size -= inner_used_bytes;
 
 							if (inner_decoder->decoder_state == DECODER_STATE_DONE)
 							{
@@ -4171,7 +4220,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 					}
 					else
 					{
-						uint32_t to_copy = internal_decoder_data->decode_to_value->value.binary_value.length - (internal_decoder_data->bytes_decoded - 1);
+						size_t to_copy = internal_decoder_data->decode_to_value->value.binary_value.length - (internal_decoder_data->bytes_decoded - 1);
 						if (to_copy > size)
 						{
 							to_copy = size;
@@ -4242,7 +4291,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 					}
 					else
 					{
-						uint32_t to_copy = internal_decoder_data->decode_to_value->value.binary_value.length - (internal_decoder_data->bytes_decoded - 4);
+						size_t to_copy = internal_decoder_data->decode_to_value->value.binary_value.length - (internal_decoder_data->bytes_decoded - 4);
 						if (to_copy > size)
 						{
 							to_copy = size;
@@ -4305,7 +4354,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 					}
 					else
 					{
-						uint32_t to_copy = internal_decoder_data->decode_value_state.string_value_state.length - (internal_decoder_data->bytes_decoded - 1);
+						size_t to_copy = internal_decoder_data->decode_value_state.string_value_state.length - (internal_decoder_data->bytes_decoded - 1);
 						if (to_copy > size)
 						{
 							to_copy = size;
@@ -4379,7 +4428,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 					}
 					else
 					{
-						uint32_t to_copy = internal_decoder_data->decode_value_state.string_value_state.length - (internal_decoder_data->bytes_decoded - 4);
+						size_t to_copy = internal_decoder_data->decode_value_state.string_value_state.length - (internal_decoder_data->bytes_decoded - 4);
 						if (to_copy > size)
 						{
 							to_copy = size;
@@ -4446,7 +4495,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 					}
 					else
 					{
-						uint32_t to_copy = internal_decoder_data->decode_value_state.symbol_value_state.length - (internal_decoder_data->bytes_decoded - 1);
+						size_t to_copy = internal_decoder_data->decode_value_state.symbol_value_state.length - (internal_decoder_data->bytes_decoded - 1);
 						if (to_copy > size)
 						{
 							to_copy = size;
@@ -4520,7 +4569,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 					}
 					else
 					{
-						uint32_t to_copy = internal_decoder_data->decode_value_state.symbol_value_state.length - (internal_decoder_data->bytes_decoded - 4);
+						size_t to_copy = internal_decoder_data->decode_value_state.symbol_value_state.length - (internal_decoder_data->bytes_decoded - 4);
 						if (to_copy > size)
 						{
 							to_copy = size;
@@ -4684,7 +4733,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 
 					case DECODE_LIST_STEP_ITEMS:
 					{
-						size_t used_bytes;
+						size_t inner_used_bytes;
 
 						if (internal_decoder_data->bytes_decoded == 0)
 						{
@@ -4715,16 +4764,16 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 						{
 							result = __LINE__;
 						}
-						else if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, buffer, size, &used_bytes) != 0)
+						else if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, buffer, size, &inner_used_bytes) != 0)
 						{
 							result = __LINE__;
 						}
 						else
 						{
 							INTERNAL_DECODER_DATA* inner_decoder = (INTERNAL_DECODER_DATA*)internal_decoder_data->inner_decoder;
-							internal_decoder_data->bytes_decoded += used_bytes;
-							buffer += used_bytes;
-							size -= used_bytes;
+							internal_decoder_data->bytes_decoded += inner_used_bytes;
+							buffer += inner_used_bytes;
+							size -= inner_used_bytes;
 
 							if (inner_decoder->decoder_state == DECODER_STATE_DONE)
 							{
@@ -4885,7 +4934,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 
 					case DECODE_MAP_STEP_PAIRS:
 					{
-						size_t used_bytes;
+						size_t inner_used_bytes;
 
 						if (internal_decoder_data->bytes_decoded == 0)
 						{
@@ -4923,16 +4972,16 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 						{
 							result = __LINE__;
 						}
-						else if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, buffer, size, &used_bytes) != 0)
+						else if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, buffer, size, &inner_used_bytes) != 0)
 						{
 							result = __LINE__;
 						}
 						else
 						{
 							INTERNAL_DECODER_DATA* inner_decoder = (INTERNAL_DECODER_DATA*)internal_decoder_data->inner_decoder;
-							internal_decoder_data->bytes_decoded += used_bytes;
-							buffer += used_bytes;
-							size -= used_bytes;
+							internal_decoder_data->bytes_decoded += inner_used_bytes;
+							buffer += inner_used_bytes;
+							size -= inner_used_bytes;
 
 							if (inner_decoder->decoder_state == DECODER_STATE_DONE)
 							{
@@ -5083,7 +5132,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 
 					case DECODE_ARRAY_STEP_ITEMS:
 					{
-						size_t used_bytes;
+						size_t inner_used_bytes;
 
 						if (internal_decoder_data->bytes_decoded == 0)
 						{
@@ -5116,16 +5165,16 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 						{
 							result = __LINE__;
 						}
-						else if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, buffer, size, &used_bytes) != 0)
+						else if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, buffer, size, &inner_used_bytes) != 0)
 						{
 							result = __LINE__;
 						}
 						else
 						{
 							INTERNAL_DECODER_DATA* inner_decoder = (INTERNAL_DECODER_DATA*)internal_decoder_data->inner_decoder;
-							internal_decoder_data->bytes_decoded += used_bytes;
-							buffer += used_bytes;
-							size -= used_bytes;
+							internal_decoder_data->bytes_decoded += inner_used_bytes;
+							buffer += inner_used_bytes;
+							size -= inner_used_bytes;
 
 							if (inner_decoder->decoder_state == DECODER_STATE_DONE)
 							{
@@ -5427,7 +5476,7 @@ AMQP_VALUE amqpvalue_create_composite_with_ulong_descriptor(uint64_t descriptor)
 	return result;
 }
 
-int amqpvalue_set_composite_item(AMQP_VALUE value, size_t index, AMQP_VALUE item_value)
+int amqpvalue_set_composite_item(AMQP_VALUE value, uint32_t index, AMQP_VALUE item_value)
 {
 	int result;
 

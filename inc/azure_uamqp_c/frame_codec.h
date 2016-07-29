@@ -21,7 +21,7 @@ extern "C" {
 typedef struct PAYLOAD_TAG
 {
 	const unsigned char* bytes;
-	uint32_t length;
+	size_t length;
 } PAYLOAD;
 
 /* Codes_SRS_FRAME_CODEC_01_016: [The type code indicates the format and purpose of the frame.] */

@@ -269,11 +269,10 @@ int amqp_frame_codec_encode_frame(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec, uint
 					}
 					else
 					{
-						unsigned char channel_bytes[2] =
-						{
-							channel >> 8,
-							channel & 0xFF
-						};
+                        unsigned char channel_bytes[2];
+
+                        channel_bytes[0] = channel >> 8;
+                        channel_bytes[1] = channel & 0xFF;
 
 						/* Codes_SRS_AMQP_FRAME_CODEC_01_005: [Bytes 6 and 7 of an AMQP frame contain the channel number ] */
 						/* Codes_SRS_AMQP_FRAME_CODEC_01_025: [amqp_frame_codec_encode_frame shall encode the frame header by using frame_codec_encode_frame.] */
@@ -314,11 +313,10 @@ int amqp_frame_codec_encode_empty_frame(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec
 	}
 	else
 	{
-		unsigned char channel_bytes[2] =
-		{
-			channel >> 8,
-			channel & 0xFF
-		};
+        unsigned char channel_bytes[2];
+        
+        channel_bytes[0] = channel >> 8;
+        channel_bytes[1] = channel & 0xFF;
 
 		/* Codes_SRS_AMQP_FRAME_CODEC_01_044: [amqp_frame_codec_encode_empty_frame shall use frame_codec_encode_frame to encode the frame.] */
 		if (frame_codec_encode_frame(amqp_frame_codec->frame_codec, FRAME_TYPE_AMQP, NULL, 0, channel_bytes, sizeof(channel_bytes), on_bytes_encoded, callback_context) != 0)

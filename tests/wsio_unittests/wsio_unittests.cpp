@@ -1469,7 +1469,7 @@ TEST_FUNCTION(when_lws_wants_to_send_bytes_they_are_pushed_to_lws)
     EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(mocks, lws_write(TEST_LIBWEBSOCKET, IGNORED_PTR_ARG, sizeof(test_buffer), LWS_WRITE_BINARY))
         .ValidateArgumentBuffer(2, test_buffer, sizeof(test_buffer))
-        .SetReturn(sizeof(test_buffer));
+        .SetReturn((int)sizeof(test_buffer));
     EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(mocks, test_on_send_complete((void*)0x4243, IO_SEND_OK));
     EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
@@ -1509,7 +1509,7 @@ TEST_FUNCTION(when_lws_wants_to_send_bytes_they_are_pushed_to_lws_but_no_callbac
     EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(mocks, lws_write(TEST_LIBWEBSOCKET, IGNORED_PTR_ARG, sizeof(test_buffer), LWS_WRITE_BINARY))
         .ValidateArgumentBuffer(2, test_buffer, sizeof(test_buffer))
-        .SetReturn(sizeof(test_buffer));
+        .SetReturn((int)sizeof(test_buffer));
     EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
     EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
     EXPECTED_CALL(mocks, list_remove(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
@@ -2031,7 +2031,7 @@ TEST_FUNCTION(CLIENT_WRITABLE_when_open_and_one_chunk_queued_sends_the_chunk)
     EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(mocks, lws_write(TEST_LIBWEBSOCKET, IGNORED_PTR_ARG, sizeof(test_buffer), LWS_WRITE_BINARY))
         .ValidateArgumentBuffer(2, test_buffer, sizeof(test_buffer))
-        .SetReturn(sizeof(test_buffer));
+        .SetReturn((int)sizeof(test_buffer));
     EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
     EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
     EXPECTED_CALL(mocks, list_remove(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
@@ -3080,7 +3080,7 @@ TEST_FUNCTION(LOAD_EXTRA_CLIENT_VERIFY_CERTS_with_a_string_that_has_no_certs_add
     STRICT_EXPECTED_CALL(mocks, BIO_s_mem());
     STRICT_EXPECTED_CALL(mocks, BIO_new(TEST_BIO_METHOD));
     STRICT_EXPECTED_CALL(mocks, BIO_puts(TEST_BIO, default_wsio_config.trusted_ca))
-        .SetReturn(strlen(default_wsio_config.trusted_ca));
+        .SetReturn((int)strlen(default_wsio_config.trusted_ca));
     STRICT_EXPECTED_CALL(mocks, PEM_read_bio_X509(TEST_BIO, NULL, NULL, NULL))
         .SetReturn((X509*)NULL);
     STRICT_EXPECTED_CALL(mocks, BIO_free(TEST_BIO));
@@ -3113,7 +3113,7 @@ TEST_FUNCTION(LOAD_EXTRA_CLIENT_VERIFY_CERTS_with_a_string_that_has_1_cert_loads
     STRICT_EXPECTED_CALL(mocks, BIO_s_mem());
     STRICT_EXPECTED_CALL(mocks, BIO_new(TEST_BIO_METHOD));
     STRICT_EXPECTED_CALL(mocks, BIO_puts(TEST_BIO, default_wsio_config.trusted_ca))
-        .SetReturn(strlen(default_wsio_config.trusted_ca));
+        .SetReturn((int)strlen(default_wsio_config.trusted_ca));
     STRICT_EXPECTED_CALL(mocks, PEM_read_bio_X509(TEST_BIO, NULL, NULL, NULL))
         .SetReturn(TEST_X509_CERT_1);
     STRICT_EXPECTED_CALL(mocks, X509_STORE_add_cert(TEST_CERT_STORE, TEST_X509_CERT_1));
@@ -3149,7 +3149,7 @@ TEST_FUNCTION(LOAD_EXTRA_CLIENT_VERIFY_CERTS_with_a_string_that_has_2_certs_load
     STRICT_EXPECTED_CALL(mocks, BIO_s_mem());
     STRICT_EXPECTED_CALL(mocks, BIO_new(TEST_BIO_METHOD));
     STRICT_EXPECTED_CALL(mocks, BIO_puts(TEST_BIO, default_wsio_config.trusted_ca))
-        .SetReturn(strlen(default_wsio_config.trusted_ca));
+        .SetReturn((int)strlen(default_wsio_config.trusted_ca));
     STRICT_EXPECTED_CALL(mocks, PEM_read_bio_X509(TEST_BIO, NULL, NULL, NULL))
         .SetReturn(TEST_X509_CERT_1);
     STRICT_EXPECTED_CALL(mocks, X509_STORE_add_cert(TEST_CERT_STORE, TEST_X509_CERT_1));
@@ -3330,7 +3330,7 @@ TEST_FUNCTION(when_setting_the_input_string_for_the_memory_BIO_fails_with_len_mi
     STRICT_EXPECTED_CALL(mocks, BIO_s_mem());
     STRICT_EXPECTED_CALL(mocks, BIO_new(TEST_BIO_METHOD));
     STRICT_EXPECTED_CALL(mocks, BIO_puts(TEST_BIO, default_wsio_config.trusted_ca))
-        .SetReturn(strlen(default_wsio_config.trusted_ca) - 1);
+        .SetReturn((int)strlen(default_wsio_config.trusted_ca) - 1);
     STRICT_EXPECTED_CALL(mocks, test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
     STRICT_EXPECTED_CALL(mocks, BIO_free(TEST_BIO));
 
@@ -3361,7 +3361,7 @@ TEST_FUNCTION(when_setting_the_input_string_for_the_memory_BIO_fails_with_len_pl
     STRICT_EXPECTED_CALL(mocks, BIO_s_mem());
     STRICT_EXPECTED_CALL(mocks, BIO_new(TEST_BIO_METHOD));
     STRICT_EXPECTED_CALL(mocks, BIO_puts(TEST_BIO, default_wsio_config.trusted_ca))
-        .SetReturn(strlen(default_wsio_config.trusted_ca) + 1);
+        .SetReturn((int)strlen(default_wsio_config.trusted_ca) + 1);
     STRICT_EXPECTED_CALL(mocks, BIO_free(TEST_BIO));
     STRICT_EXPECTED_CALL(mocks, test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
@@ -3394,7 +3394,7 @@ TEST_FUNCTION(when_adding_the_cert_to_the_store_fails_in_LOAD_EXTRA_CLIENT_VERIF
     STRICT_EXPECTED_CALL(mocks, BIO_s_mem());
     STRICT_EXPECTED_CALL(mocks, BIO_new(TEST_BIO_METHOD));
     STRICT_EXPECTED_CALL(mocks, BIO_puts(TEST_BIO, default_wsio_config.trusted_ca))
-        .SetReturn(strlen(default_wsio_config.trusted_ca));
+        .SetReturn((int)strlen(default_wsio_config.trusted_ca));
     STRICT_EXPECTED_CALL(mocks, PEM_read_bio_X509(TEST_BIO, NULL, NULL, NULL))
         .SetReturn(TEST_X509_CERT_1);
     STRICT_EXPECTED_CALL(mocks, X509_STORE_add_cert(TEST_CERT_STORE, TEST_X509_CERT_1))

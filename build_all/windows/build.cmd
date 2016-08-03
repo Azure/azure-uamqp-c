@@ -69,7 +69,6 @@ if %build-platform% == x64 (
 goto args-continue
 
 :arg-use-websockets
-shift
 set CMAKE_use_wsio=ON
 goto args-continue
 
@@ -202,6 +201,7 @@ echo options:
 echo  -c, --clean           delete artifacts from previous build before building
 echo  --config ^<value^>      [Debug] build configuration (e.g. Debug, Release)
 echo  --platform ^<value^>    [Win32] build platform (e.g. Win32, x64, arm, ...)
+echo  --use-websockets      Build websockets IO and samples
 goto :eof
 
 rem -----------------------------------------------------------------------------

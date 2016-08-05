@@ -186,11 +186,11 @@ typedef struct INTERNAL_DECODER_DATA_TAG
 	DECODE_VALUE_STATE_UNION decode_value_state;
 } INTERNAL_DECODER_DATA;
 
-typedef struct DECODER_DATA_TAG
+typedef struct AMQPVALUE_DECODER_HANDLE_DATA_TAG
 {
 	INTERNAL_DECODER_DATA* internal_decoder;
 	AMQP_VALUE_DATA* decode_to_value;
-} DECODER_DATA;
+} AMQPVALUE_DECODER_HANDLE_DATA;
 
 /* Codes_SRS_AMQPVALUE_01_003: [1.6.1 null Indicates an empty value.] */
 AMQP_VALUE amqpvalue_create_null(void)
@@ -5255,7 +5255,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 
 AMQPVALUE_DECODER_HANDLE amqpvalue_decoder_create(ON_VALUE_DECODED on_value_decoded, void* callback_context)
 {
-	DECODER_DATA* decoder_instance;
+	AMQPVALUE_DECODER_HANDLE_DATA* decoder_instance;
 
 	/* Codes_SRS_AMQPVALUE_01_312: [If the on_value_decoded argument is NULL, amqpvalue_decoder_create shall return NULL.] */
 	if (on_value_decoded == NULL)
@@ -5264,7 +5264,7 @@ AMQPVALUE_DECODER_HANDLE amqpvalue_decoder_create(ON_VALUE_DECODED on_value_deco
 	}
 	else
 	{
-		decoder_instance = (DECODER_DATA*)amqpalloc_malloc(sizeof(DECODER_DATA));
+		decoder_instance = (AMQPVALUE_DECODER_HANDLE_DATA*)amqpalloc_malloc(sizeof(AMQPVALUE_DECODER_HANDLE_DATA));
 		/* Codes_SRS_AMQPVALUE_01_313: [If creating the decoder fails, amqpvalue_decoder_create shall return NULL.] */
 		if (decoder_instance != NULL)
 		{
@@ -5296,7 +5296,7 @@ AMQPVALUE_DECODER_HANDLE amqpvalue_decoder_create(ON_VALUE_DECODED on_value_deco
 
 void amqpvalue_decoder_destroy(AMQPVALUE_DECODER_HANDLE handle)
 {
-	DECODER_DATA* decoder_instance = (DECODER_DATA*)handle;
+	AMQPVALUE_DECODER_HANDLE_DATA* decoder_instance = (AMQPVALUE_DECODER_HANDLE_DATA*)handle;
 	
 	/* Codes_SRS_AMQPVALUE_01_317: [If handle is NULL, amqpvalue_decoder_destroy shall do nothing.] */
 	if (decoder_instance != NULL)
@@ -5313,7 +5313,7 @@ int amqpvalue_decode_bytes(AMQPVALUE_DECODER_HANDLE handle, const unsigned char*
 {
 	int result;
 
-	DECODER_DATA* decoder_instance = (DECODER_DATA*)handle;
+	AMQPVALUE_DECODER_HANDLE_DATA* decoder_instance = (AMQPVALUE_DECODER_HANDLE_DATA*)handle;
 	/* Codes_SRS_AMQPVALUE_01_320: [If handle or buffer are NULL, amqpvalue_decode_bytes shall return a non-zero value.] */
 	if ((decoder_instance == NULL) ||
 		(buffer == NULL) ||

@@ -115,6 +115,7 @@ static int encode_bytes(void* context, const unsigned char* bytes, size_t length
     return 0;
 }
 
+#ifndef NO_LOGGING
 static void log_message_chunk(MESSAGE_SENDER_INSTANCE* message_sender_instance, const char* name, AMQP_VALUE value)
 {
     if (xlogging_get_log_function() != NULL && message_sender_instance->is_trace_on == 1)
@@ -128,6 +129,7 @@ static void log_message_chunk(MESSAGE_SENDER_INSTANCE* message_sender_instance, 
         }
     }
 }
+#endif
 
 static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message_sender_instance, MESSAGE_WITH_CALLBACK* message_with_callback, MESSAGE_HANDLE message)
 {

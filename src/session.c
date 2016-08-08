@@ -1041,7 +1041,7 @@ LINK_ENDPOINT_HANDLE session_create_link_endpoint(SESSION_HANDLE session, const 
 
 					if (session_instance->link_endpoint_count - selected_handle > 0)
 					{
-						(void)memmove(&session_instance->link_endpoints[selected_handle], &session_instance->link_endpoints[selected_handle + 1], (session_instance->link_endpoint_count - selected_handle) * sizeof(LINK_ENDPOINT_INSTANCE*));
+						(void)memmove(&session_instance->link_endpoints[selected_handle + 1], &session_instance->link_endpoints[selected_handle], (session_instance->link_endpoint_count - selected_handle) * sizeof(LINK_ENDPOINT_INSTANCE*));
 					}
 
 					session_instance->link_endpoints[selected_handle] = result;
@@ -1076,7 +1076,11 @@ void session_destroy_link_endpoint(LINK_ENDPOINT_HANDLE link_endpoint)
 		{
 			LINK_ENDPOINT_INSTANCE** new_endpoints;
 
-			(void)memmove(&session_instance->link_endpoints[i], &session_instance->link_endpoints[i + 1], (session_instance->link_endpoint_count - (uint32_t)i - 1) * sizeof(LINK_ENDPOINT_INSTANCE*));
+			if (session_instance->link_endpoint_count > 1)
+			{
+				(void)memmove(&session_instance->link_endpoints[i], &session_instance->link_endpoints[i + 1], (session_instance->link_endpoint_count - (uint32_t)i - 1) * sizeof(LINK_ENDPOINT_INSTANCE*));
+			}
+
 			session_instance->link_endpoint_count--;
 
 			if (session_instance->link_endpoint_count == 0)

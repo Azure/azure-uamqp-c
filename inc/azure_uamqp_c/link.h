@@ -30,7 +30,7 @@ typedef enum LINK_TRANSFER_RESULT_TAG
 	LINK_TRANSFER_BUSY
 } LINK_TRANSFER_RESULT;
 
-typedef void(*ON_DELIVERY_SETTLED)(void* context, delivery_number delivery_no);
+typedef void(*ON_DELIVERY_SETTLED)(void* context, delivery_number delivery_no, AMQP_VALUE delivery_state);
 typedef AMQP_VALUE(*ON_TRANSFER_RECEIVED)(void* context, TRANSFER_HANDLE transfer, uint32_t payload_size, const unsigned char* payload_bytes);
 typedef void(*ON_LINK_STATE_CHANGED)(void* context, LINK_STATE new_link_state, LINK_STATE previous_link_state);
 typedef void(*ON_LINK_FLOW_ON)(void* context);

@@ -927,9 +927,9 @@ LINK_TRANSFER_RESULT link_transfer(LINK_HANDLE link, message_format message_form
 			}
 			else
 			{
-				unsigned char delivery_tag_bytes[sizeof(link->delivery_count)];
+                sequence_no delivery_count = link->delivery_count + 1;
+                unsigned char delivery_tag_bytes[sizeof(delivery_count)];
 				delivery_tag delivery_tag;
-				sequence_no delivery_count = link->delivery_count + 1; 
 				bool settled;
 
 				(void)memcpy(delivery_tag_bytes, &delivery_count, sizeof(delivery_count));

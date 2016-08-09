@@ -1076,8 +1076,8 @@ void session_destroy_link_endpoint(LINK_ENDPOINT_HANDLE link_endpoint)
 		{
 			LINK_ENDPOINT_INSTANCE** new_endpoints;
 
-			if (session_instance->link_endpoint_count > 1)
-			{
+            if (i < (session_instance->link_endpoint_count - 1))
+            {
 				(void)memmove(&session_instance->link_endpoints[i], &session_instance->link_endpoints[i + 1], (session_instance->link_endpoint_count - (uint32_t)i - 1) * sizeof(LINK_ENDPOINT_INSTANCE*));
 			}
 

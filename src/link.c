@@ -324,16 +324,26 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                         {
                             if ((delivery_instance->delivery_id >= first) && (delivery_instance->delivery_id <= last))
                             {
-                                delivery_instance->on_delivery_settled(delivery_instance->callback_context, delivery_instance->delivery_id);
-                                amqpalloc_free(delivery_instance);
-                                if (list_remove(link_instance->pending_deliveries, pending_delivery) != 0)
+                                AMQP_VALUE delivery_state;
+                                if (disposition_get_state(disposition, &delivery_state) != 0)
                                 {
                                     /* error */
-                                    break;
                                 }
                                 else
                                 {
-                                    pending_delivery = next_pending_delivery;
+                                    delivery_instance->on_delivery_settled(delivery_instance->callback_context, delivery_instance->delivery_id, delivery_state);
+                                    amqpalloc_free(delivery_instance);
+                                    if (list_remove(link_instance->pending_deliveries, pending_delivery) != 0)
+                                    {
+                                        /* error */
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        pending_delivery = next_pending_delivery;
+                                    }
+
+                                    amqpvalue_destroy(delivery_state);
                                 }
                             }
                             else
@@ -491,7 +501,7 @@ static void on_send_complete(void* context, IO_SEND_RESULT send_result)
     (void)send_result;
 	if (link_instance->snd_settle_mode == sender_settle_mode_settled)
 	{
-		delivery_instance->on_delivery_settled(delivery_instance->callback_context, delivery_instance->delivery_id);
+		delivery_instance->on_delivery_settled(delivery_instance->callback_context, delivery_instance->delivery_id, NULL);
 		amqpalloc_free(delivery_instance);
 		(void)list_remove(link_instance->pending_deliveries, delivery_instance_list_item);
 	}

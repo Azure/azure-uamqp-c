@@ -88,7 +88,7 @@ extern "C" {
 	extern int amqpvalue_get_encoded_size(AMQP_VALUE value, size_t* encoded_size);
 
 	/* decoding */
-	typedef void* AMQPVALUE_DECODER_HANDLE;
+	typedef struct AMQPVALUE_DECODER_HANDLE_DATA_TAG* AMQPVALUE_DECODER_HANDLE;
 	typedef void(*ON_VALUE_DECODED)(void* context, AMQP_VALUE decoded_value);
 
 	extern AMQPVALUE_DECODER_HANDLE amqpvalue_decoder_create(ON_VALUE_DECODED on_value_decoded, void* callback_context);

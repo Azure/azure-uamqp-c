@@ -324,16 +324,26 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                         {
                             if ((delivery_instance->delivery_id >= first) && (delivery_instance->delivery_id <= last))
                             {
-                                delivery_instance->on_delivery_settled(delivery_instance->callback_context, delivery_instance->delivery_id);
-                                amqpalloc_free(delivery_instance);
-                                if (list_remove(link_instance->pending_deliveries, pending_delivery) != 0)
+                                AMQP_VALUE delivery_state;
+                                if (disposition_get_state(disposition, &delivery_state) != 0)
                                 {
                                     /* error */
-                                    break;
                                 }
                                 else
                                 {
-                                    pending_delivery = next_pending_delivery;
+                                    delivery_instance->on_delivery_settled(delivery_instance->callback_context, delivery_instance->delivery_id, delivery_state);
+                                    amqpalloc_free(delivery_instance);
+                                    if (list_remove(link_instance->pending_deliveries, pending_delivery) != 0)
+                                    {
+                                        /* error */
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        pending_delivery = next_pending_delivery;
+                                    }
+
+                                    amqpvalue_destroy(delivery_state);
                                 }
                             }
                             else
@@ -491,7 +501,7 @@ static void on_send_complete(void* context, IO_SEND_RESULT send_result)
     (void)send_result;
 	if (link_instance->snd_settle_mode == sender_settle_mode_settled)
 	{
-		delivery_instance->on_delivery_settled(delivery_instance->callback_context, delivery_instance->delivery_id);
+		delivery_instance->on_delivery_settled(delivery_instance->callback_context, delivery_instance->delivery_id, NULL);
 		amqpalloc_free(delivery_instance);
 		(void)list_remove(link_instance->pending_deliveries, delivery_instance_list_item);
 	}
@@ -910,7 +920,7 @@ LINK_TRANSFER_RESULT link_transfer(LINK_HANDLE link, message_format message_form
 	else
 	{
 		if ((link->role != role_sender) ||
-            (link->link_state != LINK_STATE_ATTACHED))
+			(link->link_state != LINK_STATE_ATTACHED))
 		{
 			result = LINK_TRANSFER_ERROR;
 		}
@@ -927,13 +937,12 @@ LINK_TRANSFER_RESULT link_transfer(LINK_HANDLE link, message_format message_form
 			}
 			else
 			{
-				unsigned char delivery_tag_bytes[sizeof(link->delivery_count)];
+                sequence_no delivery_count = link->delivery_count + 1;
+                unsigned char delivery_tag_bytes[sizeof(delivery_count)];
 				delivery_tag delivery_tag;
 				bool settled;
 
-				(void)memcpy(delivery_tag_bytes, &link->delivery_count, sizeof(link->delivery_count));
-
-				link->delivery_count++;
+				(void)memcpy(delivery_tag_bytes, &delivery_count, sizeof(delivery_count));
 
 				delivery_tag.bytes = &delivery_tag_bytes;
 				delivery_tag.length = sizeof(delivery_tag_bytes);
@@ -1001,6 +1010,7 @@ LINK_TRANSFER_RESULT link_transfer(LINK_HANDLE link, message_format message_form
 									break;
 
 								case SESSION_SEND_TRANSFER_OK:
+									link->delivery_count = delivery_count;
 									link->link_credit--;
 									result = LINK_TRANSFER_OK;
 									break;

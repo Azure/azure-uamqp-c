@@ -93,7 +93,7 @@ static void remove_pending_message(MESSAGE_SENDER_INSTANCE* message_sender_insta
     }
 }
 
-static void on_delivery_settled(void* context, delivery_number delivery_no)
+static void on_delivery_settled(void* context, delivery_number delivery_no, AMQP_VALUE delivery_state)
 {
     MESSAGE_WITH_CALLBACK* message_with_callback = (MESSAGE_WITH_CALLBACK*)context;
     MESSAGE_SENDER_INSTANCE* message_sender_instance = (MESSAGE_SENDER_INSTANCE*)message_with_callback->message_sender;
@@ -101,7 +101,27 @@ static void on_delivery_settled(void* context, delivery_number delivery_no)
 
     if (message_with_callback->on_message_send_complete != NULL)
     {
-        message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_OK);
+        AMQP_VALUE descriptor = amqpvalue_get_inplace_descriptor(delivery_state);
+        if (descriptor == NULL)
+        {
+            LogError("Error getting descriptor for delivery state");
+        }
+        else
+        {
+            MESSAGE_SEND_RESULT message_send_result;
+
+            if ((delivery_state == NULL) ||
+                (is_accepted_type_by_descriptor(descriptor)))
+            {
+                message_send_result = MESSAGE_SEND_OK;
+            }
+            else
+            {
+                message_send_result = MESSAGE_SEND_ERROR;
+            }
+
+            message_with_callback->on_message_send_complete(message_with_callback->context, message_send_result);
+        }
     }
 
     remove_pending_message(message_sender_instance, message_with_callback);
@@ -115,6 +135,7 @@ static int encode_bytes(void* context, const unsigned char* bytes, size_t length
     return 0;
 }
 
+#ifndef NO_LOGGING
 static void log_message_chunk(MESSAGE_SENDER_INSTANCE* message_sender_instance, const char* name, AMQP_VALUE value)
 {
     if (xlogging_get_log_function() != NULL && message_sender_instance->is_trace_on == 1)
@@ -128,6 +149,7 @@ static void log_message_chunk(MESSAGE_SENDER_INSTANCE* message_sender_instance, 
         }
     }
 }
+#endif
 
 static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message_sender_instance, MESSAGE_WITH_CALLBACK* message_with_callback, MESSAGE_HANDLE message)
 {

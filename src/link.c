@@ -342,8 +342,6 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                                     {
                                         pending_delivery = next_pending_delivery;
                                     }
-
-                                    amqpvalue_destroy(delivery_state);
                                 }
                             }
                             else

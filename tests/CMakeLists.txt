@@ -14,7 +14,3 @@ add_subdirectory(sasl_mechanism_ut)
 add_subdirectory(sasl_plain_ut)
 add_subdirectory(session_ut)
 add_subdirectory(saslclientio_ut)
-
-if(use_wsio)
-    add_subdirectory(wsio_ut)
-endif()

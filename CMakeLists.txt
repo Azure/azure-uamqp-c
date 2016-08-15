@@ -87,45 +87,6 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 add_definitions(-DREFCOUNT_ATOMIC_DONTCARE)
 add_definitions(-D__STDC_NO_ATOMICS__=1)
 
-if(${use_wsio})
-    include_directories(libwebsockets/lib)
-    include_directories(${PROJECT_BINARY_DIR}/libwebsockets)
-
-	if(WIN32)
-		string(REPLACE "/W4" "/W0" CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
-		string(REPLACE "/W4" "/W0" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
-		
-		set(CMAKE_EXE_LINKER_FLAGS_PREV ${CMAKE_EXE_LINKER_FLAGS})
-		set(CMAKE_SHARED_LINKER_FLAGS_PREV ${CMAKE_SHARED_LINKER_FLAGS})
-		set(CMAKE_MODULE_LINKER_FLAGS_PREV ${CMAKE_MODULE_LINKER_FLAGS})
-		set(CMAKE_STATIC_LINKER_FLAGS_PREV ${CMAKE_MODULE_STATIC_FLAGS})
-
-		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /IGNORE:4006 /IGNORE:4221")
-		set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /IGNORE:4006 /IGNORE:4221")
-		set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} /IGNORE:4006 /IGNORE:4221")
-		set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} /IGNORE:4006 /IGNORE:4221")
-
-		remove_definitions(/WX)
-		add_subdirectory(libwebsockets)
-		add_definitions(/WX)
-		set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS_PREV})
-		set(CMAKE_SHARED_LINKER_FLAGS ${CMAKE_SHARED_LINKER_FLAGS_PREV})
-		set(CMAKE_MODULE_LINKER_FLAGS ${CMAKE_MODULE_LINKER_FLAGS_PREV})
-		set(CMAKE_STATIC_LINKER_FLAGS ${CMAKE_STATIC_LINKER_FLAGS_PREV})
-		
-		string(REPLACE "/W0" "/W4" CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
-		string(REPLACE "/W0" "/W4" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
-	
-	elseif(LINUX)
-        #because libwebsockets? is sensible to -Werror, it shall be removed, and re-added after
-        string(REPLACE "-Werror" "" CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
-        string(REPLACE "-Werror" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
-        add_subdirectory(libwebsockets)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
-	endif()
-endif()
-
 add_subdirectory(azure-c-shared-utility)
 
 enable_testing()
@@ -240,18 +201,6 @@ set(uamqp_c_files
     ./src/session.c
 )
 
-if(${use_wsio})
-    set(wsio_h_files
-        ./inc/azure_uamqp_c/wsio.h
-    )
-    set(wsio_c_files
-        ./src/wsio.c
-    )
-else()
-    set(wsio_h_files)
-    set(wsio_c_files)
-endif()
-
 if(WIN32)
     set(socketlistener_c_files
         ./src/socket_listener_win32.c
@@ -263,8 +212,6 @@ endif()
 add_library(uamqp
     ${uamqp_c_files}
     ${uamqp_h_files}
-    ${wsio_c_files}
-    ${wsio_h_files}
     ${socketlistener_c_files}
     )
 

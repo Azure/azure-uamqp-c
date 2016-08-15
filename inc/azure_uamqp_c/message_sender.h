@@ -13,10 +13,6 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#ifdef NO_LOGGING
-#define log_message_chunk(...)
-#endif
-
     typedef enum MESSAGE_SEND_RESULT_TAG
     {
         MESSAGE_SEND_OK,

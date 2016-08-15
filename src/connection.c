@@ -182,9 +182,11 @@ static const char* get_frame_type_as_string(AMQP_VALUE descriptor)
     return result;
 }
 
-#ifndef NO_LOGGING
 static void log_incoming_frame(AMQP_VALUE performative)
 {
+#ifdef NO_LOGGING
+    UNUSED(performative);
+#else
     AMQP_VALUE descriptor = amqpvalue_get_inplace_descriptor(performative);
     if (descriptor != NULL)
     {
@@ -197,10 +199,14 @@ static void log_incoming_frame(AMQP_VALUE performative)
             amqpalloc_free(performative_as_string);
         }
     }
+#endif
 }
 
 static void log_outgoing_frame(AMQP_VALUE performative)
 {
+#ifdef NO_LOGGING
+    UNUSED(performative);
+#else
     AMQP_VALUE descriptor = amqpvalue_get_inplace_descriptor(performative);
     if (descriptor != NULL)
     {
@@ -213,8 +219,8 @@ static void log_outgoing_frame(AMQP_VALUE performative)
             amqpalloc_free(performative_as_string);
         }
     }
-}
 #endif
+}
 
 static void on_bytes_encoded(void* context, const unsigned char* bytes, size_t length, bool encode_complete)
 {

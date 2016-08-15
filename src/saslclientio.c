@@ -263,9 +263,11 @@ static const char* get_frame_type_as_string(AMQP_VALUE descriptor)
     return result;
 }
 
-#ifndef NO_LOGGING
 static void log_incoming_frame(AMQP_VALUE performative)
 {
+#ifdef NO_LOGGING
+    UNUSED(performative);
+#else
     if (xlogging_get_log_function() != NULL)
     {
         AMQP_VALUE descriptor = amqpvalue_get_inplace_descriptor(performative);
@@ -281,10 +283,14 @@ static void log_incoming_frame(AMQP_VALUE performative)
             }
         }
     }
+#endif
 }
 
 static void log_outgoing_frame(AMQP_VALUE performative)
 {
+#ifdef NO_LOGGING
+    UNUSED(performative);
+#else
     if (xlogging_get_log_function() != NULL)
     {
         AMQP_VALUE descriptor = amqpvalue_get_inplace_descriptor(performative);
@@ -300,8 +306,8 @@ static void log_outgoing_frame(AMQP_VALUE performative)
             }
         }
     }
-}
 #endif
+}
 
 static int saslclientio_receive_byte(SASL_CLIENT_IO_INSTANCE* sasl_client_io_instance, unsigned char b)
 {

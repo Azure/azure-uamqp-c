@@ -1,12 +1,15 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#define _CRTDBG_MAP_ALLOC 1
+
 #include <stdlib.h>
 #ifdef _CRTDBG_MAP_ALLOC
 #include <crtdbg.h>
 #endif
 #include <stdio.h>
 #include <stdbool.h>
+
 #include "azure_c_shared_utility/platform.h"
 #include "azure_c_shared_utility/tlsio.h"
 #include "azure_uamqp_c/message_sender.h"
@@ -21,15 +24,24 @@
 #include "windows.h"
 #endif
 
+#ifdef USE_OPENSSL
+#include "azure_c_shared_utility/tlsio_openssl.h"
+#include <openssl\ssl.h>
+#include <openssl\x509.h>
+#include <openssl\err.h>
+#include <openssl\engine.h>
+#include <openssl\conf.h>
+#endif
+
 /* This sample connects to an Event Hub, authenticates using SASL PLAIN (key name/key) and then it sends 1000 messages */
 /* Replace the below settings with your own.*/
 
 #define EH_HOST "<<<Replace with your own EH host (like myeventhub.servicebus.windows.net)>>>"
 #define EH_KEY_NAME "<<<Replace with your own key name>>>"
 #define EH_KEY "<<<Replace with your own key>>>"
-#define EH_NAME "<<<Replace with your own EH name (like ingress_eh)>>>"
+#define EH_NAME "<<<Replace with your own AMQP node name>>>"
+#define EH_MAX_MESSAGE_COUNT 10
 
-static const size_t msg_count = 1000;
 static unsigned int sent_messages = 0;
 
 static void on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_result)
@@ -40,11 +52,51 @@ static void on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_res
 	sent_messages++;
 }
 
+#ifdef USE_OPENSSL
+static int verify_remote_certificate(X509_STORE_CTX *x509_store_ctx, void *arg)
+{
+	char name[4096];
+	X509_NAME_oneline(X509_get_subject_name(x509_store_ctx->cert), name, XN_FLAG_ONELINE);
+
+	char issuer[4096];
+	X509_NAME_oneline(X509_get_issuer_name(x509_store_ctx->cert), issuer, XN_FLAG_ONELINE);
+
+	TLSIO_CONFIG* pConfig = (TLSIO_CONFIG*)arg;
+
+	int length = strlen(name);
+
+	for (int ii = 0; ii < length; ii++)
+	{
+		if (strncmp("CN=", name + ii, 3) == 0)
+		{
+			int expected = strlen(pConfig->hostname);
+			int actual = strlen(name + ii + 3);
+
+			if (expected >= actual && strncmp(name + ii + 3, pConfig->hostname + expected - actual, strlen(pConfig->hostname) + expected - actual) == 0)
+			{
+				printf("Accepting Certificate with correct Domain Name: %s IssuedBy: %s\r\n", name, issuer);
+				return 1;
+			}
+		}
+	}
+
+	printf("Rejecting Certificate with incorrect Domain Name: %s IssuedBy: %s\r\n", name, issuer);
+	return 0;
+}
+#endif
+
 int main(int argc, char** argv)
 {
 	int result;
-
     (void)argc, argv;
+
+#ifdef _CRTDBG_MAP_ALLOC
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_FILE);
+	_CrtSetReportFile(_CRT_ERROR, _CRTDBG_FILE_STDERR);
+	//_CrtSetBreakAlloc(123);
+#endif
+
 	amqpalloc_set_memory_tracing_enabled(true);
 
 	if (platform_init() != 0)
@@ -72,6 +124,13 @@ int main(int argc, char** argv)
 		const IO_INTERFACE_DESCRIPTION* tlsio_interface = platform_get_default_tlsio();
 		tls_io = xio_create(tlsio_interface, &tls_io_config);
 
+#ifdef USE_OPENSSL
+		/* set the TLS options */
+		xio_setoption(tls_io, "tls_version", (const void*)10);
+		xio_setoption(tls_io, "tls_validation_callback", verify_remote_certificate);
+		xio_setoption(tls_io, "tls_validation_callback_data", &tls_io_config);
+#endif
+
 		/* create the SASL client IO using the TLS IO */
 		SASLCLIENTIO_CONFIG sasl_io_config;
         sasl_io_config.underlying_io = tls_io;
@@ -85,7 +144,7 @@ int main(int argc, char** argv)
 		session_set_outgoing_window(session, 65536);
 
 		AMQP_VALUE source = messaging_create_source("ingress");
-		AMQP_VALUE target = messaging_create_target("amqps://" EH_HOST "/" EH_NAME);
+		AMQP_VALUE target = messaging_create_target(EH_NAME);
 		link = link_create(session, "sender-link", role_sender, source, target);
 		link_set_snd_settle_mode(link, sender_settle_mode_unsettled);
 		(void)link_set_max_message_size(link, 65536);
@@ -110,7 +169,7 @@ int main(int argc, char** argv)
 			unsigned long startTime = (unsigned long)GetTickCount64();
 #endif
 
-			for (i = 0; i < msg_count; i++)
+			for (i = 0; i < EH_MAX_MESSAGE_COUNT; i++)
 			{
 				(void)messagesender_send(message_sender, message, on_message_send_complete, message);
 			}
@@ -132,7 +191,7 @@ int main(int argc, char** argv)
 					last_memory_used = current_memory_used;
 				}
 
-				if (sent_messages == msg_count)
+				if (sent_messages == EH_MAX_MESSAGE_COUNT)
 				{
 					break;
 				}
@@ -141,7 +200,7 @@ int main(int argc, char** argv)
 #if _WIN32
 			unsigned long endTime = (unsigned long)GetTickCount64();
 
-			(void)printf("Send %zu messages in %lu ms: %.02f msgs/sec\r\n", msg_count, (endTime - startTime), (float)msg_count / ((float)(endTime - startTime) / 1000));
+			(void)printf("Send %zu messages in %lu ms: %.02f msgs/sec\r\n", EH_MAX_MESSAGE_COUNT, (endTime - startTime), (float)EH_MAX_MESSAGE_COUNT / ((float)(endTime - startTime) / 1000));
 #endif
 		}
 
@@ -158,7 +217,10 @@ int main(int argc, char** argv)
 		(void)printf("Current memory usage:%lu\r\n", (unsigned long)amqpalloc_get_current_memory_used());
 
 		result = 0;
-	}
+	}       
+
+	printf("Press a key and hit <enter> to exit\r\n");
+	getc(stdin);
 
 #ifdef _CRTDBG_MAP_ALLOC
 	_CrtDumpMemoryLeaks();

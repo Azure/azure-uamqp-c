@@ -21,6 +21,9 @@ if(WIN32)
 		secur32)
 
 	if(${use_openssl})
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_OPENSSL /wd4152")
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_OPENSSL /wd4152")
+
 		target_link_libraries(message_sender_sample
 			$ENV{OpenSSLDir}/lib/ssleay32.lib $ENV{OpenSSLDir}/lib/libeay32.lib)
 	

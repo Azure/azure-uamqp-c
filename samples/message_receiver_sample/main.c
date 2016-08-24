@@ -16,6 +16,15 @@
 #include "azure_uamqp_c/saslclientio.h"
 #include "azure_uamqp_c/sasl_plain.h"
 
+#ifdef USE_OPENSSL
+#include "azure_c_shared_utility/tlsio_openssl.h"
+#include <openssl\ssl.h>
+#include <openssl\x509.h>
+#include <openssl\err.h>
+#include <openssl\engine.h>
+#include <openssl\conf.h>
+#endif
+
 /* This sample connects to an Event Hub, authenticates using SASL PLAIN (key name/key) and then it received all messages for partition 0 */
 /* Replace the below settings with your own.*/
 
@@ -29,14 +38,55 @@ static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE messag
 	(void)context;
 
 	printf("Message received.\r\n");
+	message_count++;
 
 	return messaging_delivery_accepted();
 }
 
+#ifdef USE_OPENSSL
+static int verify_remote_certificate(X509_STORE_CTX *x509_store_ctx, void *arg)
+{
+	char name[4096];
+	X509_NAME_oneline(X509_get_subject_name(x509_store_ctx->cert), name, XN_FLAG_ONELINE);
+
+	char issuer[4096];
+	X509_NAME_oneline(X509_get_issuer_name(x509_store_ctx->cert), issuer, XN_FLAG_ONELINE);
+
+	TLSIO_CONFIG* pConfig = (TLSIO_CONFIG*)arg;
+
+	int length = strlen(name);
+
+	for (int ii = 0; ii < length; ii++)
+	{
+		if (strncmp("CN=", name + ii, 3) == 0)
+		{
+			int expected = strlen(pConfig->hostname);
+			int actual = strlen(name + ii + 3);
+
+			if (expected >= actual && strncmp(name + ii + 3, pConfig->hostname + expected - actual, strlen(pConfig->hostname) + expected - actual) == 0)
+			{
+				printf("\r\nAccepting Certificate with correct Domain Name: %s IssuedBy: %s\r\n", name, issuer);
+				return 1;
+			}
+		}
+	}
+
+	printf("\r\nRejecting Certificate with incorrect Domain Name: %s IssuedBy: %s\r\n", name, issuer);
+	return 0;
+}
+#endif
+
 int main(int argc, char** argv)
 {
 	int result;
-    (void)argc, argv;
+	(void)argc, argv;
+
+#ifdef _CRTDBG_MAP_ALLOC
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_FILE);
+	_CrtSetReportFile(_CRT_ERROR, _CRTDBG_FILE_STDERR);
+	//_CrtSetBreakAlloc(96);
+#endif
 
 	XIO_HANDLE sasl_io = NULL;
 	CONNECTION_HANDLE connection = NULL;
@@ -64,6 +114,13 @@ int main(int argc, char** argv)
 		const IO_INTERFACE_DESCRIPTION* tlsio_interface = platform_get_default_tlsio();
 		tls_io = xio_create(tlsio_interface, &tls_io_config);
 
+#ifdef USE_OPENSSL
+		/* set the TLS options */
+		xio_setoption(tls_io, "tls_version", (const void*)10);
+		xio_setoption(tls_io, "tls_validation_callback", verify_remote_certificate);
+		xio_setoption(tls_io, "tls_validation_callback_data", &tls_io_config);
+#endif
+
 		/* create the SASL client IO using the TLS IO */
 		SASLCLIENTIO_CONFIG sasl_io_config;
         sasl_io_config.underlying_io = tls_io;
@@ -76,7 +133,7 @@ int main(int argc, char** argv)
 
 		/* set incoming window to 100 for the session */
 		session_set_incoming_window(session, 100);
-		AMQP_VALUE source = messaging_create_source("amqps://" EH_HOST "/ingress/ConsumerGroups/$Default/Partitions/0");
+		AMQP_VALUE source = messaging_create_source(EH_NAME);
 		AMQP_VALUE target = messaging_create_target("ingress-rx");
 		link = link_create(session, "receiver-link", role_receiver, source, target);
 		link_set_rcv_settle_mode(link, receiver_settle_mode_first);
@@ -92,7 +149,9 @@ int main(int argc, char** argv)
 		}
 		else
 		{
-			while (true)
+			message_count = 0;
+
+			while (message_count < EH_MAX_MESSAGE_COUNT)
 			{
 				size_t current_memory_used;
 				size_t maximum_memory_used;
@@ -115,15 +174,21 @@ int main(int argc, char** argv)
 		link_destroy(link);
 		session_destroy(session);
 		connection_destroy(connection);
+		xio_destroy(sasl_io);
+		xio_destroy(tls_io);
+		saslmechanism_destroy(sasl_mechanism_handle);
 		platform_deinit();
 
 		printf("Max memory usage:%lu\r\n", (unsigned long)amqpalloc_get_maximum_memory_used());
 		printf("Current memory usage:%lu\r\n", (unsigned long)amqpalloc_get_current_memory_used());
+	}
+
+	printf("Press a key and hit <enter> to exit\r\n");
+	getc(stdin);
 
 #ifdef _CRTDBG_MAP_ALLOC
-		_CrtDumpMemoryLeaks();
+	_CrtDumpMemoryLeaks();
 #endif
-	}
 
 	return result;
 }

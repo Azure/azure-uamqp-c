@@ -39,9 +39,9 @@
 #define EH_HOST "<<<Replace with your own EH host (like myeventhub.servicebus.windows.net)>>>"
 #define EH_KEY_NAME "<<<Replace with your own key name>>>"
 #define EH_KEY "<<<Replace with your own key>>>"
-#define EH_NAME "<<<Replace with your own EH name (like ingress_eh)>>>"
+#define EH_NAME "<<<Replace with your own AMQP node name>>>"
+#define EH_MAX_MESSAGE_COUNT 10
 
-static const size_t msg_count = 10;
 static unsigned int sent_messages = 0;
 
 static void on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_result)
@@ -169,7 +169,7 @@ int main(int argc, char** argv)
 			unsigned long startTime = (unsigned long)GetTickCount64();
 #endif
 
-			for (i = 0; i < msg_count; i++)
+			for (i = 0; i < EH_MAX_MESSAGE_COUNT; i++)
 			{
 				(void)messagesender_send(message_sender, message, on_message_send_complete, message);
 			}
@@ -191,7 +191,7 @@ int main(int argc, char** argv)
 					last_memory_used = current_memory_used;
 				}
 
-				if (sent_messages == msg_count)
+				if (sent_messages == EH_MAX_MESSAGE_COUNT)
 				{
 					break;
 				}
@@ -200,7 +200,7 @@ int main(int argc, char** argv)
 #if _WIN32
 			unsigned long endTime = (unsigned long)GetTickCount64();
 
-			(void)printf("Send %zu messages in %lu ms: %.02f msgs/sec\r\n", msg_count, (endTime - startTime), (float)msg_count / ((float)(endTime - startTime) / 1000));
+			(void)printf("Send %zu messages in %lu ms: %.02f msgs/sec\r\n", EH_MAX_MESSAGE_COUNT, (endTime - startTime), (float)EH_MAX_MESSAGE_COUNT / ((float)(endTime - startTime) / 1000));
 #endif
 		}
 

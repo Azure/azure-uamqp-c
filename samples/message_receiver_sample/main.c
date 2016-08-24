@@ -31,6 +31,10 @@
 #define EH_HOST "<<<Replace with your own EH host (like myeventhub.servicebus.windows.net)>>>"
 #define EH_KEY_NAME "<<<Replace with your own key name>>>"
 #define EH_KEY "<<<Replace with your own key>>>"
+#define EH_NAME "<<<Replace with your own AMQP node name>>>"
+#define EH_MAX_MESSAGE_COUNT 10
+
+static int message_count = 0;
 
 static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE message)
 {

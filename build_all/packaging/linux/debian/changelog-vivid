@@ -1,4 +1,4 @@
-azure-uamqp-c (0.1.0-26) vivid; urgency=low
+azure-uamqp-c (0.1.0-29) vivid; urgency=low
 
   * Initial release
 
@@ -32,5 +32,8 @@ azure-uamqp-c (0.1.0-26) vivid; urgency=low
 
   * Bug fix: libwebsockets to build without -Werror, fixed x86/x64 build with support for websockets
 
- -- AzureIoT User <aziotsdklinux@outlook.com>  Tue, 2 Aug 2016 11:00:00 +0000
+  * Add check for missing delivery state
 
+  * Fix crash when receiving Disposition frames
+
+ -- AzureIoT User <aziotsdklinux@outlook.com>  Sat, 27 Aug 2016 11:00:00 +0000

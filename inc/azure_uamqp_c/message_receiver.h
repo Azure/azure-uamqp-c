@@ -12,6 +12,8 @@
 extern "C" {
 #endif /* __cplusplus */
 
+#include "azure_c_shared_utility/umock_c_prod.h"
+
 	typedef enum MESSAGE_RECEIVER_STATE_TAG
 	{
 		MESSAGE_RECEIVER_STATE_IDLE,
@@ -25,10 +27,10 @@ extern "C" {
 	typedef AMQP_VALUE (*ON_MESSAGE_RECEIVED)(const void* context, MESSAGE_HANDLE message);
 	typedef void(*ON_MESSAGE_RECEIVER_STATE_CHANGED)(const void* context, MESSAGE_RECEIVER_STATE new_state, MESSAGE_RECEIVER_STATE previous_state);
 
-	extern MESSAGE_RECEIVER_HANDLE messagereceiver_create(LINK_HANDLE link, ON_MESSAGE_RECEIVER_STATE_CHANGED on_message_receiver_state_changed, void* context);
-	extern void messagereceiver_destroy(MESSAGE_RECEIVER_HANDLE message_receiver);
-	extern int messagereceiver_open(MESSAGE_RECEIVER_HANDLE message_receiver, ON_MESSAGE_RECEIVED on_message_received, const void* callback_context);
-	extern int messagereceiver_close(MESSAGE_RECEIVER_HANDLE message_receiver);
+	MOCKABLE_FUNCTION(, MESSAGE_RECEIVER_HANDLE, messagereceiver_create, LINK_HANDLE, link, ON_MESSAGE_RECEIVER_STATE_CHANGED, on_message_receiver_state_changed, void*, context);
+	MOCKABLE_FUNCTION(, void, messagereceiver_destroy, MESSAGE_RECEIVER_HANDLE, message_receiver);
+	MOCKABLE_FUNCTION(, int, messagereceiver_open, MESSAGE_RECEIVER_HANDLE, message_receiver, ON_MESSAGE_RECEIVED, on_message_received, const void*, callback_context);
+	MOCKABLE_FUNCTION(, int, messagereceiver_close, MESSAGE_RECEIVER_HANDLE, message_receiver);
 
 #ifdef __cplusplus
 }

@@ -187,7 +187,7 @@ namespace amqplib_generator
         {
             LoadAMQPTypes();
             amqp_definitions_h amqp_definitions_h = new amqp_definitions_h();
-            System.IO.File.WriteAllText("../../../inc/amqp_definitions.h", amqp_definitions_h.TransformText());
+            System.IO.File.WriteAllText("../../../inc/azure_uamqp_c/amqp_definitions.h", amqp_definitions_h.TransformText());
             amqp_definitions_c amqp_definitions_c = new amqp_definitions_c();
             System.IO.File.WriteAllText("../../../src/amqp_definitions.c", amqp_definitions_c.TransformText());
             amqp_definitions_mocks_h amqp_definitions_mocks_h = new amqp_definitions_mocks_h();

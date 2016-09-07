@@ -87,7 +87,19 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 add_definitions(-DREFCOUNT_ATOMIC_DONTCARE)
 add_definitions(-D__STDC_NO_ATOMICS__=1)
 
-add_subdirectory(azure-c-shared-utility)
+# Check if shared utils library is already provided
+find_library (SHARED_UTIL_LIB_PATH NAMES aziotsharedutil)
+
+if (SHARED_UTIL_LIB_PATH AND NOT SHARED_UTIL_INCLUDE_DIR)
+    set(SHARED_UTIL_FOUND 1)
+endif()
+
+# Build shared util library if not found
+if (NOT SHARED_UTIL_FOUND)
+    add_subdirectory(azure-c-shared-utility)
+    set(SHARED_UTIL_LIB_PATH aziotsharedutil)
+    set(SHARED_UTIL_INCLUDE_DIR ${SHARED_UTIL_INC_FOLDER})
+endif()
 
 enable_testing()
 #if any compiler has a command line switch called "OFF" then it will need special care

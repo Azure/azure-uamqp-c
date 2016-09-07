@@ -227,6 +227,9 @@ endif()
 set(UAMQP_INC_FOLDER ${CMAKE_CURRENT_LIST_DIR}/inc CACHE INTERNAL "This is the include folder for UAMQP" FORCE)
 set(UAMQP_SRC_FOLDER ${CMAKE_CURRENT_LIST_DIR}/src CACHE INTERNAL "This is the lib folder for UAMQP" FORCE)
 
+# Set CMAKE_INSTALL_LIBDIR if not defined
+include(GNUInstallDirs)
+
 # Overridable install variables
 if (CMAKE_INSTALL_LIBDIR)
     set (LIB_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}" CACHE PATH "Library object file directory")

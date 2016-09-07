@@ -90,7 +90,7 @@ add_definitions(-D__STDC_NO_ATOMICS__=1)
 # Check if shared utils library is already provided
 find_library (SHARED_UTIL_LIB_PATH NAMES aziotsharedutil)
 
-if (SHARED_UTIL_LIB_PATH AND NOT SHARED_UTIL_INCLUDE_DIR)
+if (SHARED_UTIL_LIB_PATH AND SHARED_UTIL_INCLUDE_DIR)
     set(SHARED_UTIL_FOUND 1)
 endif()
 

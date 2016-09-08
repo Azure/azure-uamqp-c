@@ -14,6 +14,8 @@ extern "C" {
 #endif /* __cplusplus */
 #include "azure_uamqp_c/frame_codec.h"
 
+#include "azure_c_shared_utility/umock_c_prod.h"
+
 #define AMQP_OPEN			(uint64_t)0x10
 #define AMQP_BEGIN			(uint64_t)0x11
 #define AMQP_ATTACH			(uint64_t)0x12
@@ -29,11 +31,10 @@ typedef void(*AMQP_EMPTY_FRAME_RECEIVED_CALLBACK)(void* context, uint16_t channe
 typedef void(*AMQP_FRAME_RECEIVED_CALLBACK)(void* context, uint16_t channel, AMQP_VALUE performative, const unsigned char* payload_bytes, uint32_t frame_payload_size);
 typedef void(*AMQP_FRAME_CODEC_ERROR_CALLBACK)(void* context);
 
-extern AMQP_FRAME_CODEC_HANDLE amqp_frame_codec_create(FRAME_CODEC_HANDLE frame_codec, AMQP_FRAME_RECEIVED_CALLBACK frame_received_callback,
-	AMQP_EMPTY_FRAME_RECEIVED_CALLBACK empty_frame_received_callback, AMQP_FRAME_CODEC_ERROR_CALLBACK amqp_frame_codec_error_callback, void* callback_context);
-extern void amqp_frame_codec_destroy(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec);
-extern int amqp_frame_codec_encode_frame(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec, uint16_t channel, const AMQP_VALUE performative, const PAYLOAD* payloads, size_t payload_count, ON_BYTES_ENCODED on_bytes_encoded, void* callback_context);
-extern int amqp_frame_codec_encode_empty_frame(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec, uint16_t channel, ON_BYTES_ENCODED on_bytes_encoded, void* callback_context);
+MOCKABLE_FUNCTION(, AMQP_FRAME_CODEC_HANDLE, amqp_frame_codec_create, FRAME_CODEC_HANDLE, frame_codec, AMQP_FRAME_RECEIVED_CALLBACK, frame_received_callback, AMQP_EMPTY_FRAME_RECEIVED_CALLBACK, empty_frame_received_callback, AMQP_FRAME_CODEC_ERROR_CALLBACK, amqp_frame_codec_error_callback, void*, callback_context);
+MOCKABLE_FUNCTION(, void, amqp_frame_codec_destroy, AMQP_FRAME_CODEC_HANDLE, amqp_frame_codec);
+MOCKABLE_FUNCTION(, int, amqp_frame_codec_encode_frame, AMQP_FRAME_CODEC_HANDLE, amqp_frame_codec, uint16_t, channel, const AMQP_VALUE, performative, const PAYLOAD*, payloads, size_t, payload_count, ON_BYTES_ENCODED, on_bytes_encoded, void*, callback_context);
+MOCKABLE_FUNCTION(, int, amqp_frame_codec_encode_empty_frame, AMQP_FRAME_CODEC_HANDLE, amqp_frame_codec, uint16_t, channel, ON_BYTES_ENCODED, on_bytes_encoded, void*, callback_context);
 
 #ifdef __cplusplus
 }

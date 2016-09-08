@@ -10,12 +10,14 @@
 extern "C" {
 #endif /* __cplusplus */
 
-	extern CONCRETE_SASL_MECHANISM_HANDLE saslmssbcbs_create(void* config);
-	extern void saslmssbcbs_destroy(CONCRETE_SASL_MECHANISM_HANDLE sasl_mechanism_concrete_handle);
-	extern int saslmssbcbs_get_init_bytes(CONCRETE_SASL_MECHANISM_HANDLE sasl_mechanism_concrete_handle, SASL_MECHANISM_BYTES* init_bytes);
-	extern const char* saslmssbcbs_get_mechanism_name(CONCRETE_SASL_MECHANISM_HANDLE sasl_mechanism);
-	extern int saslmssbcbs_challenge(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism, const SASL_MECHANISM_BYTES* challenge_bytes, SASL_MECHANISM_BYTES* response_bytes);
-	extern const SASL_MECHANISM_INTERFACE_DESCRIPTION* saslmssbcbs_get_interface(void);
+#include "azure_c_shared_utility/umock_c_prod.h"
+
+	MOCKABLE_FUNCTION(, CONCRETE_SASL_MECHANISM_HANDLE, saslmssbcbs_create, void*, config);
+	MOCKABLE_FUNCTION(, void, saslmssbcbs_destroy, CONCRETE_SASL_MECHANISM_HANDLE, sasl_mechanism_concrete_handle);
+	MOCKABLE_FUNCTION(, int, saslmssbcbs_get_init_bytes, CONCRETE_SASL_MECHANISM_HANDLE, sasl_mechanism_concrete_handle, SASL_MECHANISM_BYTES*, init_bytes);
+	MOCKABLE_FUNCTION(, const char*, saslmssbcbs_get_mechanism_name, CONCRETE_SASL_MECHANISM_HANDLE, sasl_mechanism);
+	MOCKABLE_FUNCTION(, int, saslmssbcbs_challenge, CONCRETE_SASL_MECHANISM_HANDLE, concrete_sasl_mechanism, const SASL_MECHANISM_BYTES*, challenge_bytes, SASL_MECHANISM_BYTES*, response_bytes);
+	MOCKABLE_FUNCTION(, const SASL_MECHANISM_INTERFACE_DESCRIPTION*, saslmssbcbs_get_interface);
 
 #ifdef __cplusplus
 }

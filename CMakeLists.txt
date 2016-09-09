@@ -92,6 +92,9 @@ find_library (SHARED_UTIL_LIB_PATH NAMES aziotsharedutil)
 
 if (SHARED_UTIL_LIB_PATH AND SHARED_UTIL_INCLUDE_DIR)
     set(SHARED_UTIL_FOUND 1)
+    
+    # Disable tests
+    set(skip_unittests ON)
 endif()
 
 # Build shared util library if not found

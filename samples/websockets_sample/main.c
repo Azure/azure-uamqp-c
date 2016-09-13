@@ -85,9 +85,12 @@ int main(int argc, char** argv)
 		XIO_HANDLE ws_io;
 
 		/* create the TLS IO */
-		WSIO_CONFIG ws_io_config = { IOT_HUB_HOST, 443, "AMQPWSB10",  "/$iothub/websocket", true, iothub_certs };
+		WSIO_CONFIG ws_io_config = { IOT_HUB_HOST, 443, "AMQPWSB10",  "/$iothub/websocket", true };
 		const IO_INTERFACE_DESCRIPTION* tlsio_interface = wsio_get_interface_description();
 		ws_io = xio_create(tlsio_interface, &ws_io_config);
+
+        /* the websockets library uses OpenSSL and on Windows the certs need to be pushed down */
+        (void)xio_setoption(ws_io, "TrustedCerts", iothub_certs);
 
 		/* create the SASL IO using the WS IO */
 		SASLCLIENTIO_CONFIG sasl_io_config;

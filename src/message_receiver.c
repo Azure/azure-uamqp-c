@@ -320,14 +320,13 @@ int messagereceiver_close(MESSAGE_RECEIVER_HANDLE message_receiver)
 		{
 			set_message_receiver_state(message_receiver_instance, MESSAGE_RECEIVER_STATE_CLOSING);
 
-			if (link_detach(message_receiver_instance->link) != 0)
+			if (link_detach(message_receiver_instance->link, true) != 0)
 			{
 				result = __LINE__;
 				set_message_receiver_state(message_receiver_instance, MESSAGE_RECEIVER_STATE_ERROR);
 			}
 			else
 			{
-				set_message_receiver_state(message_receiver_instance, MESSAGE_RECEIVER_STATE_IDLE);
 				result = 0;
 			}
 		}

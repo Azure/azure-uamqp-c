@@ -51,7 +51,8 @@ typedef struct LINK_INSTANCE_TAG
 	uint32_t link_credit;
 	uint32_t available;
     fields attach_properties;
-	int is_underlying_session_begun : 1;
+    bool is_underlying_session_begun;
+    bool is_closed;
 } LINK_INSTANCE;
 
 static void set_link_state(LINK_INSTANCE* link_instance, LINK_STATE link_state)
@@ -135,7 +136,7 @@ static int send_disposition(LINK_INSTANCE* link_instance, delivery_number delive
 	return result;
 }
 
-static int send_detach_frame(LINK_INSTANCE* link_instance, ERROR_HANDLE error_handle)
+static int send_detach(LINK_INSTANCE* link_instance, bool close, ERROR_HANDLE error_handle)
 {
 	int result;
 	DETACH_HANDLE detach_performative;
@@ -152,7 +153,12 @@ static int send_detach_frame(LINK_INSTANCE* link_instance, ERROR_HANDLE error_ha
 		{
 			result = __LINE__;
 		}
-		else
+        else if (close &&
+            (detach_set_closed(detach_performative, true) != 0))
+        {
+            result = __LINE__;
+        }
+        else
 		{
 			if (session_send_detach(link_instance->link_endpoint, detach_performative) != 0)
 			{
@@ -160,6 +166,12 @@ static int send_detach_frame(LINK_INSTANCE* link_instance, ERROR_HANDLE error_ha
 			}
 			else
 			{
+                if (close)
+                {
+                    /* Declare link to be closed */
+                    link_instance->is_closed = true;
+                }
+
 				result = 0;
 			}
 		}
@@ -168,6 +180,55 @@ static int send_detach_frame(LINK_INSTANCE* link_instance, ERROR_HANDLE error_ha
 	}
 
 	return result;
+}
+
+static int send_attach(LINK_INSTANCE* link, const char* name, handle handle, role role)
+{
+    int result;
+    ATTACH_HANDLE attach = attach_create(name, handle, role);
+
+    if (attach == NULL)
+    {
+        result = __LINE__;
+    }
+    else
+    {
+        result = 0;
+
+        link->delivery_count = link->initial_delivery_count;
+
+        attach_set_snd_settle_mode(attach, link->snd_settle_mode);
+        attach_set_rcv_settle_mode(attach, link->rcv_settle_mode);
+        attach_set_role(attach, role);
+        attach_set_source(attach, link->source);
+        attach_set_target(attach, link->target);
+        attach_set_properties(attach, link->attach_properties);
+
+        if (role == role_sender)
+        {
+            if (attach_set_initial_delivery_count(attach, link->delivery_count) != 0)
+            {
+                result = __LINE__;
+            }
+        }
+
+        if (result == 0)
+        {
+            if ((attach_set_max_message_size(attach, link->max_message_size) != 0) ||
+                (session_send_attach(link->link_endpoint, attach) != 0))
+            {
+                result = __LINE__;
+            }
+            else
+            {
+                result = 0;
+            }
+        }
+
+        attach_destroy(attach);
+    }
+
+    return result;
 }
 
 static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t payload_size, const unsigned char* payload_bytes)
@@ -360,12 +421,10 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
 	{
         DETACH_HANDLE detach;
 
-        /* Respond with ack */
-        (void)send_detach_frame(link_instance, NULL);
-
         /* Set link state appropriately based on whether we received detach condition */
         if (amqpvalue_get_detach(performative, &detach) == 0)
         {
+            bool closed = false;
             ERROR_HANDLE error;
             if (detach_get_error(detach, &error) == 0)
             {
@@ -373,88 +432,34 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
 
                 set_link_state(link_instance, LINK_STATE_ERROR);
             }
-            else
+            else 
             {
+                (void)detach_get_closed(detach, &closed);
+
                 set_link_state(link_instance, LINK_STATE_DETACHED);
             }
+
+            /* Received a detach while attached */
+            if (link_instance->previous_link_state == LINK_STATE_ATTACHED)
+            {
+                /* Respond with ack */
+                (void)send_detach(link_instance, closed, NULL);
+            }
+
+            /* Received a closing detach after we sent a non-closing detach. */
+            else if (closed &&
+                (link_instance->previous_link_state == LINK_STATE_HALF_ATTACHED) &&
+                !link_instance->is_closed)
+            {
+
+                /* In this case, we MUST signal that we closed by reattaching and then sending a closing detach.*/
+                (void)send_attach(link_instance, link_instance->name, 0, link_instance->role);
+                (void)send_detach(link_instance, true, NULL);
+            }
+
+            detach_destroy(detach);
         }
     }
-}
-
-static int send_attach(LINK_INSTANCE* link, const char* name, handle handle, role role)
-{
-	int result;
-	ATTACH_HANDLE attach = attach_create(name, handle, role);
-
-	if (attach == NULL)
-	{
-		result = __LINE__;
-	}
-	else
-	{
-		result = 0;
-
-		link->delivery_count = link->initial_delivery_count;
-
-		attach_set_snd_settle_mode(attach, link->snd_settle_mode);
-		attach_set_rcv_settle_mode(attach, link->rcv_settle_mode);
-		attach_set_role(attach, role);
-		attach_set_source(attach, link->source);
-		attach_set_target(attach, link->target);
-        attach_set_properties(attach, link->attach_properties);
-
-		if (role == role_sender)
-		{
-			if (attach_set_initial_delivery_count(attach, link->delivery_count) != 0)
-			{
-				result = __LINE__;
-			}
-		}
-
-		if (result == 0)
-		{
-			if ((attach_set_max_message_size(attach, link->max_message_size) != 0) ||
-				(session_send_attach(link->link_endpoint, attach) != 0))
-			{
-				result = __LINE__;
-			}
-			else
-			{
-				result = 0;
-			}
-		}
-
-		attach_destroy(attach);
-	}
-
-	return result;
-}
-
-static int send_detach(LINK_INSTANCE* link_instance, ERROR_HANDLE error)
-{
-	int result;
-
-	DETACH_HANDLE detach = detach_create(0);
-	if (detach == NULL)
-	{
-		result = __LINE__;
-	}
-	else
-	{
-		if (((error != NULL) && (detach_set_error(detach, error) != 0)) ||
-			 (session_send_detach(link_instance->link_endpoint, detach) != 0))
-		{
-			result = __LINE__;
-		}
-		else
-		{
-			result = 0;
-		}
-
-		detach_destroy(detach);
-	}
-
-	return result;
 }
 
 static void on_session_state_changed(void* context, SESSION_STATE new_session_state, SESSION_STATE previous_session_state)
@@ -464,7 +469,7 @@ static void on_session_state_changed(void* context, SESSION_STATE new_session_st
 
 	if (new_session_state == SESSION_STATE_MAPPED)
 	{
-		if (link_instance->link_state == LINK_STATE_DETACHED)
+		if ((link_instance->link_state == LINK_STATE_DETACHED) && (!link_instance->is_closed))
 		{
 			if (send_attach(link_instance, link_instance->name, 0, link_instance->role) == 0)
 			{
@@ -522,7 +527,8 @@ LINK_HANDLE link_create(SESSION_HANDLE session, const char* name, role role, AMQ
 		result->delivery_count = 0;
 		result->initial_delivery_count = 0;
 		result->max_message_size = 0;
-		result->is_underlying_session_begun = 0;
+		result->is_underlying_session_begun = false;
+        result->is_closed = false;
         result->attach_properties = NULL;
 
 		result->pending_deliveries = list_create();
@@ -576,7 +582,8 @@ LINK_HANDLE link_create_from_endpoint(SESSION_HANDLE session, LINK_ENDPOINT_HAND
 		result->delivery_count = 0;
 		result->initial_delivery_count = 0;
 		result->max_message_size = 0;
-		result->is_underlying_session_begun = 0;
+		result->is_underlying_session_begun = false;
+        result->is_closed = false;
         result->attach_properties = NULL;
         result->source = amqpvalue_clone(target);
 		result->target = amqpvalue_clone(source);
@@ -621,10 +628,9 @@ void link_destroy(LINK_HANDLE link)
 {
 	if (link != NULL)
 	{
-		link->on_link_state_changed = NULL;
-		link_detach(link);
-
-		session_destroy_link_endpoint(link->link_endpoint);
+        link->on_link_state_changed = NULL;
+        (void)link_detach(link, true);
+        session_destroy_link_endpoint(link->link_endpoint);
 		amqpvalue_destroy(link->source);
 		amqpvalue_destroy(link->target);
 		if (link->pending_deliveries != NULL)
@@ -828,7 +834,8 @@ int link_attach(LINK_HANDLE link, ON_TRANSFER_RECEIVED on_transfer_received, ON_
 {
 	int result;
 
-	if (link == NULL)
+	if ((link == NULL) ||
+        (link->is_closed))
 	{
 		result = __LINE__;
 	}
@@ -847,7 +854,7 @@ int link_attach(LINK_HANDLE link, ON_TRANSFER_RECEIVED on_transfer_received, ON_
 			}
 			else
 			{
-				link->is_underlying_session_begun = 1;
+				link->is_underlying_session_begun = true;
 
 				if (session_start_link_endpoint(link->link_endpoint, link_frame_received, on_session_state_changed, on_session_flow_on, link) != 0)
 				{
@@ -868,40 +875,57 @@ int link_attach(LINK_HANDLE link, ON_TRANSFER_RECEIVED on_transfer_received, ON_
 	return result;
 }
 
-int link_detach(LINK_HANDLE link)
+int link_detach(LINK_HANDLE link, bool close)
 {
 	int result;
 
-	if (link == NULL)
-	{
+    if ((link == NULL) ||
+        (link->is_closed))
+    {
 		result = __LINE__;
 	}
 	else
 	{
-		if (link->link_state == LINK_STATE_ERROR)
-		{
-			result = __LINE__;
-		}
-		else if ((link->link_state == LINK_STATE_HALF_ATTACHED) ||
-			(link->link_state == LINK_STATE_ATTACHED))
-		{
-			if (send_detach(link, NULL) != 0)
-			{
-				result = __LINE__;
-			}
-			else
-			{
-				set_link_state(link, LINK_STATE_DETACHED);
-				link->on_link_state_changed = NULL;
-				result = 0;
-			}
-		}
-		else
-		{
-			set_link_state(link, LINK_STATE_DETACHED);
-			link->on_link_state_changed = NULL;
-			result = 0;
-		}
+        switch (link->link_state)
+        {
+
+        case LINK_STATE_HALF_ATTACHED:
+            /* Sending detach when remote is not yet attached */
+            if (send_detach(link, close, NULL) != 0)
+            {
+                result = __LINE__;
+            }
+            else
+            {
+                set_link_state(link, LINK_STATE_DETACHED);
+                result = 0;
+            }
+            break;
+
+        case LINK_STATE_ATTACHED:
+            /* Send detach and wait for remote to respond */
+            if (send_detach(link, close, NULL) != 0)
+            {
+                result = __LINE__;
+            }
+            else
+            {
+                set_link_state(link, LINK_STATE_HALF_ATTACHED);
+                result = 0;
+            }
+            break;
+
+        case LINK_STATE_DETACHED:
+            /* Already detached */
+            result = 0;
+            break;
+
+        default:
+        case LINK_STATE_ERROR:
+            /* Already detached and in error state */
+            result = __LINE__;
+            break;
+        }
 	}
 
 	return result;

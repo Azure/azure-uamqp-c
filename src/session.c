@@ -581,7 +581,7 @@ static void on_frame_received(void* context, AMQP_VALUE performative, uint32_t p
 				session_instance->remote_outgoing_window--;
 				session_instance->incoming_window--;
 
-				LINK_ENDPOINT_INSTANCE* link_endpoint = find_link_endpoint_by_output_handle(session_instance, remote_handle);
+				LINK_ENDPOINT_INSTANCE* link_endpoint = find_link_endpoint_by_input_handle(session_instance, remote_handle);
 				if (link_endpoint == NULL)
 				{
 					end_session_with_error(session_instance, "amqp:session:unattached-handle", "");
@@ -1076,8 +1076,8 @@ void session_destroy_link_endpoint(LINK_ENDPOINT_HANDLE link_endpoint)
 		{
 			LINK_ENDPOINT_INSTANCE** new_endpoints;
 
-            if (i < (session_instance->link_endpoint_count - 1))
-            {
+			if (i < (session_instance->link_endpoint_count - 1))
+			{
 				(void)memmove(&session_instance->link_endpoints[i], &session_instance->link_endpoints[i + 1], (session_instance->link_endpoint_count - (uint32_t)i - 1) * sizeof(LINK_ENDPOINT_INSTANCE*));
 			}
 

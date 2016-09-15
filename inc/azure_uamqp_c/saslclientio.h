@@ -32,7 +32,7 @@ MOCKABLE_FUNCTION(, int, saslclientio_send, CONCRETE_IO_HANDLE, sasl_client_io, 
 MOCKABLE_FUNCTION(, void, saslclientio_dowork, CONCRETE_IO_HANDLE, sasl_client_io);
 MOCKABLE_FUNCTION(, int, saslclientio_setoption, CONCRETE_IO_HANDLE, socket_io, const char*, optionName, const void*, value);
 
-extern const IO_INTERFACE_DESCRIPTION* saslclientio_get_interface_description(void);
+MOCKABLE_FUNCTION(, const IO_INTERFACE_DESCRIPTION*, saslclientio_get_interface_description);
 
 #ifdef __cplusplus
 }

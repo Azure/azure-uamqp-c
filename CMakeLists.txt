@@ -227,8 +227,18 @@ endif()
 set(UAMQP_INC_FOLDER ${CMAKE_CURRENT_LIST_DIR}/inc CACHE INTERNAL "This is the include folder for UAMQP" FORCE)
 set(UAMQP_SRC_FOLDER ${CMAKE_CURRENT_LIST_DIR}/src CACHE INTERNAL "This is the lib folder for UAMQP" FORCE)
 
+# Set CMAKE_INSTALL_LIBDIR if not defined
+include(GNUInstallDirs)
+
+# Overridable install variables
+if (CMAKE_INSTALL_LIBDIR)
+    set (LIB_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}" CACHE PATH "Library object file directory")
+else ()
+    set (LIB_INSTALL_DIR "lib" CACHE PATH "Library object file directory")
+endif ()
+
 if(WIN32) 
 else() 
-    install (TARGETS uamqp DESTINATION lib) 
-    install (FILES ${uamqp_h_files} DESTINATION include/azureiot/azure_uamqp_c) 
-endif (WIN32) 
+    install (TARGETS uamqp DESTINATION ${LIB_INSTALL_DIR}) 
+    install (FILES ${uamqp_h_files} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azureiot/azure_uamqp_c)
+endif (WIN32)

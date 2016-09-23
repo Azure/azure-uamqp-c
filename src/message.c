@@ -715,8 +715,8 @@ int message_add_body_amqp_data(MESSAGE_HANDLE message, BINARY_DATA binary_data)
 
 	MESSAGE_INSTANCE* message_instance = (MESSAGE_INSTANCE*)message;
 	if ((message == NULL) ||
-		(binary_data.bytes == NULL) ||
-		(binary_data.length == 0))
+		(binary_data.bytes == NULL) &&
+		(binary_data.length != 0))
 	{
 		result = __LINE__;
 	}

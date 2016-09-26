@@ -1566,18 +1566,24 @@ void connection_destroy_endpoint(ENDPOINT_HANDLE endpoint)
 
         /* Codes_SRS_CONNECTION_01_130: [The outgoing channel associated with the endpoint shall be released by removing the endpoint from the endpoint list.] */
         /* Codes_SRS_CONNECTION_01_131: [Any incoming channel number associated with the endpoint shall be released.] */
-        if (i < connection->endpoint_count)
-        {
-            (void)memmove(connection->endpoints + i, connection->endpoints + i + 1, sizeof(ENDPOINT_INSTANCE*) * (connection->endpoint_count - i - 1));
+		if (i < connection->endpoint_count && i > 0)
+		{
+			(void)memmove(connection->endpoints + i, connection->endpoints + i + 1, sizeof(ENDPOINT_INSTANCE*) * (connection->endpoint_count - i - 1));
 
-            ENDPOINT_INSTANCE** new_endpoints = (ENDPOINT_INSTANCE**)amqpalloc_realloc(connection->endpoints, (connection->endpoint_count - 1) * sizeof(ENDPOINT_INSTANCE*));
-            if (new_endpoints != NULL)
-            {
-                connection->endpoints = new_endpoints;
-            }
+			ENDPOINT_INSTANCE** new_endpoints = (ENDPOINT_INSTANCE**)amqpalloc_realloc(connection->endpoints, (connection->endpoint_count - 1) * sizeof(ENDPOINT_INSTANCE*));
+			if (new_endpoints != NULL)
+			{
+				connection->endpoints = new_endpoints;
+			}
 
-            connection->endpoint_count--;
-        }
+			connection->endpoint_count--;
+		}
+		else if (connection->endpoint_count == 1)
+		{
+			amqpalloc_free(connection->endpoints);
+			connection->endpoints = NULL;
+			connection->endpoint_count = 0;
+		}
 
         amqpalloc_free(endpoint);
     }

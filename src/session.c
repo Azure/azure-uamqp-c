@@ -1187,8 +1187,9 @@ int session_send_flow(LINK_ENDPOINT_HANDLE link_endpoint, FLOW_HANDLE flow)
 
 		if (result == 0)
 		{
-			if ((flow_set_incoming_window(flow, session_instance->incoming_window) != 0) ||
-				(flow_set_next_outgoing_id(flow, session_instance->next_outgoing_id) != 0) ||
+            if ((flow_set_next_incoming_id(flow, session_instance->next_incoming_id) != 0) ||
+                (flow_set_incoming_window(flow, session_instance->incoming_window) != 0) ||
+                (flow_set_next_outgoing_id(flow, session_instance->next_outgoing_id) != 0) ||
 				(flow_set_outgoing_window(flow, session_instance->outgoing_window) != 0) ||
 				(flow_set_handle(flow, link_endpoint_instance->output_handle) != 0))
 			{

@@ -87,7 +87,22 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 add_definitions(-DREFCOUNT_ATOMIC_DONTCARE)
 add_definitions(-D__STDC_NO_ATOMICS__=1)
 
-add_subdirectory(azure-c-shared-utility)
+# Check if shared utils library is already provided
+find_library (SHARED_UTIL_LIB_PATH NAMES aziotsharedutil)
+
+if (SHARED_UTIL_LIB_PATH AND SHARED_UTIL_INCLUDE_DIR)
+    set(SHARED_UTIL_FOUND 1)
+    
+    # Disable tests
+    set(skip_unittests ON)
+endif()
+
+# Build shared util library if not found
+if (NOT SHARED_UTIL_FOUND)
+    add_subdirectory(azure-c-shared-utility)
+    set(SHARED_UTIL_LIB_PATH aziotsharedutil)
+    set(SHARED_UTIL_INCLUDE_DIR ${SHARED_UTIL_INC_FOLDER})
+endif()
 
 enable_testing()
 #if any compiler has a command line switch called "OFF" then it will need special care
@@ -132,7 +147,7 @@ endmacro(compileAsC11)
 
 option(memory_trace "set memory_trace to ON if memory usage is to be used, set to OFF to not use it" ON)
 
-include_directories(${CMAKE_CURRENT_LIST_DIR}/inc ${SHARED_UTIL_INC_FOLDER})
+include_directories(${CMAKE_CURRENT_LIST_DIR}/inc ${SHARED_UTIL_INCLUDE_DIR})
 
 add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 
@@ -214,6 +229,8 @@ add_library(uamqp
     ${uamqp_h_files}
     ${socketlistener_c_files}
     )
+
+target_link_libraries(uamqp ${SHARED_UTIL_LIB_PATH})
 
 if (NOT ${ARCHITECTURE} STREQUAL "ARM")
     add_subdirectory(samples)

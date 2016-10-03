@@ -87,7 +87,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 add_definitions(-DREFCOUNT_ATOMIC_DONTCARE)
 add_definitions(-D__STDC_NO_ATOMICS__=1)
 
-add_subdirectory(azure-c-shared-utility)
+add_subdirectory(c-utility)
 
 enable_testing()
 #if any compiler has a command line switch called "OFF" then it will need special care

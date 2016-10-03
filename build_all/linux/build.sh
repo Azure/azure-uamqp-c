@@ -42,7 +42,7 @@ sync_dependencies ()
         
         rm -r -f ~/azure-c-shared-utility
         git clone https://github.com/Azure/azure-c-shared-utility.git ~/azure-c-shared-utility
-        bash ~/azure-c-shared-utility/c/build_all/linux/build.sh -i
+        bash ~/azure-c-shared-utility/build_all/linux/build.sh -i
     fi
 }
 

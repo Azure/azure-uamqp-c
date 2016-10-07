@@ -7,7 +7,7 @@
 #include "azure_uamqp_c/connection.h"
 #include "azure_c_shared_utility/xio.h"
 #include "azure_c_shared_utility/socketio.h"
-#include "azure_c_shared_utility/list.h"
+#include "azure_c_shared_utility/singlylinkedlist.h"
 #include "azure_c_shared_utility/tickcounter.h"
 #include "azure_uamqp_c/frame_codec.h"
 #include "azure_uamqp_c/amqp_frame_codec.h"
@@ -34,7 +34,7 @@
 #define TEST_LIST_ITEM_AMQP_VALUE		(AMQP_VALUE)0x4246
 #define TEST_DESCRIBED_AMQP_VALUE		(AMQP_VALUE)0x4247
 #define TEST_AMQP_OPEN_FRAME_HANDLE		(AMQP_OPEN_FRAME_HANDLE)0x4245
-#define TEST_LIST_HANDLE				(LIST_HANDLE)0x4246
+#define TEST_LIST_HANDLE				(SINGLYLINKEDLIST_HANDLE)0x4246
 #define TEST_OPEN_PERFORMATIVE			(AMQP_VALUE)0x4301
 #define TEST_CLOSE_PERFORMATIVE				(AMQP_VALUE)0x4302
 #define TEST_CLOSE_DESCRIPTOR_AMQP_VALUE	(AMQP_VALUE)0x4303
@@ -169,11 +169,11 @@ public:
     MOCK_METHOD_END(char*, NULL);
 
     /* list mocks */
-    MOCK_STATIC_METHOD_0(, LIST_HANDLE, list_create)
-    MOCK_METHOD_END(LIST_HANDLE, TEST_LIST_HANDLE);
-    MOCK_STATIC_METHOD_1(, void, list_destroy, LIST_HANDLE, list)
+    MOCK_STATIC_METHOD_0(, SINGLYLINKEDLIST_HANDLE, singlylinkedlist_create)
+    MOCK_METHOD_END(SINGLYLINKEDLIST_HANDLE, TEST_LIST_HANDLE);
+    MOCK_STATIC_METHOD_1(, void, singlylinkedlist_destroy, SINGLYLINKEDLIST_HANDLE, list)
     MOCK_VOID_METHOD_END();
-    MOCK_STATIC_METHOD_2(, LIST_ITEM_HANDLE, list_add, LIST_HANDLE, list, const void*, item)
+    MOCK_STATIC_METHOD_2(, LIST_ITEM_HANDLE, singlylinkedlist_add, SINGLYLINKEDLIST_HANDLE, list, const void*, item)
         const void** items = (const void**)realloc(list_items, (list_item_count + 1) * sizeof(item));
         if (items != NULL)
         {
@@ -181,9 +181,9 @@ public:
             list_items[list_item_count++] = item;
         }
     MOCK_METHOD_END(LIST_ITEM_HANDLE, (LIST_ITEM_HANDLE)list_item_count);
-    MOCK_STATIC_METHOD_1(, const void*, list_item_get_value, LIST_ITEM_HANDLE, item_handle)
+    MOCK_STATIC_METHOD_1(, const void*, singlylinkedlist_item_get_value, LIST_ITEM_HANDLE, item_handle)
     MOCK_METHOD_END(const void*, (const void*)item_handle);
-    MOCK_STATIC_METHOD_3(, LIST_ITEM_HANDLE, list_find, LIST_HANDLE, handle, LIST_MATCH_FUNCTION, match_function, const void*, match_context)
+    MOCK_STATIC_METHOD_3(, LIST_ITEM_HANDLE, singlylinkedlist_find, SINGLYLINKEDLIST_HANDLE, handle, LIST_MATCH_FUNCTION, match_function, const void*, match_context)
         size_t i;
         const void* found_item = NULL;
         for (i = 0; i < list_item_count; i++)
@@ -244,11 +244,11 @@ extern "C"
 
     DECLARE_GLOBAL_MOCK_METHOD_1(connection_mocks, , char*, amqpvalue_to_string, AMQP_VALUE, amqp_value)
 
-    DECLARE_GLOBAL_MOCK_METHOD_0(connection_mocks, , LIST_HANDLE, list_create);
-    DECLARE_GLOBAL_MOCK_METHOD_1(connection_mocks, , void, list_destroy, LIST_HANDLE, list);
-    DECLARE_GLOBAL_MOCK_METHOD_2(connection_mocks, , LIST_ITEM_HANDLE, list_add, LIST_HANDLE, list, const void*, item);
-    DECLARE_GLOBAL_MOCK_METHOD_1(connection_mocks, , const void*, list_item_get_value, LIST_ITEM_HANDLE, item_handle);
-    DECLARE_GLOBAL_MOCK_METHOD_3(connection_mocks, , LIST_ITEM_HANDLE, list_find, LIST_HANDLE, handle, LIST_MATCH_FUNCTION, match_function, const void*, match_context);
+    DECLARE_GLOBAL_MOCK_METHOD_0(connection_mocks, , SINGLYLINKEDLIST_HANDLE, singlylinkedlist_create);
+    DECLARE_GLOBAL_MOCK_METHOD_1(connection_mocks, , void, singlylinkedlist_destroy, SINGLYLINKEDLIST_HANDLE, list);
+    DECLARE_GLOBAL_MOCK_METHOD_2(connection_mocks, , LIST_ITEM_HANDLE, singlylinkedlist_add, SINGLYLINKEDLIST_HANDLE, list, const void*, item);
+    DECLARE_GLOBAL_MOCK_METHOD_1(connection_mocks, , const void*, singlylinkedlist_item_get_value, LIST_ITEM_HANDLE, item_handle);
+    DECLARE_GLOBAL_MOCK_METHOD_3(connection_mocks, , LIST_ITEM_HANDLE, singlylinkedlist_find, SINGLYLINKEDLIST_HANDLE, handle, LIST_MATCH_FUNCTION, match_function, const void*, match_context);
 
     DECLARE_GLOBAL_MOCK_METHOD_4(connection_mocks, , void, test_on_frame_received, void*, context, AMQP_VALUE, performative, uint32_t, frame_payload_size, const unsigned char*, payload_bytes);
     DECLARE_GLOBAL_MOCK_METHOD_3(connection_mocks, , void, test_on_connection_state_changed, void*, context, CONNECTION_STATE, new_connection_state, CONNECTION_STATE, previous_connection_state);

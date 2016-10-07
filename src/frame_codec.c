@@ -10,7 +10,7 @@
 #include <string.h>
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_c_shared_utility/xio.h"
-#include "azure_c_shared_utility/list.h"
+#include "azure_c_shared_utility/singlylinkedlist.h"
 #include "azure_uamqp_c/frame_codec.h"
 #include "azure_uamqp_c/amqpvalue.h"
 #include "azure_uamqp_c/amqpalloc.h"
@@ -44,7 +44,7 @@ typedef struct SUBSCRIPTION_TAG
 typedef struct FRAME_CODEC_INSTANCE_TAG
 {
 	/* subscriptions */
-	LIST_HANDLE subscription_list;
+	SINGLYLINKEDLIST_HANDLE subscription_list;
 
 	/* decode frame */
 	RECEIVE_FRAME_STATE receive_frame_state;
@@ -68,7 +68,7 @@ typedef struct FRAME_CODEC_INSTANCE_TAG
 static bool find_subscription_by_frame_type(LIST_ITEM_HANDLE list_item, const void* match_context)
 {
 	bool result;
-	SUBSCRIPTION* subscription = (SUBSCRIPTION*)list_item_get_value(list_item);
+	SUBSCRIPTION* subscription = (SUBSCRIPTION*)singlylinkedlist_item_get_value(list_item);
 
 	if (subscription == NULL)
 	{
@@ -106,7 +106,7 @@ FRAME_CODEC_HANDLE frame_codec_create(ON_FRAME_CODEC_ERROR on_frame_codec_error,
 			result->receive_frame_pos = 0;
 			result->receive_frame_size = 0;
 			result->receive_frame_bytes = NULL;
-			result->subscription_list = list_create();
+			result->subscription_list = singlylinkedlist_create();
 
 			/* Codes_SRS_FRAME_CODEC_01_082: [The initial max_frame_size_shall be 512.] */
 			result->max_frame_size = 512;
@@ -123,7 +123,7 @@ void frame_codec_destroy(FRAME_CODEC_HANDLE frame_codec)
 	{
 		FRAME_CODEC_INSTANCE* frame_codec_data = (FRAME_CODEC_INSTANCE*)frame_codec;
 
-		list_destroy(frame_codec_data->subscription_list);
+		singlylinkedlist_destroy(frame_codec_data->subscription_list);
 		if (frame_codec_data->receive_frame_bytes != NULL)
 		{
 			amqpalloc_free(frame_codec_data->receive_frame_bytes);
@@ -270,7 +270,7 @@ int frame_codec_receive_bytes(FRAME_CODEC_HANDLE frame_codec, const unsigned cha
 				size--;
 
 				/* Codes_SRS_FRAME_CODEC_01_035: [After successfully registering a callback for a certain frame type, when subsequently that frame type is received the callbacks shall be invoked, passing to it the received frame and the callback_context value.] */
-				item_handle = list_find(frame_codec_data->subscription_list, find_subscription_by_frame_type, &frame_codec_data->receive_frame_type);
+				item_handle = singlylinkedlist_find(frame_codec_data->subscription_list, find_subscription_by_frame_type, &frame_codec_data->receive_frame_type);
 				if (item_handle == NULL)
 				{
 					frame_codec_data->receive_frame_subscription = NULL;
@@ -280,7 +280,7 @@ int frame_codec_receive_bytes(FRAME_CODEC_HANDLE frame_codec, const unsigned cha
 				}
 				else
 				{
-					frame_codec_data->receive_frame_subscription = (SUBSCRIPTION*)list_item_get_value(item_handle);
+					frame_codec_data->receive_frame_subscription = (SUBSCRIPTION*)singlylinkedlist_item_get_value(item_handle);
 					if (frame_codec_data->receive_frame_subscription == NULL)
 					{
 						frame_codec_data->receive_frame_state = RECEIVE_FRAME_STATE_TYPE_SPECIFIC;
@@ -432,10 +432,10 @@ int frame_codec_subscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type, ON_FRAME
 
 		/* Codes_SRS_FRAME_CODEC_01_036: [Only one callback pair shall be allowed to be registered for a given frame type.] */
 		/* find the subscription for this frame type */
-		LIST_ITEM_HANDLE list_item = list_find(frame_codec_data->subscription_list, find_subscription_by_frame_type, &type);
+		LIST_ITEM_HANDLE list_item = singlylinkedlist_find(frame_codec_data->subscription_list, find_subscription_by_frame_type, &type);
 		if (list_item != NULL)
 		{
-			subscription = (SUBSCRIPTION*)list_item_get_value(list_item);
+			subscription = (SUBSCRIPTION*)singlylinkedlist_item_get_value(list_item);
 			if (subscription == NULL)
 			{
 				/* Codes_SRS_FRAME_CODEC_01_037: [If any failure occurs while performing the subscribe operation, frame_codec_subscribe shall return a non-zero value.] */
@@ -467,7 +467,7 @@ int frame_codec_subscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type, ON_FRAME
 				subscription->frame_type = type;
 
 				/* Codes_SRS_FRAME_CODEC_01_037: [If any failure occurs while performing the subscribe operation, frame_codec_subscribe shall return a non-zero value.] */
-				if (list_add(frame_codec_data->subscription_list, subscription) == NULL)
+				if (singlylinkedlist_add(frame_codec_data->subscription_list, subscription) == NULL)
 				{
 					amqpalloc_free(subscription);
 					result = __LINE__;
@@ -496,7 +496,7 @@ int frame_codec_unsubscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type)
 	else
 	{
 		FRAME_CODEC_INSTANCE* frame_codec_data = (FRAME_CODEC_INSTANCE*)frame_codec;
-		LIST_ITEM_HANDLE list_item = list_find(frame_codec_data->subscription_list, find_subscription_by_frame_type, &type);
+		LIST_ITEM_HANDLE list_item = singlylinkedlist_find(frame_codec_data->subscription_list, find_subscription_by_frame_type, &type);
 
 		if (list_item == NULL)
 		{
@@ -506,7 +506,7 @@ int frame_codec_unsubscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type)
 		}
 		else
 		{
-			SUBSCRIPTION* subscription = (SUBSCRIPTION*)list_item_get_value(list_item);
+			SUBSCRIPTION* subscription = (SUBSCRIPTION*)singlylinkedlist_item_get_value(list_item);
 			if (subscription == NULL)
 			{
 				/* Codes_SRS_FRAME_CODEC_01_041: [If any failure occurs while performing the unsubscribe operation, frame_codec_unsubscribe shall return a non-zero value.] */
@@ -515,7 +515,7 @@ int frame_codec_unsubscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type)
 			else
 			{
 				amqpalloc_free(subscription);
-				if (list_remove(frame_codec_data->subscription_list, list_item) != 0)
+				if (singlylinkedlist_remove(frame_codec_data->subscription_list, list_item) != 0)
 				{
 					/* Codes_SRS_FRAME_CODEC_01_041: [If any failure occurs while performing the unsubscribe operation, frame_codec_unsubscribe shall return a non-zero value.] */
 					result = __LINE__;

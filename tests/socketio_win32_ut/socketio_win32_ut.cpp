@@ -7,14 +7,14 @@
 #include "micromockcharstararenullterminatedstrings.h"
 #include "azure_uamqp_c/amqpalloc.h"
 #include "azure_c_shared_utility/socketio.h"
-#include "azure_c_shared_utility/list.h"
+#include "azure_c_shared_utility/singlylinkedlist.h"
 
 #undef DECLSPEC_IMPORT
 
 #include "winsock2.h"
 #include "ws2tcpip.h"
 
-static const LIST_HANDLE TEST_LIST_HANDLE = (LIST_HANDLE)0x4242;
+static const SINGLYLINKEDLIST_HANDLE TEST_LIST_HANDLE = (SINGLYLINKEDLIST_HANDLE)0x4242;
 static const void** list_items = NULL;
 static size_t list_item_count = 0;
 static SOCKET test_socket = (SOCKET)0x4243;
@@ -30,15 +30,15 @@ public:
 	MOCK_VOID_METHOD_END();
 
 	/* list mocks */
-	MOCK_STATIC_METHOD_0(, LIST_HANDLE, list_create)
-	MOCK_METHOD_END(LIST_HANDLE, TEST_LIST_HANDLE);
-	MOCK_STATIC_METHOD_1(, void, list_destroy, LIST_HANDLE, list)
+	MOCK_STATIC_METHOD_0(, SINGLYLINKEDLIST_HANDLE, singlylinkedlist_create)
+	MOCK_METHOD_END(SINGLYLINKEDLIST_HANDLE, TEST_LIST_HANDLE);
+	MOCK_STATIC_METHOD_1(, void, singlylinkedlist_destroy, SINGLYLINKEDLIST_HANDLE, list)
 	MOCK_VOID_METHOD_END();
-	MOCK_STATIC_METHOD_2(, int, list_remove, LIST_HANDLE, list, LIST_ITEM_HANDLE, item)
+	MOCK_STATIC_METHOD_2(, int, singlylinkedlist_remove, SINGLYLINKEDLIST_HANDLE, list, LIST_ITEM_HANDLE, item)
 	MOCK_METHOD_END(int, 0);
-	MOCK_STATIC_METHOD_1(, LIST_ITEM_HANDLE, list_get_head_item, LIST_HANDLE, list)
+	MOCK_STATIC_METHOD_1(, LIST_ITEM_HANDLE, singlylinkedlist_get_head_item, SINGLYLINKEDLIST_HANDLE, list)
 	MOCK_METHOD_END(LIST_ITEM_HANDLE, (LIST_ITEM_HANDLE)1);
-	MOCK_STATIC_METHOD_2(, LIST_ITEM_HANDLE, list_add, LIST_HANDLE, list, const void*, item)
+	MOCK_STATIC_METHOD_2(, LIST_ITEM_HANDLE, singlylinkedlist_add, SINGLYLINKEDLIST_HANDLE, list, const void*, item)
 		const void** items = (const void**)realloc(list_items, (list_item_count + 1) * sizeof(item));
 		if (items != NULL)
 		{
@@ -46,9 +46,9 @@ public:
 			list_items[list_item_count++] = item;
 		}
 	MOCK_METHOD_END(LIST_ITEM_HANDLE, (LIST_ITEM_HANDLE)list_item_count);
-	MOCK_STATIC_METHOD_1(, const void*, list_item_get_value, LIST_ITEM_HANDLE, item_handle)
+	MOCK_STATIC_METHOD_1(, const void*, singlylinkedlist_item_get_value, LIST_ITEM_HANDLE, item_handle)
 		MOCK_METHOD_END(const void*, (const void*)item_handle);
-	MOCK_STATIC_METHOD_3(, LIST_ITEM_HANDLE, list_find, LIST_HANDLE, handle, LIST_MATCH_FUNCTION, match_function, const void*, match_context)
+	MOCK_STATIC_METHOD_3(, LIST_ITEM_HANDLE, singlylinkedlist_find, SINGLYLINKEDLIST_HANDLE, handle, LIST_MATCH_FUNCTION, match_function, const void*, match_context)
 		size_t i;
 	const void* found_item = NULL;
 	for (i = 0; i < list_item_count; i++)
@@ -60,7 +60,7 @@ public:
 		}
 	}
 	MOCK_METHOD_END(LIST_ITEM_HANDLE, (LIST_ITEM_HANDLE)found_item);
-	MOCK_STATIC_METHOD_3(, int, list_remove_matching_item, LIST_HANDLE, handle, LIST_MATCH_FUNCTION, match_function, const void*, match_context)
+	MOCK_STATIC_METHOD_3(, int, list_remove_matching_item, SINGLYLINKEDLIST_HANDLE, handle, LIST_MATCH_FUNCTION, match_function, const void*, match_context)
 		size_t i;
 	int res = __LINE__;
 	for (i = 0; i < list_item_count; i++)
@@ -99,14 +99,14 @@ extern "C"
 	DECLARE_GLOBAL_MOCK_METHOD_1(amqp_frame_codec_mocks, , void*, amqpalloc_malloc, size_t, size);
 	DECLARE_GLOBAL_MOCK_METHOD_1(amqp_frame_codec_mocks, , void, amqpalloc_free, void*, ptr);
 
-	DECLARE_GLOBAL_MOCK_METHOD_0(amqp_frame_codec_mocks, , LIST_HANDLE, list_create);
-	DECLARE_GLOBAL_MOCK_METHOD_1(amqp_frame_codec_mocks, , void, list_destroy, LIST_HANDLE, list);
-	DECLARE_GLOBAL_MOCK_METHOD_1(amqp_frame_codec_mocks, , LIST_ITEM_HANDLE, list_get_head_item, LIST_HANDLE, list);
-	DECLARE_GLOBAL_MOCK_METHOD_2(amqp_frame_codec_mocks, , int, list_remove, LIST_HANDLE, list, LIST_ITEM_HANDLE, item);
-	DECLARE_GLOBAL_MOCK_METHOD_2(amqp_frame_codec_mocks, , LIST_ITEM_HANDLE, list_add, LIST_HANDLE, list, const void*, item);
-	DECLARE_GLOBAL_MOCK_METHOD_1(amqp_frame_codec_mocks, , const void*, list_item_get_value, LIST_ITEM_HANDLE, item_handle);
-	DECLARE_GLOBAL_MOCK_METHOD_3(amqp_frame_codec_mocks, , LIST_ITEM_HANDLE, list_find, LIST_HANDLE, handle, LIST_MATCH_FUNCTION, match_function, const void*, match_context);
-	DECLARE_GLOBAL_MOCK_METHOD_3(amqp_frame_codec_mocks, , int, list_remove_matching_item, LIST_HANDLE, handle, LIST_MATCH_FUNCTION, match_function, const void*, match_context);
+	DECLARE_GLOBAL_MOCK_METHOD_0(amqp_frame_codec_mocks, , SINGLYLINKEDLIST_HANDLE, singlylinkedlist_create);
+	DECLARE_GLOBAL_MOCK_METHOD_1(amqp_frame_codec_mocks, , void, singlylinkedlist_destroy, SINGLYLINKEDLIST_HANDLE, list);
+	DECLARE_GLOBAL_MOCK_METHOD_1(amqp_frame_codec_mocks, , LIST_ITEM_HANDLE, singlylinkedlist_get_head_item, SINGLYLINKEDLIST_HANDLE, list);
+	DECLARE_GLOBAL_MOCK_METHOD_2(amqp_frame_codec_mocks, , int, singlylinkedlist_remove, SINGLYLINKEDLIST_HANDLE, list, LIST_ITEM_HANDLE, item);
+	DECLARE_GLOBAL_MOCK_METHOD_2(amqp_frame_codec_mocks, , LIST_ITEM_HANDLE, singlylinkedlist_add, SINGLYLINKEDLIST_HANDLE, list, const void*, item);
+	DECLARE_GLOBAL_MOCK_METHOD_1(amqp_frame_codec_mocks, , const void*, singlylinkedlist_item_get_value, LIST_ITEM_HANDLE, item_handle);
+	DECLARE_GLOBAL_MOCK_METHOD_3(amqp_frame_codec_mocks, , LIST_ITEM_HANDLE, singlylinkedlist_find, SINGLYLINKEDLIST_HANDLE, handle, LIST_MATCH_FUNCTION, match_function, const void*, match_context);
+	DECLARE_GLOBAL_MOCK_METHOD_3(amqp_frame_codec_mocks, , int, list_remove_matching_item, SINGLYLINKEDLIST_HANDLE, handle, LIST_MATCH_FUNCTION, match_function, const void*, match_context);
 
 	DECLARE_GLOBAL_MOCK_METHOD_3(amqp_frame_codec_mocks, , SOCKET WSAAPI, socket, int, af, int, type, int, protocol);
 	DECLARE_GLOBAL_MOCK_METHOD_1(amqp_frame_codec_mocks, , int WSAAPI, closesocket, SOCKET, s);

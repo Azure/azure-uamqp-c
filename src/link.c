@@ -53,6 +53,9 @@ typedef struct LINK_INSTANCE_TAG
     fields attach_properties;
     bool is_underlying_session_begun;
     bool is_closed;
+    unsigned char* received_payload;
+    uint32_t received_payload_size;
+    delivery_number received_delivery_id;
 } LINK_INSTANCE;
 
 static void set_link_state(LINK_INSTANCE* link_instance, LINK_STATE link_state)
@@ -305,7 +308,7 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
 			if (amqpvalue_get_transfer(performative, &transfer_handle) == 0)
 			{
 				AMQP_VALUE delivery_state;
-				delivery_number received_delivery_id;
+                bool more;
 
 				link_instance->link_credit--;
 				link_instance->delivery_count++;
@@ -315,24 +318,80 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
 					send_flow(link_instance);
 				}
 
-				if (transfer_get_delivery_id(transfer_handle, &received_delivery_id) != 0)
-				{
-					/* error */
-				}
-				else
-				{
-					delivery_state = link_instance->on_transfer_received(link_instance->callback_context, transfer_handle, payload_size, payload_bytes);
+                if (transfer_get_more(transfer_handle, &more) != 0)
+                {
+                    LogError("Could not get the more field from the transfer performative");
+                }
+                else
+                {
+                    bool is_error = false;
 
-					if (send_disposition(link_instance, received_delivery_id, delivery_state) != 0)
-					{
-						/* error */
-					}
+                    if (transfer_get_delivery_id(transfer_handle, &link_instance->received_delivery_id) != 0)
+                    {
+                        /* is this not a continuation transfer? */
+                        if (link_instance->received_payload_size == 0)
+                        {
+                            LogError("Could not get the delivery Id from the transfer performative");
+                            is_error = true;
+                        }
+                    }
+                    
+                    if (!is_error)
+                    {
+                        /* If this is a continuation transfer or if this is the first chunk of a multi frame transfer */
+                        if ((link_instance->received_payload_size > 0) || more)
+                        {
+                            unsigned char* new_received_payload = (unsigned char*)realloc(link_instance->received_payload, link_instance->received_payload_size + payload_size);
+                            if (new_received_payload == NULL)
+                            {
+                                LogError("Could not allocate memory for the received payload");
+                            }
+                            else
+                            {
+                                link_instance->received_payload = new_received_payload;
+                                (void)memcpy(link_instance->received_payload + link_instance->received_payload_size, payload_bytes, payload_size);
+                                link_instance->received_payload_size += payload_size;
+                            }
+                        }
 
-					if (delivery_state != NULL)
-					{
-						amqpvalue_destroy(delivery_state);
-					}
-				}
+                        if (!more)
+                        {
+                            const unsigned char* indicate_payload_bytes;
+                            uint32_t indicate_payload_size;
+
+                            /* if no previously stored chunks then simply report the current payload */
+                            if (link_instance->received_payload_size > 0)
+                            {
+                                indicate_payload_size = link_instance->received_payload_size;
+                                indicate_payload_bytes = link_instance->received_payload;
+                            }
+                            else
+                            {
+                                indicate_payload_size = payload_size;
+                                indicate_payload_bytes = payload_bytes;
+                            }
+
+                            delivery_state = link_instance->on_transfer_received(link_instance->callback_context, transfer_handle, indicate_payload_size, indicate_payload_bytes);
+
+                            if (link_instance->received_payload_size > 0)
+                            {
+                                free(link_instance->received_payload);
+                                link_instance->received_payload = NULL;
+                                link_instance->received_payload_size = 0;
+                            }
+
+                            if (send_disposition(link_instance, link_instance->received_delivery_id, delivery_state) != 0)
+                            {
+                                LogError("Cannot send disposition frame");
+                            }
+
+                            if (delivery_state != NULL)
+                            {
+                                amqpvalue_destroy(delivery_state);
+                            }
+                        }
+                    }
+                }
 
 				transfer_destroy(transfer_handle);
 			}
@@ -530,6 +589,9 @@ LINK_HANDLE link_create(SESSION_HANDLE session, const char* name, role role, AMQ
 		result->is_underlying_session_begun = false;
         result->is_closed = false;
         result->attach_properties = NULL;
+        result->received_payload = NULL;
+        result->received_payload_size = 0;
+        result->received_delivery_id = 0;
 
 		result->pending_deliveries = singlylinkedlist_create();
 		if (result->pending_deliveries == NULL)
@@ -585,6 +647,9 @@ LINK_HANDLE link_create_from_endpoint(SESSION_HANDLE session, LINK_ENDPOINT_HAND
 		result->is_underlying_session_begun = false;
         result->is_closed = false;
         result->attach_properties = NULL;
+        result->received_payload = NULL;
+        result->received_payload_size = 0;
+        result->received_delivery_id = 0;
         result->source = amqpvalue_clone(target);
 		result->target = amqpvalue_clone(source);
 		if (role == role_sender)
@@ -659,6 +724,11 @@ void link_destroy(LINK_HANDLE link)
 		if (link->attach_properties != NULL)
         {
 			amqpvalue_destroy(link->attach_properties);
+        }
+
+        if (link->received_payload != NULL)
+        {
+            free(link->received_payload);
         }
 
 		amqpalloc_free(link);
@@ -862,6 +932,8 @@ int link_attach(LINK_HANDLE link, ON_TRANSFER_RECEIVED on_transfer_received, ON_
 				}
 				else
 				{
+                    link->received_payload_size = 0;
+
 					result = 0;
 				}
 			}

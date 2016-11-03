@@ -180,12 +180,21 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
         AMQP_VALUE application_properties_value;
         AMQP_VALUE body_amqp_value = NULL;
         size_t body_data_count = 0;
+        AMQP_VALUE msg_annotations = NULL;
 
         message_get_header(message, &header);
         header_amqp_value = amqpvalue_create_header(header);
         if (header != NULL)
         {
             amqpvalue_get_encoded_size(header_amqp_value, &encoded_size);
+            total_encoded_size += encoded_size;
+        }
+
+        // message annotations
+        if ((message_get_message_annotations(message, &msg_annotations) == 0) &&
+            (msg_annotations != NULL))
+        {
+            amqpvalue_get_encoded_size(msg_annotations, &encoded_size);
             total_encoded_size += encoded_size;
         }
 
@@ -303,6 +312,16 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
                 }
 
                 log_message_chunk(message_sender_instance, "Header:", header_amqp_value);
+            }
+
+            if ((result == SEND_ONE_MESSAGE_OK) && (msg_annotations != NULL))
+            {
+                if (amqpvalue_encode(msg_annotations, encode_bytes, &payload) != 0)
+                {
+                    result = SEND_ONE_MESSAGE_ERROR;
+                }
+
+                log_message_chunk(message_sender_instance, "Message Annotations:", msg_annotations);
             }
 
             if ((result == SEND_ONE_MESSAGE_OK) && (properties != NULL))

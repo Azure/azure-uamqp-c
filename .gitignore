@@ -108,5 +108,6 @@
 /uamqp_generator/obj/Debug
 /devdoc/~$*.docm
 /cmake
+/build
 
 /.vscode/*

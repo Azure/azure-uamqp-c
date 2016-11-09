@@ -35,6 +35,39 @@ git clone --recursive https://github.com/Azure/azure-uamqp-c.git
 - Switch to the build folder and run
    cmake ..
 
+### Installation and Use
+Optionally, you may choose to install azure-uamqp-c on your machine:
+
+1. Switch to the *cmake* folder and run
+    ```
+    cmake -Duse_installed=ON ../
+    ```
+    ```
+    cmake --build . --target install
+    ```
+    
+    or install using the follow commands for each platform:
+
+    On Linux:
+    ```
+    sudo make install
+    ```
+
+    On Windows:
+    ```
+    msbuild /m INSTALL.vcxproj
+    ```
+
+2. Use it in your project (if installed)
+    ```
+    find_package(uamqp REQUIRED CONFIG)
+    target_link_library(yourlib uamqp)
+    ```
+
+_This requires that azure-c-shared-utility is installed (through CMake) on your machine._
+
+_If running tests, this requires that umock-c, azure-ctest, and azure-c-testrunnerswitcher are installed (through CMake) on your machine._
+
 ## Switching branches
 
 After any switch of branches (git checkout for example), one should also update the submodule references by:

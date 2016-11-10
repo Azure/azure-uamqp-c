@@ -1,0 +1,7 @@
+azure-uamqp-c (0.1.0-2) xenial; urgency=low
+
+  * Initial release
+
+  * Bug fixes.
+
+ -- AzureIoT User <aziotsdklinux@outlook.com>  Tue, 29 Sep 2016 11:00:00 +0000

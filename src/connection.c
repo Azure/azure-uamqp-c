@@ -71,8 +71,8 @@ typedef struct CONNECTION_INSTANCE_TAG
     uint16_t channel_max;
     milliseconds idle_timeout;
     milliseconds remote_idle_timeout;
-    uint64_t last_frame_received_time;
-    uint64_t last_frame_sent_time;
+    tickcounter_ms_t last_frame_received_time;
+    tickcounter_ms_t last_frame_sent_time;
 
     unsigned int is_underlying_io_open : 1;
     unsigned int idle_timeout_specified : 1;
@@ -1357,7 +1357,7 @@ uint64_t connection_handle_deadlines(CONNECTION_HANDLE connection)
 
     if (connection != NULL)
     {
-        uint64_t current_ms;
+        tickcounter_ms_t current_ms;
 
         if (tickcounter_get_current_ms(connection->tick_counter, &current_ms) != 0)
         {

@@ -207,7 +207,7 @@ public:
     MOCK_METHOD_END(TICK_COUNTER_HANDLE, test_tick_counter);
     MOCK_STATIC_METHOD_1(, void, tickcounter_destroy, TICK_COUNTER_HANDLE, tick_counter)
     MOCK_VOID_METHOD_END();
-    MOCK_STATIC_METHOD_2(, int, tickcounter_get_current_ms, TICK_COUNTER_HANDLE, tick_counter, uint64_t*, current_ms)
+    MOCK_STATIC_METHOD_2(, int, tickcounter_get_current_ms, TICK_COUNTER_HANDLE, tick_counter, tickcounter_ms_t*, current_ms)
     MOCK_METHOD_END(int, 0);
 };
 
@@ -255,7 +255,7 @@ extern "C"
 
     DECLARE_GLOBAL_MOCK_METHOD_0(connection_mocks, , TICK_COUNTER_HANDLE, tickcounter_create);
     DECLARE_GLOBAL_MOCK_METHOD_1(connection_mocks, , void, tickcounter_destroy, TICK_COUNTER_HANDLE, tick_counter);
-    DECLARE_GLOBAL_MOCK_METHOD_2(connection_mocks, , int, tickcounter_get_current_ms, TICK_COUNTER_HANDLE, tick_counter, uint64_t*, current_ms);
+    DECLARE_GLOBAL_MOCK_METHOD_2(connection_mocks, , int, tickcounter_get_current_ms, TICK_COUNTER_HANDLE, tick_counter, tickcounter_ms_t*, current_ms);
 
     extern void test_on_send_complete(void* context, IO_SEND_RESULT io_send_result)
     {

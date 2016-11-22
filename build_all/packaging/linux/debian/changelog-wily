@@ -1,43 +1,5 @@
-azure-uamqp-c (0.1.0.0-20) wily; urgency=low
+azure-uamqp-c (0.1.0.0-21) wily; urgency=low
 
-  * Initial release
-
-  * Fixed bug in link regarding settled transfer (#5181061)
-
-  * Fix a flow bug and make on_message_sent have a non-const context (#360fa34)
-
-  * Remove const from on_message_send_complete callbacks (#adf4910)
-
-  * Fix leak of message_annotations in message.c (#e48a19)
-
-  * Update xio definition to deal with connection opens (#1b13a97b)
-
-  * Adding the wsio_open changes required due to xio_open signature change (#070db5c0)
-
-  * Update uamqp to use namespacing for includes (#f1667a4)
-
-  * Fix messagereceiver_destroy by calling messagereceiver_close (#0309f57)
-
-  * fix av in teardown of message_sender/receiver (#3c59616)
-
-  * Fix tlsio_schannel bug (not all input bytes were being read) (#451ab97)
-
-  * Added ability to turn on/off logging (#32f1585)
-
-  * calling a new connection_create function (#6d91225)
-
-  * Remove logger argument from message_sender
-
-  * Bug fix: WSIO.c on_ws_callback should not update certs if wsio_instance->trusted_ca is NULL
-
-  * Bug fix: libwebsockets to build without -Werror, fixed x86/x64 build with support for websockets
-
-  * Add check for missing delivery state
-
-  * Fix crash when receiving Disposition frames
-
-  * Handle detach as per spec and use correct handle for link identification
-
-  * Bug fixes.
+  * See https://github.com/Azure/azure-iot-sdks/releases for details of the release
 
  -- AzureIoT User <aziotsdklinux@outlook.com>  Tue, 27 Sep 2016 11:00:00 +0000

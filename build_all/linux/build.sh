@@ -10,7 +10,7 @@ run_unit_tests=ON
 use_wsio=OFF
 run_valgrind=0
 build_folder=$build_root"/cmake/uamqp_linux"
-skip_unittests=OFF
+run_unittests=OFF
 
 usage ()
 {
@@ -20,7 +20,7 @@ usage ()
     echo "   Example: -cl -O1 -cl ..."
 	echo " --use-websockets              Enables the support for AMQP over WebSockets."
 	echo "-rv, --run_valgrind will execute ctest with valgrind"
-    echo "--skip-unittests do not build or run unit tests"
+    echo "--run-unittests run the unit tests"
     echo ""
     exit 1
 }
@@ -63,7 +63,7 @@ process_args ()
               "-cl" | "--compileoption" ) save_next_arg=1;;
 			  "--use-websockets" ) use_wsio=ON;;
 			  "-rv" | "--run_valgrind" ) run_valgrind=1;;
-              "--skip-unittests" ) skip_unittests=ON;;
+              "--run-unittests" ) run_unittests=ON;;
               * ) usage;;
           esac
       fi
@@ -75,7 +75,7 @@ process_args $*
 rm -r -f $build_folder
 mkdir -p $build_folder
 pushd $build_folder
-cmake -DcompileOption_C:STRING="$extracloptions" -Duse_wsio:BOOL=$use_wsio -Drun_valgrind:BOOL=$run_valgrind $build_root -Dskip_unittests:BOOL=$skip_unittests
+cmake -DcompileOption_C:STRING="$extracloptions" -Duse_wsio:BOOL=$use_wsio -Drun_valgrind:BOOL=$run_valgrind $build_root -Drun_unittests:BOOL=$run_unittests
 make --jobs=$(nproc)
 
 if [[ $run_valgrind == 1 ]] ;

@@ -23,17 +23,31 @@ For more information about configuring azure-c-shared-utility see https://github
 
 uAMQP uses cmake for configuring build files.
 
-For WebSockets support uAMQP depends on libwebsockets, which is available here: https://github.com/warmcat/libwebsockets and is also used as a submodule.
+For WebSockets support uAMQP depends on the support provided by azure-c-shared-utility (through libwebsockets).
 
 ## Setup
 
+### Build
+
 - Clone azure-uamqp-c by:
+
 ```
 git clone --recursive https://github.com/Azure/azure-uamqp-c.git
 ```
-- Create a folder build under azure-uamqp-c
-- Switch to the build folder and run
-   cmake ..
+
+- Create a folder cmake under azure-uamqp-c
+
+- Switch to the cmake folder and run
+
+```
+cmake ..
+```
+
+- Build
+
+```
+cmake --build .
+```
 
 ### Installation and Use
 Optionally, you may choose to install azure-uamqp-c on your machine:
@@ -68,6 +82,14 @@ _This requires that azure-c-shared-utility is installed (through CMake) on your 
 
 _If running tests, this requires that umock-c, azure-ctest, and azure-c-testrunnerswitcher are installed (through CMake) on your machine._
 
+### Building the tests
+
+In order to build the tests use:
+
+```
+cmake .. -Drun_unittests:bool=ON
+```
+
 ## Switching branches
 
 After any switch of branches (git checkout for example), one should also update the submodule references by:
@@ -78,9 +100,13 @@ git submodule update --init --recursive
 
 ## Websocket support
 
-- run "cmake .. -Dwsio:bool=ON" to enable websocket support.
+- To enable websocket support, run: 
 
-- build
+```
+cmake .. -Duse_wsio:bool=ON
+```
+
+- Build
 
 ## Samples
 

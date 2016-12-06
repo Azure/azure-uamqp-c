@@ -76,7 +76,6 @@ goto args-continue
 shift
 if "%1" equ "" call :usage && exit /b 1
 set MAKE_NUGET_PKG=%1
-set CMAKE_skip_unittests=ON
 goto args-continue
 
 :args-continue
@@ -113,7 +112,7 @@ pushd %build-root%\cmake\%CMAKE_DIR%
 
 if %MAKE_NUGET_PKG% == yes (
     echo ***Running CMAKE for Win32***
-    cmake %build-root% -Dskip_unittests:BOOL=%CMAKE_skip_unittests% -Duse_wsio:BOOL=%CMAKE_use_wsio% 
+    cmake %build-root% -Duse_wsio:BOOL=%CMAKE_use_wsio% 
     if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
     popd
     
@@ -123,7 +122,7 @@ if %MAKE_NUGET_PKG% == yes (
     )
     mkdir %build-root%\cmake\uamqp_x64
     pushd %build-root%\cmake\uamqp_x64
-    cmake %build-root% -Dskip_unittests:BOOL=%CMAKE_skip_unittests% -Duse_wsio:BOOL=%CMAKE_use_wsio% -G "Visual Studio 14 Win64" 
+    cmake %build-root% -Duse_wsio:BOOL=%CMAKE_use_wsio% -G "Visual Studio 14 Win64" 
     if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
     popd
     
@@ -133,20 +132,20 @@ if %MAKE_NUGET_PKG% == yes (
     )    
     mkdir %build-root%\cmake\uamqp_arm
     pushd %build-root%\cmake\uamqp_arm
-    cmake %build-root% -Dskip_unittests:BOOL=%CMAKE_skip_unittests% -Duse_wsio:BOOL=%CMAKE_use_wsio% -G "Visual Studio 14 ARM" 
+    cmake %build-root% -Duse_wsio:BOOL=%CMAKE_use_wsio% -G "Visual Studio 14 ARM" 
     if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
     
 ) else if %build-platform% == Win32 (
     echo ***Running CMAKE for Win32***   
-    cmake %build-root% -Duse_wsio:BOOL=%CMAKE_use_wsio% 
+    cmake %build-root% -Drun_unittests:BOOL=ON -Duse_wsio:BOOL=%CMAKE_use_wsio% 
     if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
 ) else if %build-platform% == arm (
     echo ***Running CMAKE for ARM***
-    cmake %build-root% -Duse_wsio:BOOL=%CMAKE_use_wsio% -G "Visual Studio 14 ARM" 
+    cmake %build-root% -Drun_unittests:BOOL=ON -Duse_wsio:BOOL=%CMAKE_use_wsio% -G "Visual Studio 14 ARM" 
     if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
 ) else (
     echo ***Running CMAKE for Win64***    
-    cmake %build-root% -Duse_wsio:BOOL=%CMAKE_use_wsio% -G "Visual Studio 14 Win64" 
+    cmake %build-root% -Drun_unittests:BOOL=ON -Duse_wsio:BOOL=%CMAKE_use_wsio% -G "Visual Studio 14 Win64" 
     if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
 )
 

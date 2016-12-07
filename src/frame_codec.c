@@ -608,7 +608,7 @@ int frame_codec_encode_frame(FRAME_CODEC_HANDLE frame_codec, uint8_t type, const
             }
 
             /* send padding bytes */
-            /* Codes_SRS_FRAME_CODEC_01_090: [If the type_specific_size – 2 does not divide by 4, frame_codec_encode_frame shall pad the type_specific bytes with zeroes so that type specific data is according to the AMQP ISO.] */
+            /* Codes_SRS_FRAME_CODEC_01_090: [If the type_specific_size â€“ 2 does not divide by 4, frame_codec_encode_frame shall pad the type_specific bytes with zeroes so that type specific data is according to the AMQP ISO.] */
             unsigned char padding_bytes[] = { 0x00, 0x00, 0x00 };
 
             /* Codes_SRS_FRAME_CODEC_01_088: [Encoded bytes shall be passed to the on_bytes_encoded callback.] */

@@ -46,7 +46,7 @@ static ON_FRAME_CODEC_ERROR saved_on_frame_codec_error;
 static void* saved_on_frame_codec_error_callback_context;
 
 
-/* Tests_SRS_SASLCLIENTIO_01_002: [The protocol header consists of the upper case ASCII letters ìAMQPî followed by a protocol id of three, followed by three unsigned bytes representing the major, minor, and revision of the specification version (currently 1 (SASL-MAJOR), 0 (SASLMINOR), 0 (SASL-REVISION)).] */
+/* Tests_SRS_SASLCLIENTIO_01_002: [The protocol header consists of the upper case ASCII letters ‚ÄúAMQP‚Äù followed by a protocol id of three, followed by three unsigned bytes representing the major, minor, and revision of the specification version (currently 1 (SASL-MAJOR), 0 (SASLMINOR), 0 (SASL-REVISION)).] */
 /* Tests_SRS_SASLCLIENTIO_01_124: [SASL-MAJOR 1 major protocol version.] */
 /* Tests_SRS_SASLCLIENTIO_01_125: [SASL-MINOR 0 minor protocol version.] */
 /* Tests_SRS_SASLCLIENTIO_01_126: [SASL-REVISION 0 protocol revision.] */

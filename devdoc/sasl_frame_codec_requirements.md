@@ -74,7 +74,7 @@ SASL performatives are framed as per Part 2: section 2.3. **SRS_SASL_FRAME_CODEC
 
 Figure 5.5: SASL Frame
 
-**SRS_SASL_FRAME_CODEC_01_008: [**The maximum size of a SASL frame is defined by MIN-MAX-FRAME-SIZE.**]** There is no mechanism within the SASL negotiation to negotiate a different size. **SRS_SASL_FRAME_CODEC_01_009: [**The frame body of a SASL frame MUST contain exactly one AMQP type, whose type encoding MUST have provides=“sasl-frame”.**]** **SRS_SASL_FRAME_CODEC_01_010: [**Receipt of an empty frame is an irrecoverable error.**]** 
+**SRS_SASL_FRAME_CODEC_01_008: [**The maximum size of a SASL frame is defined by MIN-MAX-FRAME-SIZE.**]** There is no mechanism within the SASL negotiation to negotiate a different size. **SRS_SASL_FRAME_CODEC_01_009: [**The frame body of a SASL frame MUST contain exactly one AMQP type, whose type encoding MUST have provides="sasl-frame".**]** **SRS_SASL_FRAME_CODEC_01_010: [**Receipt of an empty frame is an irrecoverable error.**]** 
 
 ##ISO section (send)
 
@@ -86,5 +86,5 @@ SASL performatives are framed as per Part 2: section 2.3. **SRS_SASL_FRAME_CODEC
 
 Figure 5.5: SASL Frame
 
-**SRS_SASL_FRAME_CODEC_01_016: [**The maximum size of a SASL frame is defined by MIN-MAX-FRAME-SIZE.**]** There is no mechanism within the SASL negotiation to negotiate a different size.  **SRS_SASL_FRAME_CODEC_01_047: [**The frame body of a SASL frame MUST contain exactly one AMQP type, whose type encoding MUST have provides=“sasl-frame”.**]** Receipt of an empty frame is an irrecoverable error. 
+**SRS_SASL_FRAME_CODEC_01_016: [**The maximum size of a SASL frame is defined by MIN-MAX-FRAME-SIZE.**]** There is no mechanism within the SASL negotiation to negotiate a different size.  **SRS_SASL_FRAME_CODEC_01_047: [**The frame body of a SASL frame MUST contain exactly one AMQP type, whose type encoding MUST have provides="sasl-frame".**]** Receipt of an empty frame is an irrecoverable error. 
 

@@ -53,7 +53,7 @@ static void amqp_value_decoded(void* context, AMQP_VALUE decoded_value)
 	}
 	else
 	{
-		/* Codes_SRS_SASL_FRAME_CODEC_01_009: [The frame body of a SASL frame MUST contain exactly one AMQP type, whose type encoding MUST have provides=“sasl-frame”.] */
+		/* Codes_SRS_SASL_FRAME_CODEC_01_009: [The frame body of a SASL frame MUST contain exactly one AMQP type, whose type encoding MUST have provides="sasl-frame".] */
 		if (!is_sasl_mechanisms_type_by_descriptor(descriptor) &&
 			!is_sasl_init_type_by_descriptor(descriptor) &&
 			!is_sasl_challenge_type_by_descriptor(descriptor) &&
@@ -120,7 +120,7 @@ static void frame_received(void* context, const unsigned char* type_specific, ui
 				}
 			}
 
-			/* Codes_SRS_SASL_FRAME_CODEC_01_009: [The frame body of a SASL frame MUST contain exactly one AMQP type, whose type encoding MUST have provides=“sasl-frame”.] */
+			/* Codes_SRS_SASL_FRAME_CODEC_01_009: [The frame body of a SASL frame MUST contain exactly one AMQP type, whose type encoding MUST have provides="sasl-frame".] */
 			if (frame_body_size > 0)
 			{
 				sasl_frame_codec_instance->decode_state = SASL_FRAME_DECODE_ERROR;
@@ -239,7 +239,7 @@ int sasl_frame_codec_encode_frame(SASL_FRAME_CODEC_HANDLE sasl_frame_codec, cons
 
 		if (((descriptor = amqpvalue_get_inplace_descriptor(sasl_frame_value)) == NULL) ||
 			(amqpvalue_get_ulong(descriptor, &sasl_frame_descriptor_ulong) != 0) ||
-			/* Codes_SRS_SASL_FRAME_CODEC_01_047: [The frame body of a SASL frame MUST contain exactly one AMQP type, whose type encoding MUST have provides=“sasl-frame”.] */
+			/* Codes_SRS_SASL_FRAME_CODEC_01_047: [The frame body of a SASL frame MUST contain exactly one AMQP type, whose type encoding MUST have provides="sasl-frame".] */
 			(sasl_frame_descriptor_ulong < SASL_MECHANISMS) ||
 			(sasl_frame_descriptor_ulong > SASL_OUTCOME))
 		{

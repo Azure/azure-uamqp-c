@@ -276,7 +276,4 @@ if(${use_installed_dependencies})
         DESTINATION
             ${package_location}
     )
-
-else()
-    message(WARNING "This package may only be installed when 'use_installed_dependencies' is ON")
 endif()

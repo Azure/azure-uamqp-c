@@ -1033,9 +1033,9 @@ TEST_FUNCTION(when_io_open_fails_the_connection_state_shall_be_set_to_END)
 /* Tests_SRS_CONNECTION_01_076: [connection_dowork shall schedule the underlying IO interface to do its work by calling xio_dowork.] */
 /* Tests_SRS_CONNECTION_01_084: [The connection state machine implementing the protocol requirements shall be run as part of connection_dowork.] */
 /* Tests_SRS_CONNECTION_01_086: [Prior to sending any frames on a connection, each peer MUST start by sending a protocol header that indicates the protocol version used on the connection.] */
-/* Tests_SRS_CONNECTION_01_087: [The protocol header consists of the upper case ASCII letters ìAMQPî followed by a protocol id of zero, followed by three unsigned bytes representing the major, minor, and revision of the protocol version (currently 1 (MAJOR), 0 (MINOR), 0 (REVISION)). In total this is an 8-octet sequence] */
+/* Tests_SRS_CONNECTION_01_087: [The protocol header consists of the upper case ASCII letters ‚ÄúAMQP‚Äù followed by a protocol id of zero, followed by three unsigned bytes representing the major, minor, and revision of the protocol version (currently 1 (MAJOR), 0 (MINOR), 0 (REVISION)). In total this is an 8-octet sequence] */
 /* Tests_SRS_CONNECTION_01_091: [The AMQP peer which acted in the role of the TCP client (i.e. the peer that actively opened the connection) MUST immediately send its outgoing protocol header on establishment of the TCP connection.] */
-/* Tests_SRS_CONNECTION_01_093: [_ When the client opens a new socket connection to a server, it MUST send a protocol header with the clientís preferred protocol version.] */
+/* Tests_SRS_CONNECTION_01_093: [_ When the client opens a new socket connection to a server, it MUST send a protocol header with the client‚Äôs preferred protocol version.] */
 /* Tests_SRS_CONNECTION_01_104: [Sending the protocol header shall be done by using xio_send.] */
 /* Tests_SRS_CONNECTION_01_041: [HDR SENT In this state the connection header has been sent to the peer but no connection header has been received.] */
 TEST_FUNCTION(connection_dowork_when_state_is_start_sends_the_AMQP_header_and_triggers_io_dowork)
@@ -2543,7 +2543,7 @@ TEST_FUNCTION(when_an_open_frame_is_received_in_the_DISCARDING_state_the_connect
     connection_destroy(connection);
 }
 
-/* Tests_SRS_CONNECTION_01_010: [After writing this frame the peer SHOULD continue to read from the connection until it receives the partnerís close frame ] */
+/* Tests_SRS_CONNECTION_01_010: [After writing this frame the peer SHOULD continue to read from the connection until it receives the partner‚Äôs close frame ] */
 /* Tests_SRS_CONNECTION_01_240: [There is no requirement for an implementation to read from a socket after a close performative has been received.] */
 TEST_FUNCTION(when_in_discarding_state_the_connection_still_looks_for_the_close_frame_and_then_closes_the_io)
 {
@@ -3428,7 +3428,7 @@ TEST_FUNCTION(when_an_endpoint_is_destroyed_and_a_new_one_is_created_the_channel
 }
 
 /* Tests_SRS_CONNECTION_01_258: [connection_state_changed_callback shall be invoked whenever the connection state changes.] */
-/* Tests_SRS_CONNECTION_01_260: [Each endpointís connection_state_changed_callback shall be called.] */
+/* Tests_SRS_CONNECTION_01_260: [Each endpoint‚Äôs connection_state_changed_callback shall be called.] */
 /* Tests_SRS_CONNECTION_01_259: [As context, the callback_context passed in connection_create_endpoint shall be given.] */
 TEST_FUNCTION(when_state_changes_to_HDR_SENT_all_endpoints_are_notified)
 {
@@ -3460,7 +3460,7 @@ TEST_FUNCTION(when_state_changes_to_HDR_SENT_all_endpoints_are_notified)
 }
 
 /* Tests_SRS_CONNECTION_01_258: [connection_state_changed_callback shall be invoked whenever the connection state changes.] */
-/* Tests_SRS_CONNECTION_01_260: [Each endpointís connection_state_changed_callback shall be called.] */
+/* Tests_SRS_CONNECTION_01_260: [Each endpoint‚Äôs connection_state_changed_callback shall be called.] */
 /* Tests_SRS_CONNECTION_01_259: [As context, the callback_context passed in connection_create_endpoint shall be given.] */
 TEST_FUNCTION(when_state_changes_to_HDR_EXCH_and_HDR_OPEN_SENT_all_endpoints_are_notified)
 {
@@ -3506,7 +3506,7 @@ TEST_FUNCTION(when_state_changes_to_HDR_EXCH_and_HDR_OPEN_SENT_all_endpoints_are
 }
 
 /* Tests_SRS_CONNECTION_01_258: [connection_state_changed_callback shall be invoked whenever the connection state changes.] */
-/* Tests_SRS_CONNECTION_01_260: [Each endpointís connection_state_changed_callback shall be called.] */
+/* Tests_SRS_CONNECTION_01_260: [Each endpoint‚Äôs connection_state_changed_callback shall be called.] */
 /* Tests_SRS_CONNECTION_01_259: [As context, the callback_context passed in connection_create_endpoint shall be given.] */
 TEST_FUNCTION(when_state_changes_to_OPENED_all_endpoints_are_notified)
 {
@@ -3549,7 +3549,7 @@ TEST_FUNCTION(when_state_changes_to_OPENED_all_endpoints_are_notified)
 }
 
 /* Tests_SRS_CONNECTION_01_258: [connection_state_changed_callback shall be invoked whenever the connection state changes.] */
-/* Tests_SRS_CONNECTION_01_260: [Each endpointís connection_state_changed_callback shall be called.] */
+/* Tests_SRS_CONNECTION_01_260: [Each endpoint‚Äôs connection_state_changed_callback shall be called.] */
 /* Tests_SRS_CONNECTION_01_259: [As context, the callback_context passed in connection_create_endpoint shall be given.] */
 TEST_FUNCTION(when_state_changes_to_CLOSE_RCVD_and_END_SENT_all_endpoints_are_notified)
 {

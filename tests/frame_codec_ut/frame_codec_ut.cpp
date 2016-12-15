@@ -2233,7 +2233,7 @@ TEST_FUNCTION(when_type_specific_size_is_max_allowed_then_frame_codec_encode_fra
 	frame_codec_destroy(frame_codec);
 }
 
-/* Tests_SRS_FRAME_CODEC_01_090: [If the type_specific_size – 2 does not divide by 4, frame_codec_encode_frame shall pad the type_specific bytes with zeroes so that type specific data is according to the AMQP ISO.] */
+/* Tests_SRS_FRAME_CODEC_01_090: [If the type_specific_size â€“ 2 does not divide by 4, frame_codec_encode_frame shall pad the type_specific bytes with zeroes so that type specific data is according to the AMQP ISO.] */
 /* Tests_SRS_FRAME_CODEC_01_065: [DOFF Byte 4 of the frame header is the data offset.] */
 /* Tests_SRS_FRAME_CODEC_01_066: [This gives the position of the body within the frame.] */
 /* Tests_SRS_FRAME_CODEC_01_067: [The value of the data offset is an unsigned, 8-bit integer specifying a count of 4-byte words.] */
@@ -2265,7 +2265,7 @@ TEST_FUNCTION(one_byte_of_padding_is_added_to_type_specific_data_to_make_the_fra
 	frame_codec_destroy(frame_codec);
 }
 
-/* Tests_SRS_FRAME_CODEC_01_090: [If the type_specific_size – 2 does not divide by 4, frame_codec_encode_frame shall pad the type_specific bytes with zeroes so that type specific data is according to the AMQP ISO.] */
+/* Tests_SRS_FRAME_CODEC_01_090: [If the type_specific_size â€“ 2 does not divide by 4, frame_codec_encode_frame shall pad the type_specific bytes with zeroes so that type specific data is according to the AMQP ISO.] */
 /* Tests_SRS_FRAME_CODEC_01_065: [DOFF Byte 4 of the frame header is the data offset.] */
 /* Tests_SRS_FRAME_CODEC_01_066: [This gives the position of the body within the frame.] */
 /* Tests_SRS_FRAME_CODEC_01_067: [The value of the data offset is an unsigned, 8-bit integer specifying a count of 4-byte words.] */

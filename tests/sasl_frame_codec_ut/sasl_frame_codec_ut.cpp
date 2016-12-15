@@ -1049,7 +1049,7 @@ TEST_FUNCTION(when_the_frame_size_is_exactly_MIN_MAX_FRAME_SIZE_decoding_succeed
 	sasl_frame_codec_destroy(sasl_frame_codec);
 }
 
-/* Tests_SRS_SASL_FRAME_CODEC_01_009: [The frame body of a SASL frame MUST contain exactly one AMQP type, whose type encoding MUST have provides=ìsasl-frameî.] */
+/* Tests_SRS_SASL_FRAME_CODEC_01_009: [The frame body of a SASL frame MUST contain exactly one AMQP type, whose type encoding MUST have provides=‚Äúsasl-frame‚Äù.] */
 /* Tests_SRS_SASL_FRAME_CODEC_01_049: [If any error occurs while decoding a frame, the decoder shall call the error_callback and pass to it the callback_context, both of those being the ones given to sasl_frame_codec_create.] */
 TEST_FUNCTION(when_not_all_bytes_are_used_for_decoding_in_a_SASL_frame_then_decoding_fails)
 {
@@ -1078,7 +1078,7 @@ TEST_FUNCTION(when_not_all_bytes_are_used_for_decoding_in_a_SASL_frame_then_deco
 	sasl_frame_codec_destroy(sasl_frame_codec);
 }
 
-/* Tests_SRS_SASL_FRAME_CODEC_01_009: [The frame body of a SASL frame MUST contain exactly one AMQP type, whose type encoding MUST have provides=ìsasl-frameî.] */
+/* Tests_SRS_SASL_FRAME_CODEC_01_009: [The frame body of a SASL frame MUST contain exactly one AMQP type, whose type encoding MUST have provides=‚Äúsasl-frame‚Äù.] */
 TEST_FUNCTION(when_a_sasl_init_frame_is_received_decoding_it_succeeds)
 {
 	// arrange
@@ -1105,7 +1105,7 @@ TEST_FUNCTION(when_a_sasl_init_frame_is_received_decoding_it_succeeds)
 	sasl_frame_codec_destroy(sasl_frame_codec);
 }
 
-/* Tests_SRS_SASL_FRAME_CODEC_01_009: [The frame body of a SASL frame MUST contain exactly one AMQP type, whose type encoding MUST have provides=ìsasl-frameî.] */
+/* Tests_SRS_SASL_FRAME_CODEC_01_009: [The frame body of a SASL frame MUST contain exactly one AMQP type, whose type encoding MUST have provides=‚Äúsasl-frame‚Äù.] */
 TEST_FUNCTION(when_a_sasl_challenge_frame_is_received_decoding_it_succeeds)
 {
 	// arrange
@@ -1134,7 +1134,7 @@ TEST_FUNCTION(when_a_sasl_challenge_frame_is_received_decoding_it_succeeds)
 	sasl_frame_codec_destroy(sasl_frame_codec);
 }
 
-/* Tests_SRS_SASL_FRAME_CODEC_01_009: [The frame body of a SASL frame MUST contain exactly one AMQP type, whose type encoding MUST have provides=ìsasl-frameî.] */
+/* Tests_SRS_SASL_FRAME_CODEC_01_009: [The frame body of a SASL frame MUST contain exactly one AMQP type, whose type encoding MUST have provides=‚Äúsasl-frame‚Äù.] */
 TEST_FUNCTION(when_a_sasl_response_frame_is_received_decoding_it_succeeds)
 {
 	// arrange
@@ -1165,7 +1165,7 @@ TEST_FUNCTION(when_a_sasl_response_frame_is_received_decoding_it_succeeds)
 	sasl_frame_codec_destroy(sasl_frame_codec);
 }
 
-/* Tests_SRS_SASL_FRAME_CODEC_01_009: [The frame body of a SASL frame MUST contain exactly one AMQP type, whose type encoding MUST have provides=ìsasl-frameî.] */
+/* Tests_SRS_SASL_FRAME_CODEC_01_009: [The frame body of a SASL frame MUST contain exactly one AMQP type, whose type encoding MUST have provides=‚Äúsasl-frame‚Äù.] */
 TEST_FUNCTION(when_a_sasl_outcome_frame_is_received_decoding_it_succeeds)
 {
 	// arrange
@@ -1198,7 +1198,7 @@ TEST_FUNCTION(when_a_sasl_outcome_frame_is_received_decoding_it_succeeds)
 	sasl_frame_codec_destroy(sasl_frame_codec);
 }
 
-/* Tests_SRS_SASL_FRAME_CODEC_01_009: [The frame body of a SASL frame MUST contain exactly one AMQP type, whose type encoding MUST have provides=ìsasl-frameî.] */
+/* Tests_SRS_SASL_FRAME_CODEC_01_009: [The frame body of a SASL frame MUST contain exactly one AMQP type, whose type encoding MUST have provides=‚Äúsasl-frame‚Äù.] */
 /* Tests_SRS_SASL_FRAME_CODEC_01_049: [If any error occurs while decoding a frame, the decoder shall call the error_callback and pass to it the callback_context, both of those being the ones given to sasl_frame_codec_create.] */
 TEST_FUNCTION(when_an_AMQP_value_that_is_not_a_sasl_frame_is_decoded_then_decoding_fails)
 {

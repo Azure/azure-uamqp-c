@@ -87,7 +87,14 @@ extern "C" {
 <#              { #>
 <#					foreach (choice choice in type.Items.Where(item => item is choice)) #>
 <#					{ #>
+<#			            if (type.@source == "symbol") #>
+<#					    { #>
+	#define <#= type_name #>_<#= choice.name.Replace('-', '_').Replace(':', '_') #> "<#= choice.value #>"
+<#					    } #>
+<#					    else #>
+<#					    { #>
 	#define <#= type_name #>_<#= choice.name.Replace('-', '_').Replace(':', '_') #> <#= choice.value.Replace('-', '_').Replace(':', '_') #>
+<#					    } #>
 <#					} #>
 <#				} #>
 

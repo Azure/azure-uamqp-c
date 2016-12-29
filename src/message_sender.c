@@ -102,7 +102,7 @@ static void on_delivery_settled(void* context, delivery_number delivery_no, AMQP
     if (message_with_callback->on_message_send_complete != NULL)
     {
         AMQP_VALUE descriptor = amqpvalue_get_inplace_descriptor(delivery_state);
-        if (descriptor == NULL)
+        if ((descriptor == NULL) && (delivery_state != NULL))
         {
             LogError("Error getting descriptor for delivery state");
         }

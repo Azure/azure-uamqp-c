@@ -1,7 +1,6 @@
 ﻿#amqp_frame_codec requirements
 
 
- 
 ##Overview
 
 amqp_frame_codec is module that encodes/decodes AMQP frames per the AMQP ISO.

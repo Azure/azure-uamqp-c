@@ -212,19 +212,19 @@ extern "C" {
 
 	#define amqpvalue_get_amqp_error amqpvalue_get_symbol
 
-	#define amqp_error_internal_error amqp_internal_error
-	#define amqp_error_not_found amqp_not_found
-	#define amqp_error_unauthorized_access amqp_unauthorized_access
-	#define amqp_error_decode_error amqp_decode_error
-	#define amqp_error_resource_limit_exceeded amqp_resource_limit_exceeded
-	#define amqp_error_not_allowed amqp_not_allowed
-	#define amqp_error_invalid_field amqp_invalid_field
-	#define amqp_error_not_implemented amqp_not_implemented
-	#define amqp_error_resource_locked amqp_resource_locked
-	#define amqp_error_precondition_failed amqp_precondition_failed
-	#define amqp_error_resource_deleted amqp_resource_deleted
-	#define amqp_error_illegal_state amqp_illegal_state
-	#define amqp_error_frame_size_too_small amqp_frame_size_too_small
+	#define amqp_error_internal_error "amqp:internal-error"
+	#define amqp_error_not_found "amqp:not-found"
+	#define amqp_error_unauthorized_access "amqp:unauthorized-access"
+	#define amqp_error_decode_error "amqp:decode-error"
+	#define amqp_error_resource_limit_exceeded "amqp:resource-limit-exceeded"
+	#define amqp_error_not_allowed "amqp:not-allowed"
+	#define amqp_error_invalid_field "amqp:invalid-field"
+	#define amqp_error_not_implemented "amqp:not-implemented"
+	#define amqp_error_resource_locked "amqp:resource-locked"
+	#define amqp_error_precondition_failed "amqp:precondition-failed"
+	#define amqp_error_resource_deleted "amqp:resource-deleted"
+	#define amqp_error_illegal_state "amqp:illegal-state"
+	#define amqp_error_frame_size_too_small "amqp:frame-size-too-small"
 
 /* connection-error */
 
@@ -237,9 +237,9 @@ extern "C" {
 
 	#define amqpvalue_get_connection_error amqpvalue_get_symbol
 
-	#define connection_error_connection_forced amqp_connection_forced
-	#define connection_error_framing_error amqp_connection_framing_error
-	#define connection_error_redirect amqp_connection_redirect
+	#define connection_error_connection_forced "amqp:connection:forced"
+	#define connection_error_framing_error "amqp:connection:framing-error"
+	#define connection_error_redirect "amqp:connection:redirect"
 
 /* session-error */
 
@@ -252,10 +252,10 @@ extern "C" {
 
 	#define amqpvalue_get_session_error amqpvalue_get_symbol
 
-	#define session_error_window_violation amqp_session_window_violation
-	#define session_error_errant_link amqp_session_errant_link
-	#define session_error_handle_in_use amqp_session_handle_in_use
-	#define session_error_unattached_handle amqp_session_unattached_handle
+	#define session_error_window_violation "amqp:session:window-violation"
+	#define session_error_errant_link "amqp:session:errant-link"
+	#define session_error_handle_in_use "amqp:session:handle-in-use"
+	#define session_error_unattached_handle "amqp:session:unattached-handle"
 
 /* link-error */
 
@@ -268,11 +268,11 @@ extern "C" {
 
 	#define amqpvalue_get_link_error amqpvalue_get_symbol
 
-	#define link_error_detach_forced amqp_link_detach_forced
-	#define link_error_transfer_limit_exceeded amqp_link_transfer_limit_exceeded
-	#define link_error_message_size_exceeded amqp_link_message_size_exceeded
-	#define link_error_redirect amqp_link_redirect
-	#define link_error_stolen amqp_link_stolen
+	#define link_error_detach_forced "amqp:link:detach-forced"
+	#define link_error_transfer_limit_exceeded "amqp:link:transfer-limit-exceeded"
+	#define link_error_message_size_exceeded "amqp:link:message-size-exceeded"
+	#define link_error_redirect "amqp:link:redirect"
+	#define link_error_stolen "amqp:link:stolen"
 
 /* open */
 
@@ -631,10 +631,10 @@ extern "C" {
 
 	#define amqpvalue_get_terminus_expiry_policy amqpvalue_get_symbol
 
-	#define terminus_expiry_policy_link_detach link_detach
-	#define terminus_expiry_policy_session_end session_end
-	#define terminus_expiry_policy_connection_close connection_close
-	#define terminus_expiry_policy_never never
+	#define terminus_expiry_policy_link_detach "link-detach"
+	#define terminus_expiry_policy_session_end "session-end"
+	#define terminus_expiry_policy_connection_close "connection-close"
+	#define terminus_expiry_policy_never "never"
 
 /* node-properties */
 

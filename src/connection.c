@@ -22,7 +22,7 @@
 /* Codes_SRS_CONNECTION_01_088: [Any data appearing beyond the protocol header MUST match the version indicated by the protocol header.] */
 /* Codes_SRS_CONNECTION_01_015: [Implementations SHOULD NOT expect to be able to reuse open TCP sockets after close performatives have been exchanged.] */
 
-/* Codes_SRS_CONNECTION_01_087: [The protocol header consists of the upper case ASCII letters “AMQP” followed by a protocol id of zero, followed by three unsigned bytes representing the major, minor, and revision of the protocol version (currently 1 (MAJOR), 0 (MINOR), 0 (REVISION)). In total this is an 8-octet sequence] */
+/* Codes_SRS_CONNECTION_01_087: [The protocol header consists of the upper case ASCII letters "AMQP" followed by a protocol id of zero, followed by three unsigned bytes representing the major, minor, and revision of the protocol version (currently 1 (MAJOR), 0 (MINOR), 0 (REVISION)). In total this is an 8-octet sequence] */
 static const unsigned char amqp_header[] = { 'A', 'M', 'Q', 'P', 0, 1, 0, 0 };
 
 typedef enum RECEIVE_FRAME_STATE_TAG
@@ -71,8 +71,8 @@ typedef struct CONNECTION_INSTANCE_TAG
     uint16_t channel_max;
     milliseconds idle_timeout;
     milliseconds remote_idle_timeout;
-    uint64_t last_frame_received_time;
-    uint64_t last_frame_sent_time;
+    tickcounter_ms_t last_frame_received_time;
+    tickcounter_ms_t last_frame_sent_time;
 
     unsigned int is_underlying_io_open : 1;
     unsigned int idle_timeout_specified : 1;
@@ -94,7 +94,7 @@ static void connection_set_state(CONNECTION_INSTANCE* connection_instance, CONNE
         connection_instance->on_connection_state_changed(connection_instance->on_connection_state_changed_callback_context, connection_state, previous_state);
     }
 
-    /* Codes_SRS_CONNECTION_01_260: [Each endpoint’s on_connection_state_changed shall be called.] */
+    /* Codes_SRS_CONNECTION_01_260: [Each endpoint's on_connection_state_changed shall be called.] */
     for (i = 0; i < connection_instance->endpoint_count; i++)
     {
         /* Codes_SRS_CONNECTION_01_259: [The callback_context passed in connection_create_endpoint.] */
@@ -106,7 +106,7 @@ static int send_header(CONNECTION_INSTANCE* connection_instance)
 {
     int result;
 
-    /* Codes_SRS_CONNECTION_01_093: [_ When the client opens a new socket connection to a server, it MUST send a protocol header with the client’s preferred protocol version.] */
+    /* Codes_SRS_CONNECTION_01_093: [_ When the client opens a new socket connection to a server, it MUST send a protocol header with the client's preferred protocol version.] */
     /* Codes_SRS_CONNECTION_01_104: [Sending the protocol header shall be done by using xio_send.] */
     if (xio_send(connection_instance->io, amqp_header, sizeof(amqp_header), NULL, NULL) != 0)
     {
@@ -421,7 +421,7 @@ static void close_connection_with_error(CONNECTION_INSTANCE* connection_instance
         {
             /* Codes_SRS_CONNECTION_01_213: [When passing the bytes to frame_codec fails, a CLOSE frame shall be sent and the state shall be set to DISCARDING.] */
             /* Codes_SRS_CONNECTION_01_055: [DISCARDING The DISCARDING state is a variant of the CLOSE SENT state where the close is triggered by an error.] */
-            /* Codes_SRS_CONNECTION_01_010: [After writing this frame the peer SHOULD continue to read from the connection until it receives the partner’s close frame ] */
+            /* Codes_SRS_CONNECTION_01_010: [After writing this frame the peer SHOULD continue to read from the connection until it receives the partner's close frame ] */
             connection_set_state(connection_instance, CONNECTION_STATE_DISCARDING);
         }
 
@@ -1357,7 +1357,7 @@ uint64_t connection_handle_deadlines(CONNECTION_HANDLE connection)
 
     if (connection != NULL)
     {
-        uint64_t current_ms;
+        tickcounter_ms_t current_ms;
 
         if (tickcounter_get_current_ms(connection->tick_counter, &current_ms) != 0)
         {

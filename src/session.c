@@ -1014,6 +1014,7 @@ LINK_ENDPOINT_HANDLE session_create_link_endpoint(SESSION_HANDLE session, const 
 			result->frame_received_callback = NULL;
 			result->callback_context = NULL;
 			result->output_handle = selected_handle;
+			result->input_handle = 0xFFFFFFFF;
 			result->name = amqpalloc_malloc(strlen(name) + 1);
 			if (result->name == NULL)
 			{

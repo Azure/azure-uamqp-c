@@ -176,7 +176,7 @@ When a frame is indicated as received by sasl_frame_codec it shall be processed 
 ##ISO section
 
 **SRS_SASLCLIENTIO_01_001: [**To establish a SASL layer, each peer MUST start by sending a protocol header.**]** 
-**SRS_SASLCLIENTIO_01_002: [**The protocol header consists of the upper case ASCII letters “AMQP” followed by a protocol id of three, followed by three unsigned bytes representing the major, minor, and revision of the specification version (currently 1 (SASL-MAJOR), 0 (SASLMINOR), 0 (SASL-REVISION)).**]** In total this is an 8-octet sequence:
+**SRS_SASLCLIENTIO_01_002: [**The protocol header consists of the upper case ASCII letters "AMQP" followed by a protocol id of three, followed by three unsigned bytes representing the major, minor, and revision of the specification version (currently 1 (SASL-MAJOR), 0 (SASLMINOR), 0 (SASL-REVISION)).**]** In total this is an 8-octet sequence:
 
 ...
 
@@ -257,7 +257,7 @@ initial-response security response data
 hostname the name of the target host
 **SRS_SASLCLIENTIO_01_049: [**The DNS name of the host (either fully qualified or relative) to which the sending peer is connecting.**]** 
 **SRS_SASLCLIENTIO_01_050: [**It is not mandatory to provide the hostname.**]** If no hostname is provided the receiving peer SHOULD select a default based on its own configuration.
-This field can be used by AMQP proxies to determine the correct back-end service to connect the client to, and to determine the domain to validate the client’s credentials against.
+This field can be used by AMQP proxies to determine the correct back-end service to connect the client to, and to determine the domain to validate the client's credentials against.
 **SRS_SASLCLIENTIO_01_051: [**This field might already have been specified by the server name indication extension as described in RFC-4366 [RFC4366**]**, if a TLS layer is used, in which case this field SHOULD either be null or contain the same value.] It is undefined what a different value to those already specified means.
 
 5.3.3.3 SASL Challenge

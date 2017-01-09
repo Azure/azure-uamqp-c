@@ -1044,7 +1044,7 @@ int open_get_max_frame_size(OPEN_HANDLE open, uint32_t* max_frame_size_value)
 		AMQP_VALUE item_value = amqpvalue_get_composite_item_in_place(open_instance->composite_value, 2);
 		if (item_value == NULL)
 		{
-			*max_frame_size_value = 4294967295;
+			*max_frame_size_value = 4294967295u;
             result = 0;
 		}
 		else
@@ -1057,7 +1057,7 @@ int open_get_max_frame_size(OPEN_HANDLE open, uint32_t* max_frame_size_value)
                 }
                 else
                 {
-			        *max_frame_size_value = 4294967295;
+			        *max_frame_size_value = 4294967295u;
                     result = 0;
                 }
 			}
@@ -2186,7 +2186,7 @@ int begin_get_handle_max(BEGIN_HANDLE begin, handle* handle_max_value)
 		AMQP_VALUE item_value = amqpvalue_get_composite_item_in_place(begin_instance->composite_value, 4);
 		if (item_value == NULL)
 		{
-			*handle_max_value = 4294967295;
+			*handle_max_value = 4294967295u;
             result = 0;
 		}
 		else
@@ -2199,7 +2199,7 @@ int begin_get_handle_max(BEGIN_HANDLE begin, handle* handle_max_value)
                 }
                 else
                 {
-			        *handle_max_value = 4294967295;
+			        *handle_max_value = 4294967295u;
                     result = 0;
                 }
 			}

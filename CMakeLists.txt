@@ -31,6 +31,7 @@ IF(WIN32)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
     # Make warning as error
     add_definitions(/WX)
+elseif(OSX)
 ELSE()
     # Make warning as error
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")

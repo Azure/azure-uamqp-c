@@ -288,7 +288,22 @@ int <#= type_name #>_get_<#= field_name #>(<#= type_name.ToUpper() #>_HANDLE <#=
 		AMQP_VALUE item_value = amqpvalue_get_composite_item_in_place(<#= type_name #>_instance->composite_value, <#= j #>);
 		if (item_value == NULL)
 		{
+<#					    if (field.@default != null) #>
+<#					    { #>
+<#			                if ((field_type != null) && (field_type.@class == typeClass.restricted) && (field_type.Items != null)) #>
+<#					        { #>
+            *<#= field_name #>_value = <#= field_type.@name.Replace('-', '_').Replace(':', '_') #>_<#= field.@default.Replace('-', '_').Replace(':', '_') #>;
+<#					        } #>
+<#					        else #>
+<#					        { #>
+			*<#= field_name #>_value = <#= field.@default #>;
+<#					        } #>
+            result = 0;
+<#					    } #>
+<#					    else #>
+<#					    { #>
 			result = __LINE__;
+<#					    } #>
 		}
 		else
 		{
@@ -308,7 +323,29 @@ int <#= type_name #>_get_<#= field_name #>(<#= type_name.ToUpper() #>_HANDLE <#=
 			if (amqpvalue_get_array(item_value, <#= field_name #>_value) != 0)
 <#							} #>
 			{
-				result = __LINE__;
+<#					    if (field.@default != null) #>
+<#					    { #>
+                if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
+                {
+    			    result = __LINE__;
+                }
+                else
+                {
+<#			                if ((field_type != null) && (field_type.@class == typeClass.restricted) && (field_type.Items != null)) #>
+<#					        { #>
+                    *<#= field_name #>_value = <#= field_type.@name.Replace('-', '_').Replace(':', '_') #>_<#= field.@default.Replace('-', '_').Replace(':', '_') #>;
+<#					        } #>
+<#					        else #>
+<#					        { #>
+			        *<#= field_name #>_value = <#= field.@default #>;
+<#					        } #>
+                    result = 0;
+                }
+<#					    } #>
+<#					    else #>
+<#					    { #>
+			    result = __LINE__;
+<#					    } #>
 			}
 			else
 			{

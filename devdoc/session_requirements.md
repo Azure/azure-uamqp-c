@@ -141,7 +141,7 @@ Figure 2.27: Session End Sequence
 
 2.5.3 Simultaneous End
 
-Due to the potentially asynchronous nature of sessions, it is possible that both peers simultaneously decide to end a session. If this happens, it will appear to each peer as though their partner’s spontaneously initiated end frame is actually an answer to the peers initial end frame.
+Due to the potentially asynchronous nature of sessions, it is possible that both peers simultaneously decide to end a session. If this happens, it will appear to each peer as though their partner's spontaneously initiated end frame is actually an answer to the peers initial end frame.
 
 ...
 
@@ -149,7 +149,7 @@ Figure 2.28: Simultaneous Session End Sequence
 
 2.5.4 Session Errors
 
-**SRS_SESSION_01_010: [**When a session is unable to process input, it MUST indicate this by issuing an END with an appropriate error indicating the cause of the problem.**]** **SRS_SESSION_01_011: [**It MUST then proceed to discard all incoming frames from the remote endpoint until receiving the remote endpoint’s corresponding end frame.**]** 
+**SRS_SESSION_01_010: [**When a session is unable to process input, it MUST indicate this by issuing an END with an appropriate error indicating the cause of the problem.**]** **SRS_SESSION_01_011: [**It MUST then proceed to discard all incoming frames from the remote endpoint until receiving the remote endpoint's corresponding end frame.**]** 
 
 ...
 
@@ -169,7 +169,7 @@ END SENT In the END SENT state, the session endpoint has an entry in the incomin
 
 END RCVD In the END RCVD state, the session endpoint is assigned an outgoing channel number, but there is no entry in the incoming channel map. The endpoint MAY send frames, but cannot receive them.
 
-DISCARDING The DISCARDING state is a variant of the END SENT state where the end is triggered by an error. In this case any incoming frames on the session MUST be silently discarded until the peer’s end frame is received.
+DISCARDING The DISCARDING state is a variant of the END SENT state where the end is triggered by an error. In this case any incoming frames on the session MUST be silently discarded until the peer's end frame is received.
 
 ...
 
@@ -184,8 +184,8 @@ There is no obligation to retain a session endpoint after it transitions to the 
 **SRS_SESSION_01_015: [**incoming-window The incoming-window defines the maximum number of incoming transfer frames that the endpoint can currently receive.**]** This identifies a current maximum incoming transfer-id that can be computed by subtracting one from the sum of incoming-window and next-incomingid.
 **SRS_SESSION_01_016: [**next-outgoing-id The next-outgoing-id is the transfer-id to assign to the next transfer frame.**]** **SRS_SESSION_01_017: [**The nextoutgoing-id MAY be initialized to an arbitrary value **]** and **SRS_SESSION_01_018: [**is incremented after each successive transfer according to RFC-1982 [RFC1982**]** serial number arithmetic.] 
 **SRS_SESSION_01_019: [**outgoing-window The outgoing-window defines the maximum number of outgoing transfer frames that the endpoint can currently send.**]** This identifies a current maximum outgoing transfer-id that can be computed by subtracting one from the sum of outgoing-window and next-outgoing-id.
-**SRS_SESSION_01_020: [**remote-incoming-window The remote-incoming-window reflects the maximum number of outgoing transfers that can be sent without exceeding the remote endpoint’s incoming-window.**]****SRS_SESSION_01_021: [**This value MUST be decremented after every transfer frame is sent**]**,**SRS_SESSION_01_022: [**and recomputed when informed of the remote session endpoint state.**]** 
-**SRS_SESSION_01_023: [**remote-outgoing-window The remote-outgoing-window reflects the maximum number of incoming transfers that MAY arrive without exceeding the remote endpoint’s outgoing-window.**]****SRS_SESSION_01_024: [**This value MUST be decremented after every incoming transfer frame is received**]**, **SRS_SESSION_01_025: [**and recomputed when informed of the remote session endpoint state.**]** When this window shrinks, it is an indication of outstanding transfers. Settling outstanding transfers can cause the window to grow.
+**SRS_SESSION_01_020: [**remote-incoming-window The remote-incoming-window reflects the maximum number of outgoing transfers that can be sent without exceeding the remote endpoint's incoming-window.**]****SRS_SESSION_01_021: [**This value MUST be decremented after every transfer frame is sent**]**,**SRS_SESSION_01_022: [**and recomputed when informed of the remote session endpoint state.**]** 
+**SRS_SESSION_01_023: [**remote-outgoing-window The remote-outgoing-window reflects the maximum number of incoming transfers that MAY arrive without exceeding the remote endpoint's outgoing-window.**]****SRS_SESSION_01_024: [**This value MUST be decremented after every incoming transfer frame is received**]**, **SRS_SESSION_01_025: [**and recomputed when informed of the remote session endpoint state.**]** When this window shrinks, it is an indication of outstanding transfers. Settling outstanding transfers can cause the window to grow.
 **SRS_SESSION_01_026: [**Once initialized, this state is updated by various events that occur in the lifespan of a session and its associated links:**]** 
 **SRS_SESSION_01_027: [**sending a transfer Upon sending a transfer, the sending endpoint will increment its next-outgoing-id**]**, **SRS_SESSION_01_062: [**decrement its remote-incoming-window**]** ,**SRS_SESSION_01_063: [**and MAY (depending on policy) decrement its outgoing window**]** . 
 **SRS_SESSION_01_028: [**receiving a transfer Upon receiving a transfer, the receiving endpoint will increment the next-incoming-id to match the implicit transfer-id of the incoming transfer plus one, as well as decrementing the remote-outgoing-window, and MAY (depending on policy) decrement its incoming-window.**]** 

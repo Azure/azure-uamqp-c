@@ -158,7 +158,7 @@ static int send_sasl_header(SASL_CLIENT_IO_INSTANCE* sasl_client_io_instance)
     {
         if (sasl_client_io_instance->is_trace_on == 1)
         {
-            LOG(LOG_TRACE, LOG_LINE, "-> Header (AMQP 3.1.0.0)");
+            LOG(AZ_LOG_TRACE, LOG_LINE, "-> Header (AMQP 3.1.0.0)");
         }
         result = 0;
     }
@@ -273,10 +273,10 @@ static void log_incoming_frame(AMQP_VALUE performative)
         AMQP_VALUE descriptor = amqpvalue_get_inplace_descriptor(performative);
         if (descriptor != NULL)
         {
-            LOG(LOG_TRACE, 0, "<- ");
-            LOG(LOG_TRACE, 0, (char*)get_frame_type_as_string(descriptor));
+            LOG(AZ_LOG_TRACE, 0, "<- ");
+            LOG(AZ_LOG_TRACE, 0, (char*)get_frame_type_as_string(descriptor));
             char* performative_as_string = NULL;
-            LOG(LOG_TRACE, LOG_LINE, (performative_as_string = amqpvalue_to_string(performative)));
+            LOG(AZ_LOG_TRACE, LOG_LINE, (performative_as_string = amqpvalue_to_string(performative)));
             if (performative_as_string != NULL)
             {
                 amqpalloc_free(performative_as_string);
@@ -296,10 +296,10 @@ static void log_outgoing_frame(AMQP_VALUE performative)
         AMQP_VALUE descriptor = amqpvalue_get_inplace_descriptor(performative);
         if (descriptor != NULL)
         {
-            LOG(LOG_TRACE, 0, "-> ");
-            LOG(LOG_TRACE, 0, (char*)get_frame_type_as_string(descriptor));
+            LOG(AZ_LOG_TRACE, 0, "-> ");
+            LOG(AZ_LOG_TRACE, 0, (char*)get_frame_type_as_string(descriptor));
             char* performative_as_string = NULL;
-            LOG(LOG_TRACE, LOG_LINE, (performative_as_string = amqpvalue_to_string(performative)));
+            LOG(AZ_LOG_TRACE, LOG_LINE, (performative_as_string = amqpvalue_to_string(performative)));
             if (performative_as_string != NULL)
             {
                 amqpalloc_free(performative_as_string);
@@ -362,7 +362,7 @@ static int saslclientio_receive_byte(SASL_CLIENT_IO_INSTANCE* sasl_client_io_ins
             {
                 if (sasl_client_io_instance->is_trace_on == 1)
                 {
-                    LOG(LOG_TRACE, LOG_LINE, "<- Header (AMQP 3.1.0.0)");
+                    LOG(AZ_LOG_TRACE, LOG_LINE, "<- Header (AMQP 3.1.0.0)");
                 }
 
                 switch (sasl_client_io_instance->sasl_header_exchange_state)

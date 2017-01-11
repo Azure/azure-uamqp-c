@@ -145,8 +145,8 @@ static void log_message_chunk(MESSAGE_SENDER_INSTANCE* message_sender_instance, 
     if (xlogging_get_log_function() != NULL && message_sender_instance->is_trace_on == 1)
     {
         char* value_as_string = NULL;
-        LOG(LOG_TRACE, 0, "%s", name);
-        LOG(LOG_TRACE, 0, "%s", (value_as_string = amqpvalue_to_string(value)));
+        LOG(AZ_LOG_TRACE, 0, "%s", name);
+        LOG(AZ_LOG_TRACE, 0, "%s", (value_as_string = amqpvalue_to_string(value)));
         if (value_as_string != NULL)
         {
             amqpalloc_free(value_as_string);

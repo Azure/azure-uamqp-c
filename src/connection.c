@@ -123,7 +123,7 @@ static int send_header(CONNECTION_INSTANCE* connection_instance)
     {
         if (connection_instance->is_trace_on == 1)
         {
-            LOG(LOG_TRACE, LOG_LINE, "-> Header (AMQP 0.1.0.0)");
+            LOG(AZ_LOG_TRACE, LOG_LINE, "-> Header (AMQP 0.1.0.0)");
         }
 
         /* Codes_SRS_CONNECTION_01_041: [HDR SENT In this state the connection header has been sent to the peer but no connection header has been received.] */
@@ -190,10 +190,10 @@ static void log_incoming_frame(AMQP_VALUE performative)
     AMQP_VALUE descriptor = amqpvalue_get_inplace_descriptor(performative);
     if (descriptor != NULL)
     {
-        LOG(LOG_TRACE, 0, "<- ");
-        LOG(LOG_TRACE, 0, (char*)get_frame_type_as_string(descriptor));
+        LOG(AZ_LOG_TRACE, 0, "<- ");
+        LOG(AZ_LOG_TRACE, 0, (char*)get_frame_type_as_string(descriptor));
         char* performative_as_string = NULL;
-        LOG(LOG_TRACE, LOG_LINE, (performative_as_string = amqpvalue_to_string(performative)));
+        LOG(AZ_LOG_TRACE, LOG_LINE, (performative_as_string = amqpvalue_to_string(performative)));
         if (performative_as_string != NULL)
         {
             amqpalloc_free(performative_as_string);
@@ -210,10 +210,10 @@ static void log_outgoing_frame(AMQP_VALUE performative)
     AMQP_VALUE descriptor = amqpvalue_get_inplace_descriptor(performative);
     if (descriptor != NULL)
     {
-        LOG(LOG_TRACE, 0, "-> ");
-        LOG(LOG_TRACE, 0, (char*)get_frame_type_as_string(descriptor));
+        LOG(AZ_LOG_TRACE, 0, "-> ");
+        LOG(AZ_LOG_TRACE, 0, (char*)get_frame_type_as_string(descriptor));
         char* performative_as_string = NULL;
-        LOG(LOG_TRACE, LOG_LINE, (performative_as_string = amqpvalue_to_string(performative)));
+        LOG(AZ_LOG_TRACE, LOG_LINE, (performative_as_string = amqpvalue_to_string(performative)));
         if (performative_as_string != NULL)
         {
             amqpalloc_free(performative_as_string);
@@ -508,7 +508,7 @@ static int connection_byte_received(CONNECTION_INSTANCE* connection_instance, un
             {
                 if (connection_instance->is_trace_on == 1)
                 {
-                    LOG(LOG_TRACE, LOG_LINE, "<- Header (AMQP 0.1.0.0)");
+                    LOG(AZ_LOG_TRACE, LOG_LINE, "<- Header (AMQP 0.1.0.0)");
                 }
 
                 connection_set_state(connection_instance, CONNECTION_STATE_HDR_EXCH);
@@ -638,7 +638,7 @@ static void on_empty_amqp_frame_received(void* context, uint16_t channel)
     CONNECTION_INSTANCE* connection_instance = (CONNECTION_INSTANCE*)context;
     if (connection_instance->is_trace_on == 1)
     {
-        LOG(LOG_TRACE, LOG_LINE, "<- Empty frame");
+        LOG(AZ_LOG_TRACE, LOG_LINE, "<- Empty frame");
     }
     if (tickcounter_get_current_ms(connection_instance->tick_counter, &connection_instance->last_frame_received_time) != 0)
     {
@@ -794,7 +794,7 @@ static void on_amqp_frame_received(void* context, uint16_t channel, AMQP_VALUE p
                         switch (performative_ulong)
                         {
                         default:
-                            LOG(LOG_ERROR, LOG_LINE, "Bad performative: %02x", performative);
+                            LOG(AZ_LOG_ERROR, LOG_LINE, "Bad performative: %02x", performative);
                             break;
 
                         case AMQP_BEGIN:
@@ -1406,7 +1406,7 @@ uint64_t connection_handle_deadlines(CONNECTION_HANDLE connection)
                     {
                         if (connection->is_trace_on == 1)
                         {
-                            LOG(LOG_TRACE, LOG_LINE, "-> Empty frame");
+                            LOG(AZ_LOG_TRACE, LOG_LINE, "-> Empty frame");
                         }
 
                         connection->last_frame_sent_time = current_ms;

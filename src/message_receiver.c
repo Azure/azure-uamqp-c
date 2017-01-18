@@ -172,7 +172,6 @@ static AMQP_VALUE on_transfer_received(void* context, TRANSFER_HANDLE transfer, 
 		}
 		else
 		{
-			message_receiver_instance->decoded_message;
 			AMQPVALUE_DECODER_HANDLE amqpvalue_decoder = amqpvalue_decoder_create(decode_message_value_callback, message_receiver_instance);
 			if (amqpvalue_decoder == NULL)
 			{
@@ -215,6 +214,9 @@ static void on_link_state_changed(void* context, LINK_STATE new_link_state, LINK
 
 	switch (new_link_state)
 	{
+    default:
+        break;
+
 	case LINK_STATE_ATTACHED:
 		if (message_receiver_instance->message_receiver_state == MESSAGE_RECEIVER_STATE_OPENING)
 		{

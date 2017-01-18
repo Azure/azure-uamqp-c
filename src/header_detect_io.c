@@ -387,14 +387,16 @@ int headerdetectio_setoption(CONCRETE_IO_HANDLE header_detect_io, const char* op
 /*this function will clone an option given by name and value*/
 static void* headerdetectio_CloneOption(const char* name, const void* value)
 {
-    (void)(name, value);
+    (void)name;
+    (void)value;
     return NULL;
 }
 
 /*this function destroys an option previously created*/
 static void headerdetectio_DestroyOption(const char* name, const void* value)
 {
-    (void)(name, value);
+    (void)name;
+    (void)value;
 }
 
 static OPTIONHANDLER_HANDLE headerdetectio_retrieveoptions(CONCRETE_IO_HANDLE handle)

@@ -44,7 +44,9 @@ int main(int argc, char** argv)
 {
 	int result;
 
-    (void)argc, argv;
+    (void)argc;
+    (void)argv;
+
 	amqpalloc_set_memory_tracing_enabled(true);
 
 	if (platform_init() != 0)

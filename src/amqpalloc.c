@@ -27,7 +27,7 @@ static ALLOCATION* head = NULL;
 static size_t total_size = 0;
 static size_t max_size = 0;
 
-#define LOG_TRACE_MALLOC // printf
+#define LOG_TRACE_MALLOC(...) // printf
 
 #ifndef DISABLE_MEMORY_TRACE
 

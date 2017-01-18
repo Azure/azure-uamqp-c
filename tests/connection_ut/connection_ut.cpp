@@ -259,7 +259,8 @@ extern "C"
 
     extern void test_on_send_complete(void* context, IO_SEND_RESULT io_send_result)
     {
-        (void)context, io_send_result;
+        (void)context;
+        (void)io_send_result;
     }
 }
 

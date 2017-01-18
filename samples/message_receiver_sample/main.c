@@ -38,7 +38,9 @@ static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE messag
 int main(int argc, char** argv)
 {
 	int result;
-    (void)argc, argv;
+
+    (void)argc;
+    (void)argv;
 
 	XIO_HANDLE sasl_io = NULL;
 	CONNECTION_HANDLE connection = NULL;

@@ -173,7 +173,10 @@ extern "C"
 
 	extern void test_on_bytes_encoded(void* context, const unsigned char* bytes, size_t length, bool encode_complete)
 	{
-		(void)context, bytes, length, encode_complete;
+		(void)context;
+        (void)bytes;
+        (void)length;
+        (void)encode_complete;
 	}
 }
 

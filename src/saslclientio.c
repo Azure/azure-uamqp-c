@@ -633,6 +633,10 @@ static void sasl_frame_received_callback(void* context, AMQP_VALUE sasl_frame)
                 {
                     switch (sasl_client_io_instance->sasl_client_negotiation_state)
                     {
+                    default:
+                        handle_error(sasl_client_io_instance);
+                        break;
+
                     case SASL_CLIENT_NEGOTIATION_NOT_STARTED:
                     {
                         SASL_MECHANISMS_HANDLE sasl_mechanisms_handle;
@@ -1131,14 +1135,16 @@ int saslclientio_setoption(CONCRETE_IO_HANDLE sasl_client_io, const char* option
 /*this function will clone an option given by name and value*/
 static void* saslclientio_CloneOption(const char* name, const void* value)
 {
-    (void)(name, value);
+    (void)name;
+    (void)value;
     return NULL;
 }
 
 /*this function destroys an option previously created*/
 static void saslclientio_DestroyOption(const char* name, const void* value)
 {
-    (void)(name, value);
+    (void)name;
+    (void)value;
 }
 
 static OPTIONHANDLER_HANDLE saslclientio_retrieveoptions(CONCRETE_IO_HANDLE handle)

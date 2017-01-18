@@ -74,7 +74,9 @@ const char* saslmssbcbs_get_mechanism_name(CONCRETE_SASL_MECHANISM_HANDLE sasl_m
 
 int saslmssbcbs_challenge(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism, const SASL_MECHANISM_BYTES* challenge_bytes, SASL_MECHANISM_BYTES* response_bytes)
 {
-    (void)concrete_sasl_mechanism, challenge_bytes, response_bytes;
+    (void)concrete_sasl_mechanism;
+    (void)challenge_bytes;
+    (void)response_bytes;
 	return 0;
 }
 

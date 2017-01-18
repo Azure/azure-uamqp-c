@@ -46,7 +46,9 @@ static bool auth = false;
 
 static void on_cbs_operation_complete(void* context, CBS_OPERATION_RESULT cbs_operation_result, unsigned int status_code, const char* status_description)
 {
-	(void)context, status_code, status_description;
+    (void)context;
+    (void)status_code;
+    (void)status_description;
 
 	if (cbs_operation_result == CBS_OPERATION_RESULT_OK)
 	{
@@ -66,7 +68,9 @@ int main(int argc, char** argv)
 {
 	int result;
 
-    (void)argc, argv;
+    (void)argc;
+    (void)argv;
+
     amqpalloc_set_memory_tracing_enabled(true);
 
 	if (platform_init() != 0)

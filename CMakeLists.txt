@@ -40,7 +40,6 @@ option(run_e2e_tests "set run_e2e_tests to ON to run e2e tests (default is OFF) 
 option(run_longhaul_tests "set run_longhaul_tests to ON to run longhaul tests (default is OFF)[if possible, they are always built]" OFF)
 option(run_unittests "set run_unittests to ON to run unittests (default is OFF)" OFF)
 option(skip_samples "set skip_samples to ON to skip building samples (default is OFF)[if possible, they are always built]" OFF)
-option(leak_detection "set leak_detection to ON (default is OFF)" OFF)
 option(compileOption_C "passes a string to the command line of the C compiler" OFF)
 option(compileOption_CXX "passes a string to the command line of the C++ compiler" OFF)
 option(use_wsio "set use_wsio to ON to use libwebsockets for WebSocket support (default is OFF)" OFF)
@@ -140,10 +139,6 @@ option(memory_trace "set memory_trace to ON if memory usage is to be used, set t
 include_directories(${CMAKE_CURRENT_LIST_DIR}/inc ${SHARED_UTIL_INC_FOLDER})
 
 add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-
-if(${leak_detection})
-    add_definitions(-D_CRTDBG_MAP_ALLOC)
-endif()
 
 if(${memory_trace})
 else()

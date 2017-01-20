@@ -2,9 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 #include <stdlib.h>
-#ifdef _CRTDBG_MAP_ALLOC
-#include <crtdbg.h>
-#endif
 #include <stdio.h>
 #include <stdbool.h>
 #include "azure_c_shared_utility/platform.h"
@@ -127,10 +124,6 @@ int main(int argc, char** argv)
 		printf("Max memory usage:%lu\r\n", (unsigned long)amqpalloc_get_maximum_memory_used());
 		printf("Current memory usage:%lu\r\n", (unsigned long)amqpalloc_get_current_memory_used());
 	}
-
-#ifdef _CRTDBG_MAP_ALLOC
-	_CrtDumpMemoryLeaks();
-#endif
 
 	return result;
 }

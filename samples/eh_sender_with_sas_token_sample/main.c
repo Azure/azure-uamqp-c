@@ -2,9 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 #include <stdlib.h>
-#ifdef _CRTDBG_MAP_ALLOC
-#include <crtdbg.h>
-#endif
 #include <stdio.h>
 #include <stdbool.h>
 #include <time.h>
@@ -234,10 +231,6 @@ int main(int argc, char** argv)
 
 		result = 0;
 	}
-
-#ifdef _CRTDBG_MAP_ALLOC
-	_CrtDumpMemoryLeaks();
-#endif
 
 	return result;
 }

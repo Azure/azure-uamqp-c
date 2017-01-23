@@ -126,7 +126,7 @@ public:
         if (new_frame_codec_bytes != NULL)
         {
             frame_codec_bytes = new_frame_codec_bytes;
-            memcpy(frame_codec_bytes + frame_codec_byte_count, buffer, size);
+            (void)memcpy(frame_codec_bytes + frame_codec_byte_count, buffer, size);
             frame_codec_byte_count += size;
         }
     MOCK_METHOD_END(int, 0);

@@ -2,9 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 #include <stdlib.h>
-#ifdef _CRTDBG_MAP_ALLOC
-#include <crtdbg.h>
-#endif
 #include <string.h>
 #include "azure_uamqp_c/message.h"
 #include "azure_uamqp_c/amqpvalue.h"
@@ -715,8 +712,8 @@ int message_add_body_amqp_data(MESSAGE_HANDLE message, BINARY_DATA binary_data)
 
 	MESSAGE_INSTANCE* message_instance = (MESSAGE_INSTANCE*)message;
 	if ((message == NULL) ||
-		(binary_data.bytes == NULL) &&
-		(binary_data.length != 0))
+		((binary_data.bytes == NULL) &&
+		 (binary_data.length != 0)))
 	{
 		result = __LINE__;
 	}

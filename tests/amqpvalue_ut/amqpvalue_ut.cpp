@@ -1,14 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-//
-// PUT NO INCLUDES BEFORE HERE !!!!
-//
 #include <cstdlib>
-#ifdef _CRTDBG_MAP_ALLOC
-#include <crtdbg.h>
-#endif
-
 #include <cstdio>
 #include "testrunnerswitcher.h"
 #include "micromock.h"

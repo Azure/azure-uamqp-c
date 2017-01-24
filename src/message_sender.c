@@ -2,9 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 #include <stdlib.h>
-#ifdef _CRTDBG_MAP_ALLOC
-#include <crtdbg.h>
-#endif
 #include <stdbool.h>
 #include <string.h>
 #include "azure_c_shared_utility/xlogging.h"
@@ -348,6 +345,10 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
             {
                 switch (message_body_type)
                 {
+                default:
+                    result = SEND_ONE_MESSAGE_ERROR;
+                    break;
+
                 case MESSAGE_BODY_TYPE_VALUE:
                 {
                     if (amqpvalue_encode(body_amqp_value, encode_bytes, &payload) != 0)
@@ -514,6 +515,9 @@ static void on_link_state_changed(void* context, LINK_STATE new_link_state, LINK
 
     switch (new_link_state)
     {
+    default:
+        break;
+
     case LINK_STATE_ATTACHED:
         if (message_sender_instance->message_sender_state == MESSAGE_SENDER_STATE_OPENING)
         {

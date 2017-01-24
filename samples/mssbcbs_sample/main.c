@@ -2,9 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 #include <stdlib.h>
-#ifdef _CRTDBG_MAP_ALLOC
-#include <crtdbg.h>
-#endif
 #include <stdio.h>
 #include <stdbool.h>
 #include "azure_c_shared_utility/platform.h"
@@ -50,7 +47,9 @@ static void on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_res
 
 static void on_cbs_operation_complete(void* context, CBS_OPERATION_RESULT cbs_operation_result, unsigned int status_code, const char* status_description)
 {
-	(void)context, status_code, status_description;
+	(void)context;
+    (void)status_code;
+    (void)status_description;
 
 	if (cbs_operation_result == CBS_OPERATION_RESULT_OK)
 	{
@@ -62,7 +61,9 @@ int main(int argc, char** argv)
 {
 	int result;
 
-    (void)argc, argv;
+    (void)argc;
+    (void)argv;
+
 	amqpalloc_set_memory_tracing_enabled(true);
 
 	if (platform_init() != 0)
@@ -197,10 +198,6 @@ int main(int argc, char** argv)
 		printf("Max memory usage:%lu\r\n", (unsigned long)amqpalloc_get_maximum_memory_used());
 		printf("Current memory usage:%lu\r\n", (unsigned long)amqpalloc_get_current_memory_used());
 	}
-
-#ifdef _CRTDBG_MAP_ALLOC
-	_CrtDumpMemoryLeaks();
-#endif
 
 	return 0;
 }

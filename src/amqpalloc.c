@@ -2,9 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 #include <stdlib.h>
-#ifdef _CRTDBG_MAP_ALLOC
-#include <crtdbg.h>
-#endif /* _CRTDBG_MAP_ALLOC */
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -27,7 +24,7 @@ static ALLOCATION* head = NULL;
 static size_t total_size = 0;
 static size_t max_size = 0;
 
-#define LOG_TRACE_MALLOC // printf
+#define LOG_TRACE_MALLOC(...) // printf
 
 #ifndef DISABLE_MEMORY_TRACE
 

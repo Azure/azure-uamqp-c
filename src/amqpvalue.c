@@ -2,9 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 #include <stdlib.h>
-#ifdef _CRTDBG_MAP_ALLOC
-#include <crtdbg.h>
-#endif
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
@@ -3785,10 +3782,10 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 				case 0xF0:
 					internal_decoder_data->decode_to_value->type = AMQP_TYPE_ARRAY;
 					internal_decoder_data->decoder_state = DECODER_STATE_TYPE_DATA;
-					internal_decoder_data->decode_to_value->value.list_value.count = 0;
-					internal_decoder_data->decode_to_value->value.list_value.items = NULL;
+					internal_decoder_data->decode_to_value->value.array_value.count = 0;
+					internal_decoder_data->decode_to_value->value.array_value.items = NULL;
 					internal_decoder_data->bytes_decoded = 0;
-					internal_decoder_data->decode_value_state.list_value_state.list_value_state = DECODE_ARRAY_STEP_SIZE;
+					internal_decoder_data->decode_value_state.array_value_state.array_value_state = DECODE_ARRAY_STEP_SIZE;
 
 					result = 0;
 					break;
@@ -5030,7 +5027,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 						{
 							internal_decoder_data->decode_value_state.array_value_state.array_value_state = DECODE_ARRAY_STEP_COUNT;
 							internal_decoder_data->bytes_decoded = 0;
-							internal_decoder_data->decode_to_value->value.list_value.count = 0;
+							internal_decoder_data->decode_to_value->value.array_value.count = 0;
 							result = 0;
 						}
 						else
@@ -5086,7 +5083,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 									internal_decoder_data->decode_value_state.array_value_state.array_value_state = DECODE_ARRAY_STEP_ITEMS;
 									internal_decoder_data->bytes_decoded = 0;
 									internal_decoder_data->inner_decoder = NULL;
-									internal_decoder_data->decode_value_state.list_value_state.item = 0;
+									internal_decoder_data->decode_value_state.array_value_state.item = 0;
 									result = 0;
 								}
 							}

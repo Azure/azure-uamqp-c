@@ -31,5 +31,7 @@ if(WIN32)
 		target_link_libraries(message_sender_sample $ENV{WolfSSLDir}/Debug/wolfssl.lib)
 	endif()
 else()
-	target_link_libraries(message_sender_sample	uamqp aziotsharedutil ssl crypto)
+	target_link_libraries(message_sender_sample	uamqp aziotsharedutil)
+        target_link_libraries(message_sender_sample ${OPENSSL_LIBRARIES})
+
 endif()

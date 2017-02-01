@@ -287,31 +287,6 @@ static LINK_ENDPOINT_INSTANCE* find_link_endpoint_by_input_handle(SESSION_INSTAN
 	return result;
 }
 
-static LINK_ENDPOINT_INSTANCE* find_link_endpoint_by_output_handle(SESSION_INSTANCE* session, handle output_handle)
-{
-	uint32_t i;
-	LINK_ENDPOINT_INSTANCE* result;
-
-	for (i = 0; i < session->link_endpoint_count; i++)
-	{
-		if (session->link_endpoints[i]->output_handle == output_handle)
-		{
-			break;
-		}
-	}
-
-	if (i == session->link_endpoint_count)
-	{
-		result = NULL;
-	}
-	else
-	{
-		result = session->link_endpoints[i];
-	}
-
-	return result;
-}
-
 static void on_connection_state_changed(void* context, CONNECTION_STATE new_connection_state, CONNECTION_STATE previous_connection_state)
 {
 	SESSION_INSTANCE* session_instance = (SESSION_INSTANCE*)context;

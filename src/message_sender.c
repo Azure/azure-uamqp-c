@@ -404,11 +404,6 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
                 {
                 default:
                 case LINK_TRANSFER_ERROR:
-                    if (message_with_callback->on_message_send_complete != NULL)
-                    {
-                        message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_ERROR);
-                    }
-
                     result = SEND_ONE_MESSAGE_ERROR;
                     break;
 
@@ -457,7 +452,11 @@ static void send_all_pending_messages(MESSAGE_SENDER_INSTANCE* message_sender_in
                 void* context = message_sender_instance->messages[i]->context;
                 remove_pending_message_by_index(message_sender_instance, i);
 
-                on_message_send_complete(context, MESSAGE_SEND_ERROR);
+				if (on_message_send_complete != NULL)
+				{
+					on_message_send_complete(context, MESSAGE_SEND_ERROR);
+				}
+
                 i = message_sender_instance->message_count;
                 break;
             }
@@ -722,6 +721,12 @@ int messagesender_send(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDLE mess
                             {
                             default:
                             case SEND_ONE_MESSAGE_ERROR:
+							
+								if (message_with_callback->on_message_send_complete != NULL)
+								{
+									message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_ERROR);
+								}
+
                                 remove_pending_message_by_index(message_sender_instance, message_sender_instance->message_count - 1);
                                 result = __LINE__;
                                 break;

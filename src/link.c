@@ -479,6 +479,25 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
         {
             bool closed = false;
             ERROR_HANDLE error;
+
+            /* Received a detach while attached */
+            if (link_instance->link_state == LINK_STATE_ATTACHED)
+            {
+                /* Respond with ack */
+                (void)send_detach(link_instance, closed, NULL);
+            }
+
+            /* Received a closing detach after we sent a non-closing detach. */
+            else if (closed &&
+                (link_instance->link_state == LINK_STATE_HALF_ATTACHED) &&
+                !link_instance->is_closed)
+            {
+
+                /* In this case, we MUST signal that we closed by reattaching and then sending a closing detach.*/
+                (void)send_attach(link_instance, link_instance->name, 0, link_instance->role);
+                (void)send_detach(link_instance, true, NULL);
+            }
+
             if (detach_get_error(detach, &error) == 0)
             {
                 error_destroy(error);
@@ -490,24 +509,6 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                 (void)detach_get_closed(detach, &closed);
 
                 set_link_state(link_instance, LINK_STATE_DETACHED);
-            }
-
-            /* Received a detach while attached */
-            if (link_instance->previous_link_state == LINK_STATE_ATTACHED)
-            {
-                /* Respond with ack */
-                (void)send_detach(link_instance, closed, NULL);
-            }
-
-            /* Received a closing detach after we sent a non-closing detach. */
-            else if (closed &&
-                (link_instance->previous_link_state == LINK_STATE_HALF_ATTACHED) &&
-                !link_instance->is_closed)
-            {
-
-                /* In this case, we MUST signal that we closed by reattaching and then sending a closing detach.*/
-                (void)send_attach(link_instance, link_instance->name, 0, link_instance->role);
-                (void)send_detach(link_instance, true, NULL);
             }
 
             detach_destroy(detach);

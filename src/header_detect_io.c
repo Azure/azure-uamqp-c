@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#include "azure_c_shared_utility/optimize_size.h"
 #include "azure_uamqp_c/header_detect_io.h"
 #include "azure_uamqp_c/amqpalloc.h"
 
@@ -231,7 +232,7 @@ int headerdetectio_open(CONCRETE_IO_HANDLE header_detect_io, ON_IO_OPEN_COMPLETE
 
 	if (header_detect_io == NULL)
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -240,7 +241,7 @@ int headerdetectio_open(CONCRETE_IO_HANDLE header_detect_io, ON_IO_OPEN_COMPLETE
         if (header_detect_io_instance->io_state != IO_STATE_NOT_OPEN &&
             header_detect_io_instance->io_state != IO_STATE_OPEN)
         {
-            result = __LINE__;
+            result = __FAILURE__;
         }
 		else
 		{
@@ -263,7 +264,7 @@ int headerdetectio_open(CONCRETE_IO_HANDLE header_detect_io, ON_IO_OPEN_COMPLETE
 
                 if (xio_open(header_detect_io_instance->underlying_io, on_underlying_io_open_complete, header_detect_io_instance, on_underlying_io_bytes_received, header_detect_io_instance, on_underlying_io_error, header_detect_io_instance) != 0)
                 {
-                    result = __LINE__;
+                    result = __FAILURE__;
                 }
                 else
                 {
@@ -282,7 +283,7 @@ int headerdetectio_close(CONCRETE_IO_HANDLE header_detect_io, ON_IO_CLOSE_COMPLE
 
 	if (header_detect_io == NULL)
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -291,7 +292,7 @@ int headerdetectio_close(CONCRETE_IO_HANDLE header_detect_io, ON_IO_CLOSE_COMPLE
 		if ((header_detect_io_instance->io_state == IO_STATE_NOT_OPEN) ||
 			(header_detect_io_instance->io_state == IO_STATE_CLOSING))
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -301,7 +302,7 @@ int headerdetectio_close(CONCRETE_IO_HANDLE header_detect_io, ON_IO_CLOSE_COMPLE
 
 			if (xio_close(header_detect_io_instance->underlying_io, on_underlying_io_close_complete, header_detect_io_instance) != 0)
 			{
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 			else
 			{
@@ -319,7 +320,7 @@ int headerdetectio_send(CONCRETE_IO_HANDLE header_detect_io, const void* buffer,
 
 	if (header_detect_io == NULL)
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -327,13 +328,13 @@ int headerdetectio_send(CONCRETE_IO_HANDLE header_detect_io, const void* buffer,
 
 		if (header_detect_io_instance->io_state != IO_STATE_OPEN)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
 			if (xio_send(header_detect_io_instance->underlying_io, buffer, size, on_send_complete, callback_context) != 0)
 			{
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 			else
 			{
@@ -365,7 +366,7 @@ int headerdetectio_setoption(CONCRETE_IO_HANDLE header_detect_io, const char* op
 
     if (header_detect_io == NULL)
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
@@ -373,7 +374,7 @@ int headerdetectio_setoption(CONCRETE_IO_HANDLE header_detect_io, const char* op
 
         if (header_detect_io_instance->underlying_io == NULL)
         {
-            result = __LINE__;
+            result = __FAILURE__;
         }
         else
         {

@@ -6,6 +6,7 @@
 #include "micromock.h"
 #include "micromockcharstararenullterminatedstrings.h"
 #include "azure_uamqp_c/amqpalloc.h"
+#include "azure_c_shared_utility/optimize_size.h"
 #include "azure_c_shared_utility/socketio.h"
 #include "azure_c_shared_utility/singlylinkedlist.h"
 
@@ -62,7 +63,7 @@ public:
 	MOCK_METHOD_END(LIST_ITEM_HANDLE, (LIST_ITEM_HANDLE)found_item);
 	MOCK_STATIC_METHOD_3(, int, list_remove_matching_item, SINGLYLINKEDLIST_HANDLE, handle, LIST_MATCH_FUNCTION, match_function, const void*, match_context)
 		size_t i;
-	int res = __LINE__;
+	int res = __FAILURE__;
 	for (i = 0; i < list_item_count; i++)
 	{
 		if (match_function((LIST_ITEM_HANDLE)list_items[i], match_context))

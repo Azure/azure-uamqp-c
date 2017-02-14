@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include "azure_c_shared_utility/optimize_size.h"
 #include "azure_uamqp_c/amqp_management.h"
 #include "azure_uamqp_c/link.h"
 #include "azure_uamqp_c/amqpalloc.h"
@@ -255,7 +256,7 @@ static int send_operation_messages(AMQP_MANAGEMENT_INSTANCE* amqp_management_ins
 
         if (i < amqp_management_instance->operation_message_count)
         {
-            result = __LINE__;
+            result = __FAILURE__;
         }
         else
         {
@@ -321,20 +322,20 @@ static int set_message_id(MESSAGE_HANDLE message, unsigned long next_message_id)
     PROPERTIES_HANDLE properties;
     if (message_get_properties(message, &properties) != 0)
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
         AMQP_VALUE message_id = amqpvalue_create_message_id_ulong(next_message_id);
         if (message_id == NULL)
         {
-            result = __LINE__;
+            result = __FAILURE__;
         }
         else
         {
             if (properties_set_message_id(properties, message_id) != 0)
             {
-                result = __LINE__;
+                result = __FAILURE__;
             }
 
             amqpvalue_destroy(message_id);
@@ -342,7 +343,7 @@ static int set_message_id(MESSAGE_HANDLE message, unsigned long next_message_id)
 
         if (message_set_properties(message, properties) != 0)
         {
-            result = __LINE__;
+            result = __FAILURE__;
         }
 
         properties_destroy(properties);
@@ -358,20 +359,20 @@ static int add_string_key_value_pair_to_map(AMQP_VALUE map, const char* key, con
     AMQP_VALUE key_value = amqpvalue_create_string(key);
     if (key == NULL)
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
         AMQP_VALUE value_value = amqpvalue_create_string(value);
         if (value_value == NULL)
         {
-            result = __LINE__;
+            result = __FAILURE__;
         }
         else
         {
             if (amqpvalue_set_map_value(map, key_value, value_value) != 0)
             {
-                result = __LINE__;
+                result = __FAILURE__;
             }
             else
             {
@@ -552,20 +553,20 @@ int amqpmanagement_open(AMQP_MANAGEMENT_HANDLE amqp_management)
 
     if (amqp_management == NULL)
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
         if (messagereceiver_open(amqp_management->message_receiver, on_message_received, amqp_management) != 0)
         {
-            result = __LINE__;
+            result = __FAILURE__;
         }
         else
         {
             if (messagesender_open(amqp_management->message_sender) != 0)
             {
                 messagereceiver_close(amqp_management->message_receiver);
-                result = __LINE__;
+                result = __FAILURE__;
             }
             else
             {
@@ -583,14 +584,14 @@ int amqpmanagement_close(AMQP_MANAGEMENT_HANDLE amqp_management)
 
     if (amqp_management == NULL)
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
         if ((messagesender_close(amqp_management->message_sender) != 0) ||
             (messagereceiver_close(amqp_management->message_receiver) != 0))
         {
-            result = __LINE__;
+            result = __FAILURE__;
         }
         else
         {
@@ -608,14 +609,14 @@ int amqpmanagement_start_operation(AMQP_MANAGEMENT_HANDLE amqp_management, const
     if ((amqp_management == NULL) ||
         (operation == NULL))
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
         AMQP_VALUE application_properties;
         if (message_get_application_properties(message, &application_properties) != 0)
         {
-            result = __LINE__;
+            result = __FAILURE__;
         }
         else
         {
@@ -623,21 +624,21 @@ int amqpmanagement_start_operation(AMQP_MANAGEMENT_HANDLE amqp_management, const
                 (add_string_key_value_pair_to_map(application_properties, "type", type) != 0) ||
                 ((locales != NULL) && (add_string_key_value_pair_to_map(application_properties, "locales", locales) != 0)))
             {
-                result = __LINE__;
+                result = __FAILURE__;
             }
             else
             {
                 if ((message_set_application_properties(message, application_properties) != 0) ||
                     (set_message_id(message, amqp_management->next_message_id) != 0))
                 {
-                    result = __LINE__;
+                    result = __FAILURE__;
                 }
                 else
                 {
                     OPERATION_MESSAGE_INSTANCE* pending_operation_message = amqpalloc_malloc(sizeof(OPERATION_MESSAGE_INSTANCE));
                     if (pending_operation_message == NULL)
                     {
-                        result = __LINE__;
+                        result = __FAILURE__;
                     }
                     else
                     {
@@ -654,7 +655,7 @@ int amqpmanagement_start_operation(AMQP_MANAGEMENT_HANDLE amqp_management, const
                         {
                             message_destroy(message);
                             amqpalloc_free(pending_operation_message);
-                            result = __LINE__;
+                            result = __FAILURE__;
                         }
                         else
                         {
@@ -669,7 +670,7 @@ int amqpmanagement_start_operation(AMQP_MANAGEMENT_HANDLE amqp_management, const
                                     on_operation_complete(context, OPERATION_RESULT_CBS_ERROR, 0, NULL);
                                 }
 
-                                result = __LINE__;
+                                result = __FAILURE__;
                             }
                             else
                             {

@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include "azure_c_shared_utility/optimize_size.h"
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_c_shared_utility/xio.h"
 #include "azure_c_shared_utility/singlylinkedlist.h"
@@ -147,7 +148,7 @@ int frame_codec_set_max_frame_size(FRAME_CODEC_HANDLE frame_codec, uint32_t max_
 		/* Codes_SRS_FRAME_CODEC_01_098: [Setting a frame size on a frame_codec that had an encode error shall fail.] */
 		(frame_codec_data->encode_frame_state == ENCODE_FRAME_STATE_ERROR))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -170,7 +171,7 @@ int frame_codec_set_max_frame_size(FRAME_CODEC_HANDLE frame_codec, uint32_t max_
 /* Codes_SRS_FRAME_CODEC_01_029: [The sequence of bytes does not have to be a complete frame, frame_codec shall be responsible for maintaining decoding state between frame_codec_receive_bytes calls.] */
 int frame_codec_receive_bytes(FRAME_CODEC_HANDLE frame_codec, const unsigned char* buffer, size_t size)
 {
-    int result = __LINE__;
+    int result = __FAILURE__;
 	FRAME_CODEC_INSTANCE* frame_codec_data = (FRAME_CODEC_INSTANCE*)frame_codec;
 
 	/* Codes_SRS_FRAME_CODEC_01_026: [If frame_codec or buffer are NULL, frame_codec_receive_bytes shall return a non-zero value.] */
@@ -179,7 +180,7 @@ int frame_codec_receive_bytes(FRAME_CODEC_HANDLE frame_codec, const unsigned cha
 		/* Codes_SRS_FRAME_CODEC_01_027: [If size is zero, frame_codec_receive_bytes shall return a non-zero value.] */
 		(size == 0))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -190,7 +191,7 @@ int frame_codec_receive_bytes(FRAME_CODEC_HANDLE frame_codec, const unsigned cha
 			default:
 			case RECEIVE_FRAME_STATE_ERROR:
 				/* Codes_SRS_FRAME_CODEC_01_074: [If a decoding error is detected, any subsequent calls on frame_codec_data_receive_bytes shall fail.] */
-				result = __LINE__;
+				result = __FAILURE__;
 				size = 0;
 				break;
 
@@ -214,7 +215,7 @@ int frame_codec_receive_bytes(FRAME_CODEC_HANDLE frame_codec, const unsigned cha
 						/* Codes_SRS_FRAME_CODEC_01_103: [Upon any decode error, if an error callback has been passed to frame_codec_create, then the error callback shall be called with the context argument being the on_frame_codec_error_callback_context argument passed to frame_codec_create.] */
 						frame_codec_data->on_frame_codec_error(frame_codec_data->on_frame_codec_error_callback_context);
 
-						result = __LINE__;
+						result = __FAILURE__;
 					}
 					else
 					{
@@ -246,7 +247,7 @@ int frame_codec_receive_bytes(FRAME_CODEC_HANDLE frame_codec, const unsigned cha
 					/* Codes_SRS_FRAME_CODEC_01_103: [Upon any decode error, if an error callback has been passed to frame_codec_create, then the error callback shall be called with the context argument being the on_frame_codec_error_callback_context argument passed to frame_codec_create.] */
 					frame_codec_data->on_frame_codec_error(frame_codec_data->on_frame_codec_error_callback_context);
 
-					result = __LINE__;
+					result = __FAILURE__;
 				}
 				else
 				{
@@ -300,7 +301,7 @@ int frame_codec_receive_bytes(FRAME_CODEC_HANDLE frame_codec, const unsigned cha
 							/* Codes_SRS_FRAME_CODEC_01_103: [Upon any decode error, if an error callback has been passed to frame_codec_create, then the error callback shall be called with the context argument being the on_frame_codec_error_callback_context argument passed to frame_codec_create.] */
 							frame_codec_data->on_frame_codec_error(frame_codec_data->on_frame_codec_error_callback_context);
 
-							result = __LINE__;
+							result = __FAILURE__;
 							break;
 						}
 						else
@@ -420,7 +421,7 @@ int frame_codec_subscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type, ON_FRAME
 	if ((frame_codec == NULL) ||
 		(on_frame_received == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -436,7 +437,7 @@ int frame_codec_subscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type, ON_FRAME
 			if (subscription == NULL)
 			{
 				/* Codes_SRS_FRAME_CODEC_01_037: [If any failure occurs while performing the subscribe operation, frame_codec_subscribe shall return a non-zero value.] */
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 			else
 			{
@@ -455,7 +456,7 @@ int frame_codec_subscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type, ON_FRAME
 			/* Codes_SRS_FRAME_CODEC_01_037: [If any failure occurs while performing the subscribe operation, frame_codec_subscribe shall return a non-zero value.] */
 			if (subscription == NULL)
 			{
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 			else
 			{
@@ -467,7 +468,7 @@ int frame_codec_subscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type, ON_FRAME
 				if (singlylinkedlist_add(frame_codec_data->subscription_list, subscription) == NULL)
 				{
 					amqpalloc_free(subscription);
-					result = __LINE__;
+					result = __FAILURE__;
 				}
 				else
 				{
@@ -488,7 +489,7 @@ int frame_codec_unsubscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type)
 	/* Codes_SRS_FRAME_CODEC_01_039: [If frame_codec is NULL, frame_codec_unsubscribe shall return a non-zero value.] */
 	if (frame_codec == NULL)
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -499,7 +500,7 @@ int frame_codec_unsubscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type)
 		{
 			/* Codes_SRS_FRAME_CODEC_01_040: [If no subscription for the type frame type exists, frame_codec_unsubscribe shall return a non-zero value.] */
 			/* Codes_SRS_FRAME_CODEC_01_041: [If any failure occurs while performing the unsubscribe operation, frame_codec_unsubscribe shall return a non-zero value.] */
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -507,7 +508,7 @@ int frame_codec_unsubscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type)
 			if (subscription == NULL)
 			{
 				/* Codes_SRS_FRAME_CODEC_01_041: [If any failure occurs while performing the unsubscribe operation, frame_codec_unsubscribe shall return a non-zero value.] */
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 			else
 			{
@@ -515,7 +516,7 @@ int frame_codec_unsubscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type)
 				if (singlylinkedlist_remove(frame_codec_data->subscription_list, list_item) != 0)
 				{
 					/* Codes_SRS_FRAME_CODEC_01_041: [If any failure occurs while performing the unsubscribe operation, frame_codec_unsubscribe shall return a non-zero value.] */
-					result = __LINE__;
+					result = __FAILURE__;
 				}
 				else
 				{
@@ -543,7 +544,7 @@ int frame_codec_encode_frame(FRAME_CODEC_HANDLE frame_codec, uint8_t type, const
 		(type_specific_size > MAX_TYPE_SPECIFIC_SIZE) ||
 		(frame_codec_data->encode_frame_state == ENCODE_FRAME_STATE_ERROR))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -570,7 +571,7 @@ int frame_codec_encode_frame(FRAME_CODEC_HANDLE frame_codec, uint8_t type, const
         if (frame_size > frame_codec_data->max_frame_size)
         {
             /* Codes_SRS_FRAME_CODEC_01_095: [If the frame_size needed for the frame is bigger than the maximum frame size, frame_codec_encode_frame shall fail and return a non-zero value.] */
-            result = __LINE__;
+            result = __FAILURE__;
         }
         else
         {

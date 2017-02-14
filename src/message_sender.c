@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include "azure_c_shared_utility/optimize_size.h"
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_uamqp_c/message_sender.h"
 #include "azure_uamqp_c/amqpalloc.h"
@@ -590,7 +591,7 @@ int messagesender_open(MESSAGE_SENDER_HANDLE message_sender)
 
     if (message_sender == NULL)
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
@@ -601,7 +602,7 @@ int messagesender_open(MESSAGE_SENDER_HANDLE message_sender)
             set_message_sender_state(message_sender_instance, MESSAGE_SENDER_STATE_OPENING);
             if (link_attach(message_sender_instance->link, NULL, on_link_state_changed, on_link_flow_on, message_sender_instance) != 0)
             {
-                result = __LINE__;
+                result = __FAILURE__;
                 set_message_sender_state(message_sender_instance, MESSAGE_SENDER_STATE_ERROR);
             }
             else
@@ -624,7 +625,7 @@ int messagesender_close(MESSAGE_SENDER_HANDLE message_sender)
 
     if (message_sender == NULL)
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
@@ -636,7 +637,7 @@ int messagesender_close(MESSAGE_SENDER_HANDLE message_sender)
             set_message_sender_state(message_sender_instance, MESSAGE_SENDER_STATE_CLOSING);
             if (link_detach(message_sender_instance->link, true) != 0)
             {
-                result = __LINE__;
+                result = __FAILURE__;
                 set_message_sender_state(message_sender_instance, MESSAGE_SENDER_STATE_ERROR);
             }
             else
@@ -660,21 +661,21 @@ int messagesender_send(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDLE mess
     if ((message_sender == NULL) ||
         (message == NULL))
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
         MESSAGE_SENDER_INSTANCE* message_sender_instance = (MESSAGE_SENDER_INSTANCE*)message_sender;
         if (message_sender_instance->message_sender_state == MESSAGE_SENDER_STATE_ERROR)
         {
-            result = __LINE__;
+            result = __FAILURE__;
         }
         else
         {
             MESSAGE_WITH_CALLBACK* message_with_callback = (MESSAGE_WITH_CALLBACK*)amqpalloc_malloc(sizeof(MESSAGE_WITH_CALLBACK));
             if (message_with_callback == NULL)
             {
-                result = __LINE__;
+                result = __FAILURE__;
             }
             else
             {
@@ -682,7 +683,7 @@ int messagesender_send(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDLE mess
                 if (new_messages == NULL)
                 {
                     amqpalloc_free(message_with_callback);
-                    result = __LINE__;
+                    result = __FAILURE__;
                 }
                 else
                 {
@@ -695,7 +696,7 @@ int messagesender_send(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDLE mess
                         if (message_with_callback->message == NULL)
                         {
                             amqpalloc_free(message_with_callback);
-                            result = __LINE__;
+                            result = __FAILURE__;
                         }
 
                         message_with_callback->message_send_state = MESSAGE_SEND_STATE_NOT_SENT;
@@ -728,7 +729,7 @@ int messagesender_send(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDLE mess
 								}
 
                                 remove_pending_message_by_index(message_sender_instance, message_sender_instance->message_count - 1);
-                                result = __LINE__;
+                                result = __FAILURE__;
                                 break;
 
                             case SEND_ONE_MESSAGE_BUSY:
@@ -736,7 +737,7 @@ int messagesender_send(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDLE mess
                                 if (message_with_callback->message == NULL)
                                 {
                                     amqpalloc_free(message_with_callback);
-                                    result = __LINE__;
+                                    result = __FAILURE__;
                                 }
                                 else
                                 {

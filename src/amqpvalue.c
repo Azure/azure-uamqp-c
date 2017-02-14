@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
+#include "azure_c_shared_utility/optimize_size.h"
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_uamqp_c/amqp_types.h"
 #include "azure_uamqp_c/amqpvalue.h"
@@ -225,7 +226,7 @@ int amqpvalue_get_boolean(AMQP_VALUE value, bool* bool_value)
 	if ((value == NULL) ||
 		(bool_value == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -233,7 +234,7 @@ int amqpvalue_get_boolean(AMQP_VALUE value, bool* bool_value)
 		/* Codes_SRS_AMQPVALUE_01_011: [If the type of the value is not Boolean, then amqpvalue_get_boolean shall return a non-zero value.] */
 		if (value_data->type != AMQP_TYPE_BOOL)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -270,7 +271,7 @@ int amqpvalue_get_ubyte(AMQP_VALUE value, unsigned char* ubyte_value)
 	if ((value == NULL) ||
 		(ubyte_value == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -278,7 +279,7 @@ int amqpvalue_get_ubyte(AMQP_VALUE value, unsigned char* ubyte_value)
 		/* Codes_SRS_AMQPVALUE_01_037: [If the type of the value is not ubyte (was not created with amqpvalue_create_ubyte), then amqpvalue_get_ubyte shall return a non-zero value.] */
 		if (value_data->type != AMQP_TYPE_UBYTE)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -315,7 +316,7 @@ int amqpvalue_get_ushort(AMQP_VALUE value, uint16_t* ushort_value)
 	if ((value == NULL) ||
 		(ushort_value == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -323,7 +324,7 @@ int amqpvalue_get_ushort(AMQP_VALUE value, uint16_t* ushort_value)
 		/* Codes_SRS_AMQPVALUE_01_043: [If the type of the value is not ushort (was not created with amqpvalue_create_ushort), then amqpvalue_get_ushort shall return a non-zero value.] */
 		if (value_data->type != AMQP_TYPE_USHORT)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -360,7 +361,7 @@ int amqpvalue_get_uint(AMQP_VALUE value, uint32_t* uint_value)
 	if ((value == NULL) ||
 		(uint_value == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -368,7 +369,7 @@ int amqpvalue_get_uint(AMQP_VALUE value, uint32_t* uint_value)
 		/* Codes_SRS_AMQPVALUE_01_048: [If the type of the value is not uint (was not created with amqpvalue_create_uint), then amqpvalue_get_uint shall return a non-zero value.] */
 		if (value_data->type != AMQP_TYPE_UINT)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -405,7 +406,7 @@ int amqpvalue_get_ulong(AMQP_VALUE value, uint64_t* ulong_value)
 	if ((value == NULL) ||
 		(ulong_value == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -413,7 +414,7 @@ int amqpvalue_get_ulong(AMQP_VALUE value, uint64_t* ulong_value)
 		/* Codes_SRS_AMQPVALUE_01_054: [If the type of the value is not ulong (was not created with amqpvalue_create_ulong), then amqpvalue_get_ulong shall return a non-zero value.] */
 		if (value_data->type != AMQP_TYPE_ULONG)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -450,7 +451,7 @@ int amqpvalue_get_byte(AMQP_VALUE value, char* byte_value)
 	if ((value == NULL) ||
 		(byte_value == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -458,7 +459,7 @@ int amqpvalue_get_byte(AMQP_VALUE value, char* byte_value)
 		/* Codes_SRS_AMQPVALUE_01_060: [If the type of the value is not byte (was not created with amqpvalue_create_byte), then amqpvalue_get_byte shall return a non-zero value.] */
 		if (value_data->type != AMQP_TYPE_BYTE)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -495,7 +496,7 @@ int amqpvalue_get_short(AMQP_VALUE value, int16_t* short_value)
 	if ((value == NULL) ||
 		(short_value == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -503,7 +504,7 @@ int amqpvalue_get_short(AMQP_VALUE value, int16_t* short_value)
 		/* Codes_SRS_AMQPVALUE_01_066: [If the type of the value is not short (was not created with amqpvalue_create_short), then amqpvalue_get_short shall return a non-zero value.] */
 		if (value_data->type != AMQP_TYPE_SHORT)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -540,7 +541,7 @@ int amqpvalue_get_int(AMQP_VALUE value, int32_t* int_value)
 	if ((value == NULL) ||
 		(int_value == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -548,7 +549,7 @@ int amqpvalue_get_int(AMQP_VALUE value, int32_t* int_value)
 		/* Codes_SRS_AMQPVALUE_01_072: [If the type of the value is not int (was not created with amqpvalue_create_int), then amqpvalue_get_int shall return a non-zero value.] */
 		if (value_data->type != AMQP_TYPE_INT)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -585,7 +586,7 @@ int amqpvalue_get_long(AMQP_VALUE value, int64_t* long_value)
 	if ((value == NULL) ||
 		(long_value == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -593,7 +594,7 @@ int amqpvalue_get_long(AMQP_VALUE value, int64_t* long_value)
 		/* Codes_SRS_AMQPVALUE_01_078: [If the type of the value is not long (was not created with amqpvalue_create_long), then amqpvalue_get_long shall return a non-zero value.] */
 		if (value_data->type != AMQP_TYPE_LONG)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -630,7 +631,7 @@ int amqpvalue_get_float(AMQP_VALUE value, float* float_value)
 	if ((value == NULL) ||
 		(float_value == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -638,7 +639,7 @@ int amqpvalue_get_float(AMQP_VALUE value, float* float_value)
 		/* Codes_SRS_AMQPVALUE_01_085: [If the type of the value is not float (was not created with amqpvalue_create_float), then amqpvalue_get_float shall return a non-zero value.] */
 		if (value_data->type != AMQP_TYPE_FLOAT)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -675,7 +676,7 @@ int amqpvalue_get_double(AMQP_VALUE value, double* double_value)
 	if ((value == NULL) ||
 		(double_value == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -683,7 +684,7 @@ int amqpvalue_get_double(AMQP_VALUE value, double* double_value)
 		/* Codes_SRS_AMQPVALUE_01_091: [If the type of the value is not double (was not created with amqpvalue_create_double), then amqpvalue_get_double shall return a non-zero value.] */
 		if (value_data->type != AMQP_TYPE_DOUBLE)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -731,7 +732,7 @@ int amqpvalue_get_char(AMQP_VALUE value, uint32_t* char_value)
 	if ((value == NULL) ||
 		(char_value == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -739,7 +740,7 @@ int amqpvalue_get_char(AMQP_VALUE value, uint32_t* char_value)
 		/* Codes_SRS_AMQPVALUE_01_097: [If the type of the value is not char (was not created with amqpvalue_create_char), then amqpvalue_get_char shall return a non-zero value.] */
 		if (value_data->type != AMQP_TYPE_CHAR)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -776,7 +777,7 @@ int amqpvalue_get_timestamp(AMQP_VALUE value, int64_t* timestamp_value)
 	if ((value == NULL) ||
 		(timestamp_value == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -784,7 +785,7 @@ int amqpvalue_get_timestamp(AMQP_VALUE value, int64_t* timestamp_value)
 		/* Codes_SRS_AMQPVALUE_01_112: [If the type of the value is not timestamp (was not created with amqpvalue_create_timestamp), then amqpvalue_get_timestamp shall return a non-zero value.] */
 		if (value_data->type != AMQP_TYPE_TIMESTAMP)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -821,7 +822,7 @@ int amqpvalue_get_uuid(AMQP_VALUE value, uuid* uuid_value)
 	if ((value == NULL) ||
 		(uuid_value == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -829,7 +830,7 @@ int amqpvalue_get_uuid(AMQP_VALUE value, uuid* uuid_value)
 		/* Codes_SRS_AMQPVALUE_01_118: [If the type of the value is not uuid (was not created with amqpvalue_create_uuid), then amqpvalue_get_uuid shall return a non-zero value.] */
 		if (value_data->type != AMQP_TYPE_UUID)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -899,7 +900,7 @@ int amqpvalue_get_binary(AMQP_VALUE value, amqp_binary* binary_value)
 	if ((value == NULL) ||
 		(binary_value == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -907,7 +908,7 @@ int amqpvalue_get_binary(AMQP_VALUE value, amqp_binary* binary_value)
 		/* Codes_SRS_AMQPVALUE_01_133: [If the type of the value is not binary (was not created with amqpvalue_create_binary), then amqpvalue_get_binary shall return NULL.] */
 		if (value_data->type != AMQP_TYPE_BINARY)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -968,7 +969,7 @@ int amqpvalue_get_string(AMQP_VALUE value, const char** string_value)
 	if ((value == NULL) ||
 		(string_value == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -977,7 +978,7 @@ int amqpvalue_get_string(AMQP_VALUE value, const char** string_value)
 		/* Codes_SRS_AMQPVALUE_01_140: [If the type of the value is not string (was not created with amqpvalue_create_string), then amqpvalue_get_string shall return a non-zero value.] */
 		if (value_data->type != AMQP_TYPE_STRING)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -1050,7 +1051,7 @@ int amqpvalue_get_symbol(AMQP_VALUE value, const char** symbol_value)
 	if ((value == NULL) ||
 		(symbol_value == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -1059,7 +1060,7 @@ int amqpvalue_get_symbol(AMQP_VALUE value, const char** symbol_value)
 		/* Codes_SRS_AMQPVALUE_01_148: [If the type of the value is not symbol (was not created with amqpvalue_create_symbol), then amqpvalue_get_symbol shall return a non-zero value.] */
 		if (value_data->type != AMQP_TYPE_SYMBOL)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -1099,7 +1100,7 @@ int amqpvalue_set_list_item_count(AMQP_VALUE value, uint32_t list_size)
 	/* Codes_SRS_AMQPVALUE_01_155: [If the value argument is NULL, amqpvalue_set_list_item_count shall return a non-zero value.] */
 	if (value == NULL)
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -1108,7 +1109,7 @@ int amqpvalue_set_list_item_count(AMQP_VALUE value, uint32_t list_size)
 		if (value_data->type != AMQP_TYPE_LIST)
 		{
 			/* Codes_SRS_AMQPVALUE_01_156: [If the value is not of type list, then amqpvalue_set_list_item_count shall return a non-zero value.] */
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -1121,7 +1122,7 @@ int amqpvalue_set_list_item_count(AMQP_VALUE value, uint32_t list_size)
 				if (new_list == NULL)
 				{
 					/* Codes_SRS_AMQPVALUE_01_154: [If allocating memory for the list according to the new size fails, then amqpvalue_set_list_item_count shall return a non-zero value, while preserving the existing list contents.] */
-					result = __LINE__;
+					result = __FAILURE__;
 				}
 				else
 				{
@@ -1149,7 +1150,7 @@ int amqpvalue_set_list_item_count(AMQP_VALUE value, uint32_t list_size)
 							amqpvalue_destroy(new_list[j]);
 						}
 
-						result = __LINE__;
+						result = __FAILURE__;
 					}
 					else
 					{
@@ -1194,7 +1195,7 @@ int amqpvalue_get_list_item_count(AMQP_VALUE value, uint32_t* size)
 	if ((value == NULL) ||
 		(size == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -1203,7 +1204,7 @@ int amqpvalue_get_list_item_count(AMQP_VALUE value, uint32_t* size)
 		/* Codes_SRS_AMQPVALUE_01_160: [If the AMQP_VALUE is not a list then amqpvalue_get_list_item_count shall return a non-zero value.] */
 		if (value_data->type != AMQP_TYPE_LIST)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -1225,14 +1226,14 @@ int amqpvalue_set_list_item(AMQP_VALUE value, uint32_t index, AMQP_VALUE list_it
 	/* Codes_SRS_AMQPVALUE_01_165: [If value or list_item_value is NULL, amqpvalue_set_list_item shall fail and return a non-zero value.] */
 	if (value == NULL)
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
 		AMQP_VALUE_DATA* value_data = (AMQP_VALUE_DATA*)value;
 		if (value_data->type != AMQP_TYPE_LIST)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -1243,7 +1244,7 @@ int amqpvalue_set_list_item(AMQP_VALUE value, uint32_t index, AMQP_VALUE list_it
 			{
 				/* Codes_SRS_AMQPVALUE_01_170: [When amqpvalue_set_list_item fails due to not being able to clone the item or grow the list, the list shall not be altered.] */
 				/* Codes_SRS_AMQPVALUE_01_169: [If cloning the item fails, amqpvalue_set_list_item shall fail and return a non-zero value.] */
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 			else
 			{
@@ -1254,7 +1255,7 @@ int amqpvalue_set_list_item(AMQP_VALUE value, uint32_t index, AMQP_VALUE list_it
 					{
 						/* Codes_SRS_AMQPVALUE_01_170: [When amqpvalue_set_list_item fails due to not being able to clone the item or grow the list, the list shall not be altered.] */
 						amqpvalue_destroy(cloned_item);
-						result = __LINE__;
+						result = __FAILURE__;
 					}
 					else
 					{
@@ -1284,7 +1285,7 @@ int amqpvalue_set_list_item(AMQP_VALUE value, uint32_t index, AMQP_VALUE list_it
 							amqpvalue_destroy(cloned_item);
 
 							/* Codes_SRS_AMQPVALUE_01_172: [If growing the list fails, then amqpvalue_set_list_item shall fail and return a non-zero value.] */
-							result = __LINE__;
+							result = __FAILURE__;
 						}
 						else
 						{
@@ -1373,7 +1374,7 @@ int amqpvalue_set_map_value(AMQP_VALUE map, AMQP_VALUE key, AMQP_VALUE value)
 		(key == NULL) ||
 		(value == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -1382,7 +1383,7 @@ int amqpvalue_set_map_value(AMQP_VALUE map, AMQP_VALUE key, AMQP_VALUE value)
 		/* Codes_SRS_AMQPVALUE_01_196: [If the map argument is not an AMQP value created with the amqpvalue_create_map function than amqpvalue_set_map_value shall fail and return a non-zero value.] */
 		if (value_data->type != AMQP_TYPE_MAP)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -1393,7 +1394,7 @@ int amqpvalue_set_map_value(AMQP_VALUE map, AMQP_VALUE key, AMQP_VALUE value)
 			if (cloned_value == NULL)
 			{
 				/* Codes_SRS_AMQPVALUE_01_188: [If cloning the value fails, amqpvalue_set_map_value shall fail and return a non-zero value.] */
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 			else
 			{
@@ -1426,7 +1427,7 @@ int amqpvalue_set_map_value(AMQP_VALUE map, AMQP_VALUE key, AMQP_VALUE value)
 					{
 						/* Codes_SRS_AMQPVALUE_01_187: [If cloning the key fails, amqpvalue_set_map_value shall fail and return a non-zero value.] */
 						amqpvalue_destroy(cloned_value);
-						result = __LINE__;
+						result = __FAILURE__;
 					}
 					else
 					{
@@ -1436,7 +1437,7 @@ int amqpvalue_set_map_value(AMQP_VALUE map, AMQP_VALUE key, AMQP_VALUE value)
 							/* Codes_SRS_AMQPVALUE_01_186: [If allocating memory to hold a new key/value pair fails, amqpvalue_set_map_value shall fail and return a non-zero value.] */
 							amqpvalue_destroy(cloned_key);
 							amqpvalue_destroy(cloned_value);
-							result = __LINE__;
+							result = __FAILURE__;
 						}
 						else
 						{
@@ -1515,7 +1516,7 @@ int amqpvalue_get_map_pair_count(AMQP_VALUE map, uint32_t* pair_count)
 	if ((map == NULL) ||
 		(pair_count == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -1524,7 +1525,7 @@ int amqpvalue_get_map_pair_count(AMQP_VALUE map, uint32_t* pair_count)
 		if (value_data->type != AMQP_TYPE_MAP)
 		{
 			/* Codes_SRS_AMQPVALUE_01_198: [If the map argument is not an AMQP value created with the amqpvalue_create_map function then amqpvalue_get_map_pair_count shall fail and return a non-zero value.] */
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -1548,7 +1549,7 @@ int amqpvalue_get_map_key_value_pair(AMQP_VALUE map, uint32_t index, AMQP_VALUE*
 		(key == NULL) ||
 		(value == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -1557,12 +1558,12 @@ int amqpvalue_get_map_key_value_pair(AMQP_VALUE map, uint32_t index, AMQP_VALUE*
 		if (value_data->type != AMQP_TYPE_MAP)
 		{
 			/* Codes_SRS_AMQPVALUE_01_205: [If the map argument is not an AMQP value created with the amqpvalue_create_map function then amqpvalue_get_map_key_value_pair shall fail and return a non-zero value.] */
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else if (value_data->value.map_value.pair_count <= index)
 		{
 			/* Codes_SRS_AMQPVALUE_01_204: [If the index argument is greater or equal to the number of key/value pairs in the map then amqpvalue_get_map_key_value_pair shall fail and return a non-zero value.] */
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -1571,7 +1572,7 @@ int amqpvalue_get_map_key_value_pair(AMQP_VALUE map, uint32_t index, AMQP_VALUE*
 			if (*key == NULL)
 			{
 				/* Codes_SRS_AMQPVALUE_01_202: [If cloning the key fails, amqpvalue_get_map_key_value_pair shall fail and return a non-zero value.] */
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 			else
 			{
@@ -1580,7 +1581,7 @@ int amqpvalue_get_map_key_value_pair(AMQP_VALUE map, uint32_t index, AMQP_VALUE*
 				{
 					/* Codes_SRS_AMQPVALUE_01_203: [If cloning the value fails, amqpvalue_get_map_key_value_pair shall fail and return a non-zero value.] */
 					amqpvalue_destroy(*key);
-					result = __LINE__;
+					result = __FAILURE__;
 				}
 				else
 				{
@@ -1601,20 +1602,20 @@ int amqpvalue_get_map(AMQP_VALUE value, AMQP_VALUE* map_value)
 	if ((value == NULL) ||
 		(map_value == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
 		AMQP_VALUE_DATA* value_data = (AMQP_VALUE_DATA*)value;
 		if (value_data->type != AMQP_TYPE_MAP)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
 			if (map_value == NULL)
 			{
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 			else
 			{
@@ -1644,7 +1645,7 @@ int amqpvalue_get_array_item_count(AMQP_VALUE value, uint32_t* size)
 	if ((value == NULL) ||
 		(size == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -1652,7 +1653,7 @@ int amqpvalue_get_array_item_count(AMQP_VALUE value, uint32_t* size)
 
 		if (value_data->type != AMQP_TYPE_ARRAY)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -1670,14 +1671,14 @@ int amqpvalue_add_array_item(AMQP_VALUE value, AMQP_VALUE array_item_value)
 
 	if (value == NULL)
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
 		AMQP_VALUE_DATA* value_data = (AMQP_VALUE_DATA*)value;
 		if (value_data->type != AMQP_TYPE_ARRAY)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -1686,7 +1687,7 @@ int amqpvalue_add_array_item(AMQP_VALUE value, AMQP_VALUE array_item_value)
 			if ((value_data->value.array_value.count > 0) &&
 				(array_item_value_data->type != value_data->value.array_value.items[0]->type))
 			{
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 			else
 			{
@@ -1694,7 +1695,7 @@ int amqpvalue_add_array_item(AMQP_VALUE value, AMQP_VALUE array_item_value)
 
 				if (cloned_item == NULL)
 				{
-					result = __LINE__;
+					result = __FAILURE__;
 				}
 				else
 				{
@@ -1702,7 +1703,7 @@ int amqpvalue_add_array_item(AMQP_VALUE value, AMQP_VALUE array_item_value)
 					if (new_array == NULL)
 					{
 						amqpvalue_destroy(cloned_item);
-						result = __LINE__;
+						result = __FAILURE__;
 					}
 					else
 					{
@@ -1754,20 +1755,20 @@ int amqpvalue_get_array(AMQP_VALUE value, AMQP_VALUE* array_value)
 	if ((value == NULL) ||
 		(array_value == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
 		AMQP_VALUE_DATA* value_data = (AMQP_VALUE_DATA*)value;
 		if (value_data->type != AMQP_TYPE_ARRAY)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
 			if (array_value == NULL)
 			{
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 			else
 			{
@@ -2365,7 +2366,7 @@ static int encode_boolean(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context
 		if (output_byte(encoder_output, context, 0x42) != 0)
 		{
 			/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -2378,7 +2379,7 @@ static int encode_boolean(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context
 		if (output_byte(encoder_output, context, 0x41) != 0)
 		{
 			/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -2398,7 +2399,7 @@ static int encode_ubyte(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, 
 		(output_byte(encoder_output, context, value) != 0))
 	{
 		/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -2419,7 +2420,7 @@ static int encode_ushort(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context,
 		(output_byte(encoder_output, context, (value & 0xFF)) != 0))
 	{
 		/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -2440,7 +2441,7 @@ static int encode_uint(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, u
 		/* Codes_SRS_AMQPVALUE_01_279: [<encoding name="uint0" code="0x43" category="fixed" width="0" label="the uint value 0"/>] */
 		if (output_byte(encoder_output, context, 0x43) != 0)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -2456,7 +2457,7 @@ static int encode_uint(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, u
 			(output_byte(encoder_output, context, value & 0xFF) != 0))
 		{
 			/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -2474,7 +2475,7 @@ static int encode_uint(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, u
 			(output_byte(encoder_output, context, value & 0xFF) != 0))
 		{
 			/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -2496,7 +2497,7 @@ static int encode_ulong(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, 
 		if (output_byte(encoder_output, context, 0x44) != 0)
 		{
 			/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -2512,7 +2513,7 @@ static int encode_ulong(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, 
 			(output_byte(encoder_output, context, value & 0xFF) != 0))
 		{
 			/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -2534,7 +2535,7 @@ static int encode_ulong(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, 
 			(output_byte(encoder_output, context, value & 0xFF) != 0))
 		{
 			/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -2555,7 +2556,7 @@ static int encode_byte(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, c
 		(output_byte(encoder_output, context, value) != 0))
 	{
 		/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -2576,7 +2577,7 @@ static int encode_short(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, 
 		(output_byte(encoder_output, context, (value & 0xFF)) != 0))
 	{
 		/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -2598,7 +2599,7 @@ static int encode_int(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, in
 			(output_byte(encoder_output, context, value & 0xFF) != 0))
 		{
 			/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -2616,7 +2617,7 @@ static int encode_int(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, in
 			(output_byte(encoder_output, context, value & 0xFF) != 0))
 		{
 			/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -2639,7 +2640,7 @@ static int encode_long(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, i
 			(output_byte(encoder_output, context, value & 0xFF) != 0))
 		{
 			/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -2661,7 +2662,7 @@ static int encode_long(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, i
 			(output_byte(encoder_output, context, value & 0xFF) != 0))
 		{
 			/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -2689,7 +2690,7 @@ static int encode_timestamp(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* conte
 		(output_byte(encoder_output, context, value & 0xFF) != 0))
 	{
 		/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -2709,7 +2710,7 @@ static int encode_uuid(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, u
 		(output_bytes(encoder_output, context, uuid, 16)  != 0))
 	{
 		/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -2731,7 +2732,7 @@ static int encode_binary(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context,
 			((length > 0) && (output_bytes(encoder_output, context, value, length) != 0)))
 		{
 			/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -2750,7 +2751,7 @@ static int encode_binary(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context,
 			(output_bytes(encoder_output, context, value, length) != 0))
 		{
 			/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -2775,7 +2776,7 @@ static int encode_string(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context,
 			(output_bytes(encoder_output, context, value, length) != 0))
 		{
 			/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -2794,7 +2795,7 @@ static int encode_string(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context,
 			(output_bytes(encoder_output, context, value, length) != 0))
 		{
 			/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -2819,7 +2820,7 @@ static int encode_symbol(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context,
 			(output_bytes(encoder_output, context, value, length) != 0))
 		{
 			/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -2839,7 +2840,7 @@ static int encode_symbol(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context,
 			(output_bytes(encoder_output, context, value, length) != 0))
 		{
 			/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -2863,7 +2864,7 @@ static int encode_list(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, u
 		{
 			/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
             LogError("Could not output list constructor byte");
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -2898,7 +2899,7 @@ static int encode_list(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, u
 		if (i < count)
 		{
 			/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -2915,7 +2916,7 @@ static int encode_list(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, u
 				{
 					/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
                     LogError("Failed encoding list");
-					result = __LINE__;
+					result = __FAILURE__;
 				}
 				else
 				{
@@ -2942,7 +2943,7 @@ static int encode_list(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, u
 				{
 					/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
                     LogError("Failed encoding list");
-					result = __LINE__;
+					result = __FAILURE__;
 				}
 				else
 				{
@@ -2964,7 +2965,7 @@ static int encode_list(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, u
 				if (i < count)
 				{
                     LogError("Failed encoding element %zu of the list", i);
-					result = __LINE__;
+					result = __FAILURE__;
 				}
 				else
 				{
@@ -3025,7 +3026,7 @@ static int encode_map(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, ui
 	if (i < count)
 	{
 		/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -3042,7 +3043,7 @@ static int encode_map(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, ui
 			{
 				/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
                 LogError("Could not encode map header");
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 			else
 			{
@@ -3069,7 +3070,7 @@ static int encode_map(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, ui
 			{
 				/* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
                 LogError("Could not encode map header");
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 			else
 			{
@@ -3093,7 +3094,7 @@ static int encode_map(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, ui
 			if (i < count)
 			{
                 LogError("Could not encode map");
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 			else
 			{
@@ -3124,7 +3125,7 @@ int amqpvalue_encode(AMQP_VALUE value, AMQPVALUE_ENCODER_OUTPUT encoder_output, 
 	if ((value == NULL) ||
 		(encoder_output == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -3134,7 +3135,7 @@ int amqpvalue_encode(AMQP_VALUE value, AMQPVALUE_ENCODER_OUTPUT encoder_output, 
 		{
 		default:
 			/* Codes_SRS_AMQPVALUE_01_271: [If encoding fails due to any error not specifically mentioned here, it shall return a non-zero value.] */
-			result = __LINE__;
+			result = __FAILURE__;
 			break;
 
 		case AMQP_TYPE_NULL:
@@ -3214,7 +3215,7 @@ int amqpvalue_encode(AMQP_VALUE value, AMQPVALUE_ENCODER_OUTPUT encoder_output, 
 				(amqpvalue_encode(value_data->value.described_value.descriptor, encoder_output, context) != 0) ||
 				(amqpvalue_encode(value_data->value.described_value.value, encoder_output, context) != 0))
 			{
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 			else
 			{
@@ -3246,7 +3247,7 @@ int amqpvalue_get_encoded_size(AMQP_VALUE value, size_t* encoded_size)
     if ((value == NULL) ||
         (encoded_size == NULL))
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
@@ -3381,7 +3382,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 
 	if (internal_decoder_data == NULL)
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -3392,7 +3393,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 			switch (internal_decoder_data->decoder_state)
 			{
 			default:
-				result = __LINE__;
+				result = __FAILURE__;
 				break;
 			case DECODER_STATE_CONSTRUCTOR:
 			{
@@ -3405,7 +3406,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 				{
 				default:
 					internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-					result = __LINE__;
+					result = __FAILURE__;
 					break;
 				case 0x00: /* descriptor */
 					internal_decoder_data->decode_to_value->type = AMQP_TYPE_DESCRIBED;
@@ -3413,7 +3414,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 					if (descriptor == NULL)
 					{
 						internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-						result = __LINE__;
+						result = __FAILURE__;
 					}
 					else
 					{
@@ -3423,7 +3424,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 						if (internal_decoder_data->inner_decoder == NULL)
 						{
 							internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-							result = __LINE__;
+							result = __FAILURE__;
 						}
 						else
 						{
@@ -3798,7 +3799,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 				switch (internal_decoder_data->constructor_byte)
 				{
 				default:
-					result = __LINE__;
+					result = __FAILURE__;
 					break;
 
 				case 0x00: /* descriptor */
@@ -3807,7 +3808,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 					switch (step)
 					{
 					default:
-						result = __LINE__;
+						result = __FAILURE__;
 						break;
 
 					case DECODE_DESCRIBED_VALUE_STEP_DESCRIPTOR:
@@ -3815,7 +3816,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 						size_t inner_used_bytes;
 						if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, buffer, size, &inner_used_bytes) != 0)
 						{
-							result = __LINE__;
+							result = __FAILURE__;
 						}
 						else
 						{
@@ -3831,7 +3832,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 								if (described_value == NULL)
 								{
 									internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-									result = __LINE__;
+									result = __FAILURE__;
 								}
 								else
 								{
@@ -3841,7 +3842,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 									if (internal_decoder_data->inner_decoder == NULL)
 									{
 										internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-										result = __LINE__;
+										result = __FAILURE__;
 									}
 									else
 									{
@@ -3862,7 +3863,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 						size_t inner_used_bytes;
 						if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, buffer, size, &inner_used_bytes) != 0)
 						{
-							result = __LINE__;
+							result = __FAILURE__;
 						}
 						else
 						{
@@ -3891,7 +3892,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 					/* Codes_SRS_AMQPVALUE_01_331: [<encoding code="0x56" category="fixed" width="1" label="boolean with the octet 0x00 being false and octet 0x01 being true"/>] */
 					if (buffer[0] >= 2)
 					{
-						result = __LINE__;
+						result = __FAILURE__;
 					}
 					else
 					{
@@ -4207,7 +4208,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 							{
 								/* Codes_SRS_AMQPVALUE_01_326: [If any allocation failure occurs during decoding, amqpvalue_decode_bytes shall fail and return a non-zero value.] */
 								internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-								result = __LINE__;
+								result = __FAILURE__;
 							}
 							else
 							{
@@ -4273,7 +4274,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 								{
 									/* Codes_SRS_AMQPVALUE_01_326: [If any allocation failure occurs during decoding, amqpvalue_decode_bytes shall fail and return a non-zero value.] */
 									internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-									result = __LINE__;
+									result = __FAILURE__;
 								}
 								else
 								{
@@ -4297,7 +4298,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 						if (memcpy((unsigned char*)(internal_decoder_data->decode_to_value->value.binary_value.bytes) + (internal_decoder_data->bytes_decoded - 4), buffer, to_copy) == NULL)
 						{
 							internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-							result = __LINE__;
+							result = __FAILURE__;
 						}
 						else
 						{
@@ -4332,7 +4333,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 						{
 							/* Codes_SRS_AMQPVALUE_01_326: [If any allocation failure occurs during decoding, amqpvalue_decode_bytes shall fail and return a non-zero value.] */
 							internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-							result = __LINE__;
+							result = __FAILURE__;
 						}
 						else
 						{
@@ -4360,7 +4361,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 						if (memcpy(internal_decoder_data->decode_to_value->value.string_value.chars + (internal_decoder_data->bytes_decoded - 1), buffer, to_copy) == NULL)
 						{
 							internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-							result = __LINE__;
+							result = __FAILURE__;
 						}
 						else
 						{
@@ -4401,7 +4402,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 							{
 								/* Codes_SRS_AMQPVALUE_01_326: [If any allocation failure occurs during decoding, amqpvalue_decode_bytes shall fail and return a non-zero value.] */
 								internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-								result = __LINE__;
+								result = __FAILURE__;
 							}
 							else
 							{
@@ -4434,7 +4435,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 						if (memcpy(internal_decoder_data->decode_to_value->value.string_value.chars + (internal_decoder_data->bytes_decoded - 4), buffer, to_copy) == NULL)
 						{
 							internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-							result = __LINE__;
+							result = __FAILURE__;
 						}
 						else
 						{
@@ -4473,7 +4474,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 						{
 							/* Codes_SRS_AMQPVALUE_01_326: [If any allocation failure occurs during decoding, amqpvalue_decode_bytes shall fail and return a non-zero value.] */
 							internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-							result = __LINE__;
+							result = __FAILURE__;
 						}
 						else
 						{
@@ -4501,7 +4502,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 						if (memcpy(internal_decoder_data->decode_to_value->value.symbol_value.chars + (internal_decoder_data->bytes_decoded - 1), buffer, to_copy) == NULL)
 						{
 							internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-							result = __LINE__;
+							result = __FAILURE__;
 						}
 						else
 						{
@@ -4542,7 +4543,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 							{
 								/* Codes_SRS_AMQPVALUE_01_326: [If any allocation failure occurs during decoding, amqpvalue_decode_bytes shall fail and return a non-zero value.] */
 								internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-								result = __LINE__;
+								result = __FAILURE__;
 							}
 							else
 							{
@@ -4575,7 +4576,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 						if (memcpy(internal_decoder_data->decode_to_value->value.symbol_value.chars + (internal_decoder_data->bytes_decoded - 4), buffer, to_copy) == NULL)
 						{
 							internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-							result = __LINE__;
+							result = __FAILURE__;
 						}
 						else
 						{
@@ -4609,7 +4610,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 					switch (step)
 					{
 					default:
-						result = __LINE__;
+						result = __FAILURE__;
 						break;
 
 					case DECODE_LIST_STEP_SIZE:
@@ -4668,7 +4669,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 								internal_decoder_data->decode_to_value->value.list_value.items = (AMQP_VALUE*)amqpalloc_malloc(sizeof(AMQP_VALUE) * internal_decoder_data->decode_to_value->value.list_value.count);
 								if (internal_decoder_data->decode_to_value->value.list_value.items == NULL)
 								{
-									result = __LINE__;
+									result = __FAILURE__;
 								}
 								else
 								{
@@ -4705,7 +4706,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 									internal_decoder_data->decode_to_value->value.list_value.items = (AMQP_VALUE*)amqpalloc_malloc(sizeof(AMQP_VALUE) * internal_decoder_data->decode_to_value->value.list_value.count);
 									if (internal_decoder_data->decode_to_value->value.list_value.items == NULL)
 									{
-										result = __LINE__;
+										result = __FAILURE__;
 									}
 									else
 									{
@@ -4738,7 +4739,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 							if (list_item == NULL)
 							{
 								internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-								result = __LINE__;
+								result = __FAILURE__;
 							}
 							else
 							{
@@ -4748,7 +4749,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 								if (internal_decoder_data->inner_decoder == NULL)
 								{
 									internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-									result = __LINE__;
+									result = __FAILURE__;
 								}
 								else
 								{
@@ -4759,11 +4760,11 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 
 						if (internal_decoder_data->inner_decoder == NULL)
 						{
-							result = __LINE__;
+							result = __FAILURE__;
 						}
 						else if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, buffer, size, &inner_used_bytes) != 0)
 						{
-							result = __LINE__;
+							result = __FAILURE__;
 						}
 						else
 						{
@@ -4808,7 +4809,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 					switch (step)
 					{
 					default:
-						result = __LINE__;
+						result = __FAILURE__;
 						break;
 
 					case DECODE_MAP_STEP_SIZE:
@@ -4867,7 +4868,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 								internal_decoder_data->decode_to_value->value.map_value.pairs = (AMQP_MAP_KEY_VALUE_PAIR*)amqpalloc_malloc(sizeof(AMQP_MAP_KEY_VALUE_PAIR) * (internal_decoder_data->decode_to_value->value.map_value.pair_count * 2));
 								if (internal_decoder_data->decode_to_value->value.map_value.pairs == NULL)
 								{
-									result = __LINE__;
+									result = __FAILURE__;
 								}
 								else
 								{
@@ -4905,7 +4906,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 									internal_decoder_data->decode_to_value->value.map_value.pairs = (AMQP_MAP_KEY_VALUE_PAIR*)amqpalloc_malloc(sizeof(AMQP_MAP_KEY_VALUE_PAIR) * (internal_decoder_data->decode_to_value->value.map_value.pair_count * 2));
 									if (internal_decoder_data->decode_to_value->value.map_value.pairs == NULL)
 									{
-										result = __LINE__;
+										result = __FAILURE__;
 									}
 									else
 									{
@@ -4939,7 +4940,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 							if (map_item == NULL)
 							{
 								internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-								result = __LINE__;
+								result = __FAILURE__;
 							}
 							else
 							{
@@ -4956,7 +4957,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 								if (internal_decoder_data->inner_decoder == NULL)
 								{
 									internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-									result = __LINE__;
+									result = __FAILURE__;
 								}
 								else
 								{
@@ -4967,11 +4968,11 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 
 						if (internal_decoder_data->inner_decoder == NULL)
 						{
-							result = __LINE__;
+							result = __FAILURE__;
 						}
 						else if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, buffer, size, &inner_used_bytes) != 0)
 						{
-							result = __LINE__;
+							result = __FAILURE__;
 						}
 						else
 						{
@@ -5015,7 +5016,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 					switch (step)
 					{
 					default:
-						result = __LINE__;
+						result = __FAILURE__;
 						break;
 
 					case DECODE_ARRAY_STEP_SIZE:
@@ -5071,7 +5072,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 								internal_decoder_data->decode_to_value->value.array_value.items = (AMQP_VALUE*)amqpalloc_malloc(sizeof(AMQP_VALUE) * internal_decoder_data->decode_to_value->value.array_value.count);
 								if (internal_decoder_data->decode_to_value->value.array_value.items == NULL)
 								{
-									result = __LINE__;
+									result = __FAILURE__;
 								}
 								else
 								{
@@ -5104,7 +5105,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 									internal_decoder_data->decode_to_value->value.array_value.items = (AMQP_VALUE*)amqpalloc_malloc(sizeof(AMQP_VALUE) * internal_decoder_data->decode_to_value->value.array_value.count);
 									if (internal_decoder_data->decode_to_value->value.array_value.items == NULL)
 									{
-										result = __LINE__;
+										result = __FAILURE__;
 									}
 									else
 									{
@@ -5139,7 +5140,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 							if (array_item == NULL)
 							{
 								internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-								result = __LINE__;
+								result = __FAILURE__;
 							}
 							else
 							{
@@ -5149,7 +5150,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 								if (internal_decoder_data->inner_decoder == NULL)
 								{
 									internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-									result = __LINE__;
+									result = __FAILURE__;
 								}
 								else
 								{
@@ -5160,11 +5161,11 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 
 						if (internal_decoder_data->inner_decoder == NULL)
 						{
-							result = __LINE__;
+							result = __FAILURE__;
 						}
 						else if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, buffer, size, &inner_used_bytes) != 0)
 						{
-							result = __LINE__;
+							result = __FAILURE__;
 						}
 						else
 						{
@@ -5192,7 +5193,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 									if (array_item == NULL)
 									{
 										internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-										result = __LINE__;
+										result = __FAILURE__;
 									}
 									else
 									{
@@ -5202,13 +5203,13 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 										if (internal_decoder_data->inner_decoder == NULL)
 										{
 											internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-											result = __LINE__;
+											result = __FAILURE__;
 										}
 										else
 										{
 											if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, &internal_decoder_data->decode_value_state.array_value_state.constructor_byte, 1, NULL) != 0)
 											{
-												result = __LINE__;
+												result = __FAILURE__;
 											}
 											else
 											{
@@ -5317,7 +5318,7 @@ int amqpvalue_decode_bytes(AMQPVALUE_DECODER_HANDLE handle, const unsigned char*
 		/* Codes_SRS_AMQPVALUE_01_321: [If size is 0, amqpvalue_decode_bytes shall return a non-zero value.] */
 		(size == 0))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -5326,7 +5327,7 @@ int amqpvalue_decode_bytes(AMQPVALUE_DECODER_HANDLE handle, const unsigned char*
 		/* Codes_SRS_AMQPVALUE_01_318: [amqpvalue_decode_bytes shall decode size bytes that are passed in the buffer argument.] */
 		if (internal_decoder_decode_bytes(decoder_instance->internal_decoder, buffer, size, &used_bytes) != 0)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -5479,20 +5480,20 @@ int amqpvalue_set_composite_item(AMQP_VALUE value, uint32_t index, AMQP_VALUE it
 
 	if (value == NULL)
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
 		AMQP_VALUE_DATA* value_data = (AMQP_VALUE_DATA*)value;
 		if (value_data->type != AMQP_TYPE_COMPOSITE)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
 			if (amqpvalue_set_list_item(value_data->value.described_value.value, index, item_value) != 0)
 			{
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 			else
 			{

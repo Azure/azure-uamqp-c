@@ -11,6 +11,7 @@
 #include "azure_uamqp_c/amqp_definitions.h"
 #include "azure_uamqp_c/amqpalloc.h"
 #include "azure_uamqp_c/amqp_frame_codec.h"
+#include "azure_c_shared_utility/optimize_size.h"
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_c_shared_utility/singlylinkedlist.h"
 
@@ -73,7 +74,7 @@ static int send_flow(LINK_INSTANCE* link)
 
 	if (flow == NULL)
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -81,13 +82,13 @@ static int send_flow(LINK_INSTANCE* link)
 			(flow_set_handle(flow, link->handle) != 0) ||
 			(flow_set_delivery_count(flow, link->delivery_count) != 0))
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
 			if (session_send_flow(link->link_endpoint, flow) != 0)
 			{
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 			else
 			{
@@ -108,7 +109,7 @@ static int send_disposition(LINK_INSTANCE* link_instance, delivery_number delive
 	DISPOSITION_HANDLE disposition = disposition_create(link_instance->role, delivery_number);
 	if (disposition == NULL)
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -116,13 +117,13 @@ static int send_disposition(LINK_INSTANCE* link_instance, delivery_number delive
 			(disposition_set_settled(disposition, true) != 0) ||
 			((delivery_state != NULL) && (disposition_set_state(disposition, delivery_state) != 0)))
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
 			if (session_send_disposition(link_instance->link_endpoint, disposition) != 0)
 			{
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 			else
 			{
@@ -144,25 +145,25 @@ static int send_detach(LINK_INSTANCE* link_instance, bool close, ERROR_HANDLE er
 	detach_performative = detach_create(0);
 	if (detach_performative == NULL)
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
 		if ((error_handle != NULL) &&
 			(detach_set_error(detach_performative, error_handle) != 0))
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
         else if (close &&
             (detach_set_closed(detach_performative, true) != 0))
         {
-            result = __LINE__;
+            result = __FAILURE__;
         }
         else
 		{
 			if (session_send_detach(link_instance->link_endpoint, detach_performative) != 0)
 			{
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 			else
 			{
@@ -189,7 +190,7 @@ static int send_attach(LINK_INSTANCE* link, const char* name, handle handle, rol
 
     if (attach == NULL)
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
@@ -208,7 +209,7 @@ static int send_attach(LINK_INSTANCE* link, const char* name, handle handle, rol
         {
             if (attach_set_initial_delivery_count(attach, link->delivery_count) != 0)
             {
-                result = __LINE__;
+                result = __FAILURE__;
             }
         }
 
@@ -217,7 +218,7 @@ static int send_attach(LINK_INSTANCE* link, const char* name, handle handle, rol
             if ((attach_set_max_message_size(attach, link->max_message_size) != 0) ||
                 (session_send_attach(link->link_endpoint, attach) != 0))
             {
-                result = __LINE__;
+                result = __FAILURE__;
             }
             else
             {
@@ -736,7 +737,7 @@ int link_set_snd_settle_mode(LINK_HANDLE link, sender_settle_mode snd_settle_mod
 
 	if (link == NULL)
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -754,7 +755,7 @@ int link_get_snd_settle_mode(LINK_HANDLE link, sender_settle_mode* snd_settle_mo
 	if ((link == NULL) ||
 		(snd_settle_mode == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -772,7 +773,7 @@ int link_set_rcv_settle_mode(LINK_HANDLE link, receiver_settle_mode rcv_settle_m
 
 	if (link == NULL)
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -790,7 +791,7 @@ int link_get_rcv_settle_mode(LINK_HANDLE link, receiver_settle_mode* rcv_settle_
 	if ((link == NULL) ||
 		(rcv_settle_mode == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -807,7 +808,7 @@ int link_set_initial_delivery_count(LINK_HANDLE link, sequence_no initial_delive
 
 	if (link == NULL)
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -825,7 +826,7 @@ int link_get_initial_delivery_count(LINK_HANDLE link, sequence_no* initial_deliv
 	if ((link == NULL) ||
 		(initial_delivery_count == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -842,7 +843,7 @@ int link_set_max_message_size(LINK_HANDLE link, uint64_t max_message_size)
 
 	if (link == NULL)
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -860,7 +861,7 @@ int link_get_max_message_size(LINK_HANDLE link, uint64_t* max_message_size)
 	if ((link == NULL) ||
 		(max_message_size == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -877,14 +878,14 @@ int link_set_attach_properties(LINK_HANDLE link, fields attach_properties)
 
     if (link == NULL)
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
         link->attach_properties = amqpvalue_clone(attach_properties);
         if (link->attach_properties == NULL)
         {
-            result = __LINE__;
+            result = __FAILURE__;
         }
         else
         {
@@ -902,7 +903,7 @@ int link_attach(LINK_HANDLE link, ON_TRANSFER_RECEIVED on_transfer_received, ON_
 	if ((link == NULL) ||
         (link->is_closed))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -915,7 +916,7 @@ int link_attach(LINK_HANDLE link, ON_TRANSFER_RECEIVED on_transfer_received, ON_
 
 			if (session_begin(link->session) != 0)
 			{
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 			else
 			{
@@ -923,7 +924,7 @@ int link_attach(LINK_HANDLE link, ON_TRANSFER_RECEIVED on_transfer_received, ON_
 
 				if (session_start_link_endpoint(link->link_endpoint, link_frame_received, on_session_state_changed, on_session_flow_on, link) != 0)
 				{
-					result = __LINE__;
+					result = __FAILURE__;
 				}
 				else
 				{
@@ -949,7 +950,7 @@ int link_detach(LINK_HANDLE link, bool close)
     if ((link == NULL) ||
         (link->is_closed))
     {
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -960,7 +961,7 @@ int link_detach(LINK_HANDLE link, bool close)
             /* Sending detach when remote is not yet attached */
             if (send_detach(link, close, NULL) != 0)
             {
-                result = __LINE__;
+                result = __FAILURE__;
             }
             else
             {
@@ -973,7 +974,7 @@ int link_detach(LINK_HANDLE link, bool close)
             /* Send detach and wait for remote to respond */
             if (send_detach(link, close, NULL) != 0)
             {
-                result = __LINE__;
+                result = __FAILURE__;
             }
             else
             {
@@ -990,7 +991,7 @@ int link_detach(LINK_HANDLE link, bool close)
         default:
         case LINK_STATE_ERROR:
             /* Already detached and in error state */
-            result = __LINE__;
+            result = __FAILURE__;
             break;
         }
 	}

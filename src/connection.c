@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "azure_c_shared_utility/optimize_size.h"
 #include "azure_c_shared_utility/xio.h"
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_c_shared_utility/tickcounter.h"
@@ -114,7 +115,7 @@ static int send_header(CONNECTION_INSTANCE* connection_instance)
         connection_set_state(connection_instance, CONNECTION_STATE_END);
 
         /* Codes_SRS_CONNECTION_01_105: [When xio_send fails, connection_dowork shall return a non-zero value.] */
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
@@ -239,7 +240,7 @@ static int send_open_frame(CONNECTION_INSTANCE* connection_instance)
         /* Codes_SRS_CONNECTION_01_207: [If frame_codec_set_max_frame_size fails the connection shall be closed and the state set to END.] */
         xio_close(connection_instance->io, NULL, NULL);
         connection_set_state(connection_instance, CONNECTION_STATE_END);
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
@@ -250,7 +251,7 @@ static int send_open_frame(CONNECTION_INSTANCE* connection_instance)
             /* Codes_SRS_CONNECTION_01_208: [If the open frame cannot be constructed, the connection shall be closed and set to the END state.] */
             xio_close(connection_instance->io, NULL, NULL);
             connection_set_state(connection_instance, CONNECTION_STATE_END);
-            result = __LINE__;
+            result = __FAILURE__;
         }
         else
         {
@@ -260,7 +261,7 @@ static int send_open_frame(CONNECTION_INSTANCE* connection_instance)
                 /* Codes_SRS_CONNECTION_01_208: [If the open frame cannot be constructed, the connection shall be closed and set to the END state.] */
                 xio_close(connection_instance->io, NULL, NULL);
                 connection_set_state(connection_instance, CONNECTION_STATE_END);
-                result = __LINE__;
+                result = __FAILURE__;
             }
             /* Codes_SRS_CONNECTION_01_139: [The channel_max connection setting shall be set in the open frame by using open_set_channel_max.] */
             else if (open_set_channel_max(open_performative, connection_instance->channel_max) != 0)
@@ -268,7 +269,7 @@ static int send_open_frame(CONNECTION_INSTANCE* connection_instance)
                 /* Codes_SRS_CONNECTION_01_208: [If the open frame cannot be constructed, the connection shall be closed and set to the END state.] */
                 xio_close(connection_instance->io, NULL, NULL);
                 connection_set_state(connection_instance, CONNECTION_STATE_END);
-                result = __LINE__;
+                result = __FAILURE__;
             }
             /* Codes_SRS_CONNECTION_01_142: [If no idle_timeout value has been specified, no value shall be stamped in the open frame (no call to open_set_idle_time_out shall be made).] */
             else if ((connection_instance->idle_timeout_specified) &&
@@ -278,7 +279,7 @@ static int send_open_frame(CONNECTION_INSTANCE* connection_instance)
                 /* Codes_SRS_CONNECTION_01_208: [If the open frame cannot be constructed, the connection shall be closed and set to the END state.] */
                 xio_close(connection_instance->io, NULL, NULL);
                 connection_set_state(connection_instance, CONNECTION_STATE_END);
-                result = __LINE__;
+                result = __FAILURE__;
             }
             /* Codes_SRS_CONNECTION_01_136: [If no hostname value has been specified, no value shall be stamped in the open frame (no call to open_set_hostname shall be made).] */
             else if ((connection_instance->host_name != NULL) &&
@@ -288,7 +289,7 @@ static int send_open_frame(CONNECTION_INSTANCE* connection_instance)
                 /* Codes_SRS_CONNECTION_01_208: [If the open frame cannot be constructed, the connection shall be closed and set to the END state.] */
                 xio_close(connection_instance->io, NULL, NULL);
                 connection_set_state(connection_instance, CONNECTION_STATE_END);
-                result = __LINE__;
+                result = __FAILURE__;
             }
             else
             {
@@ -298,7 +299,7 @@ static int send_open_frame(CONNECTION_INSTANCE* connection_instance)
                     /* Codes_SRS_CONNECTION_01_208: [If the open frame cannot be constructed, the connection shall be closed and set to the END state.] */
                     xio_close(connection_instance->io, NULL, NULL);
                     connection_set_state(connection_instance, CONNECTION_STATE_END);
-                    result = __LINE__;
+                    result = __FAILURE__;
                 }
                 else
                 {
@@ -314,7 +315,7 @@ static int send_open_frame(CONNECTION_INSTANCE* connection_instance)
                         /* Codes_SRS_CONNECTION_01_206: [If sending the frame fails, the connection shall be closed and state set to END.] */
                         xio_close(connection_instance->io, NULL, NULL);
                         connection_set_state(connection_instance, CONNECTION_STATE_END);
-                        result = __LINE__;
+                        result = __FAILURE__;
                     }
                     else
                     {
@@ -348,7 +349,7 @@ static int send_close_frame(CONNECTION_INSTANCE* connection_instance, ERROR_HAND
     close_performative = close_create();
     if (close_performative == NULL)
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
@@ -356,14 +357,14 @@ static int send_close_frame(CONNECTION_INSTANCE* connection_instance, ERROR_HAND
             /* Codes_SRS_CONNECTION_01_238: [If set, this field indicates that the connection is being closed due to an error condition.] */
             (close_set_error(close_performative, error_handle) != 0))
         {
-            result = __LINE__;
+            result = __FAILURE__;
         }
         else
         {
             AMQP_VALUE close_performative_value = amqpvalue_create_close(close_performative);
             if (close_performative_value == NULL)
             {
-                result = __LINE__;
+                result = __FAILURE__;
             }
             else
             {
@@ -373,7 +374,7 @@ static int send_close_frame(CONNECTION_INSTANCE* connection_instance, ERROR_HAND
                 connection_instance->on_send_complete_callback_context = NULL;
                 if (amqp_frame_codec_encode_frame(connection_instance->amqp_frame_codec, 0, close_performative_value, NULL, 0, on_bytes_encoded, connection_instance) != 0)
                 {
-                    result = __LINE__;
+                    result = __FAILURE__;
                 }
                 else
                 {
@@ -483,7 +484,7 @@ static int connection_byte_received(CONNECTION_INSTANCE* connection_instance, un
     switch (connection_instance->connection_state)
     {
     default:
-        result = __LINE__;
+        result = __FAILURE__;
         break;
 
     /* Codes_SRS_CONNECTION_01_039: [START In this state a connection exists, but nothing has been sent or received. This is the state an implementation would be in immediately after performing a socket connect or socket accept.] */
@@ -496,7 +497,7 @@ static int connection_byte_received(CONNECTION_INSTANCE* connection_instance, un
             /* Codes_SRS_CONNECTION_01_089: [If the incoming and outgoing protocol headers do not match, both peers MUST close their outgoing stream] */
             xio_close(connection_instance->io, NULL, NULL);
             connection_set_state(connection_instance, CONNECTION_STATE_END);
-            result = __LINE__;
+            result = __FAILURE__;
         }
         else
         {
@@ -541,7 +542,7 @@ static int connection_byte_received(CONNECTION_INSTANCE* connection_instance, un
             /* Codes_SRS_CONNECTION_01_218: [The error amqp:internal-error shall be set in the error.condition field of the CLOSE frame.] */
             /* Codes_SRS_CONNECTION_01_219: [The error description shall be set to an implementation defined string.] */
             close_connection_with_error(connection_instance, "amqp:internal-error", "connection_byte_received::frame_codec_receive_bytes failed");
-            result = __LINE__;
+            result = __FAILURE__;
         }
         else
         {
@@ -1075,7 +1076,7 @@ int connection_open(CONNECTION_HANDLE connection)
 
     if (connection == NULL)
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
@@ -1084,7 +1085,7 @@ int connection_open(CONNECTION_HANDLE connection)
             if (xio_open(connection->io, connection_on_io_open_complete, connection, connection_on_bytes_received, connection, connection_on_io_error, connection) != 0)
             {
                 connection_set_state(connection, CONNECTION_STATE_END);
-                result = __LINE__;
+                result = __FAILURE__;
             }
             else
             {
@@ -1110,7 +1111,7 @@ int connection_listen(CONNECTION_HANDLE connection)
 
     if (connection == NULL)
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
@@ -1119,7 +1120,7 @@ int connection_listen(CONNECTION_HANDLE connection)
             if (xio_open(connection->io, connection_on_io_open_complete, connection, connection_on_bytes_received, connection, connection_on_io_error, connection) != 0)
             {
                 connection_set_state(connection, CONNECTION_STATE_END);
-                result = __LINE__;
+                result = __FAILURE__;
             }
             else
             {
@@ -1145,7 +1146,7 @@ int connection_close(CONNECTION_HANDLE connection, const char* condition_value, 
 
     if (connection == NULL)
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
@@ -1178,14 +1179,14 @@ int connection_set_max_frame_size(CONNECTION_HANDLE connection, uint32_t max_fra
         /* Codes_SRS_CONNECTION_01_167: [Both peers MUST accept frames of up to 512 (MIN-MAX-FRAME-SIZE) octets.] */
         (max_frame_size < 512))
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
         /* Codes_SRS_CONNECTION_01_157: [If connection_set_max_frame_size is called after the initial Open frame has been sent, it shall fail and return a non-zero value.] */
         if (connection->connection_state != CONNECTION_STATE_START)
         {
-            result = __LINE__;
+            result = __FAILURE__;
         }
         else
         {
@@ -1209,7 +1210,7 @@ int connection_get_max_frame_size(CONNECTION_HANDLE connection, uint32_t* max_fr
     if ((connection == NULL) ||
         (max_frame_size == NULL))
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
@@ -1230,14 +1231,14 @@ int connection_set_channel_max(CONNECTION_HANDLE connection, uint16_t channel_ma
     /* Codes_SRS_CONNECTION_01_181: [If connection is NULL then connection_set_channel_max shall fail and return a non-zero value.] */
     if (connection == NULL)
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
         /* Codes_SRS_CONNECTION_01_156: [If connection_set_channel_max is called after the initial Open frame has been sent, it shall fail and return a non-zero value.] */
         if (connection->connection_state != CONNECTION_STATE_START)
         {
-            result = __LINE__;
+            result = __FAILURE__;
         }
         else
         {
@@ -1261,7 +1262,7 @@ int connection_get_channel_max(CONNECTION_HANDLE connection, uint16_t* channel_m
     if ((connection == NULL) ||
         (channel_max == NULL))
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
@@ -1282,14 +1283,14 @@ int connection_set_idle_timeout(CONNECTION_HANDLE connection, milliseconds idle_
     /* Codes_SRS_CONNECTION_01_191: [If connection is NULL, connection_set_idle_timeout shall fail and return a non-zero value.] */
     if (connection == NULL)
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
         /* Codes_SRS_CONNECTION_01_158: [If connection_set_idle_timeout is called after the initial Open frame has been sent, it shall fail and return a non-zero value.] */
         if (connection->connection_state != CONNECTION_STATE_START)
         {
-            result = __LINE__;
+            result = __FAILURE__;
         }
         else
         {
@@ -1314,7 +1315,7 @@ int connection_get_idle_timeout(CONNECTION_HANDLE connection, milliseconds* idle
     if ((connection == NULL) ||
         (idle_timeout == NULL))
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
@@ -1335,7 +1336,7 @@ int connection_get_remote_max_frame_size(CONNECTION_HANDLE connection, uint32_t*
     if ((connection == NULL) ||
         (remote_max_frame_size == NULL))
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
@@ -1513,7 +1514,7 @@ int connection_start_endpoint(ENDPOINT_HANDLE endpoint, ON_ENDPOINT_FRAME_RECEIV
         (on_endpoint_frame_received == NULL) ||
         (on_connection_state_changed == NULL))
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
@@ -1534,7 +1535,7 @@ int connection_endpoint_get_incoming_channel(ENDPOINT_HANDLE endpoint, uint16_t*
     if ((endpoint == NULL) ||
         (incoming_channel == NULL))
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
@@ -1595,7 +1596,7 @@ int connection_encode_frame(ENDPOINT_HANDLE endpoint, const AMQP_VALUE performat
     if ((endpoint == NULL) ||
         (performative == NULL))
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
@@ -1605,7 +1606,7 @@ int connection_encode_frame(ENDPOINT_HANDLE endpoint, const AMQP_VALUE performat
         /* Codes_SRS_CONNECTION_01_254: [If connection_encode_frame is called before the connection is in the OPENED state, connection_encode_frame shall fail and return a non-zero value.] */
         if (connection->connection_state != CONNECTION_STATE_OPENED)
         {
-            result = __LINE__;
+            result = __FAILURE__;
         }
         else
         {
@@ -1618,7 +1619,7 @@ int connection_encode_frame(ENDPOINT_HANDLE endpoint, const AMQP_VALUE performat
             if (amqp_frame_codec_encode_frame(amqp_frame_codec, endpoint->outgoing_channel, performative, payloads, payload_count, on_bytes_encoded, connection) != 0)
             {
                 /* Codes_SRS_CONNECTION_01_253: [If amqp_frame_codec_begin_encode_frame or amqp_frame_codec_encode_payload_bytes fails, then connection_encode_frame shall fail and return a non-zero value.] */
-                result = __LINE__;
+                result = __FAILURE__;
             }
             else
             {
@@ -1629,7 +1630,7 @@ int connection_encode_frame(ENDPOINT_HANDLE endpoint, const AMQP_VALUE performat
 
                 if (tickcounter_get_current_ms(connection->tick_counter, &connection->last_frame_sent_time) != 0)
                 {
-                    result = __LINE__;
+                    result = __FAILURE__;
                 }
                 else
                 {

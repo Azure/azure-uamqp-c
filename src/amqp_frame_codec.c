@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
+#include "azure_c_shared_utility/optimize_size.h"
 #include "azure_uamqp_c/amqp_frame_codec.h"
 #include "azure_uamqp_c/frame_codec.h"
 #include "azure_uamqp_c/amqpalloc.h"
@@ -211,7 +212,7 @@ int amqp_frame_codec_encode_frame(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec, uint
 		(performative == NULL) ||
 		(on_bytes_encoded == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -226,27 +227,27 @@ int amqp_frame_codec_encode_frame(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec, uint
 			(performative_ulong > AMQP_CLOSE))
 		{
 			/* Codes_SRS_AMQP_FRAME_CODEC_01_029: [If any error occurs during encoding, amqp_frame_codec_encode_frame shall fail and return a non-zero value.] */
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		/* Codes_SRS_AMQP_FRAME_CODEC_01_027: [The encoded size of the performative and its fields shall be obtained by calling amqpvalue_get_encoded_size.] */
 		else if (amqpvalue_get_encoded_size(performative, &encoded_size) != 0)
 		{
 			/* Codes_SRS_AMQP_FRAME_CODEC_01_029: [If any error occurs during encoding, amqp_frame_codec_encode_frame shall fail and return a non-zero value.] */
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
 			unsigned char* amqp_performative_bytes = (unsigned char*)amqpalloc_malloc(encoded_size);
 			if (amqp_performative_bytes == NULL)
 			{
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 			else
 			{
 				PAYLOAD* new_payloads = (PAYLOAD*)amqpalloc_malloc(sizeof(PAYLOAD) * (payload_count + 1));
 				if (new_payloads == NULL)
 				{
-					result = __LINE__;
+					result = __FAILURE__;
 				}
 				else
 				{
@@ -262,7 +263,7 @@ int amqp_frame_codec_encode_frame(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec, uint
 
 					if (amqpvalue_encode(performative, encode_bytes, &new_payloads[0]) != 0)
 					{
-						result = __LINE__;
+						result = __FAILURE__;
 					}
 					else
 					{
@@ -277,7 +278,7 @@ int amqp_frame_codec_encode_frame(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec, uint
 						if (frame_codec_encode_frame(amqp_frame_codec->frame_codec, FRAME_TYPE_AMQP, new_payloads, payload_count + 1, channel_bytes, sizeof(channel_bytes), on_bytes_encoded, callback_context) != 0)
 						{
 							/* Codes_SRS_AMQP_FRAME_CODEC_01_029: [If any error occurs during encoding, amqp_frame_codec_encode_frame shall fail and return a non-zero value.] */
-							result = __LINE__;
+							result = __FAILURE__;
 						}
 						else
 						{
@@ -306,7 +307,7 @@ int amqp_frame_codec_encode_empty_frame(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec
 	/* Codes_SRS_AMQP_FRAME_CODEC_01_045: [If amqp_frame_codec is NULL, amqp_frame_codec_encode_empty_frame shall fail and return a non-zero value.] */
 	if (amqp_frame_codec == NULL)
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -319,7 +320,7 @@ int amqp_frame_codec_encode_empty_frame(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec
 		if (frame_codec_encode_frame(amqp_frame_codec->frame_codec, FRAME_TYPE_AMQP, NULL, 0, channel_bytes, sizeof(channel_bytes), on_bytes_encoded, callback_context) != 0)
 		{
 			/* Codes_SRS_AMQP_FRAME_CODEC_01_046: [If encoding fails in any way, amqp_frame_codec_encode_empty_frame shall fail and return a non-zero value.]  */
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{

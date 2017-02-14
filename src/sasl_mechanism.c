@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 #include <stdlib.h>
+#include "azure_c_shared_utility/optimize_size.h"
 #include "azure_uamqp_c/sasl_mechanism.h"
 #include "azure_uamqp_c/amqpalloc.h"
 
@@ -69,7 +70,7 @@ int saslmechanism_get_init_bytes(SASL_MECHANISM_HANDLE sasl_mechanism, SASL_MECH
 	/* Codes_SRS_SASL_MECHANISM_01_012: [If the argument sasl_mechanism is NULL, saslmechanism_get_init_bytes shall fail and return a non-zero value.] */
 	if (sasl_mechanism == NULL)
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -79,7 +80,7 @@ int saslmechanism_get_init_bytes(SASL_MECHANISM_HANDLE sasl_mechanism, SASL_MECH
 		if (sasl_mechanism_instance->sasl_mechanism_interface_description->concrete_sasl_mechanism_get_init_bytes(sasl_mechanism_instance->concrete_sasl_mechanism_handle, init_bytes) != 0)
 		{
 			/* Codes_SRS_SASL_MECHANISM_01_013: [If the underlying concrete_sasl_mechanism_get_init_bytes fails, saslmechanism_get_init_bytes shall fail and return a non-zero value.] */
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -120,7 +121,7 @@ int saslmechanism_challenge(SASL_MECHANISM_HANDLE sasl_mechanism, const SASL_MEC
 	/* Codes_SRS_SASL_MECHANISM_01_020: [If the argument sasl_mechanism is NULL, saslmechanism_challenge shall fail and return a non-zero value.] */
 	if (sasl_mechanism == NULL)
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -128,7 +129,7 @@ int saslmechanism_challenge(SASL_MECHANISM_HANDLE sasl_mechanism, const SASL_MEC
 		if (sasl_mechanism->sasl_mechanism_interface_description->concrete_sasl_mechanism_challenge(sasl_mechanism->concrete_sasl_mechanism_handle, challenge_bytes, response_bytes) != 0)
 		{
 			/* Codes_SRS_SASL_MECHANISM_01_021: [If the underlying concrete_sasl_mechanism_challenge fails, saslmechanism_challenge shall fail and return a non-zero value.] */
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{

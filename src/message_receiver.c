@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 #include <stdlib.h>
+#include "azure_c_shared_utility/optimize_size.h"
 #include "azure_uamqp_c/message_receiver.h"
 #include "azure_uamqp_c/amqpalloc.h"
 #include "azure_uamqp_c/amqpvalue.h"
@@ -271,7 +272,7 @@ int messagereceiver_open(MESSAGE_RECEIVER_HANDLE message_receiver, ON_MESSAGE_RE
 
 	if (message_receiver == NULL)
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -282,7 +283,7 @@ int messagereceiver_open(MESSAGE_RECEIVER_HANDLE message_receiver, ON_MESSAGE_RE
 			set_message_receiver_state(message_receiver_instance, MESSAGE_RECEIVER_STATE_OPENING);
 			if (link_attach(message_receiver_instance->link, on_transfer_received, on_link_state_changed, NULL, message_receiver_instance) != 0)
 			{
-				result = __LINE__;
+				result = __FAILURE__;
 				set_message_receiver_state(message_receiver_instance, MESSAGE_RECEIVER_STATE_ERROR);
 			}
 			else
@@ -308,7 +309,7 @@ int messagereceiver_close(MESSAGE_RECEIVER_HANDLE message_receiver)
 
 	if (message_receiver == NULL)
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -321,7 +322,7 @@ int messagereceiver_close(MESSAGE_RECEIVER_HANDLE message_receiver)
 
 			if (link_detach(message_receiver_instance->link, true) != 0)
 			{
-				result = __LINE__;
+				result = __FAILURE__;
 				set_message_receiver_state(message_receiver_instance, MESSAGE_RECEIVER_STATE_ERROR);
 			}
 			else

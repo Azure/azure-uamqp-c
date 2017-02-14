@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include "azure_c_shared_utility/optimize_size.h"
 #include "azure_uamqp_c/sasl_plain.h"
 #include "azure_uamqp_c/amqpalloc.h"
 
@@ -121,7 +122,7 @@ int saslplain_get_init_bytes(CONCRETE_SASL_MECHANISM_HANDLE sasl_mechanism_concr
 	if ((sasl_mechanism_concrete_handle == NULL) ||
 		(init_bytes == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -165,7 +166,7 @@ int saslplain_challenge(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism, 
 	if ((concrete_sasl_mechanism == NULL) ||
 		(response_bytes == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{

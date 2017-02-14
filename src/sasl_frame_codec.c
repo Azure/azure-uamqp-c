@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
+#include "azure_c_shared_utility/optimize_size.h"
 #include "azure_uamqp_c/sasl_frame_codec.h"
 #include "azure_uamqp_c/frame_codec.h"
 #include "azure_uamqp_c/amqpalloc.h"
@@ -226,7 +227,7 @@ int sasl_frame_codec_encode_frame(SASL_FRAME_CODEC_HANDLE sasl_frame_codec, cons
 		(sasl_frame_value == NULL))
 	{
 		/* Codes_SRS_SASL_FRAME_CODEC_01_034: [If any error occurs during encoding, sasl_frame_codec_encode_frame shall fail and return a non-zero value.] */
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -241,7 +242,7 @@ int sasl_frame_codec_encode_frame(SASL_FRAME_CODEC_HANDLE sasl_frame_codec, cons
 			(sasl_frame_descriptor_ulong > SASL_OUTCOME))
 		{
 			/* Codes_SRS_SASL_FRAME_CODEC_01_034: [If any error occurs during encoding, sasl_frame_codec_encode_frame shall fail and return a non-zero value.] */
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		/* Codes_SRS_SASL_FRAME_CODEC_01_032: [The payload frame size shall be computed based on the encoded size of the sasl_frame_value and its fields.] */
 		/* Codes_SRS_SASL_FRAME_CODEC_01_033: [The encoded size of the sasl_frame_value and its fields shall be obtained by calling amqpvalue_get_encoded_size.] */
@@ -250,14 +251,14 @@ int sasl_frame_codec_encode_frame(SASL_FRAME_CODEC_HANDLE sasl_frame_codec, cons
 			(encoded_size > MIX_MAX_FRAME_SIZE - 8))
 		{
 			/* Codes_SRS_SASL_FRAME_CODEC_01_034: [If any error occurs during encoding, sasl_frame_codec_encode_frame shall fail and return a non-zero value.] */
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
 			unsigned char* sasl_frame_bytes = (unsigned char*)amqpalloc_malloc(encoded_size);
 			if (sasl_frame_bytes == NULL)
 			{
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 			else
 			{
@@ -268,7 +269,7 @@ int sasl_frame_codec_encode_frame(SASL_FRAME_CODEC_HANDLE sasl_frame_codec, cons
 
 				if (amqpvalue_encode(sasl_frame_value, encode_bytes, &payload) != 0)
 				{
-					result = __LINE__;
+					result = __FAILURE__;
 				}
 				else
 				{
@@ -280,7 +281,7 @@ int sasl_frame_codec_encode_frame(SASL_FRAME_CODEC_HANDLE sasl_frame_codec, cons
 					if (frame_codec_encode_frame(sasl_frame_codec_instance->frame_codec, FRAME_TYPE_SASL, &payload, 1, NULL, 0, on_bytes_encoded, callback_context) != 0)
 					{
 						/* Codes_SRS_SASL_FRAME_CODEC_01_034: [If any error occurs during encoding, sasl_frame_codec_encode_frame shall fail and return a non-zero value.] */
-						result = __LINE__;
+						result = __FAILURE__;
 					}
 					else
 					{

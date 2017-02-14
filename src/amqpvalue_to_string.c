@@ -6,6 +6,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdio.h>
+#include "azure_c_shared_utility/optimize_size.h"
 #include "azure_uamqp_c/amqpvalue_to_string.h"
 #include "azure_uamqp_c/amqpvalue.h"
 #include "azure_uamqp_c/amqpalloc.h"
@@ -22,7 +23,7 @@ static int string_concat(char** string, const char* to_concat)
 	if ((string == NULL) ||
 		(to_concat == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -43,7 +44,7 @@ static int string_concat(char** string, const char* to_concat)
 		char* new_string = amqpalloc_realloc(*string, length);
 		if (new_string == NULL)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{

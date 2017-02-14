@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include "azure_c_shared_utility/optimize_size.h"
 #include "azure_uamqp_c/saslclientio.h"
 #include "azure_c_shared_utility/xio.h"
 #include "azure_c_shared_utility/xlogging.h"
@@ -149,7 +150,7 @@ static int send_sasl_header(SASL_CLIENT_IO_INSTANCE* sasl_client_io_instance)
     /* Codes_SRS_SASLCLIENTIO_01_095: [Sending the header shall be done by using xio_send.] */
     if (xio_send(sasl_client_io_instance->underlying_io, sasl_header, sizeof(sasl_header), NULL, NULL) != 0)
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
@@ -313,14 +314,14 @@ static int saslclientio_receive_byte(SASL_CLIENT_IO_INSTANCE* sasl_client_io_ins
     switch (sasl_client_io_instance->sasl_header_exchange_state)
     {
     default:
-        result = __LINE__;
+        result = __FAILURE__;
         break;
 
     case SASL_HEADER_EXCHANGE_HEADER_EXCH:
         switch (sasl_client_io_instance->sasl_client_negotiation_state)
         {
         case SASL_CLIENT_NEGOTIATION_ERROR:
-            result = __LINE__;
+            result = __FAILURE__;
             break;
 
         default:
@@ -328,7 +329,7 @@ static int saslclientio_receive_byte(SASL_CLIENT_IO_INSTANCE* sasl_client_io_ins
             if (frame_codec_receive_bytes(sasl_client_io_instance->frame_codec, &b, 1) != 0)
             {
                 /* Codes_SRS_SASLCLIENTIO_01_088: [If frame_codec_receive_bytes fails, the state of SASL client IO shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
-                result = __LINE__;
+                result = __FAILURE__;
             }
             else
             {
@@ -350,7 +351,7 @@ static int saslclientio_receive_byte(SASL_CLIENT_IO_INSTANCE* sasl_client_io_ins
     case SASL_HEADER_EXCHANGE_HEADER_SENT:
         if (b != sasl_header[sasl_client_io_instance->header_bytes_received])
         {
-            result = __LINE__;
+            result = __FAILURE__;
         }
         else
         {
@@ -365,7 +366,7 @@ static int saslclientio_receive_byte(SASL_CLIENT_IO_INSTANCE* sasl_client_io_ins
                 switch (sasl_client_io_instance->sasl_header_exchange_state)
                 {
                 default:
-                    result = __LINE__;
+                    result = __FAILURE__;
                     break;
                 
                 case SASL_HEADER_EXCHANGE_HEADER_SENT:
@@ -379,7 +380,7 @@ static int saslclientio_receive_byte(SASL_CLIENT_IO_INSTANCE* sasl_client_io_ins
                     if (send_sasl_header(sasl_client_io_instance) != 0)
                     {
                         /* Codes_SRS_SASLCLIENTIO_01_077: [If sending the SASL header fails, the SASL client IO state shall be set to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
-                        result = __LINE__;
+                        result = __FAILURE__;
                     }
                     else
                     {
@@ -478,7 +479,7 @@ static int send_sasl_init(SASL_CLIENT_IO_INSTANCE* sasl_client_io, const char* s
     if (sasl_init == NULL)
     {
         /* Codes_SRS_SASLCLIENTIO_01_119: [If any error is encountered when parsing the received frame, the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
@@ -486,7 +487,7 @@ static int send_sasl_init(SASL_CLIENT_IO_INSTANCE* sasl_client_io, const char* s
         if (saslmechanism_get_init_bytes(sasl_client_io->sasl_mechanism, &init_bytes) != 0)
         {
             /* Codes_SRS_SASLCLIENTIO_01_119: [If any error is encountered when parsing the received frame, the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
-            result = __LINE__;
+            result = __FAILURE__;
         }
         else
         {
@@ -498,7 +499,7 @@ static int send_sasl_init(SASL_CLIENT_IO_INSTANCE* sasl_client_io, const char* s
                 (sasl_init_set_initial_response(sasl_init, creds) != 0))
             {
                 /* Codes_SRS_SASLCLIENTIO_01_119: [If any error is encountered when parsing the received frame, the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
-                result = __LINE__;
+                result = __FAILURE__;
             }
             else
             {
@@ -506,7 +507,7 @@ static int send_sasl_init(SASL_CLIENT_IO_INSTANCE* sasl_client_io, const char* s
                 if (sasl_init_value == NULL)
                 {
                     /* Codes_SRS_SASLCLIENTIO_01_119: [If any error is encountered when parsing the received frame, the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
-                    result = __LINE__;
+                    result = __FAILURE__;
                 }
                 else
                 {
@@ -514,7 +515,7 @@ static int send_sasl_init(SASL_CLIENT_IO_INSTANCE* sasl_client_io, const char* s
                     if (sasl_frame_codec_encode_frame(sasl_client_io->sasl_frame_codec, sasl_init_value, on_bytes_encoded, sasl_client_io) != 0)
                     {
                         /* Codes_SRS_SASLCLIENTIO_01_071: [If sasl_frame_codec_encode_frame fails, then the state of SASL client IO shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
-                        result = __LINE__;
+                        result = __FAILURE__;
                     }
                     else
                     {
@@ -551,21 +552,21 @@ static int send_sasl_response(SASL_CLIENT_IO_INSTANCE* sasl_client_io, SASL_MECH
     /* Codes_SRS_SASLCLIENTIO_01_056: [A block of opaque data passed to the security mechanism.] */
     if ((sasl_response_handle = sasl_response_create(response_binary_value)) == NULL)
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
         AMQP_VALUE sasl_response_value = amqpvalue_create_sasl_response(sasl_response_handle);
         if (sasl_response_value == NULL)
         {
-            result = __LINE__;
+            result = __FAILURE__;
         }
         else
         {
             /* Codes_SRS_SASLCLIENTIO_01_070: [When a frame needs to be sent as part of the SASL handshake frame exchange, the send shall be done by calling sasl_frame_codec_encode_frame.] */
             if (sasl_frame_codec_encode_frame(sasl_client_io->sasl_frame_codec, sasl_response_value, on_bytes_encoded, sasl_client_io) != 0)
             {
-                result = __LINE__;
+                result = __FAILURE__;
             }
             else
             {
@@ -957,7 +958,7 @@ int saslclientio_open(CONCRETE_IO_HANDLE sasl_client_io, ON_IO_OPEN_COMPLETE on_
     if ((sasl_client_io == NULL) ||
         (on_bytes_received == NULL))
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
@@ -965,7 +966,7 @@ int saslclientio_open(CONCRETE_IO_HANDLE sasl_client_io, ON_IO_OPEN_COMPLETE on_
 
         if (sasl_client_io_instance->io_state != IO_STATE_NOT_OPEN)
         {
-            result = __LINE__;
+            result = __FAILURE__;
         }
         else
         {
@@ -986,7 +987,7 @@ int saslclientio_open(CONCRETE_IO_HANDLE sasl_client_io, ON_IO_OPEN_COMPLETE on_
             if (xio_open(sasl_client_io_instance->underlying_io, on_underlying_io_open_complete, sasl_client_io_instance, on_underlying_io_bytes_received, sasl_client_io_instance, on_underlying_io_error, sasl_client_io_instance) != 0)
             {
                 /* Codes_SRS_SASLCLIENTIO_01_012: [If the open of the underlying_io fails, saslclientio_open shall fail and return non-zero value.] */
-                result = __LINE__;
+                result = __FAILURE__;
             }
             else
             {
@@ -1006,7 +1007,7 @@ int saslclientio_close(CONCRETE_IO_HANDLE sasl_client_io, ON_IO_CLOSE_COMPLETE o
     /* Codes_SRS_SASLCLIENTIO_01_017: [If sasl_client_io is NULL, saslclientio_close shall fail and return a non-zero value.] */
     if (sasl_client_io == NULL)
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
@@ -1016,7 +1017,7 @@ int saslclientio_close(CONCRETE_IO_HANDLE sasl_client_io, ON_IO_CLOSE_COMPLETE o
         if ((sasl_client_io_instance->io_state == IO_STATE_NOT_OPEN) ||
             (sasl_client_io_instance->io_state == IO_STATE_CLOSING))
         {
-            result = __LINE__;
+            result = __FAILURE__;
         }
         else
         {
@@ -1029,7 +1030,7 @@ int saslclientio_close(CONCRETE_IO_HANDLE sasl_client_io, ON_IO_CLOSE_COMPLETE o
             if (xio_close(sasl_client_io_instance->underlying_io, on_underlying_io_close_complete, sasl_client_io_instance) != 0)
             {
                 /* Codes_SRS_SASLCLIENTIO_01_018: [If xio_close fails, then saslclientio_close shall return a non-zero value.] */
-                result = __LINE__;
+                result = __FAILURE__;
             }
             else
             {
@@ -1053,7 +1054,7 @@ int saslclientio_send(CONCRETE_IO_HANDLE sasl_client_io, const void* buffer, siz
         (size == 0))
     {
         /* Invalid arguments */
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
@@ -1062,7 +1063,7 @@ int saslclientio_send(CONCRETE_IO_HANDLE sasl_client_io, const void* buffer, siz
         /* Codes_SRS_SASLCLIENTIO_01_019: [If saslclientio_send is called while the SASL client IO state is not IO_STATE_OPEN, saslclientio_send shall fail and return a non-zero value.] */
         if (sasl_client_io_instance->io_state != IO_STATE_OPEN)
         {
-            result = __LINE__;
+            result = __FAILURE__;
         }
         else
         {
@@ -1070,7 +1071,7 @@ int saslclientio_send(CONCRETE_IO_HANDLE sasl_client_io, const void* buffer, siz
             if (xio_send(sasl_client_io_instance->underlying_io, buffer, size, on_send_complete, callback_context) != 0)
             {
                 /* Codes_SRS_SASLCLIENTIO_01_024: [If the call to xio_send fails, then saslclientio_send shall fail and return a non-zero value.] */
-                result = __LINE__;
+                result = __FAILURE__;
             }
             else
             {
@@ -1106,7 +1107,7 @@ int saslclientio_setoption(CONCRETE_IO_HANDLE sasl_client_io, const char* option
 
     if (sasl_client_io == NULL)
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
@@ -1114,7 +1115,7 @@ int saslclientio_setoption(CONCRETE_IO_HANDLE sasl_client_io, const char* option
 
         if (sasl_client_io_instance->underlying_io == NULL)
         {
-            result = __LINE__;
+            result = __FAILURE__;
         }
         else if (strcmp("logtrace", optionName) == 0)
         {

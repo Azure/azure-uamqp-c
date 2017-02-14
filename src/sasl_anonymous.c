@@ -5,6 +5,7 @@
 #include <string.h>
 #include "azure_uamqp_c/sasl_anonymous.h"
 #include "azure_uamqp_c/amqpalloc.h"
+#include "azure_c_shared_utility/optimize_size.h"
 #include "azure_c_shared_utility/xlogging.h"
 
 typedef struct SASL_ANONYMOUS_INSTANCE_TAG
@@ -50,7 +51,7 @@ int saslanonymous_get_init_bytes(CONCRETE_SASL_MECHANISM_HANDLE sasl_mechanism_c
 	if ((sasl_mechanism_concrete_handle == NULL) ||
 		(init_bytes == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -94,7 +95,7 @@ int saslanonymous_challenge(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechani
 	if ((concrete_sasl_mechanism == NULL) ||
 		(response_bytes == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{

@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include "azure_c_shared_utility/optimize_size.h"
 #include "azure_uamqp_c/message.h"
 #include "azure_uamqp_c/amqpvalue.h"
 #include "azure_uamqp_c/amqpalloc.h"
@@ -300,7 +301,7 @@ int message_set_header(MESSAGE_HANDLE message, HEADER_HANDLE header)
 	if ((message == NULL) ||
 		(header == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -310,7 +311,7 @@ int message_set_header(MESSAGE_HANDLE message, HEADER_HANDLE header)
 		new_header = header_clone(header);
 		if (new_header == NULL)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -334,7 +335,7 @@ int message_get_header(MESSAGE_HANDLE message, HEADER_HANDLE* header)
 	if ((message == NULL) ||
 		(header == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -350,7 +351,7 @@ int message_get_header(MESSAGE_HANDLE message, HEADER_HANDLE* header)
 			*header = header_clone(message_instance->header);
 			if (*header == NULL)
 			{
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 			else
 			{
@@ -369,7 +370,7 @@ int message_set_delivery_annotations(MESSAGE_HANDLE message, annotations deliver
 	if ((message == NULL) ||
 		(delivery_annotations == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -379,7 +380,7 @@ int message_set_delivery_annotations(MESSAGE_HANDLE message, annotations deliver
 		new_delivery_annotations = annotations_clone(delivery_annotations);
 		if (new_delivery_annotations == NULL)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -402,7 +403,7 @@ int message_get_delivery_annotations(MESSAGE_HANDLE message, annotations* delive
 	if ((message == NULL) ||
 		(delivery_annotations == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -418,7 +419,7 @@ int message_get_delivery_annotations(MESSAGE_HANDLE message, annotations* delive
 			*delivery_annotations = annotations_clone(message_instance->delivery_annotations);
 			if (*delivery_annotations == NULL)
 			{
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 			else
 			{
@@ -437,7 +438,7 @@ int message_set_message_annotations(MESSAGE_HANDLE message, annotations message_
 	if ((message == NULL) ||
 		(message_annotations == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -447,7 +448,7 @@ int message_set_message_annotations(MESSAGE_HANDLE message, annotations message_
 		new_message_annotations = annotations_clone(message_annotations);
 		if (new_message_annotations == NULL)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -471,7 +472,7 @@ int message_get_message_annotations(MESSAGE_HANDLE message, annotations* message
 	if ((message == NULL) ||
 		(message_annotations == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -487,7 +488,7 @@ int message_get_message_annotations(MESSAGE_HANDLE message, annotations* message
 			*message_annotations = annotations_clone(message_instance->message_annotations);
 			if (*message_annotations == NULL)
 			{
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 			else
 			{
@@ -506,7 +507,7 @@ int message_set_properties(MESSAGE_HANDLE message, PROPERTIES_HANDLE properties)
 	if ((message == NULL) ||
 		(properties == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -516,7 +517,7 @@ int message_set_properties(MESSAGE_HANDLE message, PROPERTIES_HANDLE properties)
 		new_properties = properties_clone(properties);
 		if (new_properties == NULL)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -540,7 +541,7 @@ int message_get_properties(MESSAGE_HANDLE message, PROPERTIES_HANDLE* properties
 	if ((message == NULL) ||
 		(properties == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -556,7 +557,7 @@ int message_get_properties(MESSAGE_HANDLE message, PROPERTIES_HANDLE* properties
 			*properties = properties_clone(message_instance->properties);
 			if (*properties == NULL)
 			{
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 			else
 			{
@@ -575,7 +576,7 @@ int message_set_application_properties(MESSAGE_HANDLE message, AMQP_VALUE applic
 	if ((message == NULL) ||
 		(application_properties == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -585,7 +586,7 @@ int message_set_application_properties(MESSAGE_HANDLE message, AMQP_VALUE applic
 		new_application_properties = application_properties_clone(application_properties);
 		if (new_application_properties == NULL)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -609,7 +610,7 @@ int message_get_application_properties(MESSAGE_HANDLE message, AMQP_VALUE* appli
 	if ((message == NULL) ||
 		(application_properties == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -625,7 +626,7 @@ int message_get_application_properties(MESSAGE_HANDLE message, AMQP_VALUE* appli
 			*application_properties = application_properties_clone(message_instance->application_properties);
 			if (*application_properties == NULL)
 			{
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 			else
 			{
@@ -644,7 +645,7 @@ int message_set_footer(MESSAGE_HANDLE message, annotations footer)
 	if ((message == NULL) ||
 		(footer == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -654,7 +655,7 @@ int message_set_footer(MESSAGE_HANDLE message, annotations footer)
 		new_footer = annotations_clone(footer);
 		if (new_footer == NULL)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -678,7 +679,7 @@ int message_get_footer(MESSAGE_HANDLE message, annotations* footer)
 	if ((message == NULL) ||
 		(footer == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -694,7 +695,7 @@ int message_get_footer(MESSAGE_HANDLE message, annotations* footer)
 			*footer = annotations_clone(message_instance->footer);
 			if (*footer == NULL)
 			{
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 			else
 			{
@@ -715,14 +716,14 @@ int message_add_body_amqp_data(MESSAGE_HANDLE message, BINARY_DATA binary_data)
 		((binary_data.bytes == NULL) &&
 		 (binary_data.length != 0)))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
 		BODY_AMQP_DATA* new_body_amqp_data_items = (BODY_AMQP_DATA*)amqpalloc_realloc(message_instance->body_amqp_data_items, sizeof(BODY_AMQP_DATA) * (message_instance->body_amqp_data_count + 1));
 		if (new_body_amqp_data_items == NULL)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -731,7 +732,7 @@ int message_add_body_amqp_data(MESSAGE_HANDLE message, BINARY_DATA binary_data)
 			message_instance->body_amqp_data_items[message_instance->body_amqp_data_count].body_data_section_bytes = (unsigned char*)amqpalloc_malloc(binary_data.length);
 			if (message_instance->body_amqp_data_items[message_instance->body_amqp_data_count].body_data_section_bytes == NULL)
 			{
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 			else
 			{
@@ -761,7 +762,7 @@ int message_get_body_amqp_data(MESSAGE_HANDLE message, size_t index, BINARY_DATA
 	if ((message == NULL) ||
 		(binary_data == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -769,7 +770,7 @@ int message_get_body_amqp_data(MESSAGE_HANDLE message, size_t index, BINARY_DATA
 
 		if (index >= message_instance->body_amqp_data_count)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -791,7 +792,7 @@ int message_get_body_amqp_data_count(MESSAGE_HANDLE message, size_t* count)
 	if ((message == NULL) ||
 		(count == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -812,14 +813,14 @@ int message_add_body_amqp_sequence(MESSAGE_HANDLE message, AMQP_VALUE sequence_l
 		(sequence_list == NULL) ||
 		(amqpvalue_get_list_item_count(sequence_list, (uint32_t*)&item_count) != 0))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
 		AMQP_VALUE* new_body_amqp_sequence_items = (AMQP_VALUE*)amqpalloc_realloc(message_instance->body_amqp_sequence_items, sizeof(AMQP_VALUE) * (message_instance->body_amqp_sequence_count + 1));
 		if (new_body_amqp_sequence_items == NULL)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -828,7 +829,7 @@ int message_add_body_amqp_sequence(MESSAGE_HANDLE message, AMQP_VALUE sequence_l
 			message_instance->body_amqp_sequence_items[message_instance->body_amqp_sequence_count] = amqpvalue_clone(sequence_list);
 			if (message_instance->body_amqp_sequence_items[message_instance->body_amqp_sequence_count] == NULL)
 			{
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 			else
 			{
@@ -855,7 +856,7 @@ int message_get_body_amqp_sequence(MESSAGE_HANDLE message, size_t index, AMQP_VA
 	if ((message == NULL) ||
 		(sequence_list == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -863,14 +864,14 @@ int message_get_body_amqp_sequence(MESSAGE_HANDLE message, size_t index, AMQP_VA
 
 		if (index >= message_instance->body_amqp_sequence_count)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
 			*sequence_list = amqpvalue_clone(message_instance->body_amqp_sequence_items[index]);
 			if (*sequence_list == NULL)
 			{
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 			else
 			{
@@ -890,7 +891,7 @@ int message_get_body_amqp_sequence_count(MESSAGE_HANDLE message, size_t* count)
 	if ((message == NULL) ||
 		(count == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -909,7 +910,7 @@ int message_set_body_amqp_value(MESSAGE_HANDLE message, AMQP_VALUE body_amqp_val
 	if ((message == NULL) ||
 		(body_amqp_value == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -930,7 +931,7 @@ int message_get_inplace_body_amqp_value(MESSAGE_HANDLE message, AMQP_VALUE* body
 	if ((message == NULL) ||
 		(body_amqp_value == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -951,7 +952,7 @@ int message_get_body_type(MESSAGE_HANDLE message, MESSAGE_BODY_TYPE* body_type)
 	if ((message == NULL) ||
 		(body_type == NULL))
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -986,7 +987,7 @@ int message_set_message_format(MESSAGE_HANDLE message, uint32_t message_format)
 
     if (message == NULL)
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
@@ -1005,7 +1006,7 @@ int message_get_message_format(MESSAGE_HANDLE message, uint32_t *message_format)
     if ((message == NULL) ||
         (message_format == NULL))
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {

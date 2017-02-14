@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include "azure_c_shared_utility/optimize_size.h"
 #include "azure_uamqp_c/cbs.h"
 #include "azure_uamqp_c/amqp_management.h"
 #include "azure_uamqp_c/amqpalloc.h"
@@ -22,20 +23,20 @@ static int add_string_key_value_pair_to_map(AMQP_VALUE map, const char* key, con
     AMQP_VALUE key_value = amqpvalue_create_string(key);
     if (key == NULL)
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
         AMQP_VALUE value_value = amqpvalue_create_string(value);
         if (value_value == NULL)
         {
-            result = __LINE__;
+            result = __FAILURE__;
         }
         else
         {
             if (amqpvalue_set_map_value(map, key_value, value_value) != 0)
             {
-                result = __LINE__;
+                result = __FAILURE__;
             }
             else
             {
@@ -58,20 +59,20 @@ static int set_pending_operation_properties(MESSAGE_HANDLE message)
     PROPERTIES_HANDLE properties = properties_create();
     if (properties == NULL)
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
         AMQP_VALUE reply_to = amqpvalue_create_address_string("cbs");
         if (reply_to == NULL)
         {
-            result = __LINE__;
+            result = __FAILURE__;
         }
         else
         {
             if (properties_set_reply_to(properties, reply_to) != 0)
             {
-                result = __LINE__;
+                result = __FAILURE__;
             }
 
             amqpvalue_destroy(reply_to);
@@ -80,13 +81,13 @@ static int set_pending_operation_properties(MESSAGE_HANDLE message)
         AMQP_VALUE message_id = amqpvalue_create_message_id_ulong(0x43);
         if (message_id == NULL)
         {
-            result = __LINE__;
+            result = __FAILURE__;
         }
         else
         {
             if (properties_set_message_id(properties, message_id) != 0)
             {
-                result = __LINE__;
+                result = __FAILURE__;
             }
 
             amqpvalue_destroy(message_id);
@@ -94,7 +95,7 @@ static int set_pending_operation_properties(MESSAGE_HANDLE message)
 
         if (message_set_properties(message, properties) != 0)
         {
-            result = __LINE__;
+            result = __FAILURE__;
         }
 
         properties_destroy(properties);
@@ -143,13 +144,13 @@ int cbs_open(CBS_HANDLE cbs)
 
     if (cbs == NULL)
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
         if (amqpmanagement_open(cbs->amqp_management) != 0)
         {
-            result = __LINE__;
+            result = __FAILURE__;
         }
         else
         {
@@ -166,13 +167,13 @@ int cbs_close(CBS_HANDLE cbs)
 
     if (cbs == NULL)
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
         if (amqpmanagement_close(cbs->amqp_management) != 0)
         {
-            result = __LINE__;
+            result = __FAILURE__;
         }
         else
         {
@@ -190,14 +191,14 @@ int cbs_put_token(CBS_HANDLE cbs, const char* type, const char* audience, const 
     if ((cbs == NULL) ||
         (token == NULL))
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
         MESSAGE_HANDLE message = message_create();
         if (message == NULL)
         {
-            result = __LINE__;
+            result = __FAILURE__;
         }
         else
         {
@@ -205,44 +206,44 @@ int cbs_put_token(CBS_HANDLE cbs, const char* type, const char* audience, const 
             if (token_value == NULL)
             {
                 message_destroy(message);
-                result = __LINE__;
+                result = __FAILURE__;
             }
             else
             {
                 if (message_set_body_amqp_value(message, token_value) != 0)
                 {
-                    result = __LINE__;
+                    result = __FAILURE__;
                 }
                 else
                 {
                     AMQP_VALUE application_properties = amqpvalue_create_map();
                     if (application_properties == NULL)
                     {
-                        result = __LINE__;
+                        result = __FAILURE__;
                     }
                     else
                     {
                         if (add_string_key_value_pair_to_map(application_properties, "name", audience) != 0)
                         {
-                            result = __LINE__;
+                            result = __FAILURE__;
                         }
                         else
                         {
                             if (message_set_application_properties(message, application_properties) != 0)
                             {
-                                result = __LINE__;
+                                result = __FAILURE__;
                             }
                             else
                             {
                                 if (set_pending_operation_properties(message) != 0)
                                 {
-                                    result = __LINE__;
+                                    result = __FAILURE__;
                                 }
                                 else
                                 {
                                     if (amqpmanagement_start_operation(cbs->amqp_management, "put-token", type, NULL, message, (ON_OPERATION_COMPLETE)on_operation_complete, context) != 0)
                                     {
-                                        result = __LINE__;
+                                        result = __FAILURE__;
                                     }
                                     else
                                     {
@@ -272,45 +273,45 @@ int cbs_delete_token(CBS_HANDLE cbs, const char* type, const char* audience, ON_
 
     if (cbs == NULL)
     {
-        result = __LINE__;
+        result = __FAILURE__;
     }
     else
     {
         MESSAGE_HANDLE message = message_create();
         if (message == NULL)
         {
-            result = __LINE__;
+            result = __FAILURE__;
         }
         else
         {
             AMQP_VALUE application_properties = amqpvalue_create_map();
             if (application_properties == NULL)
             {
-                result = __LINE__;
+                result = __FAILURE__;
             }
             else
             {
                 if (add_string_key_value_pair_to_map(application_properties, "name", audience) != 0)
                 {
-                    result = __LINE__;
+                    result = __FAILURE__;
                 }
                 else
                 {
                     if (message_set_application_properties(message, application_properties) != 0)
                     {
-                        result = __LINE__;
+                        result = __FAILURE__;
                     }
                     else
                     {
                         if (set_pending_operation_properties(message) != 0)
                         {
-                            result = __LINE__;
+                            result = __FAILURE__;
                         }
                         else
                         {
                             if (amqpmanagement_start_operation(cbs->amqp_management, "delete-token", type, NULL, message, (ON_OPERATION_COMPLETE)on_operation_complete, context) != 0)
                             {
-                                result = __LINE__;
+                                result = __FAILURE__;
                             }
                             else
                             {

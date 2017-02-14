@@ -11,6 +11,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 #include <stdlib.h>
+#include "azure_c_shared_utility/optimize_size.h"
 #include "azure_uamqp_c/amqpvalue.h"
 #include "azure_uamqp_c/amqp_definitions.h"
 #include "azure_uamqp_c/amqpalloc.h"
@@ -83,7 +84,7 @@ static <#= type_name.ToUpper() #>_HANDLE <#= type_name #>_create_internal(void)
 <#						} #>
 			if ((result == 0) && (amqpvalue_set_composite_item(<#= type_name #>_instance->composite_value, <#= mandatory_args[i].Value #>, <#= mandatory_arg_name #>_amqp_value) != 0))
 			{
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 <#					} #>
 
@@ -168,7 +169,7 @@ int amqpvalue_get_<#= type_name #>(AMQP_VALUE value, <#= type_name.ToUpper() #>_
 	*<#= type_name.ToLower() #>_handle = <#= type_name.ToLower() #>_instance;
 	if (*<#= type_name.ToLower() #>_handle == NULL)
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -176,7 +177,7 @@ int amqpvalue_get_<#= type_name #>(AMQP_VALUE value, <#= type_name.ToUpper() #>_
 		if (list_value == NULL)
 		{
 			<#= type_name #>_destroy(*<#= type_name.ToLower() #>_handle);
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -203,7 +204,7 @@ int amqpvalue_get_<#= type_name #>(AMQP_VALUE value, <#= type_name.ToUpper() #>_
 <# 					{ #>
 					{
 						<#= type_name #>_destroy(*<#= type_name.ToLower() #>_handle);
-						result = __LINE__;
+						result = __FAILURE__;
 						break;
 					}
 <# 					} #>
@@ -231,7 +232,7 @@ int amqpvalue_get_<#= type_name #>(AMQP_VALUE value, <#= type_name.ToUpper() #>_
 <# 					if (field.mandatory == "true") #>
 <# 					{ #>
 						<#= type_name #>_destroy(*<#= type_name.ToLower() #>_handle);
-						result = __LINE__;
+						result = __FAILURE__;
 						break;
 <# 					} #>
 <# 					else #>
@@ -239,7 +240,7 @@ int amqpvalue_get_<#= type_name #>(AMQP_VALUE value, <#= type_name.ToUpper() #>_
 						if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
 						{
 							<#= type_name #>_destroy(*<#= type_name.ToLower() #>_handle);
-							result = __LINE__;
+							result = __FAILURE__;
 							break;
 						}
 <# 					} #>
@@ -277,7 +278,7 @@ int <#= type_name #>_get_<#= field_name #>(<#= type_name.ToUpper() #>_HANDLE <#=
 
 	if (<#= type_name #> == NULL)
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -299,7 +300,7 @@ int <#= type_name #>_get_<#= field_name #>(<#= type_name.ToUpper() #>_HANDLE <#=
 <#					    } #>
 <#					    else #>
 <#					    { #>
-			result = __LINE__;
+			result = __FAILURE__;
 <#					    } #>
 		}
 		else
@@ -324,7 +325,7 @@ int <#= type_name #>_get_<#= field_name #>(<#= type_name.ToUpper() #>_HANDLE <#=
 <#					    { #>
                 if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
                 {
-    			    result = __LINE__;
+    			    result = __FAILURE__;
                 }
                 else
                 {
@@ -341,7 +342,7 @@ int <#= type_name #>_get_<#= field_name #>(<#= type_name.ToUpper() #>_HANDLE <#=
 <#					    } #>
 <#					    else #>
 <#					    { #>
-			    result = __LINE__;
+			    result = __FAILURE__;
 <#					    } #>
 			}
 			else
@@ -361,7 +362,7 @@ int <#= type_name #>_set_<#= field_name #>(<#= type_name.ToUpper() #>_HANDLE <#=
 
 	if (<#= type_name #> == NULL)
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -376,13 +377,13 @@ int <#= type_name #>_set_<#= field_name #>(<#= type_name.ToUpper() #>_HANDLE <#=
 <# } #>
 		if (<#= field_name #>_amqp_value == NULL)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
 			if (amqpvalue_set_composite_item(<#= type_name #>_instance->composite_value, <#= j #>, <#= field_name #>_amqp_value) != 0)
 			{
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 			else
 			{

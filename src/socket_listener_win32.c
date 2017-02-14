@@ -6,6 +6,7 @@
 #include "winsock2.h"
 #include "ws2tcpip.h"
 #include "windows.h"
+#include "azure_c_shared_utility/optimize_size.h"
 #include "azure_c_shared_utility/socketio.h"
 
 typedef struct SOCKET_LISTENER_INSTANCE_TAG
@@ -44,7 +45,7 @@ int socketlistener_start(SOCKET_LISTENER_HANDLE socket_listener, ON_SOCKET_ACCEP
 
 	if (socket_listener == NULL)
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{
@@ -53,7 +54,7 @@ int socketlistener_start(SOCKET_LISTENER_HANDLE socket_listener, ON_SOCKET_ACCEP
 		socket_listener_instance->socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 		if (socket_listener_instance->socket == INVALID_SOCKET)
 		{
-			result = __LINE__;
+			result = __FAILURE__;
 		}
 		else
 		{
@@ -72,7 +73,7 @@ int socketlistener_start(SOCKET_LISTENER_HANDLE socket_listener, ON_SOCKET_ACCEP
 			{
 				(void)closesocket(socket_listener_instance->socket);
 				socket_listener_instance->socket = INVALID_SOCKET;
-				result = __LINE__;
+				result = __FAILURE__;
 			}
 			else
 			{
@@ -82,13 +83,13 @@ int socketlistener_start(SOCKET_LISTENER_HANDLE socket_listener, ON_SOCKET_ACCEP
 				{
 					(void)closesocket(socket_listener_instance->socket);
 					socket_listener_instance->socket = INVALID_SOCKET;
-					result = __LINE__;
+					result = __FAILURE__;
 				}
 				else if (ioctlsocket(socket_listener_instance->socket, FIONBIO, &iMode) != 0)
 				{
 					(void)closesocket(socket_listener_instance->socket);
 					socket_listener_instance->socket = INVALID_SOCKET;
-					result = __LINE__;
+					result = __FAILURE__;
 				}
 				else
 				{
@@ -96,7 +97,7 @@ int socketlistener_start(SOCKET_LISTENER_HANDLE socket_listener, ON_SOCKET_ACCEP
 					{
 						(void)closesocket(socket_listener_instance->socket);
 						socket_listener_instance->socket = INVALID_SOCKET;
-						result = __LINE__;
+						result = __FAILURE__;
 					}
 					else
 					{
@@ -116,7 +117,7 @@ int socketlistener_stop(SOCKET_LISTENER_HANDLE socket_listener)
 
 	if (socket_listener == NULL)
 	{
-		result = __LINE__;
+		result = __FAILURE__;
 	}
 	else
 	{

@@ -1119,3 +1119,25 @@ LINK_TRANSFER_RESULT link_transfer(LINK_HANDLE link, message_format message_form
 
 	return result;
 }
+
+int link_get_received_message_id(LINK_HANDLE link, delivery_number* message_id)
+{
+    int result;
+
+    if (link == NULL)
+    {
+        result = __FAILURE__;
+    }
+    else
+    {
+        *message_id = link->received_delivery_id;
+        result = 0;
+    }
+
+    return result;
+}
+
+int link_send_disposition(LINK_HANDLE link, delivery_number message_id, AMQP_VALUE delivery_state)
+{
+    return send_disposition(link, message_id, delivery_state);
+}

@@ -191,7 +191,7 @@ static AMQP_VALUE on_transfer_received(void* context, TRANSFER_HANDLE transfer, 
 					}
 					else
 					{
-						result = message_receiver_instance->on_message_received(message_receiver_instance->callback_context, message);
+                        result = message_receiver_instance->on_message_received(message_receiver_instance->callback_context, message, message_receiver_instance->link);
 					}
 				}
 

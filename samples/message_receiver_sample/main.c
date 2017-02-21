@@ -21,10 +21,11 @@
 #define EH_KEY "<<<Replace with your own key>>>"
 #define EH_NAME "<<<Insert your event hub name here>>>"
 
-static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE message)
+static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE message, LINK_HANDLE link_handle)
 {
-	(void)message;
 	(void)context;
+    (void)message;
+    (void)link_handle;
 
 	(void)printf("Message received.\r\n");
 

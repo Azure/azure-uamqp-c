@@ -376,13 +376,12 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                             link_instance->received_payload_size = 0;
                         }
 
-                        if (send_disposition(link_instance, link_instance->received_delivery_id, delivery_state) != 0)
-                        {
-                            LogError("Cannot send disposition frame");
-                        }
-
                         if (delivery_state != NULL)
                         {
+                            if (send_disposition(link_instance, link_instance->received_delivery_id, delivery_state) != 0)
+                            {
+                                LogError("Cannot send disposition frame");
+                            }
                             amqpvalue_destroy(delivery_state);
                         }
                     }
@@ -1118,4 +1117,41 @@ LINK_TRANSFER_RESULT link_transfer(LINK_HANDLE link, message_format message_form
 	}
 
 	return result;
+}
+
+int link_get_received_message_id(LINK_HANDLE link, delivery_number* message_id)
+{
+    int result;
+
+    if (link == NULL)
+    {
+        result = __FAILURE__;
+    }
+    else
+    {
+        *message_id = link->received_delivery_id;
+        result = 0;
+    }
+
+    return result;
+}
+
+int link_send_disposition(LINK_HANDLE link, delivery_number message_id, AMQP_VALUE delivery_state)
+{
+    int result;
+    if (delivery_state == NULL)
+	{
+	    result = 0;
+	}
+	else
+    {
+	    result = send_disposition(link, message_id, delivery_state);
+        amqpvalue_destroy(delivery_state);
+        if ( result != 0)
+        {
+            LogError("Cannot send disposition frame");
+			result = __FAILURE__;
+        }
+    }
+    return result;
 }

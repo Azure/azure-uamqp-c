@@ -205,7 +205,6 @@ int cbs_put_token(CBS_HANDLE cbs, const char* type, const char* audience, const 
             AMQP_VALUE token_value = amqpvalue_create_string(token);
             if (token_value == NULL)
             {
-                message_destroy(message);
                 result = __FAILURE__;
             }
             else

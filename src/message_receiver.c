@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include "azure_c_shared_utility/optimize_size.h"
+#include "azure_c_shared_utility/crt_abstractions.h"
 #include "azure_uamqp_c/message_receiver.h"
 #include "azure_uamqp_c/amqpalloc.h"
 #include "azure_uamqp_c/amqpvalue.h"
@@ -351,13 +352,21 @@ int messagereceiver_get_link_name(MESSAGE_RECEIVER_HANDLE message_receiver, char
     else
     {
         MESSAGE_RECEIVER_INSTANCE* message_receiver_instance = (MESSAGE_RECEIVER_INSTANCE*)message_receiver;
-        if (link_get_name(message_receiver_instance->link, link_name) != 0)
+        char* my_link_name;
+        if (link_get_name(message_receiver_instance->link, &my_link_name) != 0)
         {
             result = __FAILURE__;
         }
         else
         {
-            result = 0;
+            if (mallocAndStrcpy_s(link_name, my_link_name) != 0)
+            {
+                result = __FAILURE__;
+            }
+            else
+            {
+                result = 0;
+            }
         }
     }
 

@@ -1119,7 +1119,7 @@ LINK_TRANSFER_RESULT link_transfer(LINK_HANDLE link, message_format message_form
 	return result;
 }
 
-int link_get_name(LINK_HANDLE link, char** link_name)
+int link_get_name(LINK_HANDLE link, const char** link_name)
 {
     int result;
 

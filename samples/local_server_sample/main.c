@@ -28,11 +28,10 @@ static void on_message_receiver_state_changed(const void* context, MESSAGE_RECEI
     (void)context, new_state, previous_state;
 }
 
-static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE message, LINK_HANDLE link_handle)
+static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE message)
 {
 	(void)context;
 	(void)message;
-    (void)link_handle;
 
 	printf("Message received.\r\n");
 

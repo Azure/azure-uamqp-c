@@ -85,9 +85,8 @@ static void remove_operation_message_by_index(AMQP_MANAGEMENT_INSTANCE* amqp_man
     amqp_management_instance->operation_message_count--;
 }
 
-static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE message, LINK_HANDLE link_handle)
+static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE message)
 {
-    (void)link_handle;
     AMQP_MANAGEMENT_INSTANCE* amqp_management_instance = (AMQP_MANAGEMENT_INSTANCE*)context;
 
     AMQP_VALUE application_properties;

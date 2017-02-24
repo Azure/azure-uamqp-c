@@ -191,7 +191,7 @@ static AMQP_VALUE on_transfer_received(void* context, TRANSFER_HANDLE transfer, 
 					}
 					else
 					{
-                        result = message_receiver_instance->on_message_received(message_receiver_instance->callback_context, message, message_receiver_instance->link);
+                        result = message_receiver_instance->on_message_received(message_receiver_instance->callback_context, message);
 					}
 				}
 
@@ -337,4 +337,99 @@ int messagereceiver_close(MESSAGE_RECEIVER_HANDLE message_receiver)
 	}
 
 	return result;
+}
+
+
+int messagereceiver_get_link_name(MESSAGE_RECEIVER_HANDLE message_receiver, char** link_name)
+{
+    int result;
+
+    if (message_receiver == NULL)
+    {
+        result = __FAILURE__;
+    }
+    else
+    {
+        MESSAGE_RECEIVER_INSTANCE* message_receiver_instance = (MESSAGE_RECEIVER_INSTANCE*)message_receiver;
+        if (link_get_name(message_receiver_instance->link, link_name) != 0)
+        {
+            result = __FAILURE__;
+        }
+        else
+        {
+            result = 0;
+        }
+    }
+
+    return result;
+}
+
+int messagereceiver_get_received_message_id(MESSAGE_RECEIVER_HANDLE message_receiver, delivery_number* message_id)
+{
+    int result;
+
+    if (message_receiver == NULL)
+    {
+        result = __FAILURE__;
+    }
+    else
+    {
+        MESSAGE_RECEIVER_INSTANCE* message_receiver_instance = (MESSAGE_RECEIVER_INSTANCE*)message_receiver;
+        if (link_get_received_message_id(message_receiver_instance->link, message_id) != 0)
+        {
+            result = __FAILURE__;
+        }
+        else
+        {
+            result = 0;
+        }
+    }
+
+    return result;
+}
+
+int messagereceiver_send_message_disposition(MESSAGE_RECEIVER_HANDLE message_receiver, const char* link_name, delivery_number message_number, AMQP_VALUE delivery_state)
+{
+    int result;
+
+    if (message_receiver == NULL)
+    {
+        result = __FAILURE__;
+    }
+    else
+    {
+        MESSAGE_RECEIVER_INSTANCE* message_receiver_instance = (MESSAGE_RECEIVER_INSTANCE*)message_receiver;
+        if (message_receiver_instance->message_receiver_state != MESSAGE_RECEIVER_STATE_OPEN)
+        {
+            result = __FAILURE__;
+        }
+        else
+        {
+            char* my_name;
+            if (link_get_name(message_receiver_instance->link, &my_name) != 0)
+            {
+                result = __FAILURE__;
+            }
+            else
+            {
+                if (strcmp(link_name, my_name) != 0)
+                {
+                    result = __FAILURE__;
+                }
+                else
+                {
+                    if (link_send_disposition(message_receiver_instance->link, message_number, delivery_state) != 0)
+                    {
+                        result = __FAILURE__;
+                    }
+                    else
+                    {
+                        result = 0;
+                    }
+                }
+            }
+        }
+    }
+
+    return result;
 }

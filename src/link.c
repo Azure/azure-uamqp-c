@@ -1119,6 +1119,23 @@ LINK_TRANSFER_RESULT link_transfer(LINK_HANDLE link, message_format message_form
 	return result;
 }
 
+int link_get_name(LINK_HANDLE link, char** link_name)
+{
+    int result;
+
+    if (link == NULL)
+    {
+        result = __FAILURE__;
+    }
+    else
+    {
+        *link_name = link->name;
+        result = 0;
+    }
+
+    return result;
+}
+
 int link_get_received_message_id(LINK_HANDLE link, delivery_number* message_id)
 {
     int result;
@@ -1146,7 +1163,6 @@ int link_send_disposition(LINK_HANDLE link, delivery_number message_id, AMQP_VAL
 	else
     {
 	    result = send_disposition(link, message_id, delivery_state);
-        amqpvalue_destroy(delivery_state);
         if ( result != 0)
         {
             LogError("Cannot send disposition frame");

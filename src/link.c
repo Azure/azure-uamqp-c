@@ -12,6 +12,7 @@
 #include "azure_uamqp_c/amqpalloc.h"
 #include "azure_uamqp_c/amqp_frame_codec.h"
 #include "azure_c_shared_utility/optimize_size.h"
+#include "azure_c_shared_utility/crt_abstractions.h"
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_c_shared_utility/singlylinkedlist.h"
 
@@ -1119,7 +1120,7 @@ LINK_TRANSFER_RESULT link_transfer(LINK_HANDLE link, message_format message_form
 	return result;
 }
 
-int link_get_name(LINK_HANDLE link, const char** link_name)
+int link_get_name(LINK_HANDLE link, char** link_name)
 {
     int result;
 
@@ -1129,8 +1130,15 @@ int link_get_name(LINK_HANDLE link, const char** link_name)
     }
     else
     {
-        *link_name = link->name;
-        result = 0;
+        if (mallocAndStrcpy_s(link_name, link->name) != 0)
+        {
+            result = __FAILURE__;
+        }
+        else
+        {
+            *link_name = NULL;
+            result = 0;
+        }
     }
 
     return result;

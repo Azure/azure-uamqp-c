@@ -339,8 +339,7 @@ int messagereceiver_close(MESSAGE_RECEIVER_HANDLE message_receiver)
 	return result;
 }
 
-
-int messagereceiver_get_link_name(MESSAGE_RECEIVER_HANDLE message_receiver, const char** link_name)
+int messagereceiver_get_link_name(MESSAGE_RECEIVER_HANDLE message_receiver, char** link_name)
 {
     int result;
 
@@ -405,7 +404,7 @@ int messagereceiver_send_message_disposition(MESSAGE_RECEIVER_HANDLE message_rec
         }
         else
         {
-            const char* my_name;
+            char* my_name;
             if (link_get_name(message_receiver_instance->link, &my_name) != 0)
             {
                 result = __FAILURE__;
@@ -427,6 +426,7 @@ int messagereceiver_send_message_disposition(MESSAGE_RECEIVER_HANDLE message_rec
                         result = 0;
                     }
                 }
+                free(my_name);
             }
         }
     }

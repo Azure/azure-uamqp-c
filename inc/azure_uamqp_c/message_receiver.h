@@ -31,7 +31,7 @@ extern "C" {
 	MOCKABLE_FUNCTION(, void, messagereceiver_destroy, MESSAGE_RECEIVER_HANDLE, message_receiver);
 	MOCKABLE_FUNCTION(, int, messagereceiver_open, MESSAGE_RECEIVER_HANDLE, message_receiver, ON_MESSAGE_RECEIVED, on_message_received, const void*, callback_context);
 	MOCKABLE_FUNCTION(, int, messagereceiver_close, MESSAGE_RECEIVER_HANDLE, message_receiver);
-    MOCKABLE_FUNCTION(, int, messagereceiver_get_link_name, MESSAGE_RECEIVER_HANDLE, message_receiver, const char**, link_name);
+    MOCKABLE_FUNCTION(, int, messagereceiver_get_link_name, MESSAGE_RECEIVER_HANDLE, message_receiver, char**, link_name);
     MOCKABLE_FUNCTION(, int, messagereceiver_get_received_message_id, MESSAGE_RECEIVER_HANDLE, message_receiver, delivery_number*, message_number);
     MOCKABLE_FUNCTION(, int, messagereceiver_send_message_disposition, MESSAGE_RECEIVER_HANDLE, message_receiver, const char*, link_name, delivery_number, message_number, AMQP_VALUE, delivery_state);
 

@@ -3,7 +3,6 @@
 
 #include <stdlib.h>
 #include "azure_c_shared_utility/optimize_size.h"
-#include "azure_c_shared_utility/crt_abstractions.h"
 #include "azure_uamqp_c/message_receiver.h"
 #include "azure_uamqp_c/amqpalloc.h"
 #include "azure_uamqp_c/amqpvalue.h"
@@ -341,7 +340,7 @@ int messagereceiver_close(MESSAGE_RECEIVER_HANDLE message_receiver)
 }
 
 
-int messagereceiver_get_link_name(MESSAGE_RECEIVER_HANDLE message_receiver, char** link_name)
+int messagereceiver_get_link_name(MESSAGE_RECEIVER_HANDLE message_receiver, const char** link_name)
 {
     int result;
 
@@ -352,21 +351,13 @@ int messagereceiver_get_link_name(MESSAGE_RECEIVER_HANDLE message_receiver, char
     else
     {
         MESSAGE_RECEIVER_INSTANCE* message_receiver_instance = (MESSAGE_RECEIVER_INSTANCE*)message_receiver;
-        char* my_link_name;
-        if (link_get_name(message_receiver_instance->link, &my_link_name) != 0)
+        if (link_get_name(message_receiver_instance->link, link_name) != 0)
         {
             result = __FAILURE__;
         }
         else
         {
-            if (mallocAndStrcpy_s(link_name, my_link_name) != 0)
-            {
-                result = __FAILURE__;
-            }
-            else
-            {
-                result = 0;
-            }
+            result = 0;
         }
     }
 
@@ -414,7 +405,7 @@ int messagereceiver_send_message_disposition(MESSAGE_RECEIVER_HANDLE message_rec
         }
         else
         {
-            char* my_name;
+            const char* my_name;
             if (link_get_name(message_receiver_instance->link, &my_name) != 0)
             {
                 result = __FAILURE__;

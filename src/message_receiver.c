@@ -4,8 +4,6 @@
 #include <stdlib.h>
 
 #include "azure_c_shared_utility/optimize_size.h"
-#include "azure_c_shared_utility/crt_abstractions.h"
-
 #include "azure_uamqp_c/message_receiver.h"
 #include "azure_uamqp_c/amqpalloc.h"
 #include "azure_uamqp_c/amqpvalue.h"

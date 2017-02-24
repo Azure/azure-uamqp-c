@@ -437,7 +437,6 @@ int messagereceiver_send_message_disposition(MESSAGE_RECEIVER_HANDLE message_rec
                         result = 0;
                     }
                 }
-                free(my_name);
             }
         }
     }

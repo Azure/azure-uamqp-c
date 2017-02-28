@@ -4,9 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "azure_c_shared_utility/optimize_size.h"
+#include "azure_c_shared_utility/gballoc.h"
 #include "azure_uamqp_c/message.h"
 #include "azure_uamqp_c/amqpvalue.h"
-#include "azure_uamqp_c/amqpalloc.h"
 
 typedef struct BODY_AMQP_DATA_TAG
 {
@@ -38,11 +38,11 @@ static void free_all_body_data_items(MESSAGE_INSTANCE* message_instance)
 	{
 		if (message_instance->body_amqp_data_items[i].body_data_section_bytes != NULL)
 		{
-			amqpalloc_free(message_instance->body_amqp_data_items[i].body_data_section_bytes);
+			free(message_instance->body_amqp_data_items[i].body_data_section_bytes);
 		}
 	}
 
-	amqpalloc_free(message_instance->body_amqp_data_items);
+	free(message_instance->body_amqp_data_items);
 	message_instance->body_amqp_data_count = 0;
 	message_instance->body_amqp_data_items = NULL;
 }
@@ -59,14 +59,14 @@ static void free_all_body_sequence_items(MESSAGE_INSTANCE* message_instance)
 		}
 	}
 
-	amqpalloc_free(message_instance->body_amqp_sequence_items);
+	free(message_instance->body_amqp_sequence_items);
 	message_instance->body_amqp_sequence_count = 0;
 	message_instance->body_amqp_sequence_items = NULL;
 }
 
 MESSAGE_HANDLE message_create(void)
 {
-	MESSAGE_INSTANCE* result = (MESSAGE_INSTANCE*)amqpalloc_malloc(sizeof(MESSAGE_INSTANCE));
+	MESSAGE_INSTANCE* result = (MESSAGE_INSTANCE*)malloc(sizeof(MESSAGE_INSTANCE));
 	/* Codes_SRS_MESSAGE_01_002: [If allocating memory for the message fails, message_create shall fail and return NULL.] */
 	if (result != NULL)
 	{
@@ -178,7 +178,7 @@ MESSAGE_HANDLE message_clone(MESSAGE_HANDLE source_message)
 			{
 				size_t i;
 
-				result->body_amqp_data_items = (BODY_AMQP_DATA*)amqpalloc_malloc(source_message_instance->body_amqp_data_count * sizeof(BODY_AMQP_DATA));
+				result->body_amqp_data_items = (BODY_AMQP_DATA*)malloc(source_message_instance->body_amqp_data_count * sizeof(BODY_AMQP_DATA));
 				if (result->body_amqp_data_items == NULL)
 				{
 					message_destroy(result);
@@ -191,7 +191,7 @@ MESSAGE_HANDLE message_clone(MESSAGE_HANDLE source_message)
 						result->body_amqp_data_items[i].body_data_section_length = source_message_instance->body_amqp_data_items[i].body_data_section_length;
 
 						/* Codes_SRS_MESSAGE_01_011: [If an AMQP data has been set as message body on the source message it shall be cloned by allocating memory for the binary payload.] */
-						result->body_amqp_data_items[i].body_data_section_bytes = amqpalloc_malloc(source_message_instance->body_amqp_data_items[i].body_data_section_length);
+						result->body_amqp_data_items[i].body_data_section_bytes = malloc(source_message_instance->body_amqp_data_items[i].body_data_section_length);
 						if (result->body_amqp_data_items[i].body_data_section_bytes == NULL)
 						{
 							break;
@@ -215,7 +215,7 @@ MESSAGE_HANDLE message_clone(MESSAGE_HANDLE source_message)
 			{
 				size_t i;
 
-				result->body_amqp_sequence_items = (AMQP_VALUE*)amqpalloc_malloc(source_message_instance->body_amqp_sequence_count * sizeof(AMQP_VALUE));
+				result->body_amqp_sequence_items = (AMQP_VALUE*)malloc(source_message_instance->body_amqp_sequence_count * sizeof(AMQP_VALUE));
 				if (result->body_amqp_sequence_items == NULL)
 				{
 					message_destroy(result);
@@ -290,7 +290,7 @@ void message_destroy(MESSAGE_HANDLE message)
 
 		free_all_body_data_items(message_instance);
 		free_all_body_sequence_items(message_instance);
-		amqpalloc_free(message_instance);
+		free(message_instance);
 	}
 }
 
@@ -720,7 +720,7 @@ int message_add_body_amqp_data(MESSAGE_HANDLE message, BINARY_DATA binary_data)
 	}
 	else
 	{
-		BODY_AMQP_DATA* new_body_amqp_data_items = (BODY_AMQP_DATA*)amqpalloc_realloc(message_instance->body_amqp_data_items, sizeof(BODY_AMQP_DATA) * (message_instance->body_amqp_data_count + 1));
+		BODY_AMQP_DATA* new_body_amqp_data_items = (BODY_AMQP_DATA*)realloc(message_instance->body_amqp_data_items, sizeof(BODY_AMQP_DATA) * (message_instance->body_amqp_data_count + 1));
 		if (new_body_amqp_data_items == NULL)
 		{
 			result = __FAILURE__;
@@ -729,7 +729,7 @@ int message_add_body_amqp_data(MESSAGE_HANDLE message, BINARY_DATA binary_data)
 		{
 			message_instance->body_amqp_data_items = new_body_amqp_data_items;
 
-			message_instance->body_amqp_data_items[message_instance->body_amqp_data_count].body_data_section_bytes = (unsigned char*)amqpalloc_malloc(binary_data.length);
+			message_instance->body_amqp_data_items[message_instance->body_amqp_data_count].body_data_section_bytes = (unsigned char*)malloc(binary_data.length);
 			if (message_instance->body_amqp_data_items[message_instance->body_amqp_data_count].body_data_section_bytes == NULL)
 			{
 				result = __FAILURE__;
@@ -817,7 +817,7 @@ int message_add_body_amqp_sequence(MESSAGE_HANDLE message, AMQP_VALUE sequence_l
 	}
 	else
 	{
-		AMQP_VALUE* new_body_amqp_sequence_items = (AMQP_VALUE*)amqpalloc_realloc(message_instance->body_amqp_sequence_items, sizeof(AMQP_VALUE) * (message_instance->body_amqp_sequence_count + 1));
+		AMQP_VALUE* new_body_amqp_sequence_items = (AMQP_VALUE*)realloc(message_instance->body_amqp_sequence_items, sizeof(AMQP_VALUE) * (message_instance->body_amqp_sequence_count + 1));
 		if (new_body_amqp_sequence_items == NULL)
 		{
 			result = __FAILURE__;

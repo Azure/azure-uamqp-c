@@ -1,16 +1,40 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#ifdef __cplusplus
+#include <cstdlib>
+#include <cstddef>
+#else
+#include <stdlib.h>
+#include <stddef.h>
+#endif
 #include "testrunnerswitcher.h"
-#include "micromock.h"
-#include "micromockcharstararenullterminatedstrings.h"
-#include "azure_uamqp_c/message.h"
-#include "azure_c_shared_utility/xio.h"
-#include "azure_c_shared_utility/socketio.h"
-#include "azure_uamqp_c/frame_codec.h"
-#include "azure_uamqp_c/amqp_frame_codec.h"
+#include "umock_c.h"
+
+void* my_gballoc_malloc(size_t size)
+{
+    return malloc(size);
+}
+
+void* my_gballoc_realloc(void* ptr, size_t size)
+{
+    return realloc(ptr, size);
+}
+
+void my_gballoc_free(void* ptr)
+{
+    free(ptr);
+}
+
+#define ENABLE_MOCKS
+
+#include "azure_c_shared_utility/gballoc.h"
+#include "azure_uamqp_c/amqpvalue.h"
 #include "azure_uamqp_c/amqp_definitions.h"
-#include "amqp_definitions_mocks.h"
+
+#undef ENABLE_MOCKS
+
+#include "azure_uamqp_c/message.h"
 
 static const HEADER_HANDLE custom_message_header = (HEADER_HANDLE)0x4242;
 static const AMQP_VALUE custom_delivery_annotations = (AMQP_VALUE)0x4243;
@@ -25,67 +49,55 @@ static const AMQP_VALUE custom_footer = (AMQP_VALUE)0x4251;
 static const AMQP_VALUE cloned_footer = (AMQP_VALUE)0x4252;
 static const AMQP_VALUE test_cloned_amqp_value = (AMQP_VALUE)0x4300;
 
-TYPED_MOCK_CLASS(message_mocks, CGlobalMock)
+static TEST_MUTEX_HANDLE g_testByTest;
+static TEST_MUTEX_HANDLE g_dllByDll;
+
+DEFINE_ENUM_STRINGS(UMOCK_C_ERROR_CODE, UMOCK_C_ERROR_CODE_VALUES)
+
+static void on_umock_c_error(UMOCK_C_ERROR_CODE error_code)
 {
-public:
-	/* amqpalloc mocks */
-	MOCK_STATIC_METHOD_1(, void*, amqpalloc_malloc, size_t, size)
-	MOCK_METHOD_END(void*, malloc(size));
-	MOCK_STATIC_METHOD_2(, void*, amqpalloc_realloc, void*, ptr, size_t, size)
-	MOCK_METHOD_END(void*, realloc(ptr, size));
-	MOCK_STATIC_METHOD_1(, void, amqpalloc_free, void*, ptr)
-		free(ptr);
-	MOCK_VOID_METHOD_END();
-
-	/* amqpvalue mocks */
-	MOCK_STATIC_METHOD_1(, AMQP_VALUE, amqpvalue_clone, AMQP_VALUE, value)
-	MOCK_METHOD_END(AMQP_VALUE, test_cloned_amqp_value);
-	MOCK_STATIC_METHOD_1(, void, amqpvalue_destroy, AMQP_VALUE, value)
-	MOCK_VOID_METHOD_END();
-	MOCK_STATIC_METHOD_2(, int, amqpvalue_get_list_item_count, AMQP_VALUE, value, uint32_t*, size)
-	MOCK_METHOD_END(int, 0);
-};
-
-extern "C"
-{
-	DECLARE_GLOBAL_MOCK_METHOD_1(message_mocks, , void*, amqpalloc_malloc, size_t, size);
-	DECLARE_GLOBAL_MOCK_METHOD_2(message_mocks, , void*, amqpalloc_realloc, void*, ptr, size_t, size);
-	DECLARE_GLOBAL_MOCK_METHOD_1(message_mocks, , void, amqpalloc_free, void*, ptr);
-
-	DECLARE_GLOBAL_MOCK_METHOD_1(message_mocks, , AMQP_VALUE, amqpvalue_clone, AMQP_VALUE, value);
-	DECLARE_GLOBAL_MOCK_METHOD_1(message_mocks, , void, amqpvalue_destroy, AMQP_VALUE, value);
-	DECLARE_GLOBAL_MOCK_METHOD_2(message_mocks, , int, amqpvalue_get_list_item_count, AMQP_VALUE, value, uint32_t*, size);
+    char temp_str[256];
+    (void)snprintf(temp_str, sizeof(temp_str), "umock_c reported error :%s", ENUM_TO_STRING(UMOCK_C_ERROR_CODE, error_code));
+    ASSERT_FAIL(temp_str);
 }
-
-MICROMOCK_MUTEX_HANDLE test_serialize_mutex;
 
 BEGIN_TEST_SUITE(message_ut)
 
 TEST_SUITE_INITIALIZE(suite_init)
 {
-	test_serialize_mutex = MicroMockCreateMutex();
-	ASSERT_IS_NOT_NULL(test_serialize_mutex);
+    TEST_INITIALIZE_MEMORY_DEBUG(g_dllByDll);
+    g_testByTest = TEST_MUTEX_CREATE();
+    ASSERT_IS_NOT_NULL(g_testByTest);
+
+    umock_c_init(on_umock_c_error);
+
+    REGISTER_GLOBAL_MOCK_HOOK(gballoc_malloc, my_gballoc_malloc);
+    REGISTER_GLOBAL_MOCK_HOOK(gballoc_realloc, my_gballoc_realloc);
+    REGISTER_GLOBAL_MOCK_HOOK(gballoc_free, my_gballoc_free);
+    REGISTER_UMOCK_ALIAS_TYPE(HEADER_HANDLE, void*);
 }
 
 TEST_SUITE_CLEANUP(suite_cleanup)
 {
-	MicroMockDestroyMutex(test_serialize_mutex);
+    umock_c_deinit();
+
+    TEST_MUTEX_DESTROY(g_testByTest);
+    TEST_DEINITIALIZE_MEMORY_DEBUG(g_dllByDll);
 }
 
-TEST_FUNCTION_INITIALIZE(method_init)
+TEST_FUNCTION_INITIALIZE(test_init)
 {
-	if (!MicroMockAcquireMutex(test_serialize_mutex))
-	{
-		ASSERT_FAIL("Could not acquire test serialization mutex.");
-	}
+    if (TEST_MUTEX_ACQUIRE(g_testByTest))
+    {
+        ASSERT_FAIL("our mutex is ABANDONED. Failure in test framework");
+    }
+
+    umock_c_reset_all_calls();
 }
 
-TEST_FUNCTION_CLEANUP(method_cleanup)
+TEST_FUNCTION_CLEANUP(test_cleanup)
 {
-	if (!MicroMockReleaseMutex(test_serialize_mutex))
-	{
-		ASSERT_FAIL("Could not release test serialization mutex.");
-	}
+    TEST_MUTEX_RELEASE(g_testByTest);
 }
 
 /* message_create */
@@ -94,17 +106,14 @@ TEST_FUNCTION_CLEANUP(method_cleanup)
 TEST_FUNCTION(message_create_succeeds)
 {
 	// arrange
-	message_mocks mocks;
-	amqp_definitions_mocks definition_mocks;
-
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 
 	// act
 	MESSAGE_HANDLE message = message_create();
 
 	// assert
 	ASSERT_IS_NOT_NULL(message);
-	mocks.AssertActualAndExpectedCalls();
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	message_destroy(message);
@@ -114,11 +123,8 @@ TEST_FUNCTION(message_create_succeeds)
 TEST_FUNCTION(message_create_2_times_yields_2_different_message_instances)
 {
 	// arrange
-	message_mocks mocks;
-	amqp_definitions_mocks definition_mocks;
-
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 
 	// act
 	MESSAGE_HANDLE message1 = message_create();
@@ -128,7 +134,7 @@ TEST_FUNCTION(message_create_2_times_yields_2_different_message_instances)
 	ASSERT_IS_NOT_NULL(message1);
 	ASSERT_IS_NOT_NULL(message2);
 	ASSERT_ARE_NOT_EQUAL(void_ptr, message1, message2);
-	mocks.AssertActualAndExpectedCalls();
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	message_destroy(message1);
@@ -139,17 +145,15 @@ TEST_FUNCTION(message_create_2_times_yields_2_different_message_instances)
 TEST_FUNCTION(when_allocating_memory_for_the_message_fails_then_message_create_fails)
 {
 	// arrange
-	message_mocks mocks;
-	amqp_definitions_mocks definition_mocks;
-
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG))
-		.SetReturn((void*)NULL);
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+		.SetReturn(NULL);
 
 	// act
 	MESSAGE_HANDLE message = message_create();
 
 	// assert
 	ASSERT_IS_NULL(message);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
 /* message_clone */
@@ -165,25 +169,23 @@ TEST_FUNCTION(when_allocating_memory_for_the_message_fails_then_message_create_f
 TEST_FUNCTION(message_clone_with_a_valid_argument_succeeds)
 {
 	// arrange
-/*	message_mocks mocks;
-	amqp_definitions_mocks definition_mocks;
-	MESSAGE_HANDLE source_message = message_create();
+/*	MESSAGE_HANDLE source_message = message_create();
 	unsigned char data_section[2] = { 0x42, 0x43 };
 
 	(void)message_set_header(source_message, custom_message_header);
-	STRICT_EXPECTED_CALL(mocks, annotations_clone(custom_delivery_annotations))
+	STRICT_EXPECTED_CALL(annotations_clone(custom_delivery_annotations))
 		.SetReturn(cloned_delivery_annotations);
 	(void)message_set_delivery_annotations(source_message, custom_delivery_annotations);
-	STRICT_EXPECTED_CALL(mocks, annotations_clone(custom_message_annotations))
+	STRICT_EXPECTED_CALL(annotations_clone(custom_message_annotations))
 		.SetReturn(cloned_message_annotations);
 	(void)message_set_message_annotations(source_message, custom_message_annotations);
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_clone(custom_properties))
+	STRICT_EXPECTED_CALL(amqpvalue_clone(custom_properties))
 		.SetReturn(cloned_properties);
 	(void)message_set_properties(source_message, custom_properties);
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_clone(custom_application_properties))
+	STRICT_EXPECTED_CALL(amqpvalue_clone(custom_application_properties))
 		.SetReturn(cloned_application_properties);
 	(void)message_set_application_properties(source_message, custom_application_properties);
-	STRICT_EXPECTED_CALL(mocks, annotations_clone(custom_footer))
+	STRICT_EXPECTED_CALL(annotations_clone(custom_footer))
 		.SetReturn(cloned_footer);
 	(void)message_set_footer(source_message, custom_footer);
 	BINARY_DATA binary_data = { data_section, sizeof(data_section) };
@@ -191,23 +193,22 @@ TEST_FUNCTION(message_clone_with_a_valid_argument_succeeds)
 	mocks.ResetAllCalls();
 	definition_mocks.ResetAllCalls();
 
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(definition_mocks, header_clone(test_header_handle));
-	STRICT_EXPECTED_CALL(mocks, annotations_clone(cloned_delivery_annotations));
-	STRICT_EXPECTED_CALL(mocks, annotations_clone(cloned_message_annotations));
-	STRICT_EXPECTED_CALL(definition_mocks, properties_clone(test_properties_handle));
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_clone(cloned_application_properties));
-	STRICT_EXPECTED_CALL(mocks, annotations_clone(cloned_footer));
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(mocks, amqpalloc_malloc(sizeof(data_section)));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(header_clone(test_header_handle));
+	STRICT_EXPECTED_CALL(annotations_clone(cloned_delivery_annotations));
+	STRICT_EXPECTED_CALL(annotations_clone(cloned_message_annotations));
+	STRICT_EXPECTED_CALL(properties_clone(test_properties_handle));
+	STRICT_EXPECTED_CALL(amqpvalue_clone(cloned_application_properties));
+	STRICT_EXPECTED_CALL(annotations_clone(cloned_footer));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(gballoc_malloc(sizeof(data_section)));
 
 	// act
 	MESSAGE_HANDLE message = message_clone(source_message);
 
 	// assert
 	ASSERT_IS_NOT_NULL(message);
-	mocks.AssertActualAndExpectedCalls();
-	definition_mocks.AssertActualAndExpectedCalls();
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	message_destroy(source_message);
@@ -218,37 +219,32 @@ TEST_FUNCTION(message_clone_with_a_valid_argument_succeeds)
 TEST_FUNCTION(message_clone_with_NULL_message_source_fails)
 {
 	// arrange
-	message_mocks mocks;
-	amqp_definitions_mocks definition_mocks;
 
 	// act
 	MESSAGE_HANDLE message = message_clone(NULL);
 
 	// assert
 	ASSERT_IS_NULL(message);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
 /* Tests_SRS_MESSAGE_01_004: [If allocating memory for the new cloned message fails, message_clone shall fail and return NULL.] */
 TEST_FUNCTION(when_allocating_memory_fails_then_message_clone_fails)
 {
 	// arrange
-	message_mocks mocks;
-	amqp_definitions_mocks definition_mocks;
 	MESSAGE_HANDLE source_message = message_create();
 	(void)message_set_header(source_message, custom_message_header);
-	mocks.ResetAllCalls();
-	definition_mocks.ResetAllCalls();
+    umock_c_reset_all_calls();
 
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG))
-		.SetReturn((void*)NULL);
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+		.SetReturn(NULL);
 
 	// act
 	MESSAGE_HANDLE message = message_clone(source_message);
 
 	// assert
 	ASSERT_IS_NULL(message);
-	mocks.AssertActualAndExpectedCalls();
-	definition_mocks.AssertActualAndExpectedCalls();
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	message_destroy(source_message);

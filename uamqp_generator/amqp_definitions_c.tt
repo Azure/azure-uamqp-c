@@ -323,7 +323,7 @@ int <#= type_name #>_get_<#= field_name #>(<#= type_name.ToUpper() #>_HANDLE <#=
 			{
 <#					    if (field.@default != null) #>
 <#					    { #>
-                if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
+                if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                 {
     			    result = __FAILURE__;
                 }

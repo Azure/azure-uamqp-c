@@ -1049,7 +1049,7 @@ int open_get_max_frame_size(OPEN_HANDLE open, uint32_t* max_frame_size_value)
 		{
 			if (amqpvalue_get_uint(item_value, max_frame_size_value) != 0)
 			{
-                if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
+                if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                 {
     			    result = __FAILURE__;
                 }
@@ -1124,7 +1124,7 @@ int open_get_channel_max(OPEN_HANDLE open, uint16_t* channel_max_value)
 		{
 			if (amqpvalue_get_ushort(item_value, channel_max_value) != 0)
 			{
-                if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
+                if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                 {
     			    result = __FAILURE__;
                 }
@@ -2191,7 +2191,7 @@ int begin_get_handle_max(BEGIN_HANDLE begin, handle* handle_max_value)
 		{
 			if (amqpvalue_get_handle(item_value, handle_max_value) != 0)
 			{
-                if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
+                if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                 {
     			    result = __FAILURE__;
                 }
@@ -3098,7 +3098,7 @@ int attach_get_snd_settle_mode(ATTACH_HANDLE attach, sender_settle_mode* snd_set
 		{
 			if (amqpvalue_get_sender_settle_mode(item_value, snd_settle_mode_value) != 0)
 			{
-                if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
+                if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                 {
     			    result = __FAILURE__;
                 }
@@ -3173,7 +3173,7 @@ int attach_get_rcv_settle_mode(ATTACH_HANDLE attach, receiver_settle_mode* rcv_s
 		{
 			if (amqpvalue_get_receiver_settle_mode(item_value, rcv_settle_mode_value) != 0)
 			{
-                if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
+                if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                 {
     			    result = __FAILURE__;
                 }
@@ -3434,7 +3434,7 @@ int attach_get_incomplete_unsettled(ATTACH_HANDLE attach, bool* incomplete_unset
 		{
 			if (amqpvalue_get_boolean(item_value, incomplete_unsettled_value) != 0)
 			{
-                if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
+                if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                 {
     			    result = __FAILURE__;
                 }
@@ -4758,7 +4758,7 @@ int flow_get_drain(FLOW_HANDLE flow, bool* drain_value)
 		{
 			if (amqpvalue_get_boolean(item_value, drain_value) != 0)
 			{
-                if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
+                if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                 {
     			    result = __FAILURE__;
                 }
@@ -4833,7 +4833,7 @@ int flow_get_echo(FLOW_HANDLE flow, bool* echo_value)
 		{
 			if (amqpvalue_get_boolean(item_value, echo_value) != 0)
 			{
-                if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
+                if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                 {
     			    result = __FAILURE__;
                 }
@@ -5668,7 +5668,7 @@ int transfer_get_more(TRANSFER_HANDLE transfer, bool* more_value)
 		{
 			if (amqpvalue_get_boolean(item_value, more_value) != 0)
 			{
-                if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
+                if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                 {
     			    result = __FAILURE__;
                 }
@@ -5869,7 +5869,7 @@ int transfer_get_resume(TRANSFER_HANDLE transfer, bool* resume_value)
 		{
 			if (amqpvalue_get_boolean(item_value, resume_value) != 0)
 			{
-                if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
+                if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                 {
     			    result = __FAILURE__;
                 }
@@ -5944,7 +5944,7 @@ int transfer_get_aborted(TRANSFER_HANDLE transfer, bool* aborted_value)
 		{
 			if (amqpvalue_get_boolean(item_value, aborted_value) != 0)
 			{
-                if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
+                if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                 {
     			    result = __FAILURE__;
                 }
@@ -6019,7 +6019,7 @@ int transfer_get_batchable(TRANSFER_HANDLE transfer, bool* batchable_value)
 		{
 			if (amqpvalue_get_boolean(item_value, batchable_value) != 0)
 			{
-                if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
+                if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                 {
     			    result = __FAILURE__;
                 }
@@ -6559,7 +6559,7 @@ int disposition_get_settled(DISPOSITION_HANDLE disposition, bool* settled_value)
 		{
 			if (amqpvalue_get_boolean(item_value, settled_value) != 0)
 			{
-                if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
+                if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                 {
     			    result = __FAILURE__;
                 }
@@ -6694,7 +6694,7 @@ int disposition_get_batchable(DISPOSITION_HANDLE disposition, bool* batchable_va
 		{
 			if (amqpvalue_get_boolean(item_value, batchable_value) != 0)
 			{
-                if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
+                if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                 {
     			    result = __FAILURE__;
                 }
@@ -7042,7 +7042,7 @@ int detach_get_closed(DETACH_HANDLE detach, bool* closed_value)
 		{
 			if (amqpvalue_get_boolean(item_value, closed_value) != 0)
 			{
-                if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
+                if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                 {
     			    result = __FAILURE__;
                 }
@@ -9473,7 +9473,7 @@ int source_get_durable(SOURCE_HANDLE source, terminus_durability* durable_value)
 		{
 			if (amqpvalue_get_terminus_durability(item_value, durable_value) != 0)
 			{
-                if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
+                if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                 {
     			    result = __FAILURE__;
                 }
@@ -9548,7 +9548,7 @@ int source_get_expiry_policy(SOURCE_HANDLE source, terminus_expiry_policy* expir
 		{
 			if (amqpvalue_get_terminus_expiry_policy(item_value, expiry_policy_value) != 0)
 			{
-                if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
+                if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                 {
     			    result = __FAILURE__;
                 }
@@ -9623,7 +9623,7 @@ int source_get_timeout(SOURCE_HANDLE source, seconds* timeout_value)
 		{
 			if (amqpvalue_get_seconds(item_value, timeout_value) != 0)
 			{
-                if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
+                if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                 {
     			    result = __FAILURE__;
                 }
@@ -9698,7 +9698,7 @@ int source_get_dynamic(SOURCE_HANDLE source, bool* dynamic_value)
 		{
 			if (amqpvalue_get_boolean(item_value, dynamic_value) != 0)
 			{
-                if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
+                if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                 {
     			    result = __FAILURE__;
                 }
@@ -10491,7 +10491,7 @@ int target_get_durable(TARGET_HANDLE target, terminus_durability* durable_value)
 		{
 			if (amqpvalue_get_terminus_durability(item_value, durable_value) != 0)
 			{
-                if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
+                if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                 {
     			    result = __FAILURE__;
                 }
@@ -10566,7 +10566,7 @@ int target_get_expiry_policy(TARGET_HANDLE target, terminus_expiry_policy* expir
 		{
 			if (amqpvalue_get_terminus_expiry_policy(item_value, expiry_policy_value) != 0)
 			{
-                if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
+                if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                 {
     			    result = __FAILURE__;
                 }
@@ -10641,7 +10641,7 @@ int target_get_timeout(TARGET_HANDLE target, seconds* timeout_value)
 		{
 			if (amqpvalue_get_seconds(item_value, timeout_value) != 0)
 			{
-                if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
+                if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                 {
     			    result = __FAILURE__;
                 }
@@ -10716,7 +10716,7 @@ int target_get_dynamic(TARGET_HANDLE target, bool* dynamic_value)
 		{
 			if (amqpvalue_get_boolean(item_value, dynamic_value) != 0)
 			{
-                if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
+                if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                 {
     			    result = __FAILURE__;
                 }
@@ -11200,7 +11200,7 @@ int header_get_durable(HEADER_HANDLE header, bool* durable_value)
 		{
 			if (amqpvalue_get_boolean(item_value, durable_value) != 0)
 			{
-                if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
+                if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                 {
     			    result = __FAILURE__;
                 }
@@ -11275,7 +11275,7 @@ int header_get_priority(HEADER_HANDLE header, uint8_t* priority_value)
 		{
 			if (amqpvalue_get_ubyte(item_value, priority_value) != 0)
 			{
-                if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
+                if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                 {
     			    result = __FAILURE__;
                 }
@@ -11416,7 +11416,7 @@ int header_get_first_acquirer(HEADER_HANDLE header, bool* first_acquirer_value)
 		{
 			if (amqpvalue_get_boolean(item_value, first_acquirer_value) != 0)
 			{
-                if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
+                if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                 {
     			    result = __FAILURE__;
                 }
@@ -11491,7 +11491,7 @@ int header_get_delivery_count(HEADER_HANDLE header, uint32_t* delivery_count_val
 		{
 			if (amqpvalue_get_uint(item_value, delivery_count_value) != 0)
 			{
-                if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
+                if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                 {
     			    result = __FAILURE__;
                 }

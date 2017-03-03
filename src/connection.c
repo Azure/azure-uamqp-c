@@ -929,7 +929,7 @@ CONNECTION_HANDLE connection_create2(XIO_HANDLE xio, const char* hostname, const
     }
     else
     {
-        result = (CONNECTION_INSTANCE*)amqpalloc_malloc(sizeof(CONNECTION_INSTANCE));
+        result = (CONNECTION_INSTANCE*)amqpalloc_calloc(1, sizeof(CONNECTION_INSTANCE));
         /* Codes_SRS_CONNECTION_01_081: [If allocating the memory for the connection fails then connection_create shall return NULL.] */
         if (result != NULL)
         {

@@ -1034,8 +1034,24 @@ CONNECTION_HANDLE connection_create2(XIO_HANDLE xio, const char* hostname, const
                                 result->on_connection_state_changed = on_connection_state_changed;
                                 result->on_connection_state_changed_callback_context = on_connection_state_changed_context;
 
-                                /* Codes_SRS_CONNECTION_01_072: [When connection_create succeeds, the state of the connection shall be CONNECTION_STATE_START.] */
-                                connection_set_state(result, CONNECTION_STATE_START);
+                                if (tickcounter_get_current_ms(result->tick_counter, &result->last_frame_received_time) != 0)
+                                {
+                                    LogError("Could not retrieve time for last frame received time");
+                                    tickcounter_destroy(result->tick_counter);
+                                    amqpalloc_free(result->container_id);
+                                    amqpalloc_free(result->host_name);
+                                    amqp_frame_codec_destroy(result->amqp_frame_codec);
+                                    frame_codec_destroy(result->frame_codec);
+                                    amqpalloc_free(result);
+                                    result = NULL;
+                                }
+                                else
+                                {
+                                    result->last_frame_sent_time = result->last_frame_received_time;
+
+                                    /* Codes_SRS_CONNECTION_01_072: [When connection_create succeeds, the state of the connection shall be CONNECTION_STATE_START.] */
+                                    connection_set_state(result, CONNECTION_STATE_START);
+                                }
                             }
                         }
                     }

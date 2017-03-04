@@ -3630,6 +3630,8 @@ TEST_FUNCTION(connection_create2_with_valid_args_succeeds)
     EXPECTED_CALL(mocks, amqp_frame_codec_create(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgument(1);
     EXPECTED_CALL(mocks, tickcounter_create());
+    STRICT_EXPECTED_CALL(mocks, tickcounter_get_current_ms(test_tick_counter, IGNORED_PTR_ARG))
+        .IgnoreArgument(2);
     EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORE));
     EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORE));
 

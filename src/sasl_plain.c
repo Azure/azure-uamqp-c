@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "azure_c_shared_utility/optimize_size.h"
+#include "azure_c_shared_utility/gballoc.h"
 #include "azure_uamqp_c/sasl_plain.h"
-#include "azure_uamqp_c/amqpalloc.h"
 
 typedef struct SASL_PLAIN_INSTANCE_TAG
 {
@@ -60,16 +60,16 @@ CONCRETE_SASL_MECHANISM_HANDLE saslplain_create(void* config)
 			else
 			{
 				/* Codes_SRS_SASL_PLAIN_01_001: [saslplain_create shall return on success a non-NULL handle to a new SASL plain mechanism.] */
-				result = amqpalloc_malloc(sizeof(SASL_PLAIN_INSTANCE));
+				result = malloc(sizeof(SASL_PLAIN_INSTANCE));
 				/* Codes_SRS_SASL_PLAIN_01_002: [If allocating the memory needed for the saslplain instance fails then saslplain_create shall return NULL.] */
 				if (result != NULL)
 				{
 					/* Ignore UTF8 for now */
-					result->init_bytes = (unsigned char*)amqpalloc_malloc(authzid_length + authcid_length + passwd_length + 2);
+					result->init_bytes = (unsigned char*)malloc(authzid_length + authcid_length + passwd_length + 2);
 					if (result->init_bytes == NULL)
 					{
 						/* Codes_SRS_SASL_PLAIN_01_002: [If allocating the memory needed for the saslplain instance fails then saslplain_create shall return NULL.] */
-						amqpalloc_free(result);
+						free(result);
 						result = NULL;
 					}
 					else
@@ -108,10 +108,10 @@ void saslplain_destroy(CONCRETE_SASL_MECHANISM_HANDLE sasl_mechanism_concrete_ha
 		SASL_PLAIN_INSTANCE* sasl_plain_instance = (SASL_PLAIN_INSTANCE*)sasl_mechanism_concrete_handle;
 		if (sasl_plain_instance->init_bytes != NULL)
 		{
-			amqpalloc_free(sasl_plain_instance->init_bytes);
+			free(sasl_plain_instance->init_bytes);
 		}
 
-		amqpalloc_free(sasl_plain_instance);
+		free(sasl_plain_instance);
 	}
 }
 

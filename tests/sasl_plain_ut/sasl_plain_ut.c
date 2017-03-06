@@ -1,62 +1,91 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#ifdef __cplusplus
 #include <cstdint>
+#include <cstddef>
+#else
+#include <stdint.h>
+#include <stddef.h>
+#endif
 #include "testrunnerswitcher.h"
-#include "micromock.h"
-#include "micromockcharstararenullterminatedstrings.h"
+#include "umock_c.h"
+#include "umocktypes_charptr.h"
+
+void* my_gballoc_malloc(size_t size)
+{
+    return malloc(size);
+}
+
+void my_gballoc_free(void* ptr)
+{
+    free(ptr);
+}
+
+#define ENABLE_MOCKS
+
+#include "azure_c_shared_utility/gballoc.h"
+
+#undef ENABLE_MOCKS
+
 #include "azure_uamqp_c/sasl_plain.h"
 
 #define MAX_AUTHZID "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890" "1234567890123456789012345678901234567890123456789012345"
 #define MAX_AUTHCID MAX_AUTHZID
 #define MAX_PASSWD MAX_AUTHZID
 
-TYPED_MOCK_CLASS(amqp_frame_codec_mocks, CGlobalMock)
-{
-public:
-	/* amqpalloc mocks */
-	MOCK_STATIC_METHOD_1(, void*, amqpalloc_malloc, size_t, size)
-	MOCK_METHOD_END(void*, malloc(size));
-	MOCK_STATIC_METHOD_1(, void, amqpalloc_free, void*, ptr)
-		free(ptr);
-	MOCK_VOID_METHOD_END();
-};
+static TEST_MUTEX_HANDLE g_testByTest;
+static TEST_MUTEX_HANDLE g_dllByDll;
 
-extern "C"
+DEFINE_ENUM_STRINGS(UMOCK_C_ERROR_CODE, UMOCK_C_ERROR_CODE_VALUES)
+
+static void on_umock_c_error(UMOCK_C_ERROR_CODE error_code)
 {
-	DECLARE_GLOBAL_MOCK_METHOD_1(amqp_frame_codec_mocks, , void*, amqpalloc_malloc, size_t, size);
-	DECLARE_GLOBAL_MOCK_METHOD_1(amqp_frame_codec_mocks, , void, amqpalloc_free, void*, ptr);
+    char temp_str[256];
+    (void)snprintf(temp_str, sizeof(temp_str), "umock_c reported error :%s", ENUM_TO_STRING(UMOCK_C_ERROR_CODE, error_code));
+    ASSERT_FAIL(temp_str);
 }
-
-MICROMOCK_MUTEX_HANDLE test_serialize_mutex;
 
 BEGIN_TEST_SUITE(sasl_plain_ut)
 
 TEST_SUITE_INITIALIZE(suite_init)
 {
-	test_serialize_mutex = MicroMockCreateMutex();
-	ASSERT_IS_NOT_NULL(test_serialize_mutex);
+    int result;
+
+    TEST_INITIALIZE_MEMORY_DEBUG(g_dllByDll);
+    g_testByTest = TEST_MUTEX_CREATE();
+    ASSERT_IS_NOT_NULL(g_testByTest);
+
+    umock_c_init(on_umock_c_error);
+
+    result = umocktypes_charptr_register_types();
+    ASSERT_ARE_EQUAL(int, 0, result);
+
+    REGISTER_GLOBAL_MOCK_HOOK(gballoc_malloc, my_gballoc_malloc);
+    REGISTER_GLOBAL_MOCK_HOOK(gballoc_free, my_gballoc_free);
 }
 
 TEST_SUITE_CLEANUP(suite_cleanup)
 {
-	MicroMockDestroyMutex(test_serialize_mutex);
+    umock_c_deinit();
+
+    TEST_MUTEX_DESTROY(g_testByTest);
+    TEST_DEINITIALIZE_MEMORY_DEBUG(g_dllByDll);
 }
 
 TEST_FUNCTION_INITIALIZE(method_init)
 {
-	if (!MicroMockAcquireMutex(test_serialize_mutex))
-	{
-		ASSERT_FAIL("Could not acquire test serialization mutex.");
-	}
+    if (TEST_MUTEX_ACQUIRE(g_testByTest))
+    {
+        ASSERT_FAIL("our mutex is ABANDONED. Failure in test framework");
+    }
+
+    umock_c_reset_all_calls();
 }
 
 TEST_FUNCTION_CLEANUP(method_cleanup)
 {
-	if (!MicroMockReleaseMutex(test_serialize_mutex))
-	{
-		ASSERT_FAIL("Could not release test serialization mutex.");
-	}
+    TEST_MUTEX_RELEASE(g_testByTest);
 }
 
 /* saslplain_create */
@@ -65,18 +94,18 @@ TEST_FUNCTION_CLEANUP(method_cleanup)
 TEST_FUNCTION(saslplain_create_with_valid_args_succeeds)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", "test_authzid" };
+    CONCRETE_SASL_MECHANISM_HANDLE result;
 
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 
 	// act
-	CONCRETE_SASL_MECHANISM_HANDLE result = saslplain_create(&sasl_plain_config);
+	result = saslplain_create(&sasl_plain_config);
 
 	// assert
 	ASSERT_IS_NOT_NULL(result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslplain_destroy(result);
@@ -86,95 +115,94 @@ TEST_FUNCTION(saslplain_create_with_valid_args_succeeds)
 TEST_FUNCTION(when_allocating_memory_fails_then_saslplain_create_fails)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", "test_authzid" };
 
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG))
-		.SetReturn((void*)NULL);
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+		.SetReturn(NULL);
 
 	// act
 	CONCRETE_SASL_MECHANISM_HANDLE result = saslplain_create(&sasl_plain_config);
 
 	// assert
-	ASSERT_IS_NULL(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NULL(result);
 }
 
 /* Tests_SRS_SASL_PLAIN_01_002: [If allocating the memory needed for the saslplain instance fails then saslplain_create shall return NULL.] */
 TEST_FUNCTION(when_allocating_memory_for_the_config_fails_then_saslplain_create_fails)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", "test_authzid" };
 
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG))
-		.SetReturn((void*)NULL);
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+		.SetReturn(NULL);
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
 	CONCRETE_SASL_MECHANISM_HANDLE result = saslplain_create(&sasl_plain_config);
 
 	// assert
-	ASSERT_IS_NULL(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NULL(result);
 }
 
 /* Tests_SRS_SASL_PLAIN_01_003: [If the config argument is NULL, then saslplain_create shall fail and return NULL.] */
 TEST_FUNCTION(saslplain_create_with_NULL_config_fails)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 
 	// act
 	CONCRETE_SASL_MECHANISM_HANDLE result = saslplain_create(NULL);
 
 	// assert
-	ASSERT_IS_NULL(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NULL(result);
 }
 
 /* Tests_SRS_SASL_PLAIN_01_004: [If either the authcid or passwd member of the config structure is NULL, then saslplain_create shall fail and return NULL.] */
 TEST_FUNCTION(saslplain_create_with_NULL_authcid_fails)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 	SASL_PLAIN_CONFIG sasl_plain_config = { NULL, "test_pwd", "test_authzid" };
 
 	// act
 	CONCRETE_SASL_MECHANISM_HANDLE result = saslplain_create(&sasl_plain_config);
 
 	// assert
-	ASSERT_IS_NULL(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NULL(result);
 }
 
 /* Tests_SRS_SASL_PLAIN_01_004: [If either the authcid or passwd member of the config structure is NULL, then saslplain_create shall fail and return NULL.] */
 TEST_FUNCTION(saslplain_create_with_NULL_passwd_fails)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", NULL, "test_authzid" };
 
 	// act
 	CONCRETE_SASL_MECHANISM_HANDLE result = saslplain_create(&sasl_plain_config);
 
 	// assert
-	ASSERT_IS_NULL(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NULL(result);
 }
 
 /* Tests_SRS_SASL_PLAIN_01_004: [If either the authcid or passwd member of the config structure is NULL, then saslplain_create shall fail and return NULL.] */
 TEST_FUNCTION(saslplain_create_with_NULL_authzis_succeeds)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", NULL };
 
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 
 	// act
 	CONCRETE_SASL_MECHANISM_HANDLE result = saslplain_create(&sasl_plain_config);
 
 	// assert
 	ASSERT_IS_NOT_NULL(result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslplain_destroy(result);
@@ -186,32 +214,30 @@ TEST_FUNCTION(saslplain_create_with_NULL_authzis_succeeds)
 TEST_FUNCTION(saslplain_destroy_frees_the_allocated_memory)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", NULL };
 	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_create(&sasl_plain_config);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
 	saslplain_destroy(sasl_plain);
 
 	// assert
-	// uMock checks the calls
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
 /* Tests_SRS_SASL_PLAIN_01_006: [If the argument concrete_sasl_mechanism is NULL, saslplain_destroy shall do nothing.] */
 TEST_FUNCTION(saslplain_destroy_with_NULL_handle_does_nothing)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 
 	// act
 	saslplain_destroy(NULL);
 
 	// assert
-	// uMock checks the calls
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
 /* saslplain_get_init_bytes */
@@ -226,12 +252,11 @@ TEST_FUNCTION(saslplain_destroy_with_NULL_handle_does_nothing)
 TEST_FUNCTION(saslplain_get_init_bytes_returns_the_correct_concateneted_bytes)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 	unsigned char expected_bytes[] = "test_authzid" "\0" "test_authcid" "\0" "test_pwd";
 	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", "test_authzid" };
 	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_create(&sasl_plain_config);
 	SASL_MECHANISM_BYTES init_bytes;
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	int result = saslplain_get_init_bytes(sasl_plain, &init_bytes);
@@ -240,7 +265,7 @@ TEST_FUNCTION(saslplain_get_init_bytes_returns_the_correct_concateneted_bytes)
 	ASSERT_ARE_EQUAL(int, 0, result);
 	ASSERT_ARE_EQUAL(size_t, sizeof(expected_bytes) - 1, init_bytes.length);
 	ASSERT_ARE_EQUAL(int, 0, memcmp(expected_bytes, init_bytes.bytes, sizeof(expected_bytes) - 1));
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslplain_destroy(sasl_plain);
@@ -252,12 +277,11 @@ TEST_FUNCTION(saslplain_get_init_bytes_returns_the_correct_concateneted_bytes)
 TEST_FUNCTION(saslplain_get_init_bytes_with_NULL_authzid_returns_the_correct_concateneted_bytes)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 	unsigned char expected_bytes[] = "\0" "test_authcid" "\0" "test_pwd";
 	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", NULL };
 	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_create(&sasl_plain_config);
 	SASL_MECHANISM_BYTES init_bytes;
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	int result = saslplain_get_init_bytes(sasl_plain, &init_bytes);
@@ -266,7 +290,7 @@ TEST_FUNCTION(saslplain_get_init_bytes_with_NULL_authzid_returns_the_correct_con
 	ASSERT_ARE_EQUAL(int, 0, result);
 	ASSERT_ARE_EQUAL(size_t, sizeof(expected_bytes) - 1, init_bytes.length);
 	ASSERT_ARE_EQUAL(int, 0, memcmp(expected_bytes, init_bytes.bytes, sizeof(expected_bytes) - 1));
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslplain_destroy(sasl_plain);
@@ -276,12 +300,11 @@ TEST_FUNCTION(saslplain_get_init_bytes_with_NULL_authzid_returns_the_correct_con
 TEST_FUNCTION(saslplain_get_init_bytes_with_authzid_zero_length_succeeds)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 	unsigned char expected_bytes[] = "\0" "test_authcid" "\0" "test_pwd";
 	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", "" };
 	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_create(&sasl_plain_config);
 	SASL_MECHANISM_BYTES init_bytes;
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	int result = saslplain_get_init_bytes(sasl_plain, &init_bytes);
@@ -290,7 +313,7 @@ TEST_FUNCTION(saslplain_get_init_bytes_with_authzid_zero_length_succeeds)
 	ASSERT_ARE_EQUAL(int, 0, result);
 	ASSERT_ARE_EQUAL(size_t, sizeof(expected_bytes) - 1, init_bytes.length);
 	ASSERT_ARE_EQUAL(int, 0, memcmp(expected_bytes, init_bytes.bytes, sizeof(expected_bytes) - 1));
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslplain_destroy(sasl_plain);
@@ -300,12 +323,11 @@ TEST_FUNCTION(saslplain_get_init_bytes_with_authzid_zero_length_succeeds)
 TEST_FUNCTION(saslplain_get_init_bytes_with_1_byte_for_each_field_succeeds)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 	unsigned char expected_bytes[] = "1" "\0" "b" "\0" "c";
 	SASL_PLAIN_CONFIG sasl_plain_config = { "b", "c", "1" };
 	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_create(&sasl_plain_config);
 	SASL_MECHANISM_BYTES init_bytes;
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	int result = saslplain_get_init_bytes(sasl_plain, &init_bytes);
@@ -314,7 +336,7 @@ TEST_FUNCTION(saslplain_get_init_bytes_with_1_byte_for_each_field_succeeds)
 	ASSERT_ARE_EQUAL(int, 0, result);
 	ASSERT_ARE_EQUAL(size_t, sizeof(expected_bytes) - 1, init_bytes.length);
 	ASSERT_ARE_EQUAL(int, 0, memcmp(expected_bytes, init_bytes.bytes, sizeof(expected_bytes) - 1));
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslplain_destroy(sasl_plain);
@@ -326,12 +348,11 @@ TEST_FUNCTION(saslplain_get_init_bytes_with_1_byte_for_each_field_succeeds)
 TEST_FUNCTION(saslplain_get_init_bytes_with_max_bytes_for_each_field_succeeds)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 	unsigned char expected_bytes[] = MAX_AUTHZID "\0" MAX_AUTHCID "\0" MAX_PASSWD;
 	SASL_PLAIN_CONFIG sasl_plain_config = { MAX_AUTHCID, MAX_PASSWD, MAX_AUTHZID };
 	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_create(&sasl_plain_config);
 	SASL_MECHANISM_BYTES init_bytes;
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	int result = saslplain_get_init_bytes(sasl_plain, &init_bytes);
@@ -340,7 +361,7 @@ TEST_FUNCTION(saslplain_get_init_bytes_with_max_bytes_for_each_field_succeeds)
 	ASSERT_ARE_EQUAL(int, 0, result);
 	ASSERT_ARE_EQUAL(size_t, sizeof(expected_bytes) - 1, init_bytes.length);
 	ASSERT_ARE_EQUAL(int, 0, memcmp(expected_bytes, init_bytes.bytes, sizeof(expected_bytes) - 1));
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslplain_destroy(sasl_plain);
@@ -350,101 +371,100 @@ TEST_FUNCTION(saslplain_get_init_bytes_with_max_bytes_for_each_field_succeeds)
 TEST_FUNCTION(saslplain_get_init_bytes_with_authcid_over_max_bytes_fails)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 	SASL_PLAIN_CONFIG sasl_plain_config = { MAX_AUTHCID "x", MAX_PASSWD, MAX_AUTHZID };
 
 	// act
 	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_create(&sasl_plain_config);
 
 	// assert
-	ASSERT_IS_NULL(sasl_plain);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NULL(sasl_plain);
 }
 
 /* Tests_SRS_SASL_PLAIN_01_021: [   authzid   = 1*SAFE ; MUST accept up to 255 octets] */
 TEST_FUNCTION(saslplain_get_init_bytes_with_authzid_over_max_bytes_fails)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 	SASL_PLAIN_CONFIG sasl_plain_config = { MAX_AUTHCID, MAX_PASSWD, MAX_AUTHZID "x" };
 
 	// act
 	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_create(&sasl_plain_config);
 
 	// assert
-	ASSERT_IS_NULL(sasl_plain);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NULL(sasl_plain);
 }
 
 /* Tests_SRS_SASL_PLAIN_01_022: [   passwd    = 1*SAFE ; MUST accept up to 255 octets] */
 TEST_FUNCTION(saslplain_get_init_bytes_with_passwd_over_max_bytes_fails)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 	SASL_PLAIN_CONFIG sasl_plain_config = { MAX_AUTHCID, MAX_PASSWD "x", MAX_AUTHZID };
 
 	// act
 	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_create(&sasl_plain_config);
 
 	// assert
-	ASSERT_IS_NULL(sasl_plain);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NULL(sasl_plain);
 }
 
 /* Tests_SRS_SASL_PLAIN_01_020: [   authcid   = 1*SAFE ; MUST accept up to 255 octets] */
 TEST_FUNCTION(saslplain_get_init_bytes_with_authcid_zero_length_fails)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 	SASL_PLAIN_CONFIG sasl_plain_config = { "", "passwd", "authzid" };
 
 	// act
 	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_create(&sasl_plain_config);
 
 	// assert
-	ASSERT_IS_NULL(sasl_plain);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NULL(sasl_plain);
 }
 
 /* Tests_SRS_SASL_PLAIN_01_022: [   passwd    = 1*SAFE ; MUST accept up to 255 octets] */
 TEST_FUNCTION(saslplain_get_init_bytes_with_passwd_zero_length_fails)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 	SASL_PLAIN_CONFIG sasl_plain_config = { "authcid", "", "authzid" };
 
 	// act
 	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_create(&sasl_plain_config);
 
 	// assert
-	ASSERT_IS_NULL(sasl_plain);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NULL(sasl_plain);
 }
 
 /* Tests_SRS_SASL_PLAIN_01_009: [If any argument is NULL, saslplain_get_init_bytes shall return a non-zero value.] */
 TEST_FUNCTION(saslplain_get_init_bytes_with_NULL_sasl_plain_handle_fails)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 	SASL_MECHANISM_BYTES init_bytes;
 
 	// act
 	int result = saslplain_get_init_bytes(NULL, &init_bytes);
 
 	// assert
-	ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
 }
 
 /* Tests_SRS_SASL_PLAIN_01_009: [If any argument is NULL, saslplain_get_init_bytes shall return a non-zero value.] */
 TEST_FUNCTION(saslplain_get_init_bytes_with_NULL_init_bytes_fails)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", NULL };
 	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_create(&sasl_plain_config);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	int result = saslplain_get_init_bytes(sasl_plain, NULL);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslplain_destroy(sasl_plain);
@@ -456,17 +476,16 @@ TEST_FUNCTION(saslplain_get_init_bytes_with_NULL_init_bytes_fails)
 TEST_FUNCTION(saslplain_get_mechanism_name_with_non_NULL_concrete_sasl_mechanism_succeeds)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", NULL };
 	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_create(&sasl_plain_config);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	const char* result = saslplain_get_mechanism_name(sasl_plain);
 
 	// assert
 	ASSERT_ARE_EQUAL(char_ptr, "PLAIN", result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslplain_destroy(sasl_plain);
@@ -476,13 +495,13 @@ TEST_FUNCTION(saslplain_get_mechanism_name_with_non_NULL_concrete_sasl_mechanism
 TEST_FUNCTION(saslplain_get_mechanism_name_with_NULL_concrete_sasl_mechanism_fails)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 
 	// act
 	const char* result = saslplain_get_mechanism_name(NULL);
 
 	// assert
-	ASSERT_IS_NULL(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NULL(result);
 }
 
 /* saslplain_challenge */
@@ -492,12 +511,11 @@ TEST_FUNCTION(saslplain_get_mechanism_name_with_NULL_concrete_sasl_mechanism_fai
 TEST_FUNCTION(saslplain_challenge_returns_a_NULL_response_bytes_buffer)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", NULL };
 	CONCRETE_SASL_MECHANISM_HANDLE saslplain = saslplain_create(&sasl_plain_config);
 	SASL_MECHANISM_BYTES challenge_bytes;
 	SASL_MECHANISM_BYTES response_bytes;
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	int result = saslplain_challenge(saslplain, &challenge_bytes, &response_bytes);
@@ -506,7 +524,7 @@ TEST_FUNCTION(saslplain_challenge_returns_a_NULL_response_bytes_buffer)
 	ASSERT_ARE_EQUAL(int, 0, result);
 	ASSERT_IS_NULL(response_bytes.bytes);
 	ASSERT_ARE_EQUAL(size_t, 0, response_bytes.length);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslplain_destroy(saslplain);
@@ -516,11 +534,10 @@ TEST_FUNCTION(saslplain_challenge_returns_a_NULL_response_bytes_buffer)
 TEST_FUNCTION(saslplain_with_NULL_challenge_bytes_returns_a_NULL_response_bytes_buffer)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", NULL };
 	CONCRETE_SASL_MECHANISM_HANDLE saslplain = saslplain_create(&sasl_plain_config);
 	SASL_MECHANISM_BYTES response_bytes;
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	int result = saslplain_challenge(saslplain, NULL, &response_bytes);
@@ -529,7 +546,7 @@ TEST_FUNCTION(saslplain_with_NULL_challenge_bytes_returns_a_NULL_response_bytes_
 	ASSERT_ARE_EQUAL(int, 0, result);
 	ASSERT_IS_NULL(response_bytes.bytes);
 	ASSERT_ARE_EQUAL(size_t, 0, response_bytes.length);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslplain_destroy(saslplain);
@@ -539,7 +556,6 @@ TEST_FUNCTION(saslplain_with_NULL_challenge_bytes_returns_a_NULL_response_bytes_
 TEST_FUNCTION(saslplain_challenge_with_NULL_handle_fails)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 	SASL_MECHANISM_BYTES challenge_bytes;
 	SASL_MECHANISM_BYTES response_bytes;
 
@@ -547,25 +563,25 @@ TEST_FUNCTION(saslplain_challenge_with_NULL_handle_fails)
 	int result = saslplain_challenge(NULL, &challenge_bytes, &response_bytes);
 
 	// assert
-	ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
 }
 
 /* Tests_SRS_SASL_PLAIN_01_014: [If the concrete_sasl_mechanism or response_bytes argument is NULL then saslplain_challenge shall fail and return a non-zero value.] */
 TEST_FUNCTION(saslplain_challenge_with_NULL_response_bytes_fails)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", NULL };
 	CONCRETE_SASL_MECHANISM_HANDLE saslplain = saslplain_create(&sasl_plain_config);
 	SASL_MECHANISM_BYTES challenge_bytes;
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	int result = saslplain_challenge(saslplain, &challenge_bytes, NULL);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslplain_destroy(saslplain);
@@ -577,17 +593,16 @@ TEST_FUNCTION(saslplain_challenge_with_NULL_response_bytes_fails)
 TEST_FUNCTION(saslplain_get_interface_returns_the_sasl_plain_mechanism_interface)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 
 	// act
 	const SASL_MECHANISM_INTERFACE_DESCRIPTION* result = saslplain_get_interface();
 
 	// assert
-	ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslplain_create, (void_ptr)result->concrete_sasl_mechanism_create);
-	ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslplain_destroy, (void_ptr)result->concrete_sasl_mechanism_destroy);
-	ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslplain_get_init_bytes, (void_ptr)result->concrete_sasl_mechanism_get_init_bytes);
-	ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslplain_get_mechanism_name, (void_ptr)result->concrete_sasl_mechanism_get_mechanism_name);
-	ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslplain_challenge, (void_ptr)result->concrete_sasl_mechanism_challenge);
+	ASSERT_IS_NOT_NULL(result->concrete_sasl_mechanism_create);
+    ASSERT_IS_NOT_NULL(result->concrete_sasl_mechanism_destroy);
+    ASSERT_IS_NOT_NULL(result->concrete_sasl_mechanism_get_init_bytes);
+    ASSERT_IS_NOT_NULL(result->concrete_sasl_mechanism_get_mechanism_name);
+    ASSERT_IS_NOT_NULL(result->concrete_sasl_mechanism_challenge);
 }
 
 END_TEST_SUITE(sasl_plain_ut)

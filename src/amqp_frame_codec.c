@@ -6,9 +6,9 @@
 #include <stddef.h>
 #include <string.h>
 #include "azure_c_shared_utility/optimize_size.h"
+#include "azure_c_shared_utility/gballoc.h"
 #include "azure_uamqp_c/amqp_frame_codec.h"
 #include "azure_uamqp_c/frame_codec.h"
-#include "azure_uamqp_c/amqpalloc.h"
 #include "azure_uamqp_c/amqpvalue.h"
 
 typedef enum AMQP_FRAME_DECODE_STATE_TAG
@@ -152,7 +152,7 @@ AMQP_FRAME_CODEC_HANDLE amqp_frame_codec_create(FRAME_CODEC_HANDLE frame_codec, 
 	}
 	else
 	{
-		result = (AMQP_FRAME_CODEC_INSTANCE*)amqpalloc_malloc(sizeof(AMQP_FRAME_CODEC_INSTANCE));
+		result = (AMQP_FRAME_CODEC_INSTANCE*)malloc(sizeof(AMQP_FRAME_CODEC_INSTANCE));
 		/* Codes_SRS_AMQP_FRAME_CODEC_01_020: [If allocating memory for the new amqp_frame_codec fails, then amqp_frame_codec_create shall fail and return NULL.] */
 		if (result != NULL)
 		{
@@ -168,7 +168,7 @@ AMQP_FRAME_CODEC_HANDLE amqp_frame_codec_create(FRAME_CODEC_HANDLE frame_codec, 
 			if (result->decoder == NULL)
 			{
 				/* Codes_SRS_AMQP_FRAME_CODEC_01_019: [If creating the decoder fails, amqp_frame_codec_create shall fail and return NULL.] */
-				amqpalloc_free(result);
+				free(result);
 				result = NULL;
 			}
 			else
@@ -178,7 +178,7 @@ AMQP_FRAME_CODEC_HANDLE amqp_frame_codec_create(FRAME_CODEC_HANDLE frame_codec, 
 				{
 					/* Codes_SRS_AMQP_FRAME_CODEC_01_014: [If subscribing for AMQP frames fails, amqp_frame_codec_create shall fail and return NULL.] */
 					amqpvalue_decoder_destroy(result->decoder);
-					amqpalloc_free(result);
+					free(result);
 					result = NULL;
 				}
 			}
@@ -199,7 +199,7 @@ void amqp_frame_codec_destroy(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec)
 		amqpvalue_decoder_destroy(amqp_frame_codec->decoder);
 
 		/* Codes_SRS_AMQP_FRAME_CODEC_01_015: [amqp_frame_codec_destroy shall free all resources associated with the amqp_frame_codec instance.] */
-		amqpalloc_free(amqp_frame_codec);
+		free(amqp_frame_codec);
 	}
 }
 
@@ -237,14 +237,14 @@ int amqp_frame_codec_encode_frame(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec, uint
 		}
 		else
 		{
-			unsigned char* amqp_performative_bytes = (unsigned char*)amqpalloc_malloc(encoded_size);
+			unsigned char* amqp_performative_bytes = (unsigned char*)malloc(encoded_size);
 			if (amqp_performative_bytes == NULL)
 			{
 				result = __FAILURE__;
 			}
 			else
 			{
-				PAYLOAD* new_payloads = (PAYLOAD*)amqpalloc_malloc(sizeof(PAYLOAD) * (payload_count + 1));
+				PAYLOAD* new_payloads = (PAYLOAD*)malloc(sizeof(PAYLOAD) * (payload_count + 1));
 				if (new_payloads == NULL)
 				{
 					result = __FAILURE__;
@@ -287,10 +287,10 @@ int amqp_frame_codec_encode_frame(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec, uint
 						}
 					}
 
-					amqpalloc_free(new_payloads);
+					free(new_payloads);
 				}
 
-				amqpalloc_free(amqp_performative_bytes);
+				free(amqp_performative_bytes);
 			}
 		}
 	}

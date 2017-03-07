@@ -1,58 +1,88 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#ifdef __cplusplus
 #include <cstdint>
+#include <cstddef>
+#else
+#include <stdint.h>
+#include <stddef.h>
+#endif
+
 #include "testrunnerswitcher.h"
-#include "micromock.h"
-#include "micromockcharstararenullterminatedstrings.h"
-#include "azure_uamqp_c/sasl_anonymous.h"
+#include "umock_c.h"
+#include "umocktypes_charptr.h"
 
-TYPED_MOCK_CLASS(amqp_frame_codec_mocks, CGlobalMock)
+void* my_gballoc_malloc(size_t size)
 {
-public:
-	/* amqpalloc mocks */
-	MOCK_STATIC_METHOD_1(, void*, amqpalloc_malloc, size_t, size)
-	MOCK_METHOD_END(void*, malloc(size));
-	MOCK_STATIC_METHOD_1(, void, amqpalloc_free, void*, ptr)
-		free(ptr);
-	MOCK_VOID_METHOD_END();
-};
-
-extern "C"
-{
-	DECLARE_GLOBAL_MOCK_METHOD_1(amqp_frame_codec_mocks, , void*, amqpalloc_malloc, size_t, size);
-	DECLARE_GLOBAL_MOCK_METHOD_1(amqp_frame_codec_mocks, , void, amqpalloc_free, void*, ptr);
+    return malloc(size);
 }
 
-MICROMOCK_MUTEX_HANDLE test_serialize_mutex;
+void my_gballoc_free(void* ptr)
+{
+    free(ptr);
+}
+
+#define ENABLE_MOCKS
+
+#include "azure_c_shared_utility/gballoc.h"
+
+#undef ENABLE_MOCKS
+
+#include "azure_uamqp_c/sasl_anonymous.h"
+
+static TEST_MUTEX_HANDLE g_testByTest;
+static TEST_MUTEX_HANDLE g_dllByDll;
+
+DEFINE_ENUM_STRINGS(UMOCK_C_ERROR_CODE, UMOCK_C_ERROR_CODE_VALUES)
+
+static void on_umock_c_error(UMOCK_C_ERROR_CODE error_code)
+{
+    char temp_str[256];
+    (void)snprintf(temp_str, sizeof(temp_str), "umock_c reported error :%s", ENUM_TO_STRING(UMOCK_C_ERROR_CODE, error_code));
+    ASSERT_FAIL(temp_str);
+}
 
 BEGIN_TEST_SUITE(sasl_anonymous_ut)
 
 TEST_SUITE_INITIALIZE(suite_init)
 {
-	test_serialize_mutex = MicroMockCreateMutex();
-	ASSERT_IS_NOT_NULL(test_serialize_mutex);
+    int result;
+
+    TEST_INITIALIZE_MEMORY_DEBUG(g_dllByDll);
+    g_testByTest = TEST_MUTEX_CREATE();
+    ASSERT_IS_NOT_NULL(g_testByTest);
+
+    umock_c_init(on_umock_c_error);
+
+    result = umocktypes_charptr_register_types();
+    ASSERT_ARE_EQUAL(int, 0, result);
+
+    REGISTER_GLOBAL_MOCK_HOOK(gballoc_malloc, my_gballoc_malloc);
+    REGISTER_GLOBAL_MOCK_HOOK(gballoc_free, my_gballoc_free);
 }
 
 TEST_SUITE_CLEANUP(suite_cleanup)
 {
-	MicroMockDestroyMutex(test_serialize_mutex);
+    umock_c_deinit();
+
+    TEST_MUTEX_DESTROY(g_testByTest);
+    TEST_DEINITIALIZE_MEMORY_DEBUG(g_dllByDll);
 }
 
 TEST_FUNCTION_INITIALIZE(method_init)
 {
-	if (!MicroMockAcquireMutex(test_serialize_mutex))
-	{
-		ASSERT_FAIL("Could not acquire test serialization mutex.");
-	}
+    if (TEST_MUTEX_ACQUIRE(g_testByTest))
+    {
+        ASSERT_FAIL("our mutex is ABANDONED. Failure in test framework");
+    }
+
+    umock_c_reset_all_calls();
 }
 
 TEST_FUNCTION_CLEANUP(method_cleanup)
 {
-	if (!MicroMockReleaseMutex(test_serialize_mutex))
-	{
-		ASSERT_FAIL("Could not release test serialization mutex.");
-	}
+    TEST_MUTEX_RELEASE(g_testByTest);
 }
 
 /* saslanonymous_create */
@@ -61,16 +91,15 @@ TEST_FUNCTION_CLEANUP(method_cleanup)
 TEST_FUNCTION(saslanonymous_create_with_valid_args_succeeds)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
-
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
+    CONCRETE_SASL_MECHANISM_HANDLE result;
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 
 	// act
-	CONCRETE_SASL_MECHANISM_HANDLE result = saslanonymous_create((void*)0x4242);
+	result = saslanonymous_create((void*)0x4242);
 
 	// assert
 	ASSERT_IS_NOT_NULL(result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslanonymous_destroy(result);
@@ -80,32 +109,31 @@ TEST_FUNCTION(saslanonymous_create_with_valid_args_succeeds)
 TEST_FUNCTION(when_allocating_memory_fails_then_saslanonymous_create_fails)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
-
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG))
-		.SetReturn((void*)NULL);
+    CONCRETE_SASL_MECHANISM_HANDLE result;
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+		.SetReturn(NULL);
 
 	// act
-	CONCRETE_SASL_MECHANISM_HANDLE result = saslanonymous_create((void*)0x4242);
+	result = saslanonymous_create((void*)0x4242);
 
 	// assert
-	ASSERT_IS_NULL(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NULL(result);
 }
 
 /* Tests_SRS_SASL_ANONYMOUS_01_003: [Since this is the ANONYMOUS SASL mechanism, config shall be ignored.] */
 TEST_FUNCTION(saslanonymous_create_with_NULL_config_succeeds)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
-
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
+    CONCRETE_SASL_MECHANISM_HANDLE result;
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 
 	// act
-	CONCRETE_SASL_MECHANISM_HANDLE result = saslanonymous_create(NULL);
+	result = saslanonymous_create(NULL);
 
 	// assert
 	ASSERT_IS_NOT_NULL(result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslanonymous_destroy(result);
@@ -117,30 +145,28 @@ TEST_FUNCTION(saslanonymous_create_with_NULL_config_succeeds)
 TEST_FUNCTION(saslanonymous_destroy_frees_the_allocated_resources)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 	CONCRETE_SASL_MECHANISM_HANDLE result = saslanonymous_create(NULL);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
 	saslanonymous_destroy(result);
 
 	// assert
-	// no explicit assert, uMock checks the calls
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
 /* Tests_SRS_SASL_ANONYMOUS_01_005: [If the argument concrete_sasl_mechanism is NULL, saslanonymous_destroy shall do nothing.] */
 TEST_FUNCTION(saslanonymous_destroy_with_NULL_argument_does_nothing)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 
 	// act
 	saslanonymous_destroy(NULL);
 
 	// assert
-	// no explicit assert, uMock checks the calls
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
 /* saslanonymous_get_init_bytes */
@@ -151,19 +177,19 @@ TEST_FUNCTION(saslanonymous_destroy_with_NULL_argument_does_nothing)
 TEST_FUNCTION(saslannymous_get_init_bytes_sets_the_bytes_to_NULL_and_length_to_zero)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 	CONCRETE_SASL_MECHANISM_HANDLE saslanonymous = saslanonymous_create(NULL);
 	SASL_MECHANISM_BYTES init_bytes;
-	mocks.ResetAllCalls();
+    int result;
+	umock_c_reset_all_calls();
 
 	// act
-	int result = saslanonymous_get_init_bytes(saslanonymous, &init_bytes);
+	result = saslanonymous_get_init_bytes(saslanonymous, &init_bytes);
 
 	// assert
 	ASSERT_IS_NULL(init_bytes.bytes);
 	ASSERT_ARE_EQUAL(size_t, 0, init_bytes.length);
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslanonymous_destroy(saslanonymous);
@@ -173,31 +199,32 @@ TEST_FUNCTION(saslannymous_get_init_bytes_sets_the_bytes_to_NULL_and_length_to_z
 TEST_FUNCTION(saslannymous_get_init_bytes_with_NULL_concrete_sasl_mechanism_fails)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 	SASL_MECHANISM_BYTES init_bytes;
-	mocks.ResetAllCalls();
+    int result;
+	umock_c_reset_all_calls();
 
 	// act
-	int result = saslanonymous_get_init_bytes(NULL, &init_bytes);
+	result = saslanonymous_get_init_bytes(NULL, &init_bytes);
 
 	// assert
-	ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
 }
 
 /* Tests_SRS_SASL_ANONYMOUS_01_007: [If the any argument is NULL, saslanonymous_get_init_bytes shall return a non-zero value.] */
 TEST_FUNCTION(saslannymous_get_init_bytes_with_NULL_init_bytes_fails)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 	CONCRETE_SASL_MECHANISM_HANDLE saslanonymous = saslanonymous_create(NULL);
-	mocks.ResetAllCalls();
+    int result;
+	umock_c_reset_all_calls();
 
 	// act
-	int result = saslanonymous_get_init_bytes(saslanonymous, NULL);
+	result = saslanonymous_get_init_bytes(saslanonymous, NULL);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslanonymous_destroy(saslanonymous);
@@ -209,16 +236,16 @@ TEST_FUNCTION(saslannymous_get_init_bytes_with_NULL_init_bytes_fails)
 TEST_FUNCTION(saslanonymous_get_mechanism_name_with_non_NULL_concrete_sasl_mechanism_succeeds)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 	CONCRETE_SASL_MECHANISM_HANDLE saslanonymous = saslanonymous_create(NULL);
-	mocks.ResetAllCalls();
+    const char* result;
+	umock_c_reset_all_calls();
 
 	// act
-	const char* result = saslanonymous_get_mechanism_name(saslanonymous);
+	result = saslanonymous_get_mechanism_name(saslanonymous);
 
 	// assert
 	ASSERT_ARE_EQUAL(char_ptr, "ANONYMOUS", result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslanonymous_destroy(saslanonymous);
@@ -228,13 +255,13 @@ TEST_FUNCTION(saslanonymous_get_mechanism_name_with_non_NULL_concrete_sasl_mecha
 TEST_FUNCTION(saslanonymous_get_mechanism_name_with_NULL_concrete_sasl_mechanism_fails)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 
 	// act
 	const char* result = saslanonymous_get_mechanism_name(NULL);
 
 	// assert
-	ASSERT_IS_NULL(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NULL(result);
 }
 
 /* saslanonymous_challenge */
@@ -244,20 +271,20 @@ TEST_FUNCTION(saslanonymous_get_mechanism_name_with_NULL_concrete_sasl_mechanism
 TEST_FUNCTION(saslanonymous_challenge_returns_a_NULL_response_bytes_buffer)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 	CONCRETE_SASL_MECHANISM_HANDLE saslanonymous = saslanonymous_create(NULL);
 	SASL_MECHANISM_BYTES challenge_bytes;
 	SASL_MECHANISM_BYTES response_bytes;
-	mocks.ResetAllCalls();
+    int result;
+	umock_c_reset_all_calls();
 
 	// act
-	int result = saslanonymous_challenge(saslanonymous, &challenge_bytes, &response_bytes);
+	result = saslanonymous_challenge(saslanonymous, &challenge_bytes, &response_bytes);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
 	ASSERT_IS_NULL(response_bytes.bytes);
 	ASSERT_ARE_EQUAL(size_t, 0, response_bytes.length);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslanonymous_destroy(saslanonymous);
@@ -267,19 +294,19 @@ TEST_FUNCTION(saslanonymous_challenge_returns_a_NULL_response_bytes_buffer)
 TEST_FUNCTION(saslanonymous_with_NULL_challenge_bytes_returns_a_NULL_response_bytes_buffer)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 	CONCRETE_SASL_MECHANISM_HANDLE saslanonymous = saslanonymous_create(NULL);
 	SASL_MECHANISM_BYTES response_bytes;
-	mocks.ResetAllCalls();
+    int result;
+	umock_c_reset_all_calls();
 
 	// act
-	int result = saslanonymous_challenge(saslanonymous, NULL, &response_bytes);
+	result = saslanonymous_challenge(saslanonymous, NULL, &response_bytes);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
 	ASSERT_IS_NULL(response_bytes.bytes);
 	ASSERT_ARE_EQUAL(size_t, 0, response_bytes.length);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslanonymous_destroy(saslanonymous);
@@ -289,32 +316,33 @@ TEST_FUNCTION(saslanonymous_with_NULL_challenge_bytes_returns_a_NULL_response_by
 TEST_FUNCTION(saslanonymous_challenge_with_NULL_handle_fails)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 	SASL_MECHANISM_BYTES challenge_bytes;
 	SASL_MECHANISM_BYTES response_bytes;
+    int result;
 
 	// act
-	int result = saslanonymous_challenge(NULL, &challenge_bytes, &response_bytes);
+	result = saslanonymous_challenge(NULL, &challenge_bytes, &response_bytes);
 
 	// assert
-	ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
 }
 
 /* Tests_SRS_SASL_ANONYMOUS_01_015: [If the concrete_sasl_mechanism or response_bytes argument is NULL then saslanonymous_challenge shall fail and return a non-zero value.] */
 TEST_FUNCTION(saslanonymous_challenge_with_NULL_response_bytes_fails)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 	CONCRETE_SASL_MECHANISM_HANDLE saslanonymous = saslanonymous_create(NULL);
 	SASL_MECHANISM_BYTES challenge_bytes;
-	mocks.ResetAllCalls();
+    int result;
+	umock_c_reset_all_calls();
 
 	// act
-	int result = saslanonymous_challenge(saslanonymous, &challenge_bytes, NULL);
+	result = saslanonymous_challenge(saslanonymous, &challenge_bytes, NULL);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslanonymous_destroy(saslanonymous);
@@ -326,17 +354,16 @@ TEST_FUNCTION(saslanonymous_challenge_with_NULL_response_bytes_fails)
 TEST_FUNCTION(saslanonymous_get_interface_returns_the_sasl_anonymous_mechanism_interface)
 {
 	// arrange
-	amqp_frame_codec_mocks mocks;
 
 	// act
 	const SASL_MECHANISM_INTERFACE_DESCRIPTION* result = saslanonymous_get_interface();
 
 	// assert
-	ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslanonymous_create, (void_ptr)result->concrete_sasl_mechanism_create);
-	ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslanonymous_destroy, (void_ptr)result->concrete_sasl_mechanism_destroy);
-	ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslanonymous_get_init_bytes, (void_ptr)result->concrete_sasl_mechanism_get_init_bytes);
-	ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslanonymous_get_mechanism_name, (void_ptr)result->concrete_sasl_mechanism_get_mechanism_name);
-	ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslanonymous_challenge, (void_ptr)result->concrete_sasl_mechanism_challenge);
+    ASSERT_IS_NOT_NULL(result->concrete_sasl_mechanism_create);
+    ASSERT_IS_NOT_NULL(result->concrete_sasl_mechanism_destroy);
+    ASSERT_IS_NOT_NULL(result->concrete_sasl_mechanism_get_init_bytes);
+    ASSERT_IS_NOT_NULL(result->concrete_sasl_mechanism_get_mechanism_name);
+    ASSERT_IS_NOT_NULL(result->concrete_sasl_mechanism_challenge);
 }
 
 END_TEST_SUITE(sasl_anonymous_ut)

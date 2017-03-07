@@ -3,9 +3,9 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "azure_uamqp_c/sasl_anonymous.h"
-#include "azure_uamqp_c/amqpalloc.h"
 #include "azure_c_shared_utility/optimize_size.h"
+#include "azure_c_shared_utility/gballoc.h"
+#include "azure_uamqp_c/sasl_anonymous.h"
 #include "azure_c_shared_utility/xlogging.h"
 
 typedef struct SASL_ANONYMOUS_INSTANCE_TAG
@@ -30,7 +30,7 @@ CONCRETE_SASL_MECHANISM_HANDLE saslanonymous_create(void* config)
 	(void)config;
 
 	/* Codes_SRS_SASL_ANONYMOUS_01_002: [If allocating the memory needed for the saslanonymous instance fails then saslanonymous_create shall return NULL.] */
-	return amqpalloc_malloc(sizeof(SASL_ANONYMOUS_INSTANCE));
+	return malloc(sizeof(SASL_ANONYMOUS_INSTANCE));
 }
 
 void saslanonymous_destroy(CONCRETE_SASL_MECHANISM_HANDLE sasl_mechanism_concrete_handle)
@@ -39,7 +39,7 @@ void saslanonymous_destroy(CONCRETE_SASL_MECHANISM_HANDLE sasl_mechanism_concret
 	if (sasl_mechanism_concrete_handle != NULL)
 	{
 		/* Codes_SRS_SASL_ANONYMOUS_01_004: [saslanonymous_destroy shall free all resources associated with the SASL mechanism.] */
-		amqpalloc_free(sasl_mechanism_concrete_handle);
+		free(sasl_mechanism_concrete_handle);
 	}
 }
 

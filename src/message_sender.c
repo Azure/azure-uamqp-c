@@ -425,12 +425,12 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
             {
                 amqpvalue_destroy(body_amqp_value);
             }
-
-            amqpvalue_destroy(application_properties);
-            amqpvalue_destroy(application_properties_value);
-            amqpvalue_destroy(properties_amqp_value);
-            properties_destroy(properties);
         }
+
+        amqpvalue_destroy(application_properties);
+        amqpvalue_destroy(application_properties_value);
+        amqpvalue_destroy(properties_amqp_value);
+        properties_destroy(properties);
     }
 
     return result;
@@ -723,11 +723,6 @@ int messagesender_send(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDLE mess
                             default:
                             case SEND_ONE_MESSAGE_ERROR:
 							
-								if (message_with_callback->on_message_send_complete != NULL)
-								{
-									message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_ERROR);
-								}
-
                                 remove_pending_message_by_index(message_sender_instance, message_sender_instance->message_count - 1);
                                 result = __FAILURE__;
                                 break;

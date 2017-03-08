@@ -3,8 +3,8 @@
 
 #include <stdlib.h>
 #include "azure_c_shared_utility/optimize_size.h"
+#include "azure_c_shared_utility/gballoc.h"
 #include "azure_uamqp_c/sasl_mechanism.h"
-#include "azure_uamqp_c/amqpalloc.h"
 
 typedef struct SASL_MECHANISM_INSTANCE_TAG
 {
@@ -28,7 +28,7 @@ SASL_MECHANISM_HANDLE saslmechanism_create(const SASL_MECHANISM_INTERFACE_DESCRI
 	}
 	else
 	{
-		sasl_mechanism_instance = (SASL_MECHANISM_INSTANCE*)amqpalloc_malloc(sizeof(SASL_MECHANISM_INSTANCE));
+		sasl_mechanism_instance = (SASL_MECHANISM_INSTANCE*)malloc(sizeof(SASL_MECHANISM_INSTANCE));
 
 		if (sasl_mechanism_instance != NULL)
 		{
@@ -39,7 +39,7 @@ SASL_MECHANISM_HANDLE saslmechanism_create(const SASL_MECHANISM_INTERFACE_DESCRI
 			if (sasl_mechanism_instance->concrete_sasl_mechanism_handle == NULL)
 			{
 				/* Codes_SRS_SASL_MECHANISM_01_003: [If the underlying concrete_sasl_mechanism_create call fails, saslmechanism_create shall return NULL.] */
-				amqpalloc_free(sasl_mechanism_instance);
+				free(sasl_mechanism_instance);
 				sasl_mechanism_instance = NULL;
 			}
 		}
@@ -59,7 +59,7 @@ void saslmechanism_destroy(SASL_MECHANISM_HANDLE sasl_mechanism)
 		sasl_mechanism_instance->sasl_mechanism_interface_description->concrete_sasl_mechanism_destroy(sasl_mechanism_instance->concrete_sasl_mechanism_handle);
 
 		/* Codes_SRS_SASL_MECHANISM_01_007: [saslmechanism_destroy shall free all resources associated with the SASL mechanism handle.] */
-		amqpalloc_free(sasl_mechanism_instance);
+		free(sasl_mechanism_instance);
 	}
 }
 

@@ -1,51 +1,61 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#ifdef __cplusplus
 #include <cstdint>
+#include <cstddef>
+#else
+#include <stdint.h>
+#include <stddef.h>
+#endif
 #include "testrunnerswitcher.h"
-#include "micromock.h"
-#include "micromockcharstararenullterminatedstrings.h"
+#include "umock_c.h"
+#include "umocktypes_charptr.h"
+
+void* my_gballoc_malloc(size_t size)
+{
+    return malloc(size);
+}
+
+void my_gballoc_free(void* ptr)
+{
+    free(ptr);
+}
+
+#define ENABLE_MOCKS
+
+#include "azure_c_shared_utility/gballoc.h"
+
+#undef ENABLE_MOCKS
+
 #include "azure_uamqp_c/sasl_mechanism.h"
 
 static const CONCRETE_SASL_MECHANISM_HANDLE test_concrete_sasl_mechanism_handle = (CONCRETE_SASL_MECHANISM_HANDLE)0x4242;
 static const char* test_mechanism_name = "TestMechName";
 
-TYPED_MOCK_CLASS(saslmechanism_mocks, CGlobalMock)
+/* sasl mechanism concrete implementation mocks */
+MOCK_FUNCTION_WITH_CODE(, CONCRETE_SASL_MECHANISM_HANDLE, test_saslmechanism_create, void*, config)
+MOCK_FUNCTION_END(test_concrete_sasl_mechanism_handle);
+MOCK_FUNCTION_WITH_CODE(, void, test_saslmechanism_destroy, CONCRETE_SASL_MECHANISM_HANDLE, concrete_sasl_mechanism)
+MOCK_FUNCTION_END();
+MOCK_FUNCTION_WITH_CODE(, int, test_saslmechanism_get_init_bytes, CONCRETE_SASL_MECHANISM_HANDLE, concrete_sasl_mechanism, SASL_MECHANISM_BYTES*, init_bytes);
+MOCK_FUNCTION_END(0);
+MOCK_FUNCTION_WITH_CODE(, const char*, test_saslmechanism_get_mechanism_name, CONCRETE_SASL_MECHANISM_HANDLE, concrete_sasl_mechanism);
+MOCK_FUNCTION_END(test_mechanism_name);
+MOCK_FUNCTION_WITH_CODE(, int, test_saslmechanism_challenge, CONCRETE_SASL_MECHANISM_HANDLE, concrete_sasl_mechanism, const SASL_MECHANISM_BYTES*, challenge_bytes, SASL_MECHANISM_BYTES*, response_bytes)
+MOCK_FUNCTION_END(0);
+
+static TEST_MUTEX_HANDLE g_testByTest;
+static TEST_MUTEX_HANDLE g_dllByDll;
+
+DEFINE_ENUM_STRINGS(UMOCK_C_ERROR_CODE, UMOCK_C_ERROR_CODE_VALUES)
+
+static void on_umock_c_error(UMOCK_C_ERROR_CODE error_code)
 {
-public:
-	/* amqpalloc mocks */
-	MOCK_STATIC_METHOD_1(, void*, amqpalloc_malloc, size_t, size)
-	MOCK_METHOD_END(void*, malloc(size));
-	MOCK_STATIC_METHOD_1(, void, amqpalloc_free, void*, ptr)
-		free(ptr);
-	MOCK_VOID_METHOD_END();
-
-	/* sasl mechanism concrete implementation mocks */
-	MOCK_STATIC_METHOD_1(, CONCRETE_SASL_MECHANISM_HANDLE, test_saslmechanism_create, void*, config)
-	MOCK_METHOD_END(CONCRETE_SASL_MECHANISM_HANDLE, test_concrete_sasl_mechanism_handle);
-	MOCK_STATIC_METHOD_1(, void, test_saslmechanism_destroy, CONCRETE_SASL_MECHANISM_HANDLE, concrete_sasl_mechanism)
-	MOCK_VOID_METHOD_END();
-	MOCK_STATIC_METHOD_2(, int, test_saslmechanism_get_init_bytes, CONCRETE_SASL_MECHANISM_HANDLE, concrete_sasl_mechanism, SASL_MECHANISM_BYTES*, init_bytes);
-	MOCK_METHOD_END(int, 0);
-	MOCK_STATIC_METHOD_1(, const char*, test_saslmechanism_get_mechanism_name, CONCRETE_SASL_MECHANISM_HANDLE, concrete_sasl_mechanism);
-	MOCK_METHOD_END(const char*, test_mechanism_name);
-	MOCK_STATIC_METHOD_3(, int, test_saslmechanism_challenge, CONCRETE_SASL_MECHANISM_HANDLE, concrete_sasl_mechanism, const SASL_MECHANISM_BYTES*, challenge_bytes, SASL_MECHANISM_BYTES*, response_bytes)
-	MOCK_METHOD_END(int, 0);
-};
-
-extern "C"
-{
-	DECLARE_GLOBAL_MOCK_METHOD_1(saslmechanism_mocks, , void*, amqpalloc_malloc, size_t, size);
-	DECLARE_GLOBAL_MOCK_METHOD_1(saslmechanism_mocks, , void, amqpalloc_free, void*, ptr);
-
-	DECLARE_GLOBAL_MOCK_METHOD_1(saslmechanism_mocks, , CONCRETE_SASL_MECHANISM_HANDLE, test_saslmechanism_create, void*, config);
-	DECLARE_GLOBAL_MOCK_METHOD_1(saslmechanism_mocks, , void, test_saslmechanism_destroy, CONCRETE_SASL_MECHANISM_HANDLE, concrete_sasl_mechanism);
-	DECLARE_GLOBAL_MOCK_METHOD_2(saslmechanism_mocks, , int, test_saslmechanism_get_init_bytes, CONCRETE_SASL_MECHANISM_HANDLE, concrete_sasl_mechanism, SASL_MECHANISM_BYTES*, init_bytes);
-	DECLARE_GLOBAL_MOCK_METHOD_1(saslmechanism_mocks, , const char*, test_saslmechanism_get_mechanism_name, CONCRETE_SASL_MECHANISM_HANDLE, concrete_sasl_mechanism);
-	DECLARE_GLOBAL_MOCK_METHOD_3(saslmechanism_mocks, , int, test_saslmechanism_challenge, CONCRETE_SASL_MECHANISM_HANDLE, concrete_sasl_mechanism, const SASL_MECHANISM_BYTES*, challenge_bytes, SASL_MECHANISM_BYTES*, response_bytes);
+    char temp_str[256];
+    (void)snprintf(temp_str, sizeof(temp_str), "umock_c reported error :%s", ENUM_TO_STRING(UMOCK_C_ERROR_CODE, error_code));
+    ASSERT_FAIL(temp_str);
 }
-
-MICROMOCK_MUTEX_HANDLE test_serialize_mutex;
 
 const SASL_MECHANISM_INTERFACE_DESCRIPTION test_io_description =
 {
@@ -56,34 +66,48 @@ const SASL_MECHANISM_INTERFACE_DESCRIPTION test_io_description =
 	test_saslmechanism_challenge
 };
 
-
 BEGIN_TEST_SUITE(sasl_mechanism_ut)
 
 TEST_SUITE_INITIALIZE(suite_init)
 {
-	test_serialize_mutex = MicroMockCreateMutex();
-	ASSERT_IS_NOT_NULL(test_serialize_mutex);
+    int result;
+
+    TEST_INITIALIZE_MEMORY_DEBUG(g_dllByDll);
+    g_testByTest = TEST_MUTEX_CREATE();
+    ASSERT_IS_NOT_NULL(g_testByTest);
+
+    umock_c_init(on_umock_c_error);
+
+    result = umocktypes_charptr_register_types();
+    ASSERT_ARE_EQUAL(int, 0, result);
+
+    REGISTER_GLOBAL_MOCK_HOOK(gballoc_malloc, my_gballoc_malloc);
+    REGISTER_GLOBAL_MOCK_HOOK(gballoc_free, my_gballoc_free);
+
+    REGISTER_UMOCK_ALIAS_TYPE(CONCRETE_SASL_MECHANISM_HANDLE, void*);
 }
 
 TEST_SUITE_CLEANUP(suite_cleanup)
 {
-	MicroMockDestroyMutex(test_serialize_mutex);
+    umock_c_deinit();
+
+    TEST_MUTEX_DESTROY(g_testByTest);
+    TEST_DEINITIALIZE_MEMORY_DEBUG(g_dllByDll);
 }
 
 TEST_FUNCTION_INITIALIZE(method_init)
 {
-	if (!MicroMockAcquireMutex(test_serialize_mutex))
-	{
-		ASSERT_FAIL("Could not acquire test serialization mutex.");
-	}
+    if (TEST_MUTEX_ACQUIRE(g_testByTest))
+    {
+        ASSERT_FAIL("our mutex is ABANDONED. Failure in test framework");
+    }
+
+    umock_c_reset_all_calls();
 }
 
 TEST_FUNCTION_CLEANUP(method_cleanup)
 {
-	if (!MicroMockReleaseMutex(test_serialize_mutex))
-	{
-		ASSERT_FAIL("Could not release test serialization mutex.");
-	}
+    TEST_MUTEX_RELEASE(g_testByTest);
 }
 
 /* saslmechanism_create */
@@ -93,17 +117,16 @@ TEST_FUNCTION_CLEANUP(method_cleanup)
 TEST_FUNCTION(saslmechanism_create_with_all_args_except_interface_description_NULL_succeeds)
 {
 	// arrange
-	saslmechanism_mocks mocks;
-
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(mocks, test_saslmechanism_create(NULL));
+    SASL_MECHANISM_HANDLE result;
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(test_saslmechanism_create(NULL));
 
 	// act
-	SASL_MECHANISM_HANDLE result = saslmechanism_create(&test_io_description, NULL);
+	result = saslmechanism_create(&test_io_description, NULL);
 
 	// assert
 	ASSERT_IS_NOT_NULL(result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslmechanism_destroy(result);
@@ -114,17 +137,16 @@ TEST_FUNCTION(saslmechanism_create_with_all_args_except_interface_description_NU
 TEST_FUNCTION(the_config_argument_is_passed_to_the_concrete_saslmechanism_create)
 {
 	// arrange
-	saslmechanism_mocks mocks;
-
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(mocks, test_saslmechanism_create((void*)0x4242));
+    SASL_MECHANISM_HANDLE result;
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(test_saslmechanism_create((void*)0x4242));
 
 	// act
-	SASL_MECHANISM_HANDLE result = saslmechanism_create(&test_io_description, (void*)0x4242);
+	result = saslmechanism_create(&test_io_description, (void*)0x4242);
 
 	// assert
 	ASSERT_IS_NOT_NULL(result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslmechanism_destroy(result);
@@ -134,15 +156,14 @@ TEST_FUNCTION(the_config_argument_is_passed_to_the_concrete_saslmechanism_create
 TEST_FUNCTION(when_concrete_create_fails_then_saslmechanism_create_fails)
 {
 	// arrange
-	saslmechanism_mocks mocks;
-
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(mocks, test_saslmechanism_create(NULL))
-		.SetReturn((CONCRETE_SASL_MECHANISM_HANDLE)NULL);
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    SASL_MECHANISM_HANDLE result;
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(test_saslmechanism_create(NULL))
+		.SetReturn(NULL);
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-	SASL_MECHANISM_HANDLE result = saslmechanism_create(&test_io_description, NULL);
+	result = saslmechanism_create(&test_io_description, NULL);
 
 	// assert
 	ASSERT_IS_NULL(result);
@@ -152,9 +173,8 @@ TEST_FUNCTION(when_concrete_create_fails_then_saslmechanism_create_fails)
 TEST_FUNCTION(when_the_interface_description_is_NULL_then_saslmechanism_create_fails)
 {
 	// arrange
-	saslmechanism_mocks mocks;
 
-	// act
+    // act
 	SASL_MECHANISM_HANDLE result = saslmechanism_create(NULL, NULL);
 
 	// assert
@@ -165,7 +185,6 @@ TEST_FUNCTION(when_the_interface_description_is_NULL_then_saslmechanism_create_f
 TEST_FUNCTION(when_the_concrete_create_is_NULL_then_saslmechanism_create_fails)
 {
 	// arrange
-	saslmechanism_mocks mocks;
 	const SASL_MECHANISM_INTERFACE_DESCRIPTION io_description_with_NULL_entry =
 	{
 		NULL,
@@ -185,7 +204,6 @@ TEST_FUNCTION(when_the_concrete_create_is_NULL_then_saslmechanism_create_fails)
 TEST_FUNCTION(when_the_concrete_destroy_is_NULL_then_saslmechanism_create_fails)
 {
 	// arrange
-	saslmechanism_mocks mocks;
 	const SASL_MECHANISM_INTERFACE_DESCRIPTION io_description_with_NULL_entry =
 	{
 		test_saslmechanism_create,
@@ -205,7 +223,6 @@ TEST_FUNCTION(when_the_concrete_destroy_is_NULL_then_saslmechanism_create_fails)
 TEST_FUNCTION(when_the_concrete_get_init_bytes_is_NULL_then_saslmechanism_create_fails)
 {
 	// arrange
-	saslmechanism_mocks mocks;
 	const SASL_MECHANISM_INTERFACE_DESCRIPTION io_description_with_NULL_entry =
 	{
 		test_saslmechanism_create,
@@ -225,7 +242,6 @@ TEST_FUNCTION(when_the_concrete_get_init_bytes_is_NULL_then_saslmechanism_create
 TEST_FUNCTION(when_the_concrete_get_mechanism_name_is_NULL_then_saslmechanism_create_fails)
 {
 	// arrange
-	saslmechanism_mocks mocks;
 	const SASL_MECHANISM_INTERFACE_DESCRIPTION io_description_with_NULL_entry =
 	{
 		test_saslmechanism_create,
@@ -245,13 +261,12 @@ TEST_FUNCTION(when_the_concrete_get_mechanism_name_is_NULL_then_saslmechanism_cr
 TEST_FUNCTION(when_allocating_memory_fails_then_saslmechanism_create_fails)
 {
 	// arrange
-	saslmechanism_mocks mocks;
-
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG))
-		.SetReturn((void*)NULL);
+    SASL_MECHANISM_HANDLE result;
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+		.SetReturn(NULL);
 
 	// act
-	SASL_MECHANISM_HANDLE result = saslmechanism_create(&test_io_description, NULL);
+	result = saslmechanism_create(&test_io_description, NULL);
 
 	// assert
 	ASSERT_IS_NULL(result);
@@ -264,12 +279,11 @@ TEST_FUNCTION(when_allocating_memory_fails_then_saslmechanism_create_fails)
 TEST_FUNCTION(saslmechanism_destroy_frees_memory_and_calls_the_underlying_concrete_destroy)
 {
 	// arrange
-	saslmechanism_mocks mocks;
 	SASL_MECHANISM_HANDLE sasl_mechanism = saslmechanism_create(&test_io_description, (void*)0x4242);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, test_saslmechanism_destroy(test_concrete_sasl_mechanism_handle));
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+	STRICT_EXPECTED_CALL(test_saslmechanism_destroy(test_concrete_sasl_mechanism_handle));
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
 	saslmechanism_destroy(sasl_mechanism);
@@ -282,7 +296,6 @@ TEST_FUNCTION(saslmechanism_destroy_frees_memory_and_calls_the_underlying_concre
 TEST_FUNCTION(saslmechanism_destroy_with_NULL_argument_does_nothing)
 {
 	// arrange
-	saslmechanism_mocks mocks;
 
 	// act
 	saslmechanism_destroy(NULL);
@@ -298,24 +311,23 @@ TEST_FUNCTION(saslmechanism_destroy_with_NULL_argument_does_nothing)
 TEST_FUNCTION(saslmechanism_get_init_bytes_calls_the_underlying_concrete_sasl_mechanism)
 {
 	// arrange
-	saslmechanism_mocks mocks;
 	SASL_MECHANISM_HANDLE sasl_mechanism = saslmechanism_create(&test_io_description, (void*)0x4242);
 	SASL_MECHANISM_BYTES init_bytes;
-	mocks.ResetAllCalls();
+    SASL_MECHANISM_BYTES expected_init_bytes = { (void*)0x4242, 42 };
+    int result;
+    umock_c_reset_all_calls();
 
-	SASL_MECHANISM_BYTES expected_init_bytes = { (void*)0x4242, 42 };
-
-	STRICT_EXPECTED_CALL(mocks, test_saslmechanism_get_init_bytes(test_concrete_sasl_mechanism_handle, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(test_saslmechanism_get_init_bytes(test_concrete_sasl_mechanism_handle, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &expected_init_bytes, sizeof(expected_init_bytes));
 
 	// act
-	int result = saslmechanism_get_init_bytes(sasl_mechanism, &init_bytes);
+	result = saslmechanism_get_init_bytes(sasl_mechanism, &init_bytes);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
 	ASSERT_ARE_EQUAL(void_ptr, (void*)0x4242, init_bytes.bytes);
 	ASSERT_ARE_EQUAL(size_t, 42, init_bytes.length);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslmechanism_destroy(sasl_mechanism);
@@ -325,7 +337,6 @@ TEST_FUNCTION(saslmechanism_get_init_bytes_calls_the_underlying_concrete_sasl_me
 TEST_FUNCTION(saslmechanism_get_init_bytes_with_NULL_handle_fails)
 {
 	// arrange
-	saslmechanism_mocks mocks;
 	SASL_MECHANISM_BYTES init_bytes;
 
 	// act
@@ -339,23 +350,22 @@ TEST_FUNCTION(saslmechanism_get_init_bytes_with_NULL_handle_fails)
 TEST_FUNCTION(when_the_underlying_get_init_bytes_fails_then_saslmechanism_get_init_bytes_fails)
 {
 	// arrange
-	saslmechanism_mocks mocks;
 	SASL_MECHANISM_HANDLE sasl_mechanism = saslmechanism_create(&test_io_description, (void*)0x4242);
 	SASL_MECHANISM_BYTES init_bytes;
-	mocks.ResetAllCalls();
+    SASL_MECHANISM_BYTES expected_init_bytes = { (void*)0x4242, 42 };
+    int result;
+    umock_c_reset_all_calls();
 
-	SASL_MECHANISM_BYTES expected_init_bytes = { (void*)0x4242, 42 };
-
-	STRICT_EXPECTED_CALL(mocks, test_saslmechanism_get_init_bytes(test_concrete_sasl_mechanism_handle, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(test_saslmechanism_get_init_bytes(test_concrete_sasl_mechanism_handle, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &expected_init_bytes, sizeof(expected_init_bytes))
 		.SetReturn(1);
 
 	// act
-	int result = saslmechanism_get_init_bytes(sasl_mechanism, &init_bytes);
+	result = saslmechanism_get_init_bytes(sasl_mechanism, &init_bytes);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslmechanism_destroy(sasl_mechanism);
@@ -368,18 +378,18 @@ TEST_FUNCTION(when_the_underlying_get_init_bytes_fails_then_saslmechanism_get_in
 TEST_FUNCTION(saslmechanism_get_mechanism_name_calls_the_underlying_get_mechanism_name_and_succeeds)
 {
 	// arrange
-	saslmechanism_mocks mocks;
 	SASL_MECHANISM_HANDLE sasl_mechanism = saslmechanism_create(&test_io_description, (void*)0x4242);
-	mocks.ResetAllCalls();
+    const char* result;
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, test_saslmechanism_get_mechanism_name(test_concrete_sasl_mechanism_handle));
+	STRICT_EXPECTED_CALL(test_saslmechanism_get_mechanism_name(test_concrete_sasl_mechanism_handle));
 
 	// act
-	const char* result = saslmechanism_get_mechanism_name(sasl_mechanism);
+	result = saslmechanism_get_mechanism_name(sasl_mechanism);
 
 	// assert
 	ASSERT_ARE_EQUAL(char_ptr, test_mechanism_name, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslmechanism_destroy(sasl_mechanism);
@@ -390,19 +400,19 @@ TEST_FUNCTION(saslmechanism_get_mechanism_name_calls_the_underlying_get_mechanis
 TEST_FUNCTION(saslmechanism_get_mechanism_name_calls_the_underlying_get_mechanism_name_and_succeeds_another_mechanism_name)
 {
 	// arrange
-	saslmechanism_mocks mocks;
 	SASL_MECHANISM_HANDLE sasl_mechanism = saslmechanism_create(&test_io_description, (void*)0x4242);
-	mocks.ResetAllCalls();
+    const char* result;
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, test_saslmechanism_get_mechanism_name(test_concrete_sasl_mechanism_handle))
+	STRICT_EXPECTED_CALL(test_saslmechanism_get_mechanism_name(test_concrete_sasl_mechanism_handle))
 		.SetReturn("boo");
 
 	// act
-	const char* result = saslmechanism_get_mechanism_name(sasl_mechanism);
+	result = saslmechanism_get_mechanism_name(sasl_mechanism);
 
 	// assert
 	ASSERT_ARE_EQUAL(char_ptr, "boo", result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslmechanism_destroy(sasl_mechanism);
@@ -412,7 +422,6 @@ TEST_FUNCTION(saslmechanism_get_mechanism_name_calls_the_underlying_get_mechanis
 TEST_FUNCTION(saslmechanism_get_mechanism_name_with_NULL_handle_fails)
 {
 	// arrange
-	saslmechanism_mocks mocks;
 
 	// act
 	const char* result = saslmechanism_get_mechanism_name(NULL);
@@ -425,19 +434,19 @@ TEST_FUNCTION(saslmechanism_get_mechanism_name_with_NULL_handle_fails)
 TEST_FUNCTION(when_the_underlying_mechanism_returns_NULL_saslmechanism_get_mechanism_name_fails)
 {
 	// arrange
-	saslmechanism_mocks mocks;
 	SASL_MECHANISM_HANDLE sasl_mechanism = saslmechanism_create(&test_io_description, (void*)0x4242);
-	mocks.ResetAllCalls();
+    const char* result;
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, test_saslmechanism_get_mechanism_name(test_concrete_sasl_mechanism_handle))
+	STRICT_EXPECTED_CALL(test_saslmechanism_get_mechanism_name(test_concrete_sasl_mechanism_handle))
 		.SetReturn((const char*)NULL);
 
 	// act
-	const char* result = saslmechanism_get_mechanism_name(sasl_mechanism);
+	result = saslmechanism_get_mechanism_name(sasl_mechanism);
 
 	// assert
 	ASSERT_IS_NULL(result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslmechanism_destroy(sasl_mechanism);
@@ -450,20 +459,20 @@ TEST_FUNCTION(when_the_underlying_mechanism_returns_NULL_saslmechanism_get_mecha
 TEST_FUNCTION(saslmechanism_challenge_calls_the_concrete_implementation_and_passes_the_proper_arguments)
 {
 	// arrange
-	saslmechanism_mocks mocks;
 	SASL_MECHANISM_HANDLE sasl_mechanism = saslmechanism_create(&test_io_description, (void*)0x4242);
 	SASL_MECHANISM_BYTES challenge_bytes = { NULL, 0 };
 	SASL_MECHANISM_BYTES response_bytes = { NULL, 0 };
-	mocks.ResetAllCalls();
+    int result;
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, test_saslmechanism_challenge(test_concrete_sasl_mechanism_handle, &challenge_bytes, &response_bytes));
+	STRICT_EXPECTED_CALL(test_saslmechanism_challenge(test_concrete_sasl_mechanism_handle, &challenge_bytes, &response_bytes));
 
 	// act
-	int result = saslmechanism_challenge(sasl_mechanism, &challenge_bytes, &response_bytes);
+	result = saslmechanism_challenge(sasl_mechanism, &challenge_bytes, &response_bytes);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslmechanism_destroy(sasl_mechanism);
@@ -473,7 +482,6 @@ TEST_FUNCTION(saslmechanism_challenge_calls_the_concrete_implementation_and_pass
 TEST_FUNCTION(saslmechanism_challenge_with_NULL_sasl_mechanism_fails)
 {
 	// arrange
-	saslmechanism_mocks mocks;
 	SASL_MECHANISM_BYTES challenge_bytes = { NULL, 0 };
 	SASL_MECHANISM_BYTES response_bytes = { NULL, 0 };
 
@@ -488,21 +496,21 @@ TEST_FUNCTION(saslmechanism_challenge_with_NULL_sasl_mechanism_fails)
 TEST_FUNCTION(when_the_underlying_concrete_challenge_fails_then_saslmechanism_challenge_fails)
 {
 	// arrange
-	saslmechanism_mocks mocks;
 	SASL_MECHANISM_HANDLE sasl_mechanism = saslmechanism_create(&test_io_description, (void*)0x4242);
 	SASL_MECHANISM_BYTES challenge_bytes = { NULL, 0 };
 	SASL_MECHANISM_BYTES response_bytes = { NULL, 0 };
-	mocks.ResetAllCalls();
+    int result;
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, test_saslmechanism_challenge(test_concrete_sasl_mechanism_handle, &challenge_bytes, &response_bytes))
+	STRICT_EXPECTED_CALL(test_saslmechanism_challenge(test_concrete_sasl_mechanism_handle, &challenge_bytes, &response_bytes))
 		.SetReturn(1);
 
 	// act
-	int result = saslmechanism_challenge(sasl_mechanism, &challenge_bytes, &response_bytes);
+	result = saslmechanism_challenge(sasl_mechanism, &challenge_bytes, &response_bytes);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslmechanism_destroy(sasl_mechanism);

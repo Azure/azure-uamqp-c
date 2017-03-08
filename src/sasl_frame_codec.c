@@ -5,10 +5,10 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
+#include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/optimize_size.h"
 #include "azure_uamqp_c/sasl_frame_codec.h"
 #include "azure_uamqp_c/frame_codec.h"
-#include "azure_uamqp_c/amqpalloc.h"
 #include "azure_uamqp_c/amqpvalue.h"
 #include "azure_uamqp_c/amqp_definitions.h"
 
@@ -164,7 +164,7 @@ SASL_FRAME_CODEC_HANDLE sasl_frame_codec_create(FRAME_CODEC_HANDLE frame_codec, 
 	else
 	{
 		/* Codes_SRS_SASL_FRAME_CODEC_01_018: [sasl_frame_codec_create shall create an instance of an sasl_frame_codec and return a non-NULL handle to it.] */
-		result = (SASL_FRAME_CODEC_INSTANCE*)amqpalloc_malloc(sizeof(SASL_FRAME_CODEC_INSTANCE));
+		result = (SASL_FRAME_CODEC_INSTANCE*)malloc(sizeof(SASL_FRAME_CODEC_INSTANCE));
 		if (result != NULL)
 		{
 			result->frame_codec = frame_codec;
@@ -178,7 +178,7 @@ SASL_FRAME_CODEC_HANDLE sasl_frame_codec_create(FRAME_CODEC_HANDLE frame_codec, 
 			if (result->decoder == NULL)
 			{
 				/* Codes_SRS_SASL_FRAME_CODEC_01_023: [If creating the decoder fails, sasl_frame_codec_create shall fail and return NULL.] */
-				amqpalloc_free(result);
+				free(result);
 				result = NULL;
 			}
 			else
@@ -189,7 +189,7 @@ SASL_FRAME_CODEC_HANDLE sasl_frame_codec_create(FRAME_CODEC_HANDLE frame_codec, 
 				{
 					/* Codes_SRS_SASL_FRAME_CODEC_01_021: [If subscribing for SASL frames fails, sasl_frame_codec_create shall fail and return NULL.] */
 					amqpvalue_decoder_destroy(result->decoder);
-					amqpalloc_free(result);
+					free(result);
 					result = NULL;
 				}
 			}
@@ -212,7 +212,7 @@ void sasl_frame_codec_destroy(SASL_FRAME_CODEC_HANDLE sasl_frame_codec)
 
 		/* Codes_SRS_SASL_FRAME_CODEC_01_028: [The decoder created in sasl_frame_codec_create shall be destroyed by sasl_frame_codec_destroy.] */
 		amqpvalue_decoder_destroy(sasl_frame_codec_instance->decoder);
-		amqpalloc_free(sasl_frame_codec_instance);
+		free(sasl_frame_codec_instance);
 	}
 }
 
@@ -255,7 +255,7 @@ int sasl_frame_codec_encode_frame(SASL_FRAME_CODEC_HANDLE sasl_frame_codec, cons
 		}
 		else
 		{
-			unsigned char* sasl_frame_bytes = (unsigned char*)amqpalloc_malloc(encoded_size);
+			unsigned char* sasl_frame_bytes = (unsigned char*)malloc(encoded_size);
 			if (sasl_frame_bytes == NULL)
 			{
 				result = __FAILURE__;
@@ -289,7 +289,7 @@ int sasl_frame_codec_encode_frame(SASL_FRAME_CODEC_HANDLE sasl_frame_codec, cons
 					}
 				}
 
-				amqpalloc_free(sasl_frame_bytes);
+				free(sasl_frame_bytes);
 			}
 		}
 	}

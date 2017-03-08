@@ -11,17 +11,17 @@
 #include "testrunnerswitcher.h"
 #include "umock_c.h"
 
-void* my_gballoc_malloc(size_t size)
+static void* my_gballoc_malloc(size_t size)
 {
     return malloc(size);
 }
 
-void* my_gballoc_realloc(void* ptr, size_t size)
+static void* my_gballoc_realloc(void* ptr, size_t size)
 {
     return realloc(ptr, size);
 }
 
-void my_gballoc_free(void* ptr)
+static void my_gballoc_free(void* ptr)
 {
     free(ptr);
 }

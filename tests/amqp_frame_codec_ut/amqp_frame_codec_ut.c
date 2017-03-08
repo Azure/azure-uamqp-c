@@ -18,17 +18,17 @@
 #include "umock_c.h"
 #include "umocktypes_stdint.h"
 
-void* my_gballoc_malloc(size_t size)
+static void* my_gballoc_malloc(size_t size)
 {
     return malloc(size);
 }
 
-void* my_gballoc_realloc(void* ptr, size_t size)
+static void* my_gballoc_realloc(void* ptr, size_t size)
 {
     return realloc(ptr, size);
 }
 
-void my_gballoc_free(void* ptr)
+static void my_gballoc_free(void* ptr)
 {
     free(ptr);
 }
@@ -88,7 +88,7 @@ static void deallocate_actual_payload(void)
     }
 }
 
-void stringify_bytes(const unsigned char* bytes, size_t byte_count, char* output_string)
+static void stringify_bytes(const unsigned char* bytes, size_t byte_count, char* output_string)
 {
     size_t i;
     size_t pos = 0;
@@ -107,7 +107,7 @@ void stringify_bytes(const unsigned char* bytes, size_t byte_count, char* output
     output_string[pos++] = '\0';
 }
 
-int umocktypes_copy_PAYLOAD_ptr(PAYLOAD** destination, const PAYLOAD** source)
+static int umocktypes_copy_PAYLOAD_ptr(PAYLOAD** destination, const PAYLOAD** source)
 {
     int result;
 
@@ -151,7 +151,7 @@ int umocktypes_copy_PAYLOAD_ptr(PAYLOAD** destination, const PAYLOAD** source)
     return result;
 }
 
-void umocktypes_free_PAYLOAD_ptr(PAYLOAD** value)
+static void umocktypes_free_PAYLOAD_ptr(PAYLOAD** value)
 {
     if (*value != NULL)
     {
@@ -160,7 +160,7 @@ void umocktypes_free_PAYLOAD_ptr(PAYLOAD** value)
     }
 }
 
-char* umocktypes_stringify_PAYLOAD_ptr(const PAYLOAD** value)
+static char* umocktypes_stringify_PAYLOAD_ptr(const PAYLOAD** value)
 {
     char* result;
     if (*value == NULL)
@@ -193,7 +193,7 @@ char* umocktypes_stringify_PAYLOAD_ptr(const PAYLOAD** value)
     return result;
 }
 
-int umocktypes_are_equal_PAYLOAD_ptr(PAYLOAD** left, PAYLOAD** right)
+static int umocktypes_are_equal_PAYLOAD_ptr(PAYLOAD** left, PAYLOAD** right)
 {
     int result;
 
@@ -231,14 +231,14 @@ int umocktypes_are_equal_PAYLOAD_ptr(PAYLOAD** left, PAYLOAD** right)
     return result;
 }
 
-int my_amqpvalue_get_ulong(AMQP_VALUE value, uint64_t* ulong_value)
+static int my_amqpvalue_get_ulong(AMQP_VALUE value, uint64_t* ulong_value)
 {
     (void)value;
     *ulong_value = performative_ulong;
     return 0;
 }
 
-int my_frame_codec_subscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type, ON_FRAME_RECEIVED on_frame_received, void* callback_context)
+static int my_frame_codec_subscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type, ON_FRAME_RECEIVED on_frame_received, void* callback_context)
 {
     (void)type;
     (void)frame_codec;
@@ -247,7 +247,7 @@ int my_frame_codec_subscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type, ON_FR
     return 0;
 }
 
-int my_frame_codec_encode_frame(FRAME_CODEC_HANDLE frame_codec, uint8_t type, const PAYLOAD* payloads, size_t payload_count, const unsigned char* type_specific_bytes, uint32_t type_specific_size, ON_BYTES_ENCODED on_bytes_encoded, void* callback_context)
+static int my_frame_codec_encode_frame(FRAME_CODEC_HANDLE frame_codec, uint8_t type, const PAYLOAD* payloads, size_t payload_count, const unsigned char* type_specific_bytes, uint32_t type_specific_size, ON_BYTES_ENCODED on_bytes_encoded, void* callback_context)
 {
     (void)frame_codec;
     (void)type;
@@ -276,7 +276,7 @@ int my_frame_codec_encode_frame(FRAME_CODEC_HANDLE frame_codec, uint8_t type, co
     return 0;
 }
 
-AMQPVALUE_DECODER_HANDLE my_amqpvalue_decoder_create(ON_VALUE_DECODED value_decoded_callback, void* value_decoded_callback_context)
+static AMQPVALUE_DECODER_HANDLE my_amqpvalue_decoder_create(ON_VALUE_DECODED value_decoded_callback, void* value_decoded_callback_context)
 {
     saved_value_decoded_callback = value_decoded_callback;
     saved_value_decoded_callback_context = value_decoded_callback_context;
@@ -284,7 +284,7 @@ AMQPVALUE_DECODER_HANDLE my_amqpvalue_decoder_create(ON_VALUE_DECODED value_deco
     return TEST_DECODER_HANDLE;
 }
 
-int my_amqpvalue_decode_bytes(AMQPVALUE_DECODER_HANDLE handle, const unsigned char* buffer, size_t size)
+static int my_amqpvalue_decode_bytes(AMQPVALUE_DECODER_HANDLE handle, const unsigned char* buffer, size_t size)
 {
     unsigned char* new_bytes = (unsigned char*)my_gballoc_realloc(performative_decoded_bytes, performative_decoded_byte_count + size);
     (void)handle;
@@ -304,7 +304,7 @@ int my_amqpvalue_decode_bytes(AMQPVALUE_DECODER_HANDLE handle, const unsigned ch
     return 0;
 }
 
-int my_amqpvalue_encode(AMQP_VALUE value, AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context)
+static int my_amqpvalue_encode(AMQP_VALUE value, AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context)
 {
     (void)value;
     encoder_output(context, test_encoded_bytes, sizeof(test_encoded_bytes));

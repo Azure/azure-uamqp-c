@@ -143,6 +143,10 @@ int main(int argc, char** argv)
 			(void)printf("Send %zu messages in %lu ms: %.02f msgs/sec\r\n", msg_count, (endTime - startTime), (float)msg_count / ((float)(endTime - startTime) / 1000));
 #endif
 		}
+        else
+        {
+            message_destroy(message);
+        }
 
 		messagesender_destroy(message_sender);
 		link_destroy(link);

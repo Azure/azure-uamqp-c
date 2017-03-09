@@ -184,6 +184,10 @@ int main(int argc, char** argv)
 				}
 			}
 		}
+        else
+        {
+            message_destroy(message);
+        }
 
 		cbs_destroy(cbs);
 		messagesender_destroy(message_sender);

@@ -4,12 +4,13 @@
 #ifndef AMQPVALUE_TO_STRING_H
 
 #include "azure_uamqp_c/amqpvalue.h"
+#include "azure_c_shared_utility/umock_c_prod.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-	extern char* amqpvalue_to_string(AMQP_VALUE amqp_value);
+	MOCKABLE_FUNCTION(, char*, amqpvalue_to_string, AMQP_VALUE, amqp_value);
 
 #ifdef __cplusplus
 }

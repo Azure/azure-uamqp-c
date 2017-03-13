@@ -6,11 +6,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/optimize_size.h"
 #include "azure_uamqp_c/saslclientio.h"
 #include "azure_c_shared_utility/xio.h"
 #include "azure_c_shared_utility/xlogging.h"
-#include "azure_uamqp_c/amqpalloc.h"
 #include "azure_uamqp_c/frame_codec.h"
 #include "azure_uamqp_c/sasl_frame_codec.h"
 #include "azure_uamqp_c/amqp_definitions.h"
@@ -70,7 +70,7 @@ typedef struct SASL_CLIENT_IO_INSTANCE_TAG
 /* Codes_SRS_SASLCLIENTIO_01_124: [SASL-MAJOR 1 major protocol version.] */
 /* Codes_SRS_SASLCLIENTIO_01_125: [SASL-MINOR 0 minor protocol version.] */
 /* Codes_SRS_SASLCLIENTIO_01_126: [SASL-REVISION 0 protocol revision.] */
-const unsigned char sasl_header[] = { 'A', 'M', 'Q', 'P', 3, 1, 0, 0 };
+static const unsigned char sasl_header[] = { 'A', 'M', 'Q', 'P', 3, 1, 0, 0 };
 
 static void indicate_error(SASL_CLIENT_IO_INSTANCE* sasl_client_io_instance)
 {
@@ -277,7 +277,7 @@ static void log_incoming_frame(AMQP_VALUE performative)
             LOG(AZ_LOG_TRACE, LOG_LINE, (performative_as_string = amqpvalue_to_string(performative)));
             if (performative_as_string != NULL)
             {
-                amqpalloc_free(performative_as_string);
+                free(performative_as_string);
             }
         }
     }
@@ -300,7 +300,7 @@ static void log_outgoing_frame(AMQP_VALUE performative)
             LOG(AZ_LOG_TRACE, LOG_LINE, (performative_as_string = amqpvalue_to_string(performative)));
             if (performative_as_string != NULL)
             {
-                amqpalloc_free(performative_as_string);
+                free(performative_as_string);
             }
         }
     }
@@ -881,14 +881,14 @@ CONCRETE_IO_HANDLE saslclientio_create(void* io_create_parameters)
     }
     else
     {
-        result = amqpalloc_malloc(sizeof(SASL_CLIENT_IO_INSTANCE));
+        result = malloc(sizeof(SASL_CLIENT_IO_INSTANCE));
         /* Codes_SRS_SASLCLIENTIO_01_006: [If memory cannot be allocated for the new instance, saslclientio_create shall fail and return NULL.] */
         if (result != NULL)
         {
             result->underlying_io = sasl_client_io_config->underlying_io;
             if (result->underlying_io == NULL)
             {
-                amqpalloc_free(result);
+                free(result);
                 result = NULL;
             }
             else
@@ -898,7 +898,7 @@ CONCRETE_IO_HANDLE saslclientio_create(void* io_create_parameters)
                 if (result->frame_codec == NULL)
                 {
                     /* Codes_SRS_SASLCLIENTIO_01_090: [If frame_codec_create fails, then saslclientio_create shall fail and return NULL.] */
-                    amqpalloc_free(result);
+                    free(result);
                     result = NULL;
                 }
                 else
@@ -908,7 +908,7 @@ CONCRETE_IO_HANDLE saslclientio_create(void* io_create_parameters)
                     if (result->sasl_frame_codec == NULL)
                     {
                         frame_codec_destroy(result->frame_codec);
-                        amqpalloc_free(result);
+                        free(result);
                         result = NULL;
                     }
                     else
@@ -946,7 +946,7 @@ void saslclientio_destroy(CONCRETE_IO_HANDLE sasl_client_io)
 
         /* Codes_SRS_SASLCLIENTIO_01_091: [saslclientio_destroy shall destroy the frame_codec created in saslclientio_create by calling frame_codec_destroy.] */
         frame_codec_destroy(sasl_client_io_instance->frame_codec);
-        amqpalloc_free(sasl_client_io);
+        free(sasl_client_io);
     }
 }
 

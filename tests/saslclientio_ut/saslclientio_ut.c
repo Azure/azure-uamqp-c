@@ -1,16 +1,42 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#ifdef __cplusplus
+#include <cstdlib>
+#include <cstdio>
 #include <cstdint>
-#include <cstdbool>
+#else
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdint.h>
+#endif
 #include "testrunnerswitcher.h"
-#include "micromock.h"
-#include "micromockcharstararenullterminatedstrings.h"
-#include "azure_uamqp_c/saslclientio.h"
+#include "umock_c.h"
+#include "umocktypes_stdint.h"
+
+static void* my_gballoc_malloc(size_t size)
+{
+    return malloc(size);
+}
+
+static void my_gballoc_free(void* ptr)
+{
+    free(ptr);
+}
+
+#define ENABLE_MOCKS
+
+#include "azure_c_shared_utility/gballoc.h"
+#include "azure_uamqp_c/amqpvalue.h"
+#include "azure_uamqp_c/amqpvalue_to_string.h"
 #include "azure_uamqp_c/frame_codec.h"
 #include "azure_uamqp_c/sasl_frame_codec.h"
 #include "azure_uamqp_c/sasl_mechanism.h"
-#include "amqp_definitions_mocks.h"
+#include "azure_uamqp_c/amqp_definitions.h"
+
+#undef ENABLE_MOCKS
+
+#include "azure_uamqp_c/saslclientio.h"
 
 /* Requirements that cannot really be tested due to design choices: */
 /* Tests_SRS_SASLCLIENTIO_01_100: [do nothing] */
@@ -45,15 +71,14 @@ static void* saved_on_bytes_encoded_callback_context;
 static ON_FRAME_CODEC_ERROR saved_on_frame_codec_error;
 static void* saved_on_frame_codec_error_callback_context;
 
-
 /* Tests_SRS_SASLCLIENTIO_01_002: [The protocol header consists of the upper case ASCII letters "AMQP" followed by a protocol id of three, followed by three unsigned bytes representing the major, minor, and revision of the specification version (currently 1 (SASL-MAJOR), 0 (SASLMINOR), 0 (SASL-REVISION)).] */
 /* Tests_SRS_SASLCLIENTIO_01_124: [SASL-MAJOR 1 major protocol version.] */
 /* Tests_SRS_SASLCLIENTIO_01_125: [SASL-MINOR 0 minor protocol version.] */
 /* Tests_SRS_SASLCLIENTIO_01_126: [SASL-REVISION 0 protocol revision.] */
-const unsigned char sasl_header[] = { 'A', 'M', 'Q', 'P', 3, 1, 0, 0 };
-const unsigned char test_sasl_mechanisms_frame[] = { 'x', '1' }; /* these are some dummy bytes */
-const unsigned char test_sasl_outcome[] = { 'x', '2' }; /* these are some dummy bytes */
-const unsigned char test_sasl_challenge[] = { 'x', '3' }; /* these are some dummy bytes */
+static const unsigned char sasl_header[] = { 'A', 'M', 'Q', 'P', 3, 1, 0, 0 };
+static const unsigned char test_sasl_mechanisms_frame[] = { 'x', '1' }; /* these are some dummy bytes */
+static const unsigned char test_sasl_outcome[] = { 'x', '2' }; /* these are some dummy bytes */
+static const unsigned char test_sasl_challenge[] = { 'x', '3' }; /* these are some dummy bytes */
 
 static AMQP_VALUE test_sasl_value = (AMQP_VALUE)0x5242;
 
@@ -64,12 +89,128 @@ static size_t frame_codec_received_byte_count;
 static unsigned char* io_send_bytes;
 static size_t io_send_byte_count;
 
-template<>
-bool operator==<const SASL_MECHANISM_BYTES*>(const CMockValue<const SASL_MECHANISM_BYTES*>& lhs, const CMockValue<const SASL_MECHANISM_BYTES*>& rhs)
+static int umocktypes_copy_SASL_MECHANISM_BYTES_ptr(SASL_MECHANISM_BYTES** destination, const SASL_MECHANISM_BYTES** source)
 {
-	return (lhs.GetValue() == rhs.GetValue()) ||
-		(((lhs.GetValue()->length == rhs.GetValue()->length) &&
-		((rhs.GetValue()->length == 0) || (memcmp(lhs.GetValue()->bytes, rhs.GetValue()->bytes, lhs.GetValue()->length) == 0))));
+    int result;
+
+    if (*source == NULL)
+    {
+        *destination = NULL;
+        result = 0;
+    }
+    else
+    {
+        *destination = (SASL_MECHANISM_BYTES*)my_gballoc_malloc(sizeof(SASL_MECHANISM_BYTES));
+        if (*destination == NULL)
+        {
+            result = __LINE__;
+        }
+        else
+        {
+            (*destination)->length = (*source)->length;
+            if ((*destination)->length == 0)
+            {
+                (*destination)->bytes = NULL;
+                result = 0;
+            }
+            else
+            {
+                (*destination)->bytes = (const unsigned char*)my_gballoc_malloc((*destination)->length);
+                if ((*destination)->bytes == NULL)
+                {
+                    my_gballoc_free(*destination);
+                    result = __LINE__;
+                }
+                else
+                {
+                    (void)memcpy((void*)(*destination)->bytes, (*source)->bytes, (*destination)->length);
+                    result = 0;
+                }
+            }
+        }
+    }
+
+    return result;
+}
+
+static void umocktypes_free_SASL_MECHANISM_BYTES_ptr(SASL_MECHANISM_BYTES** value)
+{
+    if (*value != NULL)
+    {
+        my_gballoc_free((void*)(*value)->bytes);
+        my_gballoc_free(*value);
+    }
+}
+
+static char* umocktypes_stringify_SASL_MECHANISM_BYTES_ptr(const SASL_MECHANISM_BYTES** value)
+{
+    char* result;
+    if (*value == NULL)
+    {
+        result = (char*)my_gballoc_malloc(5);
+        if (result != NULL)
+        {
+            (void)memcpy(result, "NULL", 5);
+        }
+    }
+    else
+    {
+        result = (char*)my_gballoc_malloc(3 + (5 * (*value)->length));
+        if (result != NULL)
+        {
+            size_t pos = 0;
+            size_t i;
+
+            result[pos++] = '[';
+            for (i = 0; i < (*value)->length; i++)
+            {
+                (void)sprintf(&result[pos], "0x%02X ", ((unsigned char*)(*value)->bytes)[i]);
+                pos += 5;
+            }
+            result[pos++] = ']';
+            result[pos++] = '\0';
+        }
+    }
+
+    return result;
+}
+
+static int umocktypes_are_equal_SASL_MECHANISM_BYTES_ptr(SASL_MECHANISM_BYTES** left, SASL_MECHANISM_BYTES** right)
+{
+    int result;
+
+    if (*left == *right)
+    {
+        result = 1;
+    }
+    else
+    {
+        if ((*left == NULL) ||
+            (*right == NULL))
+        {
+            result = 0;
+        }
+        else
+        {
+            if ((*left)->length != (*right)->length)
+            {
+                result = 0;
+            }
+            else
+            {
+                if ((*left)->length == 0)
+                {
+                    result = 1;
+                }
+                else
+                {
+                    result = (memcmp((*left)->bytes, (*right)->bytes, (*left)->length) == 0) ? 1 : 0;
+                }
+            }
+        }
+    }
+
+    return result;
 }
 
 void stringify_bytes(const unsigned char* bytes, size_t byte_count, char* output_string)
@@ -98,200 +239,184 @@ static const SASL_MECHANISM_BYTES sasl_mechanism_challenge_bytes = { test_challe
 static const SASL_MECHANISM_BYTES sasl_mechanism_response_bytes = { test_response_bytes, sizeof(test_response_bytes) };
 static const amqp_binary response_binary_value = { test_response_bytes, sizeof(test_response_bytes) };
 
-TYPED_MOCK_CLASS(saslclientio_mocks, CGlobalMock)
+static FRAME_CODEC_HANDLE my_frame_codec_create(ON_FRAME_CODEC_ERROR on_frame_codec_error, void* callback_context)
 {
-public:
-	/* amqpalloc mocks */
-	MOCK_STATIC_METHOD_1(, void*, amqpalloc_malloc, size_t, size)
-	MOCK_METHOD_END(void*, malloc(size));
-	MOCK_STATIC_METHOD_1(, void, amqpalloc_free, void*, ptr)
-		free(ptr);
-	MOCK_VOID_METHOD_END();
-
-	/* frame_codec mocks */
-	MOCK_STATIC_METHOD_2(, FRAME_CODEC_HANDLE, frame_codec_create, ON_FRAME_CODEC_ERROR, on_frame_codec_error, void*, callback_context)
-		saved_on_frame_codec_error = on_frame_codec_error;
-		saved_on_frame_codec_error_callback_context = callback_context;
-	MOCK_METHOD_END(FRAME_CODEC_HANDLE, test_frame_codec);
-	MOCK_STATIC_METHOD_1(, void, frame_codec_destroy, FRAME_CODEC_HANDLE, frame_codec);
-	MOCK_VOID_METHOD_END();
-	MOCK_STATIC_METHOD_3(, int, frame_codec_receive_bytes, FRAME_CODEC_HANDLE, frame_codec, const unsigned char*, buffer, size_t, size)
-		unsigned char* new_bytes = (unsigned char*)realloc(frame_codec_received_bytes, frame_codec_received_byte_count + size);
-		if (new_bytes != NULL)
-		{
-			frame_codec_received_bytes = new_bytes;
-			(void)memcpy(frame_codec_received_bytes + frame_codec_received_byte_count, buffer, size);
-			frame_codec_received_byte_count += size;
-		}
-	MOCK_METHOD_END(int, 0);
-	MOCK_STATIC_METHOD_4(, int, frame_codec_subscribe, FRAME_CODEC_HANDLE, frame_codec, uint8_t, type, ON_FRAME_RECEIVED, frame_received_callback, void*, callback_context);
-		saved_frame_received_callback = frame_received_callback;
-		saved_frame_received_callback_context = callback_context;
-	MOCK_METHOD_END(int, 0);
-	MOCK_STATIC_METHOD_2(, int, frame_codec_unsubscribe, FRAME_CODEC_HANDLE, frame_codec, uint8_t, type);
-	MOCK_METHOD_END(int, 0);
-	MOCK_STATIC_METHOD_8(, int, frame_codec_encode_frame, FRAME_CODEC_HANDLE, frame_codec, uint8_t, type, const PAYLOAD*, payloads, size_t, payload_count, const unsigned char*, type_specific_bytes, uint32_t, type_specific_size, ON_BYTES_ENCODED, on_bytes_encoded, void*, callback_context);
-	MOCK_METHOD_END(int, 0);
-
-	/* sasl_frame_codec mocks */
-	MOCK_STATIC_METHOD_4(, SASL_FRAME_CODEC_HANDLE, sasl_frame_codec_create, FRAME_CODEC_HANDLE, frame_codec, ON_SASL_FRAME_RECEIVED, on_sasl_frame_received, ON_SASL_FRAME_CODEC_ERROR, on_sasl_frame_codec_error, void*, callback_context)
-		saved_on_sasl_frame_received = on_sasl_frame_received;
-		saved_sasl_frame_codec_callback_context = callback_context;
-		saved_on_sasl_frame_codec_error = on_sasl_frame_codec_error;
-	MOCK_METHOD_END(SASL_FRAME_CODEC_HANDLE, test_sasl_frame_codec);
-	MOCK_STATIC_METHOD_1(, void, sasl_frame_codec_destroy, SASL_FRAME_CODEC_HANDLE, sasl_frame_codec)
-	MOCK_VOID_METHOD_END();
-	MOCK_STATIC_METHOD_4(, int, sasl_frame_codec_encode_frame, SASL_FRAME_CODEC_HANDLE, sasl_frame_codec, const AMQP_VALUE, sasl_frame_value, ON_BYTES_ENCODED, on_bytes_encoded, void*, callback_context)
-		saved_on_bytes_encoded = on_bytes_encoded;
-		saved_on_bytes_encoded_callback_context = callback_context;
-	MOCK_METHOD_END(int, 0);
-
-	/* xio mocks */
-	MOCK_STATIC_METHOD_7(, int, xio_open, XIO_HANDLE, xio, ON_IO_OPEN_COMPLETE, on_io_open_complete, void*, on_io_open_complete_context, ON_BYTES_RECEIVED, on_bytes_received, void*, on_bytes_received_context, ON_IO_ERROR, on_io_error, void*, on_io_error_context)
-		saved_on_bytes_received = on_bytes_received;
-		saved_on_io_open_complete = on_io_open_complete;
-		saved_on_io_error = on_io_error;
-		saved_io_callback_context = on_io_open_complete_context;
-	MOCK_METHOD_END(int, 0);
-	MOCK_STATIC_METHOD_3(, int, xio_close, XIO_HANDLE, xio, ON_IO_CLOSE_COMPLETE, on_io_close_complete, void*, callback_context)
-	MOCK_METHOD_END(int, 0);
-	MOCK_STATIC_METHOD_5(, int, xio_send, XIO_HANDLE, xio, const void*, buffer, size_t, size, ON_SEND_COMPLETE, on_send_complete, void*, callback_context)
-		unsigned char* new_bytes = (unsigned char*)realloc(io_send_bytes, io_send_byte_count + size);
-		if (new_bytes != NULL)
-		{
-			io_send_bytes = new_bytes;
-			(void)memcpy(io_send_bytes + io_send_byte_count, buffer, size);
-			io_send_byte_count += size;
-		}
-	MOCK_METHOD_END(int, 0);
-    MOCK_STATIC_METHOD_1(, void, xio_dowork, XIO_HANDLE, xio)
-    MOCK_VOID_METHOD_END();
-    MOCK_STATIC_METHOD_3(, int, xio_setoption, XIO_HANDLE, xio, const char*, optionName, const void*, value)
-    MOCK_METHOD_END(int, 0);
-
-	/* sasl_mechanism mocks */
-	MOCK_STATIC_METHOD_2(, int, saslmechanism_get_init_bytes, SASL_MECHANISM_HANDLE, sasl_mechanism, SASL_MECHANISM_BYTES*, init_bytes)
-	MOCK_METHOD_END(int, 0);
-	MOCK_STATIC_METHOD_1(, const char*, saslmechanism_get_mechanism_name, SASL_MECHANISM_HANDLE, sasl_mechanism)
-	MOCK_METHOD_END(const char*, test_mechanism);
-	MOCK_STATIC_METHOD_3(, int, saslmechanism_challenge, SASL_MECHANISM_HANDLE, sasl_mechanism, const SASL_MECHANISM_BYTES*, challenge_bytes, SASL_MECHANISM_BYTES*, response_bytes)
-	MOCK_METHOD_END(int, 0);
-
-	/* amqpvalue_to_string mocks */
-	MOCK_STATIC_METHOD_1(, char*, amqpvalue_to_string, AMQP_VALUE, amqp_value)
-	MOCK_METHOD_END(char*, NULL);
-
-	/* amqpvalue mocks */
-	MOCK_STATIC_METHOD_1(, void, amqpvalue_destroy, AMQP_VALUE, value)
-	MOCK_VOID_METHOD_END();
-	MOCK_STATIC_METHOD_1(, AMQP_VALUE, amqpvalue_get_inplace_descriptor, AMQP_VALUE, value)
-	MOCK_METHOD_END(AMQP_VALUE, test_descriptor_value);
-	MOCK_STATIC_METHOD_2(, int, amqpvalue_get_array_item_count, AMQP_VALUE, value, uint32_t*, size)
-	MOCK_METHOD_END(int, 0);
-	MOCK_STATIC_METHOD_2(, AMQP_VALUE, amqpvalue_get_array_item, AMQP_VALUE, value, uint32_t, index)
-	MOCK_METHOD_END(AMQP_VALUE, test_sasl_server_mechanism);
-	MOCK_STATIC_METHOD_2(, int, amqpvalue_get_symbol, AMQP_VALUE, value, const char**, symbol_value)
-	MOCK_METHOD_END(int, 0);
-
-	/* consumer mocks */
-	MOCK_STATIC_METHOD_3(, void, test_on_bytes_received, void*, context, const unsigned char*, buffer, size_t, size);
-	MOCK_VOID_METHOD_END();
-	MOCK_STATIC_METHOD_2(, void, test_on_io_open_complete, void*, context, IO_OPEN_RESULT, io_open_result)
-	MOCK_VOID_METHOD_END();
-	MOCK_STATIC_METHOD_1(, void, test_on_io_error, void*, context)
-	MOCK_VOID_METHOD_END();
-	MOCK_STATIC_METHOD_2(, void, test_on_send_complete, void*, context, IO_SEND_RESULT, send_result)
-	MOCK_VOID_METHOD_END();
-
-    /*mocks for OptionHandler*/
-    MOCK_STATIC_METHOD_3(,OPTIONHANDLER_HANDLE, OptionHandler_Create, pfCloneOption, cloneOption, pfDestroyOption, destroyOption, pfSetOption, setOption)
-    MOCK_METHOD_END(OPTIONHANDLER_HANDLE, (OPTIONHANDLER_HANDLE)NULL);
-};
-
-extern "C"
-{
-	DECLARE_GLOBAL_MOCK_METHOD_1(saslclientio_mocks, , void*, amqpalloc_malloc, size_t, size);
-	DECLARE_GLOBAL_MOCK_METHOD_1(saslclientio_mocks, , void, amqpalloc_free, void*, ptr);
-
-	DECLARE_GLOBAL_MOCK_METHOD_2(saslclientio_mocks, , FRAME_CODEC_HANDLE, frame_codec_create, ON_FRAME_CODEC_ERROR, on_frame_codec_error, void*, callback_context);
-	DECLARE_GLOBAL_MOCK_METHOD_1(saslclientio_mocks, , void, frame_codec_destroy, FRAME_CODEC_HANDLE, frame_codec);
-	DECLARE_GLOBAL_MOCK_METHOD_3(saslclientio_mocks, , int, frame_codec_receive_bytes, FRAME_CODEC_HANDLE, frame_codec, const unsigned char*, buffer, size_t, size)
-	DECLARE_GLOBAL_MOCK_METHOD_4(saslclientio_mocks, , int, frame_codec_subscribe, FRAME_CODEC_HANDLE, frame_codec, uint8_t, type, ON_FRAME_RECEIVED, frame_received_callback, void*, callback_context);
-	DECLARE_GLOBAL_MOCK_METHOD_2(saslclientio_mocks, , int, frame_codec_unsubscribe, FRAME_CODEC_HANDLE, frame_codec, uint8_t, type);
-	DECLARE_GLOBAL_MOCK_METHOD_8(saslclientio_mocks, , int, frame_codec_encode_frame, FRAME_CODEC_HANDLE, frame_codec, uint8_t, type, const PAYLOAD*, payloads, size_t, payload_count, const unsigned char*, type_specific_bytes, uint32_t, type_specific_size, ON_BYTES_ENCODED, on_bytes_encoded, void*, callback_context);
-
-	DECLARE_GLOBAL_MOCK_METHOD_4(saslclientio_mocks, , SASL_FRAME_CODEC_HANDLE, sasl_frame_codec_create, FRAME_CODEC_HANDLE, frame_codec, ON_SASL_FRAME_RECEIVED, on_sasl_frame_received, ON_SASL_FRAME_CODEC_ERROR, on_sasl_frame_codec_error, void*, callback_context);
-	DECLARE_GLOBAL_MOCK_METHOD_1(saslclientio_mocks, , void, sasl_frame_codec_destroy, SASL_FRAME_CODEC_HANDLE, sasl_frame_codec);
-	DECLARE_GLOBAL_MOCK_METHOD_4(saslclientio_mocks, , int, sasl_frame_codec_encode_frame, SASL_FRAME_CODEC_HANDLE, sasl_frame_codec, const AMQP_VALUE, sasl_frame_value, ON_BYTES_ENCODED, on_bytes_encoded, void*, callback_context)
-
-	DECLARE_GLOBAL_MOCK_METHOD_7(saslclientio_mocks, , int, xio_open, XIO_HANDLE, xio, ON_IO_OPEN_COMPLETE, on_io_open_complete, void*, on_io_open_complete_context, ON_BYTES_RECEIVED, on_bytes_received, void*, on_bytes_received_context, ON_IO_ERROR, on_io_error, void*, on_io_error_context);
-	DECLARE_GLOBAL_MOCK_METHOD_3(saslclientio_mocks, , int, xio_close, XIO_HANDLE, xio, ON_IO_CLOSE_COMPLETE, on_io_close_complete, void*, callback_context);
-	DECLARE_GLOBAL_MOCK_METHOD_5(saslclientio_mocks, , int, xio_send, XIO_HANDLE, xio, const void*, buffer, size_t, size, ON_SEND_COMPLETE, on_send_complete, void*, callback_context);
-    DECLARE_GLOBAL_MOCK_METHOD_1(saslclientio_mocks, , void, xio_dowork, XIO_HANDLE, xio);
-    DECLARE_GLOBAL_MOCK_METHOD_3(saslclientio_mocks, , int, xio_setoption, XIO_HANDLE, xio, const char*, optionName, const void*, value);
-
-	DECLARE_GLOBAL_MOCK_METHOD_2(saslclientio_mocks, , int, saslmechanism_get_init_bytes, SASL_MECHANISM_HANDLE, sasl_mechanism, SASL_MECHANISM_BYTES*, init_bytes);
-	DECLARE_GLOBAL_MOCK_METHOD_1(saslclientio_mocks, , const char*, saslmechanism_get_mechanism_name, SASL_MECHANISM_HANDLE, sasl_mechanism);
-	DECLARE_GLOBAL_MOCK_METHOD_3(saslclientio_mocks, , int, saslmechanism_challenge, SASL_MECHANISM_HANDLE, sasl_mechanism, const SASL_MECHANISM_BYTES*, challenge_bytes, SASL_MECHANISM_BYTES*, response_bytes);
-
-	DECLARE_GLOBAL_MOCK_METHOD_1(saslclientio_mocks, , char*, amqpvalue_to_string, AMQP_VALUE, amqp_value)
-
-	DECLARE_GLOBAL_MOCK_METHOD_1(saslclientio_mocks, , void, amqpvalue_destroy, AMQP_VALUE, value);
-	DECLARE_GLOBAL_MOCK_METHOD_1(saslclientio_mocks, , AMQP_VALUE, amqpvalue_get_inplace_descriptor, AMQP_VALUE, value);
-	DECLARE_GLOBAL_MOCK_METHOD_2(saslclientio_mocks, , int, amqpvalue_get_array_item_count, AMQP_VALUE, value, uint32_t*, size);
-	DECLARE_GLOBAL_MOCK_METHOD_2(saslclientio_mocks, , AMQP_VALUE, amqpvalue_get_array_item, AMQP_VALUE, value, uint32_t, index);
-	DECLARE_GLOBAL_MOCK_METHOD_2(saslclientio_mocks, , int, amqpvalue_get_symbol, AMQP_VALUE, value, const char**, symbol_value);
-
-	DECLARE_GLOBAL_MOCK_METHOD_3(saslclientio_mocks, , void, test_on_bytes_received, void*, context, const unsigned char*, buffer, size_t, size);
-	DECLARE_GLOBAL_MOCK_METHOD_2(saslclientio_mocks, , void, test_on_io_open_complete, void*, context, IO_OPEN_RESULT, io_open_result);
-	DECLARE_GLOBAL_MOCK_METHOD_1(saslclientio_mocks, , void, test_on_io_error, void*, context);
-	DECLARE_GLOBAL_MOCK_METHOD_2(saslclientio_mocks, , void, test_on_send_complete, void*, context, IO_SEND_RESULT, send_result);
-    DECLARE_GLOBAL_MOCK_METHOD_3(saslclientio_mocks, , OPTIONHANDLER_HANDLE, OptionHandler_Create, pfCloneOption, cloneOption, pfDestroyOption, destroyOption, pfSetOption, setOption)
+    saved_on_frame_codec_error = on_frame_codec_error;
+    saved_on_frame_codec_error_callback_context = callback_context;
+    return test_frame_codec;
 }
 
-MICROMOCK_MUTEX_HANDLE test_serialize_mutex;
+static int my_frame_codec_receive_bytes(FRAME_CODEC_HANDLE frame_codec, const unsigned char* buffer, size_t size)
+{
+    unsigned char* new_bytes = (unsigned char*)realloc(frame_codec_received_bytes, frame_codec_received_byte_count + size);
+    (void)frame_codec;
+    if (new_bytes != NULL)
+    {
+        frame_codec_received_bytes = new_bytes;
+        (void)memcpy(frame_codec_received_bytes + frame_codec_received_byte_count, buffer, size);
+        frame_codec_received_byte_count += size;
+    }
+    return 0;
+}
+
+static int my_frame_codec_subscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type, ON_FRAME_RECEIVED frame_received_callback, void* callback_context)
+{
+    (void)type;
+    (void)frame_codec;
+    saved_frame_received_callback = frame_received_callback;
+    saved_frame_received_callback_context = callback_context;
+    return 0;
+}
+
+static SASL_FRAME_CODEC_HANDLE my_sasl_frame_codec_create(FRAME_CODEC_HANDLE frame_codec, ON_SASL_FRAME_RECEIVED on_sasl_frame_received, ON_SASL_FRAME_CODEC_ERROR on_sasl_frame_codec_error, void* callback_context)
+{
+    (void)frame_codec;
+    saved_on_sasl_frame_received = on_sasl_frame_received;
+    saved_sasl_frame_codec_callback_context = callback_context;
+    saved_on_sasl_frame_codec_error = on_sasl_frame_codec_error;
+    return test_sasl_frame_codec;
+}
+
+static int my_sasl_frame_codec_encode_frame(SASL_FRAME_CODEC_HANDLE sasl_frame_codec, const AMQP_VALUE sasl_frame_value, ON_BYTES_ENCODED on_bytes_encoded, void* callback_context)
+{
+    (void)sasl_frame_codec;
+    (void)sasl_frame_value;
+    saved_on_bytes_encoded = on_bytes_encoded;
+    saved_on_bytes_encoded_callback_context = callback_context;
+    return 0;
+}
+
+static int my_xio_open(XIO_HANDLE xio, ON_IO_OPEN_COMPLETE on_io_open_complete, void* on_io_open_complete_context, ON_BYTES_RECEIVED on_bytes_received, void* on_bytes_received_context, ON_IO_ERROR on_io_error, void* on_io_error_context)
+{
+    (void)on_io_error_context;
+    (void)on_bytes_received_context;
+    (void)xio;
+    saved_on_bytes_received = on_bytes_received;
+    saved_on_io_open_complete = on_io_open_complete;
+    saved_on_io_error = on_io_error;
+    saved_io_callback_context = on_io_open_complete_context;
+    return 0;
+}
+
+static int my_xio_send(XIO_HANDLE xio, const void* buffer, size_t size, ON_SEND_COMPLETE on_send_complete, void* callback_context)
+{
+    unsigned char* new_bytes = (unsigned char*)realloc(io_send_bytes, io_send_byte_count + size);
+    (void)callback_context;
+    (void)on_send_complete;
+    (void)xio;
+    if (new_bytes != NULL)
+    {
+        io_send_bytes = new_bytes;
+        (void)memcpy(io_send_bytes + io_send_byte_count, buffer, size);
+        io_send_byte_count += size;
+    }
+    return 0;
+}
+
+MOCK_FUNCTION_WITH_CODE(, void, test_on_bytes_received, void*, context, const unsigned char*, buffer, size_t, size)
+MOCK_FUNCTION_END()
+MOCK_FUNCTION_WITH_CODE(, void, test_on_io_open_complete, void*, context, IO_OPEN_RESULT, io_open_result)
+MOCK_FUNCTION_END()
+MOCK_FUNCTION_WITH_CODE(, void, test_on_io_error, void*, context)
+MOCK_FUNCTION_END()
+MOCK_FUNCTION_WITH_CODE(, void, test_on_send_complete, void*, context, IO_SEND_RESULT, send_result)
+MOCK_FUNCTION_END()
+
+static TEST_MUTEX_HANDLE g_testByTest;
+static TEST_MUTEX_HANDLE g_dllByDll;
+
+DEFINE_ENUM_STRINGS(UMOCK_C_ERROR_CODE, UMOCK_C_ERROR_CODE_VALUES)
+
+static void on_umock_c_error(UMOCK_C_ERROR_CODE error_code)
+{
+    char temp_str[256];
+    (void)snprintf(temp_str, sizeof(temp_str), "umock_c reported error :%s", ENUM_TO_STRING(UMOCK_C_ERROR_CODE, error_code));
+    ASSERT_FAIL(temp_str);
+}
 
 BEGIN_TEST_SUITE(saslclientio_ut)
 
 TEST_SUITE_INITIALIZE(suite_init)
 {
-	test_serialize_mutex = MicroMockCreateMutex();
-	ASSERT_IS_NOT_NULL(test_serialize_mutex);
+    int result;
+
+    TEST_INITIALIZE_MEMORY_DEBUG(g_dllByDll);
+    g_testByTest = TEST_MUTEX_CREATE();
+    ASSERT_IS_NOT_NULL(g_testByTest);
+
+    umock_c_init(on_umock_c_error);
+
+    result = umocktypes_stdint_register_types();
+    ASSERT_ARE_EQUAL(int, 0, result);
+
+    REGISTER_GLOBAL_MOCK_HOOK(gballoc_malloc, my_gballoc_malloc);
+    REGISTER_GLOBAL_MOCK_HOOK(gballoc_free, my_gballoc_free);
+    REGISTER_GLOBAL_MOCK_HOOK(frame_codec_create, my_frame_codec_create);
+    REGISTER_GLOBAL_MOCK_HOOK(frame_codec_receive_bytes, my_frame_codec_receive_bytes);
+    REGISTER_GLOBAL_MOCK_HOOK(frame_codec_subscribe, my_frame_codec_subscribe);
+    REGISTER_GLOBAL_MOCK_RETURN(frame_codec_unsubscribe, 0);
+    REGISTER_GLOBAL_MOCK_RETURN(frame_codec_encode_frame, 0);
+    REGISTER_GLOBAL_MOCK_HOOK(sasl_frame_codec_create, my_sasl_frame_codec_create);
+    REGISTER_GLOBAL_MOCK_HOOK(sasl_frame_codec_encode_frame, my_sasl_frame_codec_encode_frame);
+    REGISTER_GLOBAL_MOCK_HOOK(xio_open, my_xio_open);
+    REGISTER_GLOBAL_MOCK_HOOK(xio_send, my_xio_send);
+    REGISTER_GLOBAL_MOCK_RETURN(xio_close, 0);
+    REGISTER_GLOBAL_MOCK_RETURN(xio_setoption, 0);
+    REGISTER_GLOBAL_MOCK_RETURN(saslmechanism_get_init_bytes, 0);
+    REGISTER_GLOBAL_MOCK_RETURN(saslmechanism_get_mechanism_name, test_mechanism);
+    REGISTER_GLOBAL_MOCK_RETURN(saslmechanism_challenge, 0);
+    REGISTER_GLOBAL_MOCK_RETURN(amqpvalue_to_string, NULL);
+    REGISTER_GLOBAL_MOCK_RETURN(amqpvalue_get_inplace_descriptor, test_descriptor_value);
+    REGISTER_GLOBAL_MOCK_RETURN(amqpvalue_get_array_item_count, 0);
+    REGISTER_GLOBAL_MOCK_RETURN(amqpvalue_get_array_item, test_sasl_server_mechanism);
+    REGISTER_GLOBAL_MOCK_RETURN(amqpvalue_get_symbol, 0);
+    REGISTER_GLOBAL_MOCK_RETURN(OptionHandler_Create, NULL);
+
+    REGISTER_TYPE(SASL_MECHANISM_BYTES*, SASL_MECHANISM_BYTES_ptr);
+
+    REGISTER_UMOCK_ALIAS_TYPE(const SASL_MECHANISM_BYTES*, SASL_MECHANISM_BYTES*);
+    REGISTER_UMOCK_ALIAS_TYPE(ON_FRAME_CODEC_ERROR, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(FRAME_CODEC_HANDLE, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(ON_SASL_FRAME_RECEIVED, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(ON_SASL_FRAME_CODEC_ERROR, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(SASL_FRAME_CODEC_HANDLE, void*);
 }
 
 TEST_SUITE_CLEANUP(suite_cleanup)
 {
-	MicroMockDestroyMutex(test_serialize_mutex);
+    umock_c_deinit();
+
+    TEST_MUTEX_DESTROY(g_testByTest);
+    TEST_DEINITIALIZE_MEMORY_DEBUG(g_dllByDll);
 }
 
 TEST_FUNCTION_INITIALIZE(method_init)
 {
-	if (!MicroMockAcquireMutex(test_serialize_mutex))
-	{
-		ASSERT_FAIL("Could not acquire test serialization mutex.");
-	}
+    if (TEST_MUTEX_ACQUIRE(g_testByTest))
+    {
+        ASSERT_FAIL("our mutex is ABANDONED. Failure in test framework");
+    }
+
+    umock_c_reset_all_calls();
 }
 
 TEST_FUNCTION_CLEANUP(method_cleanup)
 {
-	if (frame_codec_received_bytes != NULL)
-	{
-		free(frame_codec_received_bytes);
-		frame_codec_received_bytes = NULL;
-	}
-	frame_codec_received_byte_count = 0;
+    if (frame_codec_received_bytes != NULL)
+    {
+        free(frame_codec_received_bytes);
+        frame_codec_received_bytes = NULL;
+    }
+    frame_codec_received_byte_count = 0;
 
-	if (io_send_bytes != NULL)
-	{
-		free(io_send_bytes);
-		io_send_bytes = NULL;
-	}
-	io_send_byte_count = 0;
+    if (io_send_bytes != NULL)
+    {
+        free(io_send_bytes);
+        io_send_bytes = NULL;
+    }
+    io_send_byte_count = 0;
 
-	if (!MicroMockReleaseMutex(test_serialize_mutex))
-	{
-		ASSERT_FAIL("Could not release test serialization mutex.");
-	}
+    TEST_MUTEX_RELEASE(g_testByTest);
 }
 
 /* saslclientio_create */
@@ -302,20 +427,22 @@ TEST_FUNCTION_CLEANUP(method_cleanup)
 TEST_FUNCTION(saslclientio_create_with_valid_args_succeeds)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE result;
+    SASLCLIENTIO_CONFIG saslclientio_config;
+    saslclientio_config.underlying_io = test_underlying_io;
+    saslclientio_config.sasl_mechanism = test_sasl_mechanism;
 
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	EXPECTED_CALL(mocks, frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, sasl_frame_codec_create(test_frame_codec, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	EXPECTED_CALL(frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+	EXPECTED_CALL(sasl_frame_codec_create(test_frame_codec, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgument(1);
 
 	// act
-	CONCRETE_IO_HANDLE result = saslclientio_create(&saslclientio_config);
+	result = saslclientio_create(&saslclientio_config);
 
 	// assert
 	ASSERT_IS_NOT_NULL(result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(result);
@@ -325,99 +452,114 @@ TEST_FUNCTION(saslclientio_create_with_valid_args_succeeds)
 TEST_FUNCTION(saslclientio_create_with_NULL_config_fails)
 {
 	// arrange
-	saslclientio_mocks mocks;
 
 	// act
 	CONCRETE_IO_HANDLE result = saslclientio_create(NULL);
 
 	// assert
-	ASSERT_IS_NULL(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NULL(result);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_006: [If memory cannot be allocated for the new instance, saslclientio_create shall fail and return NULL.] */
 TEST_FUNCTION(when_allocating_memory_for_the_new_instance_fails_then_saslclientio_create_fails)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE result;
+    SASLCLIENTIO_CONFIG saslclientio_config;
+    saslclientio_config.underlying_io = test_underlying_io;
+    saslclientio_config.sasl_mechanism = test_sasl_mechanism;
 
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG))
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
 		.SetReturn((void*)NULL);
 
 	// act
-	CONCRETE_IO_HANDLE result = saslclientio_create(&saslclientio_config);
+	result = saslclientio_create(&saslclientio_config);
 
 	// assert
-	ASSERT_IS_NULL(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NULL(result);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_090: [If frame_codec_create fails, then saslclientio_create shall fail and return NULL.] */
 TEST_FUNCTION(when_creating_the_frame_codec_fails_then_saslclientio_create_fails)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE result;
+    SASLCLIENTIO_CONFIG saslclientio_config;
+    saslclientio_config.underlying_io = test_underlying_io;
+    saslclientio_config.sasl_mechanism = test_sasl_mechanism;
 
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	EXPECTED_CALL(mocks, frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.SetReturn((FRAME_CODEC_HANDLE)NULL);
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	EXPECTED_CALL(frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+		.SetReturn(NULL);
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-	CONCRETE_IO_HANDLE result = saslclientio_create(&saslclientio_config);
+	result = saslclientio_create(&saslclientio_config);
 
 	// assert
-	ASSERT_IS_NULL(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NULL(result);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_085: [If sasl_frame_codec_create fails, then saslclientio_create shall fail and return NULL.] */
 TEST_FUNCTION(when_creating_the_sasl_frame_codec_fails_then_saslclientio_create_fails)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE result;
+    SASLCLIENTIO_CONFIG saslclientio_config;
+    saslclientio_config.underlying_io = test_underlying_io;
+    saslclientio_config.sasl_mechanism = test_sasl_mechanism;
 
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	EXPECTED_CALL(mocks, frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, sasl_frame_codec_create(test_frame_codec, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	EXPECTED_CALL(frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+	EXPECTED_CALL(sasl_frame_codec_create(test_frame_codec, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgument(1)
-		.SetReturn((SASL_FRAME_CODEC_HANDLE)NULL);
-	STRICT_EXPECTED_CALL(mocks, frame_codec_destroy(test_frame_codec));
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+		.SetReturn(NULL);
+	STRICT_EXPECTED_CALL(frame_codec_destroy(test_frame_codec));
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-	CONCRETE_IO_HANDLE result = saslclientio_create(&saslclientio_config);
+	result = saslclientio_create(&saslclientio_config);
 
 	// assert
-	ASSERT_IS_NULL(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NULL(result);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_092: [If any of the sasl_mechanism or underlying_io members of the configuration structure are NULL, saslclientio_create shall fail and return NULL.] */
 TEST_FUNCTION(saslclientio_create_with_a_NULL_underlying_io_fails)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	SASLCLIENTIO_CONFIG saslclientio_config = { NULL, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE result;
+    SASLCLIENTIO_CONFIG saslclientio_config;
+    saslclientio_config.underlying_io = NULL;
+    saslclientio_config.sasl_mechanism = test_sasl_mechanism;
 
 	// act
-	CONCRETE_IO_HANDLE result = saslclientio_create(&saslclientio_config);
+	result = saslclientio_create(&saslclientio_config);
 
 	// assert
-	ASSERT_IS_NULL(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NULL(result);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_092: [If any of the sasl_mechanism or underlying_io members of the configuration structure are NULL, saslclientio_create shall fail and return NULL.] */
 TEST_FUNCTION(saslclientio_create_with_a_NULL_sasl_mechanism_fails)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, NULL };
+    CONCRETE_IO_HANDLE result;
+    SASLCLIENTIO_CONFIG saslclientio_config;
+    saslclientio_config.underlying_io = test_underlying_io;
+    saslclientio_config.sasl_mechanism = NULL;
 
 	// act
-	CONCRETE_IO_HANDLE result = saslclientio_create(&saslclientio_config);
+	result = saslclientio_create(&saslclientio_config);
 
 	// assert
-	ASSERT_IS_NULL(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NULL(result);
 }
 
 /* saslclientio_destroy */
@@ -428,33 +570,34 @@ TEST_FUNCTION(saslclientio_create_with_a_NULL_sasl_mechanism_fails)
 TEST_FUNCTION(saslclientio_destroy_frees_the_resources_allocated_in_create)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config);
-	mocks.ResetAllCalls();
+	CONCRETE_IO_HANDLE sasl_io;
+    SASLCLIENTIO_CONFIG saslclientio_config;
+    saslclientio_config.underlying_io = test_underlying_io;
+    saslclientio_config.sasl_mechanism = test_sasl_mechanism;
+    sasl_io = saslclientio_create(&saslclientio_config);
+    umock_c_reset_all_calls();
 
-	EXPECTED_CALL(mocks, frame_codec_destroy(test_frame_codec));
-	EXPECTED_CALL(mocks, sasl_frame_codec_destroy(test_sasl_frame_codec));
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+    EXPECTED_CALL(sasl_frame_codec_destroy(test_sasl_frame_codec));
+    EXPECTED_CALL(frame_codec_destroy(test_frame_codec));
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
 	saslclientio_destroy(sasl_io);
 
 	// assert
-	// no explicit assert, uMock checks the calls
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_008: [If the argument sasl_io is NULL, saslclientio_destroy shall do nothing.] */
 TEST_FUNCTION(saslclientio_destroy_with_NULL_argument_does_nothing)
 {
 	// arrange
-	saslclientio_mocks mocks;
 
 	// act
 	saslclientio_destroy(NULL);
 
 	// assert
-	// no explicit assert, uMock checks the calls
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
 /* saslclientio_open */
@@ -466,21 +609,21 @@ TEST_FUNCTION(saslclientio_destroy_with_NULL_argument_does_nothing)
 TEST_FUNCTION(saslclientio_open_with_valid_args_succeeds)
 {
 	// arrange
-	saslclientio_mocks mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	mocks.ResetAllCalls();
+    int result;
+	umock_c_reset_all_calls();
 
-	EXPECTED_CALL(mocks, xio_open(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(xio_open(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgument(1);
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_OPENING, IO_STATE_NOT_OPEN));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_OPENING, IO_STATE_NOT_OPEN));
 
 	// act
-	int result = saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+	result = saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -490,30 +633,29 @@ TEST_FUNCTION(saslclientio_open_with_valid_args_succeeds)
 TEST_FUNCTION(saslclientio_open_with_NULL_sasl_io_handle_fails)
 {
 	// arrange
-	saslclientio_mocks mocks;
 
 	// act
 	int result = saslclientio_open(NULL, test_on_bytes_received, test_on_io_state_changed, test_context);
 
 	// assert
-	ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_011: [If any of the sasl_io or on_bytes_received arguments is NULL, saslclientio_open shall fail and return a non-zero value.] */
 TEST_FUNCTION(saslclientio_open_with_NULL_on_bytes_received_fails)
 {
 	// arrange
-	saslclientio_mocks mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	int result = saslclientio_open(sasl_io, NULL, test_on_io_state_changed, test_context);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -523,12 +665,11 @@ TEST_FUNCTION(saslclientio_open_with_NULL_on_bytes_received_fails)
 TEST_FUNCTION(when_opening_the_underlying_io_fails_saslclientio_open_fails)
 {
 	// arrange
-	saslclientio_mocks mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	EXPECTED_CALL(mocks, xio_open(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(xio_open(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgument(1)
 		.SetReturn(1);
 
@@ -537,7 +678,7 @@ TEST_FUNCTION(when_opening_the_underlying_io_fails_saslclientio_open_fails)
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -551,48 +692,47 @@ TEST_FUNCTION(when_opening_the_underlying_io_fails_saslclientio_open_fails)
 TEST_FUNCTION(saslclientio_close_when_the_io_state_is_OPENING_closes_the_underlying_io)
 {
 	// arrange
-	saslclientio_mocks mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, xio_close(test_underlying_io));
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_NOT_OPEN, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(xio_close(test_underlying_io));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_NOT_OPEN, IO_STATE_OPENING));
 
 	// act
 	int result = saslclientio_close(sasl_io);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
 }
 
-static void setup_successful_sasl_handshake(saslclientio_mocks* mocks, amqp_definitions_mocks* definitions_mocks, CONCRETE_IO_HANDLE sasl_io)
+static void setup_successful_sasl_handshake(CONCRETE_IO_HANDLE sasl_io)
 {
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    sasl_code sasl_outcome_code = sasl_code_ok;
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	STRICT_EXPECTED_CALL((*definitions_mocks), is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
 		.SetReturn(true);
-	EXPECTED_CALL((*mocks), amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_outcome, sizeof(test_sasl_outcome));
-	definitions_mocks->ResetAllCalls();
-	STRICT_EXPECTED_CALL((*definitions_mocks), is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+    umock_c_reset_all_calls();
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
 		.SetReturn(false);
-	STRICT_EXPECTED_CALL((*definitions_mocks), is_sasl_challenge_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
 		.SetReturn(false);
-	STRICT_EXPECTED_CALL((*definitions_mocks), is_sasl_outcome_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(is_sasl_outcome_type_by_descriptor(test_descriptor_value))
 		.SetReturn(true);
-	sasl_code sasl_outcome_code = sasl_code_ok;
-	STRICT_EXPECTED_CALL((*definitions_mocks), amqpvalue_get_sasl_outcome(test_sasl_value, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_outcome(test_sasl_value, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_outcome_handle, sizeof(test_sasl_outcome_handle));
-	STRICT_EXPECTED_CALL((*definitions_mocks), sasl_outcome_get_code(test_sasl_outcome_handle, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(sasl_outcome_get_code(test_sasl_outcome_handle, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &sasl_outcome_code, sizeof(sasl_outcome_code));
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 }
@@ -603,24 +743,21 @@ static void setup_successful_sasl_handshake(saslclientio_mocks* mocks, amqp_defi
 TEST_FUNCTION(saslclientio_close_when_the_io_state_is_OPEN_closes_the_underlying_io)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(&mocks, &definitions_mocks, sasl_io);
-	definitions_mocks.ResetAllCalls();
-	mocks.ResetAllCalls();
+	setup_successful_sasl_handshake(sasl_io);
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, xio_close(test_underlying_io));
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_NOT_OPEN, IO_STATE_OPEN));
+	STRICT_EXPECTED_CALL(xio_close(test_underlying_io));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_NOT_OPEN, IO_STATE_OPEN));
 
 	// act
 	int result = saslclientio_close(sasl_io);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -632,22 +769,21 @@ TEST_FUNCTION(saslclientio_close_when_the_io_state_is_OPEN_closes_the_underlying
 TEST_FUNCTION(saslclientio_close_when_the_io_state_is_ERROR_closes_the_underlying_io)
 {
 	// arrange
-	saslclientio_mocks mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_NOT_OPEN);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, xio_close(test_underlying_io));
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_NOT_OPEN, IO_STATE_ERROR));
+	STRICT_EXPECTED_CALL(xio_close(test_underlying_io));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_NOT_OPEN, IO_STATE_ERROR));
 
 	// act
 	int result = saslclientio_close(sasl_io);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -657,17 +793,16 @@ TEST_FUNCTION(saslclientio_close_when_the_io_state_is_ERROR_closes_the_underlyin
 TEST_FUNCTION(saslclientio_close_when_the_io_state_is_NOT_OPEN_succeeds_without_calling_the_underlying_io)
 {
 	// arrange
-	saslclientio_mocks mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	int result = saslclientio_close(sasl_io);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -677,20 +812,19 @@ TEST_FUNCTION(saslclientio_close_when_the_io_state_is_NOT_OPEN_succeeds_without_
 TEST_FUNCTION(saslclientio_close_when_the_io_state_is_NOT_OPEN_due_to_a_previous_close_succeeds_without_calling_the_underlying_io)
 {
 	// arrange
-	saslclientio_mocks mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_NOT_OPEN);
 	(void)saslclientio_close(sasl_io);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	int result = saslclientio_close(sasl_io);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -700,26 +834,25 @@ TEST_FUNCTION(saslclientio_close_when_the_io_state_is_NOT_OPEN_due_to_a_previous
 TEST_FUNCTION(saslclientio_close_with_NULL_sasl_io_fails)
 {
 	// arrange
-	saslclientio_mocks mocks;
 
 	// act
 	int result = saslclientio_close(NULL);
 
 	// assert
-	ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_018: [If xio_close fails, then saslclientio_close shall return a non-zero value.] */
 TEST_FUNCTION(when_xio_close_fails_saslclientio_close_fails)
 {
 	// arrange
-	saslclientio_mocks mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, xio_close(test_underlying_io))
+	STRICT_EXPECTED_CALL(xio_close(test_underlying_io))
 		.SetReturn(1);
 
 	// act
@@ -727,7 +860,7 @@ TEST_FUNCTION(when_xio_close_fails_saslclientio_close_fails)
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -739,10 +872,9 @@ TEST_FUNCTION(when_xio_close_fails_saslclientio_close_fails)
 TEST_FUNCTION(saslclientio_send_when_io_state_is_NOT_OPEN_fails)
 {
 	// arrange
-	saslclientio_mocks mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 	unsigned char test_buffer[] = { 0x42 };
 
 	// act
@@ -750,7 +882,7 @@ TEST_FUNCTION(saslclientio_send_when_io_state_is_NOT_OPEN_fails)
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -760,11 +892,10 @@ TEST_FUNCTION(saslclientio_send_when_io_state_is_NOT_OPEN_fails)
 TEST_FUNCTION(saslclientio_send_when_io_state_is_OPENING_fails)
 {
 	// arrange
-	saslclientio_mocks mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 	unsigned char test_buffer[] = { 0x42 };
 
 	// act
@@ -772,7 +903,7 @@ TEST_FUNCTION(saslclientio_send_when_io_state_is_OPENING_fails)
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -782,12 +913,11 @@ TEST_FUNCTION(saslclientio_send_when_io_state_is_OPENING_fails)
 TEST_FUNCTION(saslclientio_send_when_io_state_is_ERROR_fails)
 {
 	// arrange
-	saslclientio_mocks mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_NOT_OPEN);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 	unsigned char test_buffer[] = { 0x42 };
 
 	// act
@@ -795,7 +925,7 @@ TEST_FUNCTION(saslclientio_send_when_io_state_is_ERROR_fails)
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -806,17 +936,14 @@ TEST_FUNCTION(saslclientio_send_when_io_state_is_ERROR_fails)
 TEST_FUNCTION(saslclientio_send_when_io_state_is_OPEN_calls_the_underlying_io_send)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(&mocks, &definitions_mocks, sasl_io);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	setup_successful_sasl_handshake(sasl_io);
+	umock_c_reset_all_calls();
 	unsigned char test_buffer[] = { 0x42 };
 
-	STRICT_EXPECTED_CALL(mocks, xio_send(test_underlying_io, test_buffer, sizeof(test_buffer), test_on_send_complete, test_context))
+	STRICT_EXPECTED_CALL(xio_send(test_underlying_io, test_buffer, sizeof(test_buffer), test_on_send_complete, test_context))
 		.ValidateArgumentBuffer(2, test_buffer, sizeof(test_buffer));
 
 	// act
@@ -824,7 +951,7 @@ TEST_FUNCTION(saslclientio_send_when_io_state_is_OPEN_calls_the_underlying_io_se
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -835,17 +962,14 @@ TEST_FUNCTION(saslclientio_send_when_io_state_is_OPEN_calls_the_underlying_io_se
 TEST_FUNCTION(saslclientio_send_with_NULL_on_send_complete_passes_NULL_to_the_underlying_io)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(&mocks, &definitions_mocks, sasl_io);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	setup_successful_sasl_handshake(sasl_io);
+	umock_c_reset_all_calls();
 	unsigned char test_buffer[] = { 0x42 };
 
-	STRICT_EXPECTED_CALL(mocks, xio_send(test_underlying_io, test_buffer, sizeof(test_buffer), NULL, test_context))
+	STRICT_EXPECTED_CALL(xio_send(test_underlying_io, test_buffer, sizeof(test_buffer), NULL, test_context))
 		.ValidateArgumentBuffer(2, test_buffer, sizeof(test_buffer));
 
 	// act
@@ -853,7 +977,7 @@ TEST_FUNCTION(saslclientio_send_with_NULL_on_send_complete_passes_NULL_to_the_un
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -864,17 +988,14 @@ TEST_FUNCTION(saslclientio_send_with_NULL_on_send_complete_passes_NULL_to_the_un
 TEST_FUNCTION(saslclientio_send_with_NULL_on_send_complete_context_passes_NULL_to_the_underlying_io)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(&mocks, &definitions_mocks, sasl_io);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	setup_successful_sasl_handshake(sasl_io);
+	umock_c_reset_all_calls();
 	unsigned char test_buffer[] = { 0x42 };
 
-	STRICT_EXPECTED_CALL(mocks, xio_send(test_underlying_io, test_buffer, sizeof(test_buffer), test_on_send_complete, NULL))
+	STRICT_EXPECTED_CALL(xio_send(test_underlying_io, test_buffer, sizeof(test_buffer), test_on_send_complete, NULL))
 		.ValidateArgumentBuffer(2, test_buffer, sizeof(test_buffer));
 
 	// act
@@ -882,7 +1003,7 @@ TEST_FUNCTION(saslclientio_send_with_NULL_on_send_complete_context_passes_NULL_t
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -892,28 +1013,25 @@ TEST_FUNCTION(saslclientio_send_with_NULL_on_send_complete_context_passes_NULL_t
 TEST_FUNCTION(saslclientio_send_with_NULL_sasl_io_fails)
 {
 	// arrange
-	saslclientio_mocks mocks;
 	unsigned char test_buffer[] = { 0x42 };
 
 	// act
 	int result = saslclientio_send(NULL, test_buffer, sizeof(test_buffer), test_on_send_complete, test_context);
 
 	// assert
-	ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_022: [If the saslio or buffer argument is NULL, saslclientio_send shall fail and return a non-zero value.] */
 TEST_FUNCTION(saslclientio_send_with_NULL_buffer_fails)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(&mocks, &definitions_mocks, sasl_io);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	setup_successful_sasl_handshake(sasl_io);
+	umock_c_reset_all_calls();
 	unsigned char test_buffer[] = { 0x42 };
 
 	// act
@@ -921,7 +1039,7 @@ TEST_FUNCTION(saslclientio_send_with_NULL_buffer_fails)
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -931,14 +1049,11 @@ TEST_FUNCTION(saslclientio_send_with_NULL_buffer_fails)
 TEST_FUNCTION(saslclientio_send_with_0_size_fails)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(&mocks, &definitions_mocks, sasl_io);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	setup_successful_sasl_handshake(sasl_io);
+	umock_c_reset_all_calls();
 	unsigned char test_buffer[] = { 0x42 };
 
 	// act
@@ -946,7 +1061,7 @@ TEST_FUNCTION(saslclientio_send_with_0_size_fails)
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -956,17 +1071,14 @@ TEST_FUNCTION(saslclientio_send_with_0_size_fails)
 TEST_FUNCTION(when_the_underlying_xio_send_fails_then_saslclientio_send_fails)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(&mocks, &definitions_mocks, sasl_io);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	setup_successful_sasl_handshake(sasl_io);
+	umock_c_reset_all_calls();
 	unsigned char test_buffer[] = { 0x42 };
 
-	STRICT_EXPECTED_CALL(mocks, xio_send(test_underlying_io, test_buffer, sizeof(test_buffer), test_on_send_complete, test_context))
+	STRICT_EXPECTED_CALL(xio_send(test_underlying_io, test_buffer, sizeof(test_buffer), test_on_send_complete, test_context))
 		.ValidateArgumentBuffer(2, test_buffer, sizeof(test_buffer))
 		.SetReturn(1);
 
@@ -975,7 +1087,7 @@ TEST_FUNCTION(when_the_underlying_xio_send_fails_then_saslclientio_send_fails)
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -987,22 +1099,19 @@ TEST_FUNCTION(when_the_underlying_xio_send_fails_then_saslclientio_send_fails)
 TEST_FUNCTION(when_the_io_state_is_OPEN_xio_dowork_calls_the_underlying_IO)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(&mocks, &definitions_mocks, sasl_io);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	setup_successful_sasl_handshake(sasl_io);
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, xio_dowork(test_underlying_io));
+	STRICT_EXPECTED_CALL(xio_dowork(test_underlying_io));
 
 	// act
 	saslclientio_dowork(sasl_io);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -1012,21 +1121,18 @@ TEST_FUNCTION(when_the_io_state_is_OPEN_xio_dowork_calls_the_underlying_IO)
 TEST_FUNCTION(when_the_io_state_is_OPENING_xio_dowork_calls_the_underlying_IO)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, xio_dowork(test_underlying_io));
+	STRICT_EXPECTED_CALL(xio_dowork(test_underlying_io));
 
 	// act
 	saslclientio_dowork(sasl_io);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -1036,18 +1142,15 @@ TEST_FUNCTION(when_the_io_state_is_OPENING_xio_dowork_calls_the_underlying_IO)
 TEST_FUNCTION(when_the_io_state_is_NOT_OPEN_xio_dowork_does_nothing)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	saslclientio_dowork(sasl_io);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -1057,20 +1160,17 @@ TEST_FUNCTION(when_the_io_state_is_NOT_OPEN_xio_dowork_does_nothing)
 TEST_FUNCTION(when_the_io_state_is_ERROR_xio_dowork_does_nothing)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_NOT_OPEN);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	saslclientio_dowork(sasl_io);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -1080,13 +1180,12 @@ TEST_FUNCTION(when_the_io_state_is_ERROR_xio_dowork_does_nothing)
 TEST_FUNCTION(saslclientio_dowork_with_NULL_sasl_io_handle_does_nothing)
 {
 	// arrange
-	saslclientio_mocks mocks;
 
 	// act
 	saslclientio_dowork(NULL);
 
 	// assert
-	// no explicit assert, uMock checks the calls
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
 /* saslclientio_get_interface_description */
@@ -1095,13 +1194,13 @@ TEST_FUNCTION(saslclientio_dowork_with_NULL_sasl_io_handle_does_nothing)
 TEST_FUNCTION(saslclientio_get_interface_description_returns_the_saslclientio_interface_functions)
 {
 	// arrange
-	saslclientio_mocks mocks;
 
 	// act
 	const IO_INTERFACE_DESCRIPTION* result = saslclientio_get_interface_description();
 
 	// assert
-	ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslclientio_create, (void_ptr)result->concrete_io_create);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslclientio_create, (void_ptr)result->concrete_io_create);
 	ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslclientio_destroy, (void_ptr)result->concrete_io_destroy);
 	ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslclientio_open, (void_ptr)result->concrete_io_open);
 	ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslclientio_close, (void_ptr)result->concrete_io_close);
@@ -1115,23 +1214,20 @@ TEST_FUNCTION(saslclientio_get_interface_description_returns_the_saslclientio_in
 TEST_FUNCTION(when_io_state_is_open_and_bytes_are_received_they_are_indicated_up)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	unsigned char test_bytes[] = { 0x42, 0x43 };
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(&mocks, &definitions_mocks, sasl_io);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	setup_successful_sasl_handshake(sasl_io);
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, test_on_bytes_received(test_context, test_bytes, sizeof(test_bytes)));
+	STRICT_EXPECTED_CALL(test_on_bytes_received(test_context, test_bytes, sizeof(test_bytes)));
 
 	// act
 	saved_on_bytes_received(saved_io_callback_context, test_bytes, sizeof(test_bytes));
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -1142,23 +1238,20 @@ TEST_FUNCTION(when_io_state_is_open_and_bytes_are_received_they_are_indicated_up
 TEST_FUNCTION(when_io_state_is_open_and_bytes_are_received_and_context_passed_to_open_was_NULL_NULL_is_passed_as_context_to_the_on_bytes_received_call)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	unsigned char test_bytes[] = { 0x42, 0x43 };
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, NULL);
-	setup_successful_sasl_handshake(&mocks, &definitions_mocks, sasl_io);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	setup_successful_sasl_handshake(sasl_io);
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, test_on_bytes_received(NULL, test_bytes, sizeof(test_bytes)));
+	STRICT_EXPECTED_CALL(test_on_bytes_received(NULL, test_bytes, sizeof(test_bytes)));
 
 	// act
 	saved_on_bytes_received(saved_io_callback_context, test_bytes, sizeof(test_bytes));
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -1168,23 +1261,20 @@ TEST_FUNCTION(when_io_state_is_open_and_bytes_are_received_and_context_passed_to
 TEST_FUNCTION(when_io_state_is_open_and_bytes_are_received_with_bytes_NULL_nothing_is_indicated_up)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	unsigned char test_bytes[] = { 0x42, 0x43 };
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(&mocks, &definitions_mocks, sasl_io);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	setup_successful_sasl_handshake(sasl_io);
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPEN));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPEN));
 
 	// act
 	saved_on_bytes_received(saved_io_callback_context, NULL, sizeof(test_bytes));
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -1194,23 +1284,20 @@ TEST_FUNCTION(when_io_state_is_open_and_bytes_are_received_with_bytes_NULL_nothi
 TEST_FUNCTION(when_io_state_is_open_and_bytes_are_received_with_size_zero_nothing_is_indicated_up)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	unsigned char test_bytes[] = { 0x42, 0x43 };
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(&mocks, &definitions_mocks, sasl_io);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	setup_successful_sasl_handshake(sasl_io);
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPEN));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPEN));
 
 	// act
 	saved_on_bytes_received(saved_io_callback_context, test_bytes, 0);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -1220,21 +1307,18 @@ TEST_FUNCTION(when_io_state_is_open_and_bytes_are_received_with_size_zero_nothin
 TEST_FUNCTION(when_io_state_is_ERROR_and_bytes_are_received_nothing_is_done)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
 	unsigned char test_bytes[] = { 0x42, 0x43 };
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_NOT_OPEN);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	saved_on_bytes_received(saved_io_callback_context, test_bytes, 1);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -1245,19 +1329,16 @@ TEST_FUNCTION(when_io_state_is_ERROR_and_bytes_are_received_nothing_is_done)
 TEST_FUNCTION(when_io_state_is_opening_and_1_byte_is_received_it_is_used_for_the_header)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, 1);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -1269,22 +1350,19 @@ TEST_FUNCTION(when_io_state_is_opening_and_1_byte_is_received_it_is_used_for_the
 TEST_FUNCTION(when_io_state_is_opening_and_1_bad_byte_is_received_state_is_set_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
 	unsigned char test_bytes[] = { 0x42 };
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
 	// act
 	saved_on_bytes_received(saved_io_callback_context, test_bytes, sizeof(test_bytes));
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -1296,22 +1374,19 @@ TEST_FUNCTION(when_io_state_is_opening_and_1_bad_byte_is_received_state_is_set_t
 TEST_FUNCTION(when_io_state_is_opening_and_the_last_header_byte_is_bad_state_is_set_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
 	unsigned char test_bytes[] = { 'A', 'M', 'Q', 'P', 3, 1, 0, 'x' };
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
 	// act
 	saved_on_bytes_received(saved_io_callback_context, test_bytes, sizeof(test_bytes));
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -1326,22 +1401,19 @@ TEST_FUNCTION(when_io_state_is_opening_and_the_last_header_byte_is_bad_state_is_
 TEST_FUNCTION(when_underlying_IO_switches_the_state_to_OPEN_the_SASL_header_is_sent)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	EXPECTED_CALL(mocks, xio_send(test_underlying_io, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(xio_send(test_underlying_io, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgument(1).ExpectedAtLeastTimes(1);
 
 	// act
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 	stringify_bytes(io_send_bytes, io_send_byte_count, actual_stringified_io);
 	stringify_bytes(sasl_header, sizeof(sasl_header), expected_stringified_io);
 	ASSERT_ARE_EQUAL(char_ptr, expected_stringified_io, actual_stringified_io);
@@ -1354,24 +1426,21 @@ TEST_FUNCTION(when_underlying_IO_switches_the_state_to_OPEN_the_SASL_header_is_s
 TEST_FUNCTION(when_sending_the_header_fails_state_is_set_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	EXPECTED_CALL(mocks, xio_send(test_underlying_io, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(xio_send(test_underlying_io, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgument(1)
 		.SetReturn(1);
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
 	// act
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -1383,23 +1452,20 @@ TEST_FUNCTION(when_sending_the_header_fails_state_is_set_to_ERROR)
 TEST_FUNCTION(when_a_bad_header_is_received_after_a_good_one_has_been_sent_state_is_set_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
 	unsigned char test_bytes[] = { 'A', 'M', 'Q', 'P', 3, 1, 0, 'x' };
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
 	// act
 	saved_on_bytes_received(saved_io_callback_context, test_bytes, sizeof(test_bytes));
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 	stringify_bytes(io_send_bytes, io_send_byte_count, actual_stringified_io);
 	stringify_bytes(sasl_header, sizeof(sasl_header), expected_stringified_io);
 	ASSERT_ARE_EQUAL(char_ptr, expected_stringified_io, actual_stringified_io);
@@ -1413,20 +1479,17 @@ TEST_FUNCTION(when_a_bad_header_is_received_after_a_good_one_has_been_sent_state
 TEST_FUNCTION(when_a_good_header_is_received_after_the_header_has_been_sent_yields_no_error)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -1438,25 +1501,22 @@ TEST_FUNCTION(when_a_good_header_is_received_after_the_header_has_been_sent_yiel
 TEST_FUNCTION(when_one_byte_is_received_after_header_handshake_it_is_sent_to_the_frame_codec)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
 	unsigned char test_bytes[] = { 0x42 };
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	EXPECTED_CALL(mocks, frame_codec_receive_bytes(test_frame_codec, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
+	EXPECTED_CALL(frame_codec_receive_bytes(test_frame_codec, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
 		.ValidateArgument(1).ExpectedAtLeastTimes(1);
 
 	// act
 	saved_on_bytes_received(saved_io_callback_context, test_bytes, sizeof(test_bytes));
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 	stringify_bytes(frame_codec_received_bytes, frame_codec_received_byte_count, actual_stringified_io);
 	stringify_bytes(test_bytes, sizeof(test_bytes), expected_stringified_io);
 	ASSERT_ARE_EQUAL(char_ptr, expected_stringified_io, actual_stringified_io);
@@ -1469,27 +1529,24 @@ TEST_FUNCTION(when_one_byte_is_received_after_header_handshake_it_is_sent_to_the
 TEST_FUNCTION(when_frame_codec_receive_bytes_fails_then_the_state_is_switched_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
 	unsigned char test_bytes[] = { 0x42 };
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	EXPECTED_CALL(mocks, frame_codec_receive_bytes(test_frame_codec, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
+	EXPECTED_CALL(frame_codec_receive_bytes(test_frame_codec, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
 		.ValidateArgument(1)
 		.SetReturn(1);
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
 	// act
 	saved_on_bytes_received(saved_io_callback_context, test_bytes, sizeof(test_bytes));
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 	stringify_bytes(frame_codec_received_bytes, frame_codec_received_byte_count, actual_stringified_io);
 	stringify_bytes(test_bytes, sizeof(test_bytes), expected_stringified_io);
 	ASSERT_ARE_EQUAL(char_ptr, expected_stringified_io, actual_stringified_io);
@@ -1502,21 +1559,18 @@ TEST_FUNCTION(when_frame_codec_receive_bytes_fails_then_the_state_is_switched_to
 TEST_FUNCTION(ERROR_received_in_the_state_OPENING_sets_the_state_to_ERROR_and_triggers_callback)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
 	// act
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_NOT_OPEN);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -1526,22 +1580,19 @@ TEST_FUNCTION(ERROR_received_in_the_state_OPENING_sets_the_state_to_ERROR_and_tr
 TEST_FUNCTION(ERROR_received_in_the_state_OPEN_sets_the_state_to_ERROR_and_triggers_callback)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(&mocks, &definitions_mocks, sasl_io);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	setup_successful_sasl_handshake(sasl_io);
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPEN));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPEN));
 
 	// act
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_OPEN);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -1551,20 +1602,17 @@ TEST_FUNCTION(ERROR_received_in_the_state_OPEN_sets_the_state_to_ERROR_and_trigg
 TEST_FUNCTION(ERROR_received_in_the_state_ERROR_does_nothing)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_OPEN);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_OPEN);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -1574,19 +1622,16 @@ TEST_FUNCTION(ERROR_received_in_the_state_ERROR_does_nothing)
 TEST_FUNCTION(OPENING_received_in_the_state_OPENING_does_nothing)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPENING, IO_STATE_OPEN);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -1596,22 +1641,19 @@ TEST_FUNCTION(OPENING_received_in_the_state_OPENING_does_nothing)
 TEST_FUNCTION(OPENING_received_in_the_state_OPEN_raises_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(&mocks, &definitions_mocks, sasl_io);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	setup_successful_sasl_handshake(sasl_io);
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPEN));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPEN));
 
 	// act
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPENING, IO_STATE_OPEN);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -1621,21 +1663,18 @@ TEST_FUNCTION(OPENING_received_in_the_state_OPEN_raises_ERROR)
 TEST_FUNCTION(OPENING_received_in_the_state_ERROR_does_nothing)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(&mocks, &definitions_mocks, sasl_io);
+	setup_successful_sasl_handshake(sasl_io);
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_OPEN);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPENING, IO_STATE_ERROR);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -1645,21 +1684,18 @@ TEST_FUNCTION(OPENING_received_in_the_state_ERROR_does_nothing)
 TEST_FUNCTION(NOT_OPEN_received_in_the_state_OPENING_raises_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
 	// act
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_NOT_OPEN, IO_STATE_OPEN);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -1669,21 +1705,18 @@ TEST_FUNCTION(NOT_OPEN_received_in_the_state_OPENING_raises_ERROR)
 TEST_FUNCTION(NOT_OPEN_received_in_the_state_OPEN_raises_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
 	// act
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_NOT_OPEN, IO_STATE_OPEN);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -1693,20 +1726,17 @@ TEST_FUNCTION(NOT_OPEN_received_in_the_state_OPEN_raises_ERROR)
 TEST_FUNCTION(NOT_OPEN_received_in_the_state_ERROR_does_nothing)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_OPEN);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_NOT_OPEN, IO_STATE_OPEN);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -1716,20 +1746,17 @@ TEST_FUNCTION(NOT_OPEN_received_in_the_state_ERROR_does_nothing)
 TEST_FUNCTION(OPEN_received_in_the_state_NOT_OPEN_does_nothing)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_OPEN);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_NOT_OPEN, IO_STATE_OPEN);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -1739,20 +1766,17 @@ TEST_FUNCTION(OPEN_received_in_the_state_NOT_OPEN_does_nothing)
 TEST_FUNCTION(OPEN_received_in_the_state_OPEN_does_nothing)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(&mocks, &definitions_mocks, sasl_io);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	setup_successful_sasl_handshake(sasl_io);
+	umock_c_reset_all_calls();
 
 	// act
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_OPENING);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -1762,21 +1786,18 @@ TEST_FUNCTION(OPEN_received_in_the_state_OPEN_does_nothing)
 TEST_FUNCTION(OPEN_received_in_the_state_ERROR_does_nothing)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(&mocks, &definitions_mocks, sasl_io);
+	setup_successful_sasl_handshake(sasl_io);
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_OPEN);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_OPENING);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -1786,23 +1807,20 @@ TEST_FUNCTION(OPEN_received_in_the_state_ERROR_does_nothing)
 TEST_FUNCTION(when_sending_the_header_with_xio_send_fails_then_the_io_state_is_set_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	EXPECTED_CALL(mocks, xio_send(test_underlying_io, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(xio_send(test_underlying_io, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgument(1).ExpectedAtLeastTimes(1).SetReturn(1);
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
 	// act
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -1812,20 +1830,17 @@ TEST_FUNCTION(when_sending_the_header_with_xio_send_fails_then_the_io_state_is_s
 TEST_FUNCTION(when_underlying_io_sets_the_state_to_OPEN_after_the_header_exchange_was_started_nothing_shall_be_done)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_OPEN);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -1843,49 +1858,43 @@ TEST_FUNCTION(when_underlying_io_sets_the_state_to_OPEN_after_the_header_exchang
 TEST_FUNCTION(when_a_SASL_mechanism_is_received_after_the_header_exchange_a_sasl_init_frame_is_send_with_the_selected_mechanism)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
 		.SetReturn(true);
-	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
 	AMQP_VALUE sasl_server_mechanisms;
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, &sasl_server_mechanisms))
-		.IgnoreArgument(2);
+	STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG));
 	uint32_t mechanisms_count = 1;
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
+	STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
 		.CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_array_item(sasl_server_mechanisms, 0));
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_array_item(sasl_server_mechanisms, 0));
+	STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
-	STRICT_EXPECTED_CALL(mocks, saslmechanism_get_mechanism_name(test_sasl_mechanism));
+	STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
 	SASL_MECHANISM_BYTES init_bytes = { NULL, 0 };
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_init_create(test_mechanism));
-	EXPECTED_CALL(mocks, saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(sasl_init_create(test_mechanism));
+	EXPECTED_CALL(saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &init_bytes, sizeof(init_bytes));
-	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_create_sasl_init(test_sasl_init_handle));
-	STRICT_EXPECTED_CALL(mocks, sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_init_amqp_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(3).IgnoreArgument(4);
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_init_destroy(test_sasl_init_handle));
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_destroy(test_sasl_init_amqp_value));
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
+	STRICT_EXPECTED_CALL(amqpvalue_create_sasl_init(test_sasl_init_handle));
+	STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_init_amqp_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+	STRICT_EXPECTED_CALL(sasl_init_destroy(test_sasl_init_handle));
+	STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_init_amqp_value));
+	STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
 
 	// act
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -1896,8 +1905,6 @@ TEST_FUNCTION(when_a_SASL_mechanism_is_received_after_the_header_exchange_a_sasl
 TEST_FUNCTION(when_a_SASL_mechanism_is_received_a_sasl_init_frame_is_send_with_the_mechanism_name_and_the_init_bytes)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	unsigned char test_init_bytes[] = { 0x42, 0x43 };
@@ -1905,43 +1912,39 @@ TEST_FUNCTION(when_a_SASL_mechanism_is_received_a_sasl_init_frame_is_send_with_t
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
 		.SetReturn(true);
-	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
 	AMQP_VALUE sasl_server_mechanisms;
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, &sasl_server_mechanisms))
-		.IgnoreArgument(2);
+	STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG));
 	uint32_t mechanisms_count = 1;
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
+	STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
 		.CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_array_item(sasl_server_mechanisms, 0));
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_array_item(sasl_server_mechanisms, 0));
+	STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
-	STRICT_EXPECTED_CALL(mocks, saslmechanism_get_mechanism_name(test_sasl_mechanism));
+	STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
 	SASL_MECHANISM_BYTES init_bytes = { test_init_bytes, sizeof(test_init_bytes) };
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_init_create(test_mechanism));
-	EXPECTED_CALL(mocks, saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(sasl_init_create(test_mechanism));
+	EXPECTED_CALL(saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &init_bytes, sizeof(init_bytes));
-	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_create_sasl_init(test_sasl_init_handle));
+	STRICT_EXPECTED_CALL(amqpvalue_create_sasl_init(test_sasl_init_handle));
 	amqp_binary expected_creds = { test_init_bytes, sizeof(test_init_bytes) };
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_init_set_initial_response(test_sasl_init_handle, expected_creds));
-	STRICT_EXPECTED_CALL(mocks, sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_init_amqp_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(3).IgnoreArgument(4);
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_init_destroy(test_sasl_init_handle));
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_destroy(test_sasl_init_amqp_value));
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
+	STRICT_EXPECTED_CALL(sasl_init_set_initial_response(test_sasl_init_handle, expected_creds));
+	STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_init_amqp_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+	STRICT_EXPECTED_CALL(sasl_init_destroy(test_sasl_init_handle));
+	STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_init_amqp_value));
+	STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
 
 	// act
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -1951,23 +1954,19 @@ TEST_FUNCTION(when_a_SASL_mechanism_is_received_a_sasl_init_frame_is_send_with_t
 TEST_FUNCTION(when_a_SASL_mechanism_is_received_when_header_handshake_is_not_done_the_IO_state_is_set_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
 	// act
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -1977,23 +1976,19 @@ TEST_FUNCTION(when_a_SASL_mechanism_is_received_when_header_handshake_is_not_don
 TEST_FUNCTION(when_a_SASL_mechanism_is_received_in_the_OPEN_state_the_IO_state_is_set_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(&mocks, &definitions_mocks, sasl_io);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	setup_successful_sasl_handshake(sasl_io);
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPEN));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPEN));
 
 	// act
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -2003,27 +1998,23 @@ TEST_FUNCTION(when_a_SASL_mechanism_is_received_in_the_OPEN_state_the_IO_state_i
 TEST_FUNCTION(when_a_SASL_mechanism_is_received_and_getting_the_descriptor_fails_the_IO_state_is_set_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_inplace_descriptor(test_sasl_value))
+	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value))
 		.SetReturn((AMQP_VALUE)NULL);
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
 	// act
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -2033,38 +2024,33 @@ TEST_FUNCTION(when_a_SASL_mechanism_is_received_and_getting_the_descriptor_fails
 TEST_FUNCTION(when_a_SASL_mechanism_is_received_and_getting_the_mechanism_name_fails_the_IO_state_is_set_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
+	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
 	AMQP_VALUE sasl_server_mechanisms;
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, &sasl_server_mechanisms))
-		.IgnoreArgument(2);
+	STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG));
 	uint32_t mechanisms_count = 1;
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
+	STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
 		.CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
-	STRICT_EXPECTED_CALL(mocks, saslmechanism_get_mechanism_name(test_sasl_mechanism))
+	STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism))
 		.SetReturn((const char*)NULL);
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
 
 	// act
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -2074,44 +2060,39 @@ TEST_FUNCTION(when_a_SASL_mechanism_is_received_and_getting_the_mechanism_name_f
 TEST_FUNCTION(when_a_SASL_mechanism_is_received_and_creating_the_sasl_init_value_fails_the_IO_state_is_set_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
 		.SetReturn(true);
-	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
 	AMQP_VALUE sasl_server_mechanisms;
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, &sasl_server_mechanisms))
-		.IgnoreArgument(2);
+	STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG));
 	uint32_t mechanisms_count = 1;
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
+	STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
 		.CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_array_item(sasl_server_mechanisms, 0));
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_array_item(sasl_server_mechanisms, 0));
+	STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
-	STRICT_EXPECTED_CALL(mocks, saslmechanism_get_mechanism_name(test_sasl_mechanism));
+	STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
 	SASL_MECHANISM_BYTES init_bytes = { NULL, 0 };
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_init_create(test_mechanism))
+	STRICT_EXPECTED_CALL(sasl_init_create(test_mechanism))
 		.SetReturn((SASL_INIT_HANDLE)NULL);
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
 
 	// act
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -2121,46 +2102,41 @@ TEST_FUNCTION(when_a_SASL_mechanism_is_received_and_creating_the_sasl_init_value
 TEST_FUNCTION(when_a_SASL_mechanism_is_received_and_getting_the_initial_bytes_fails_the_IO_state_is_set_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
+	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
 	AMQP_VALUE sasl_server_mechanisms;
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, &sasl_server_mechanisms))
-		.IgnoreArgument(2);
+	STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG));
 	uint32_t mechanisms_count = 1;
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
+	STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
 		.CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_array_item(sasl_server_mechanisms, 0));
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_array_item(sasl_server_mechanisms, 0));
+	STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
-	STRICT_EXPECTED_CALL(mocks, saslmechanism_get_mechanism_name(test_sasl_mechanism));
+	STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
 	SASL_MECHANISM_BYTES init_bytes = { NULL, 0 };
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_init_create(test_mechanism));
-	EXPECTED_CALL(mocks, saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(sasl_init_create(test_mechanism));
+	EXPECTED_CALL(saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &init_bytes, sizeof(init_bytes))
 		.SetReturn(1);
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_init_destroy(test_sasl_init_handle));
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
+	STRICT_EXPECTED_CALL(sasl_init_destroy(test_sasl_init_handle));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
 
 	// act
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -2170,47 +2146,42 @@ TEST_FUNCTION(when_a_SASL_mechanism_is_received_and_getting_the_initial_bytes_fa
 TEST_FUNCTION(when_a_SASL_mechanism_is_received_and_getting_the_AMQP_VALUE_fails_the_IO_state_is_set_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
+	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
 	AMQP_VALUE sasl_server_mechanisms;
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, &sasl_server_mechanisms))
-		.IgnoreArgument(2);
+	STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG));
 	uint32_t mechanisms_count = 1;
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
+	STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
 		.CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_array_item(sasl_server_mechanisms, 0));
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_array_item(sasl_server_mechanisms, 0));
+	STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
-	STRICT_EXPECTED_CALL(mocks, saslmechanism_get_mechanism_name(test_sasl_mechanism));
+	STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
 	SASL_MECHANISM_BYTES init_bytes = { NULL, 0 };
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_init_create(test_mechanism));
-	EXPECTED_CALL(mocks, saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(sasl_init_create(test_mechanism));
+	EXPECTED_CALL(saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &init_bytes, sizeof(init_bytes));
-	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_create_sasl_init(test_sasl_init_handle))
+	STRICT_EXPECTED_CALL(amqpvalue_create_sasl_init(test_sasl_init_handle))
 		.SetReturn((AMQP_VALUE)NULL);
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_init_destroy(test_sasl_init_handle));
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
+	STRICT_EXPECTED_CALL(sasl_init_destroy(test_sasl_init_handle));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
 
 	// act
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -2220,50 +2191,44 @@ TEST_FUNCTION(when_a_SASL_mechanism_is_received_and_getting_the_AMQP_VALUE_fails
 TEST_FUNCTION(when_a_SASL_mechanism_is_received_and_encoding_the_sasl_frame_fails_the_IO_state_is_set_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
+	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
 	AMQP_VALUE sasl_server_mechanisms;
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, &sasl_server_mechanisms))
-		.IgnoreArgument(2);
+	STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG));
 	uint32_t mechanisms_count = 1;
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
+	STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
 		.CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_array_item(sasl_server_mechanisms, 0));
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_array_item(sasl_server_mechanisms, 0));
+	STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
-	STRICT_EXPECTED_CALL(mocks, saslmechanism_get_mechanism_name(test_sasl_mechanism));
+	STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
 	SASL_MECHANISM_BYTES init_bytes = { NULL, 0 };
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_init_create(test_mechanism));
-	EXPECTED_CALL(mocks, saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(sasl_init_create(test_mechanism));
+	EXPECTED_CALL(saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &init_bytes, sizeof(init_bytes));
-	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_create_sasl_init(test_sasl_init_handle));
-	STRICT_EXPECTED_CALL(mocks, sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_init_amqp_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(3).IgnoreArgument(4)
+	STRICT_EXPECTED_CALL(amqpvalue_create_sasl_init(test_sasl_init_handle));
+	STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_init_amqp_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.SetReturn(1);
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_destroy(test_sasl_init_amqp_value));
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_init_destroy(test_sasl_init_handle));
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
+	STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_init_amqp_value));
+	STRICT_EXPECTED_CALL(sasl_init_destroy(test_sasl_init_handle));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
 
 	// act
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -2273,8 +2238,6 @@ TEST_FUNCTION(when_a_SASL_mechanism_is_received_and_encoding_the_sasl_frame_fail
 TEST_FUNCTION(when_a_SASL_mechanism_is_received_and_setting_the_init_bytes_fails_the_IO_state_is_set_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	unsigned char test_init_bytes[] = { 0x42 };
@@ -2282,44 +2245,40 @@ TEST_FUNCTION(when_a_SASL_mechanism_is_received_and_setting_the_init_bytes_fails
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
+	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
 	AMQP_VALUE sasl_server_mechanisms;
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, &sasl_server_mechanisms))
-		.IgnoreArgument(2);
+    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG));
 	uint32_t mechanisms_count = 1;
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
+	STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
 		.CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_array_item(sasl_server_mechanisms, 0));
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_array_item(sasl_server_mechanisms, 0));
+	STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
-	STRICT_EXPECTED_CALL(mocks, saslmechanism_get_mechanism_name(test_sasl_mechanism));
+	STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
 	SASL_MECHANISM_BYTES init_bytes = { test_init_bytes, sizeof(test_init_bytes) };
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_init_create(test_mechanism));
-	STRICT_EXPECTED_CALL(mocks, saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(sasl_init_create(test_mechanism));
+	STRICT_EXPECTED_CALL(saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &init_bytes, sizeof(init_bytes));
 	amqp_binary expected_creds = { test_init_bytes, sizeof(test_init_bytes) };
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_init_set_initial_response(test_sasl_init_handle, expected_creds));
-	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_create_sasl_init(test_sasl_init_handle));
-	STRICT_EXPECTED_CALL(mocks, sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_init_amqp_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(3).IgnoreArgument(4)
+	STRICT_EXPECTED_CALL(sasl_init_set_initial_response(test_sasl_init_handle, expected_creds));
+	STRICT_EXPECTED_CALL(amqpvalue_create_sasl_init(test_sasl_init_handle));
+	STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_init_amqp_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.SetReturn(1);
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_destroy(test_sasl_init_amqp_value));
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_init_destroy(test_sasl_init_handle));
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
+	STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_init_amqp_value));
+	STRICT_EXPECTED_CALL(sasl_init_destroy(test_sasl_init_handle));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
 
 	// act
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -2334,45 +2293,41 @@ TEST_FUNCTION(when_a_SASL_mechanism_is_received_and_setting_the_init_bytes_fails
 TEST_FUNCTION(when_a_SASL_outcome_frame_is_received_with_ok_the_SASL_IO_state_is_switched_to_OPEN)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
 		.SetReturn(true);
-	EXPECTED_CALL(mocks, amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_outcome, sizeof(test_sasl_outcome));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
 		.SetReturn(false);
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_challenge_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
 		.SetReturn(false);
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_outcome_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(is_sasl_outcome_type_by_descriptor(test_descriptor_value))
 		.SetReturn(true);
 	sasl_code sasl_outcome_code = sasl_code_ok;
-	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_get_sasl_outcome(test_sasl_value, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_outcome(test_sasl_value, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_outcome_handle, sizeof(test_sasl_outcome_handle));
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_outcome_get_code(test_sasl_outcome_handle, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(sasl_outcome_get_code(test_sasl_outcome_handle, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &sasl_outcome_code, sizeof(sasl_outcome_code));
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_outcome_destroy(test_sasl_outcome_handle));
+	STRICT_EXPECTED_CALL(sasl_outcome_destroy(test_sasl_outcome_handle));
 
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_OPEN, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_OPEN, IO_STATE_OPENING));
 
 	// act
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -2381,45 +2336,41 @@ TEST_FUNCTION(when_a_SASL_outcome_frame_is_received_with_ok_the_SASL_IO_state_is
 void when_an_outcome_with_error_code_is_received_the_SASL_IO_state_is_set_to_ERROR(sasl_code test_sasl_code)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
 		.SetReturn(true);
-	EXPECTED_CALL(mocks, amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_outcome, sizeof(test_sasl_outcome));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
 		.SetReturn(false);
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_challenge_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
 		.SetReturn(false);
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_outcome_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(is_sasl_outcome_type_by_descriptor(test_descriptor_value))
 		.SetReturn(true);
 	sasl_code sasl_outcome_code = test_sasl_code;
-	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_get_sasl_outcome(test_sasl_value, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_outcome(test_sasl_value, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_outcome_handle, sizeof(test_sasl_outcome_handle));
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_outcome_get_code(test_sasl_outcome_handle, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(sasl_outcome_get_code(test_sasl_outcome_handle, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &sasl_outcome_code, sizeof(sasl_outcome_code));
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_outcome_destroy(test_sasl_outcome_handle));
+	STRICT_EXPECTED_CALL(sasl_outcome_destroy(test_sasl_outcome_handle));
 
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
 	// act
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -2453,33 +2404,29 @@ TEST_FUNCTION(when_a_SASL_outcome_frame_is_received_with_sys_temp_error_code_the
 TEST_FUNCTION(when_a_SASL_outcome_frame_is_received_before_mechanisms_the_state_is_set_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_outcome, sizeof(test_sasl_outcome));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
 		.SetReturn(false);
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_challenge_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
 		.SetReturn(false);
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_outcome_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(is_sasl_outcome_type_by_descriptor(test_descriptor_value))
 		.SetReturn(true);
 
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
 	// act
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -2489,57 +2436,52 @@ TEST_FUNCTION(when_a_SASL_outcome_frame_is_received_before_mechanisms_the_state_
 TEST_FUNCTION(when_a_SASL_challenge_is_received_before_mechanisms_the_state_is_set_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_challenge, sizeof(test_sasl_challenge));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
 		.SetReturn(false);
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_challenge_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
 		.SetReturn(true);
 
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
 	// act
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
 }
 
-static void setup_succesfull_challenge_response(saslclientio_mocks* mocks, amqp_definitions_mocks* definitions_mocks)
+static void setup_succesfull_challenge_response(void)
 {
 
-	STRICT_EXPECTED_CALL((*mocks), amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL((*definitions_mocks), is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
 		.SetReturn(false);
-	STRICT_EXPECTED_CALL((*definitions_mocks), is_sasl_challenge_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
 		.SetReturn(true);
-	STRICT_EXPECTED_CALL((*definitions_mocks), amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle));
-	STRICT_EXPECTED_CALL((*definitions_mocks), sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &some_challenge_bytes, sizeof(some_challenge_bytes));
-	STRICT_EXPECTED_CALL((*mocks), saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(3, &sasl_mechanism_response_bytes, sizeof(sasl_mechanism_response_bytes));
-	STRICT_EXPECTED_CALL((*definitions_mocks), sasl_response_create(response_binary_value));
-	STRICT_EXPECTED_CALL((*definitions_mocks), amqpvalue_create_sasl_response(test_sasl_response_handle));
-	STRICT_EXPECTED_CALL((*mocks), sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_response_amqp_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(3).IgnoreArgument(4);
-	STRICT_EXPECTED_CALL((*definitions_mocks), sasl_response_destroy(test_sasl_response_handle));
-	STRICT_EXPECTED_CALL((*mocks), amqpvalue_destroy(test_sasl_response_amqp_value));
-	STRICT_EXPECTED_CALL((*definitions_mocks), sasl_challenge_destroy(test_sasl_challenge_handle));
+	STRICT_EXPECTED_CALL(sasl_response_create(response_binary_value));
+	STRICT_EXPECTED_CALL(amqpvalue_create_sasl_response(test_sasl_response_handle));
+	STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_response_amqp_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+	STRICT_EXPECTED_CALL(sasl_response_destroy(test_sasl_response_handle));
+	STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_response_amqp_value));
+	STRICT_EXPECTED_CALL(sasl_challenge_destroy(test_sasl_challenge_handle));
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_052: [Send the SASL challenge data as defined by the SASL specification.] */
@@ -2553,31 +2495,27 @@ static void setup_succesfull_challenge_response(saslclientio_mocks* mocks, amqp_
 TEST_FUNCTION(when_a_SASL_challenge_is_received_after_the_mechanisms_the_sasl_mechanism_challenge_processing_is_invoked)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
 		.SetReturn(true);
-	EXPECTED_CALL(mocks, amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_challenge, sizeof(test_sasl_challenge));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	setup_succesfull_challenge_response(&mocks, &definitions_mocks);
+	setup_succesfull_challenge_response();
 
 	// act
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -2587,8 +2525,6 @@ TEST_FUNCTION(when_a_SASL_challenge_is_received_after_the_mechanisms_the_sasl_me
 TEST_FUNCTION(when_getting_the_sasl_challenge_fails_then_the_state_is_set_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	unsigned char test_challenge_bytes[] = { 0x42 };
@@ -2597,31 +2533,29 @@ TEST_FUNCTION(when_getting_the_sasl_challenge_fails_then_the_state_is_set_to_ERR
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
 		.SetReturn(true);
-	EXPECTED_CALL(mocks, amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_challenge, sizeof(test_sasl_challenge));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
 		.SetReturn(false);
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_challenge_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
 		.SetReturn(true);
-	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle))
 		.SetReturn(1);
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
 	// act
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -2631,8 +2565,6 @@ TEST_FUNCTION(when_getting_the_sasl_challenge_fails_then_the_state_is_set_to_ERR
 TEST_FUNCTION(when_getting_the_challenge_bytes_fails_then_the_state_is_set_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	unsigned char test_challenge_bytes[] = { 0x42 };
@@ -2641,35 +2573,33 @@ TEST_FUNCTION(when_getting_the_challenge_bytes_fails_then_the_state_is_set_to_ER
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
 		.SetReturn(true);
-	EXPECTED_CALL(mocks, amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_challenge, sizeof(test_sasl_challenge));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
 		.SetReturn(false);
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_challenge_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
 		.SetReturn(true);
-	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle));
 	amqp_binary some_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &some_challenge_bytes, sizeof(some_challenge_bytes))
 		.SetReturn(1);
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_challenge_destroy(test_sasl_challenge_handle));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(sasl_challenge_destroy(test_sasl_challenge_handle));
 
 	// act
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -2679,8 +2609,6 @@ TEST_FUNCTION(when_getting_the_challenge_bytes_fails_then_the_state_is_set_to_ER
 TEST_FUNCTION(when_the_sasl_mechanism_challenge_response_function_fails_then_the_state_is_set_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	unsigned char test_challenge_bytes[] = { 0x42 };
@@ -2689,39 +2617,37 @@ TEST_FUNCTION(when_the_sasl_mechanism_challenge_response_function_fails_then_the
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
 		.SetReturn(true);
-	EXPECTED_CALL(mocks, amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_challenge, sizeof(test_sasl_challenge));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
 		.SetReturn(false);
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_challenge_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
 		.SetReturn(true);
-	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle));
 	amqp_binary some_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &some_challenge_bytes, sizeof(some_challenge_bytes));
 	SASL_MECHANISM_BYTES sasl_mechanism_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
 	SASL_MECHANISM_BYTES sasl_mechanism_response_bytes = { test_response_bytes, sizeof(test_response_bytes) };
-	STRICT_EXPECTED_CALL(mocks, saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(3, &sasl_mechanism_response_bytes, sizeof(sasl_mechanism_response_bytes))
 		.SetReturn(1);
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_challenge_destroy(test_sasl_challenge_handle));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(sasl_challenge_destroy(test_sasl_challenge_handle));
 
 	// act
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -2731,8 +2657,6 @@ TEST_FUNCTION(when_the_sasl_mechanism_challenge_response_function_fails_then_the
 TEST_FUNCTION(when_creating_the_sasl_response_fails_the_state_is_set_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	unsigned char test_challenge_bytes[] = { 0x42 };
@@ -2741,41 +2665,39 @@ TEST_FUNCTION(when_creating_the_sasl_response_fails_the_state_is_set_to_ERROR)
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
 		.SetReturn(true);
-	EXPECTED_CALL(mocks, amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_challenge, sizeof(test_sasl_challenge));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
 		.SetReturn(false);
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_challenge_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
 		.SetReturn(true);
-	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle));
 	amqp_binary some_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &some_challenge_bytes, sizeof(some_challenge_bytes));
 	SASL_MECHANISM_BYTES sasl_mechanism_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
 	SASL_MECHANISM_BYTES sasl_mechanism_response_bytes = { test_response_bytes, sizeof(test_response_bytes) };
-	STRICT_EXPECTED_CALL(mocks, saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(3, &sasl_mechanism_response_bytes, sizeof(sasl_mechanism_response_bytes));
 	amqp_binary response_binary_value = { test_response_bytes, sizeof(test_response_bytes) };
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_response_create(response_binary_value))
+	STRICT_EXPECTED_CALL(sasl_response_create(response_binary_value))
 		.SetReturn((SASL_RESPONSE_HANDLE)NULL);
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_challenge_destroy(test_sasl_challenge_handle));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(sasl_challenge_destroy(test_sasl_challenge_handle));
 
 	// act
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -2785,8 +2707,6 @@ TEST_FUNCTION(when_creating_the_sasl_response_fails_the_state_is_set_to_ERROR)
 TEST_FUNCTION(when_creating_the_AMQP_VALUE_for_sasl_response_fails_the_state_is_set_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	unsigned char test_challenge_bytes[] = { 0x42 };
@@ -2795,43 +2715,41 @@ TEST_FUNCTION(when_creating_the_AMQP_VALUE_for_sasl_response_fails_the_state_is_
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
 		.SetReturn(true);
-	EXPECTED_CALL(mocks, amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_challenge, sizeof(test_sasl_challenge));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
 		.SetReturn(false);
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_challenge_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
 		.SetReturn(true);
-	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle));
 	amqp_binary some_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &some_challenge_bytes, sizeof(some_challenge_bytes));
 	SASL_MECHANISM_BYTES sasl_mechanism_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
 	SASL_MECHANISM_BYTES sasl_mechanism_response_bytes = { test_response_bytes, sizeof(test_response_bytes) };
-	STRICT_EXPECTED_CALL(mocks, saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(3, &sasl_mechanism_response_bytes, sizeof(sasl_mechanism_response_bytes));
 	amqp_binary response_binary_value = { test_response_bytes, sizeof(test_response_bytes) };
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_response_create(response_binary_value));
-	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_create_sasl_response(test_sasl_response_handle))
+	STRICT_EXPECTED_CALL(sasl_response_create(response_binary_value));
+	STRICT_EXPECTED_CALL(amqpvalue_create_sasl_response(test_sasl_response_handle))
 		.SetReturn((AMQP_VALUE)NULL);
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_response_destroy(test_sasl_response_handle));
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_challenge_destroy(test_sasl_challenge_handle));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(sasl_response_destroy(test_sasl_response_handle));
+	STRICT_EXPECTED_CALL(sasl_challenge_destroy(test_sasl_challenge_handle));
 
 	// act
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -2841,8 +2759,6 @@ TEST_FUNCTION(when_creating_the_AMQP_VALUE_for_sasl_response_fails_the_state_is_
 TEST_FUNCTION(when_encoding_the_sasl_frame_for_sasl_response_fails_the_state_is_set_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	unsigned char test_challenge_bytes[] = { 0x42 };
@@ -2851,46 +2767,43 @@ TEST_FUNCTION(when_encoding_the_sasl_frame_for_sasl_response_fails_the_state_is_
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
 		.SetReturn(true);
-	EXPECTED_CALL(mocks, amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_challenge, sizeof(test_sasl_challenge));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
 		.SetReturn(false);
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_challenge_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
 		.SetReturn(true);
-	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle));
 	amqp_binary some_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &some_challenge_bytes, sizeof(some_challenge_bytes));
 	SASL_MECHANISM_BYTES sasl_mechanism_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
 	SASL_MECHANISM_BYTES sasl_mechanism_response_bytes = { test_response_bytes, sizeof(test_response_bytes) };
-	STRICT_EXPECTED_CALL(mocks, saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(3, &sasl_mechanism_response_bytes, sizeof(sasl_mechanism_response_bytes));
 	amqp_binary response_binary_value = { test_response_bytes, sizeof(test_response_bytes) };
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_response_create(response_binary_value));
-	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_create_sasl_response(test_sasl_response_handle));
-	STRICT_EXPECTED_CALL(mocks, sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_response_amqp_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(3).IgnoreArgument(4)
+	STRICT_EXPECTED_CALL(sasl_response_create(response_binary_value));
+	STRICT_EXPECTED_CALL(amqpvalue_create_sasl_response(test_sasl_response_handle));
+	STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_response_amqp_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.SetReturn(1);
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_response_destroy(test_sasl_response_handle));
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_destroy(test_sasl_response_amqp_value));
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_challenge_destroy(test_sasl_challenge_handle));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(sasl_response_destroy(test_sasl_response_handle));
+	STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_response_amqp_value));
+	STRICT_EXPECTED_CALL(sasl_challenge_destroy(test_sasl_challenge_handle));
 
 	// act
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -2900,34 +2813,30 @@ TEST_FUNCTION(when_encoding_the_sasl_frame_for_sasl_response_fails_the_state_is_
 TEST_FUNCTION(SASL_challenge_response_twice_succeed)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
 		.SetReturn(true);
-	EXPECTED_CALL(mocks, amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_challenge, sizeof(test_sasl_challenge));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	setup_succesfull_challenge_response(&mocks, &definitions_mocks);
+	setup_succesfull_challenge_response();
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	setup_succesfull_challenge_response(&mocks, &definitions_mocks);
+	setup_succesfull_challenge_response();
 
 	// act
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -2937,8 +2846,6 @@ TEST_FUNCTION(SASL_challenge_response_twice_succeed)
 TEST_FUNCTION(SASL_challenge_response_256_times_succeeds)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	size_t i;
@@ -2947,25 +2854,23 @@ TEST_FUNCTION(SASL_challenge_response_256_times_succeeds)
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
 		.SetReturn(true);
-	EXPECTED_CALL(mocks, amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_challenge, sizeof(test_sasl_challenge));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	for (i = 0; i < 256; i++)
 	{
-		setup_succesfull_challenge_response(&mocks, &definitions_mocks);
+		setup_succesfull_challenge_response();
 		saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 	}
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -2976,8 +2881,6 @@ TEST_FUNCTION(SASL_challenge_response_256_times_succeeds)
 TEST_FUNCTION(SASL_challenge_response_256_times_followed_by_outcome_succeeds)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	size_t i;
@@ -2986,43 +2889,41 @@ TEST_FUNCTION(SASL_challenge_response_256_times_followed_by_outcome_succeeds)
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
 		.SetReturn(true);
-	EXPECTED_CALL(mocks, amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_challenge, sizeof(test_sasl_challenge));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	for (i = 0; i < 256; i++)
 	{
-		setup_succesfull_challenge_response(&mocks, &definitions_mocks);
+		setup_succesfull_challenge_response();
 		saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 	}
 
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
 		.SetReturn(false);
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_challenge_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
 		.SetReturn(false);
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_outcome_type_by_descriptor(test_descriptor_value))
+	STRICT_EXPECTED_CALL(is_sasl_outcome_type_by_descriptor(test_descriptor_value))
 		.SetReturn(true);
 	sasl_code sasl_outcome_code = sasl_code_ok;
-	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_get_sasl_outcome(test_sasl_value, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_outcome(test_sasl_value, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_outcome_handle, sizeof(test_sasl_outcome_handle));
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_outcome_get_code(test_sasl_outcome_handle, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(sasl_outcome_get_code(test_sasl_outcome_handle, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &sasl_outcome_code, sizeof(sasl_outcome_code));
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_outcome_destroy(test_sasl_outcome_handle));
+	STRICT_EXPECTED_CALL(sasl_outcome_destroy(test_sasl_outcome_handle));
 
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_OPEN, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_OPEN, IO_STATE_OPENING));
 
 	// act
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -3032,8 +2933,6 @@ TEST_FUNCTION(SASL_challenge_response_256_times_followed_by_outcome_succeeds)
 TEST_FUNCTION(when_the_mechanisms_sasl_value_cannot_be_decoded_the_state_is_set_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 
@@ -3041,27 +2940,24 @@ TEST_FUNCTION(when_the_mechanisms_sasl_value_cannot_be_decoded_the_state_is_set_
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
+	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
 	AMQP_VALUE sasl_server_mechanisms;
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, &sasl_server_mechanisms))
-		.IgnoreArgument(2)
-		.SetReturn(1);
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
+    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG))
+        .SetReturn(1);
+	STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
 
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
 	// act
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -3071,8 +2967,6 @@ TEST_FUNCTION(when_the_mechanisms_sasl_value_cannot_be_decoded_the_state_is_set_
 TEST_FUNCTION(when_a_NULL_list_is_received_in_the_SASL_mechanisms_then_state_is_set_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 
@@ -3080,27 +2974,24 @@ TEST_FUNCTION(when_a_NULL_list_is_received_in_the_SASL_mechanisms_then_state_is_
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
+	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
 	AMQP_VALUE sasl_server_mechanisms;
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, &sasl_server_mechanisms))
-		.IgnoreArgument(2)
-		.SetReturn(1);
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
+    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG))
+        .SetReturn(1);
+	STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
 
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
 	// act
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -3110,8 +3001,6 @@ TEST_FUNCTION(when_a_NULL_list_is_received_in_the_SASL_mechanisms_then_state_is_
 TEST_FUNCTION(when_an_empty_array_is_received_in_the_SASL_mechanisms_then_state_is_set_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 
@@ -3119,29 +3008,26 @@ TEST_FUNCTION(when_an_empty_array_is_received_in_the_SASL_mechanisms_then_state_
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
+	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
 	AMQP_VALUE sasl_server_mechanisms;
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, &sasl_server_mechanisms))
-		.IgnoreArgument(2);
-	uint32_t mechanisms_count = 0;
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
+    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG));
+    uint32_t mechanisms_count = 0;
+	STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
 		.CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
+	STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
 
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
 	// act
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -3151,8 +3037,6 @@ TEST_FUNCTION(when_an_empty_array_is_received_in_the_SASL_mechanisms_then_state_
 TEST_FUNCTION(when_getting_the_mechanisms_array_item_count_fails_then_state_is_set_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 
@@ -3160,30 +3044,27 @@ TEST_FUNCTION(when_getting_the_mechanisms_array_item_count_fails_then_state_is_s
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
+	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
 	AMQP_VALUE sasl_server_mechanisms;
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, &sasl_server_mechanisms))
-		.IgnoreArgument(2);
-	uint32_t mechanisms_count = 0;
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
+    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG));
+    uint32_t mechanisms_count = 0;
+	STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
 		.CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count))
 		.SetReturn(1);
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
+	STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
 
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
 	// act
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -3193,8 +3074,6 @@ TEST_FUNCTION(when_getting_the_mechanisms_array_item_count_fails_then_state_is_s
 TEST_FUNCTION(when_the_mechanisms_array_does_not_contain_a_usable_SASL_mechanism_then_the_state_is_set_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 
@@ -3202,34 +3081,31 @@ TEST_FUNCTION(when_the_mechanisms_array_does_not_contain_a_usable_SASL_mechanism
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
+	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
 	AMQP_VALUE sasl_server_mechanisms;
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, &sasl_server_mechanisms))
-		.IgnoreArgument(2);
-	STRICT_EXPECTED_CALL(mocks, saslmechanism_get_mechanism_name(test_sasl_mechanism));
+    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
 	uint32_t mechanisms_count = 1;
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
+	STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
 		.CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_array_item(sasl_server_mechanisms, 0));
+	STRICT_EXPECTED_CALL(amqpvalue_get_array_item(sasl_server_mechanisms, 0));
 	const char* test_sasl_server_mechanism_name = "blahblah";
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_server_mechanism_name, sizeof(test_sasl_server_mechanism_name));
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
+	STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
 
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
 	// act
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -3239,8 +3115,6 @@ TEST_FUNCTION(when_the_mechanisms_array_does_not_contain_a_usable_SASL_mechanism
 TEST_FUNCTION(when_the_mechanisms_array_has_2_mechanisms_and_none_matches_the_state_is_set_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 
@@ -3248,77 +3122,70 @@ TEST_FUNCTION(when_the_mechanisms_array_has_2_mechanisms_and_none_matches_the_st
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(definitions_mocks, is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-	STRICT_EXPECTED_CALL(definitions_mocks, amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
+	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
 	AMQP_VALUE sasl_server_mechanisms;
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, &sasl_server_mechanisms))
-		.IgnoreArgument(2);
-	STRICT_EXPECTED_CALL(mocks, saslmechanism_get_mechanism_name(test_sasl_mechanism));
+    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
 	uint32_t mechanisms_count = 2;
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
+	STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
 		.CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_array_item(sasl_server_mechanisms, 0));
+	STRICT_EXPECTED_CALL(amqpvalue_get_array_item(sasl_server_mechanisms, 0));
 	const char* test_sasl_server_mechanism_name_1 = "blahblah";
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_server_mechanism_name_1, sizeof(test_sasl_server_mechanism_name_1));
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_array_item(sasl_server_mechanisms, 1));
+	STRICT_EXPECTED_CALL(amqpvalue_get_array_item(sasl_server_mechanisms, 1));
 	const char* test_sasl_server_mechanism_name_2 = "another_blah";
-	STRICT_EXPECTED_CALL(mocks, amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_server_mechanism_name_2, sizeof(test_sasl_server_mechanism_name_2));
-	STRICT_EXPECTED_CALL(definitions_mocks, sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
+	STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
 
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
 	// act
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
 }
 
-static void setup_send_init(saslclientio_mocks* mocks, amqp_definitions_mocks* definitions_mocks)
+static void setup_send_init(void)
 {
-	STRICT_EXPECTED_CALL((*mocks), amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL((*definitions_mocks), is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-	STRICT_EXPECTED_CALL((*definitions_mocks), amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
+	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
 	AMQP_VALUE sasl_server_mechanisms;
-	STRICT_EXPECTED_CALL((*definitions_mocks), sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, &sasl_server_mechanisms))
-		.IgnoreArgument(2);
-	uint32_t mechanisms_count = 1;
-	STRICT_EXPECTED_CALL((*mocks), amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
+    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG));
+    uint32_t mechanisms_count = 1;
+	STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
 		.CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
-	STRICT_EXPECTED_CALL((*mocks), amqpvalue_get_array_item(sasl_server_mechanisms, 0));
-	STRICT_EXPECTED_CALL((*mocks), amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(amqpvalue_get_array_item(sasl_server_mechanisms, 0));
+	STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
-	STRICT_EXPECTED_CALL((*mocks), saslmechanism_get_mechanism_name(test_sasl_mechanism));
+	STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
 	SASL_MECHANISM_BYTES init_bytes = { NULL, 0 };
-	STRICT_EXPECTED_CALL((*definitions_mocks), sasl_init_create(test_mechanism));
-	EXPECTED_CALL((*mocks), saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(sasl_init_create(test_mechanism));
+	EXPECTED_CALL(saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &init_bytes, sizeof(init_bytes));
-	STRICT_EXPECTED_CALL((*definitions_mocks), amqpvalue_create_sasl_init(test_sasl_init_handle));
-	STRICT_EXPECTED_CALL((*mocks), sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_init_amqp_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(3).IgnoreArgument(4);
-	STRICT_EXPECTED_CALL((*definitions_mocks), sasl_init_destroy(test_sasl_init_handle));
-	STRICT_EXPECTED_CALL((*mocks), amqpvalue_destroy(test_sasl_init_amqp_value));
-	STRICT_EXPECTED_CALL((*definitions_mocks), sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
+	STRICT_EXPECTED_CALL(amqpvalue_create_sasl_init(test_sasl_init_handle));
+	STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_init_amqp_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+	STRICT_EXPECTED_CALL(sasl_init_destroy(test_sasl_init_handle));
+	STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_init_amqp_value));
+	STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_120: [When SASL client IO is notified by sasl_frame_codec of bytes that have been encoded via the on_bytes_encoded callback and SASL client IO is in the state OPENING, SASL client IO shall send these bytes by using xio_send.] */
 TEST_FUNCTION(when_encoded_bytes_are_received_they_are_given_to_xio_send)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	unsigned char encoded_bytes[] = { 0x42, 0x43 };
@@ -3327,21 +3194,19 @@ TEST_FUNCTION(when_encoded_bytes_are_received_they_are_given_to_xio_send)
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	setup_send_init(&mocks, &definitions_mocks);
+	setup_send_init();
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	STRICT_EXPECTED_CALL(mocks, xio_send(test_underlying_io, encoded_bytes, sizeof(encoded_bytes), NULL, NULL))
+	STRICT_EXPECTED_CALL(xio_send(test_underlying_io, encoded_bytes, sizeof(encoded_bytes), NULL, NULL))
 		.ValidateArgumentBuffer(2, &encoded_bytes, sizeof(encoded_bytes));
 
 	// act
 	saved_on_bytes_encoded(saved_on_bytes_encoded_callback_context, encoded_bytes, sizeof(encoded_bytes), true);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -3351,8 +3216,6 @@ TEST_FUNCTION(when_encoded_bytes_are_received_they_are_given_to_xio_send)
 TEST_FUNCTION(when_encoded_bytes_are_received_with_encoded_complete_flag_set_to_false_they_are_given_to_xio_send)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	unsigned char encoded_bytes[] = { 0x42, 0x43 };
@@ -3361,21 +3224,19 @@ TEST_FUNCTION(when_encoded_bytes_are_received_with_encoded_complete_flag_set_to_
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	setup_send_init(&mocks, &definitions_mocks);
+	setup_send_init();
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	STRICT_EXPECTED_CALL(mocks, xio_send(test_underlying_io, encoded_bytes, sizeof(encoded_bytes), NULL, NULL))
+	STRICT_EXPECTED_CALL(xio_send(test_underlying_io, encoded_bytes, sizeof(encoded_bytes), NULL, NULL))
 		.ValidateArgumentBuffer(2, &encoded_bytes, sizeof(encoded_bytes));
 
 	// act
 	saved_on_bytes_encoded(saved_on_bytes_encoded_callback_context, encoded_bytes, sizeof(encoded_bytes), false);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -3385,8 +3246,6 @@ TEST_FUNCTION(when_encoded_bytes_are_received_with_encoded_complete_flag_set_to_
 TEST_FUNCTION(when_xio_send_fails_when_sending_encoded_bytes_then_state_is_set_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	unsigned char encoded_bytes[] = { 0x42, 0x43 };
@@ -3395,23 +3254,21 @@ TEST_FUNCTION(when_xio_send_fails_when_sending_encoded_bytes_then_state_is_set_t
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	setup_send_init(&mocks, &definitions_mocks);
+	setup_send_init();
 	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	STRICT_EXPECTED_CALL(mocks, xio_send(test_underlying_io, encoded_bytes, sizeof(encoded_bytes), NULL, NULL))
+	STRICT_EXPECTED_CALL(xio_send(test_underlying_io, encoded_bytes, sizeof(encoded_bytes), NULL, NULL))
 		.ValidateArgumentBuffer(2, &encoded_bytes, sizeof(encoded_bytes))
 		.SetReturn(1);
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
 	// act
 	saved_on_bytes_encoded(saved_on_bytes_encoded_callback_context, encoded_bytes, sizeof(encoded_bytes), false);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -3421,8 +3278,6 @@ TEST_FUNCTION(when_xio_send_fails_when_sending_encoded_bytes_then_state_is_set_t
 TEST_FUNCTION(when_the_frame_codec_triggers_an_error_in_the_OPENING_state_the_saslclientio_state_is_set_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 
@@ -3430,17 +3285,15 @@ TEST_FUNCTION(when_the_frame_codec_triggers_an_error_in_the_OPENING_state_the_sa
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
 	// act
 	saved_on_frame_codec_error(saved_on_frame_codec_error_callback_context);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -3450,23 +3303,19 @@ TEST_FUNCTION(when_the_frame_codec_triggers_an_error_in_the_OPENING_state_the_sa
 TEST_FUNCTION(when_the_frame_codec_triggers_an_error_in_the_OPEN_state_the_saslclientio_state_is_set_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(&mocks, &definitions_mocks, sasl_io);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	setup_successful_sasl_handshake(sasl_io);
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPEN));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPEN));
 
 	// act
 	saved_on_frame_codec_error(saved_on_frame_codec_error_callback_context);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -3476,22 +3325,18 @@ TEST_FUNCTION(when_the_frame_codec_triggers_an_error_in_the_OPEN_state_the_saslc
 TEST_FUNCTION(when_the_frame_codec_triggers_an_error_in_the_ERROR_state_nothing_is_done)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(&mocks, &definitions_mocks, sasl_io);
+	setup_successful_sasl_handshake(sasl_io);
 	saved_on_frame_codec_error(saved_sasl_frame_codec_callback_context);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	saved_on_frame_codec_error(saved_on_frame_codec_error_callback_context);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -3501,8 +3346,6 @@ TEST_FUNCTION(when_the_frame_codec_triggers_an_error_in_the_ERROR_state_nothing_
 TEST_FUNCTION(when_the_sasl_frame_codec_triggers_an_error_in_the_OPENING_state_the_saslclientio_state_is_set_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 
@@ -3510,17 +3353,15 @@ TEST_FUNCTION(when_the_sasl_frame_codec_triggers_an_error_in_the_OPENING_state_t
 	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
 	// act
 	saved_on_sasl_frame_codec_error(saved_sasl_frame_codec_callback_context);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -3530,23 +3371,19 @@ TEST_FUNCTION(when_the_sasl_frame_codec_triggers_an_error_in_the_OPENING_state_t
 TEST_FUNCTION(when_the_sasl_frame_codec_triggers_an_error_in_the_OPEN_state_the_saslclientio_state_is_set_to_ERROR)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(&mocks, &definitions_mocks, sasl_io);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	setup_successful_sasl_handshake(sasl_io);
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPEN));
+	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPEN));
 
 	// act
 	saved_on_sasl_frame_codec_error(saved_sasl_frame_codec_callback_context);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);
@@ -3556,22 +3393,18 @@ TEST_FUNCTION(when_the_sasl_frame_codec_triggers_an_error_in_the_OPEN_state_the_
 TEST_FUNCTION(when_the_sasl_frame_codec_triggers_an_error_in_the_ERROR_state_nothing_is_done)
 {
 	// arrange
-	saslclientio_mocks mocks;
-	amqp_definitions_mocks definitions_mocks;
 	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
 	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(&mocks, &definitions_mocks, sasl_io);
+	setup_successful_sasl_handshake(sasl_io);
 	saved_on_sasl_frame_codec_error(saved_sasl_frame_codec_callback_context);
-	mocks.ResetAllCalls();
-	definitions_mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	saved_on_sasl_frame_codec_error(saved_sasl_frame_codec_callback_context);
 
 	// assert
-	mocks.AssertActualAndExpectedCalls();
-	definitions_mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	saslclientio_destroy(sasl_io);

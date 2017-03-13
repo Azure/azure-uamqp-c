@@ -18,11 +18,7 @@ if(WIN32)
     target_link_libraries(websockets_sample
         uamqp
         ws2_32
-        $ENV{OpenSSLDir}/lib/ssleay32.lib $ENV{OpenSSLDir}/lib/libeay32.lib		
-        aziotsharedutil
-        websockets)
-    file(COPY $ENV{OpenSSLDir}/bin/libeay32.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Debug)
-    file(COPY $ENV{OpenSSLDir}/bin/ssleay32.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Debug)
+        aziotsharedutil)
 else()
-    target_link_libraries(websockets_sample	uamqp aziotsharedutil ssl crypto websockets)
+    target_link_libraries(websockets_sample	uamqp aziotsharedutil ssl crypto)
 endif()

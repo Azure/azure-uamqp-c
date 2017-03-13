@@ -67,6 +67,32 @@ static void set_link_state(LINK_INSTANCE* link_instance, LINK_STATE link_state)
 	}
 }
 
+static void remove_all_pending_deliveries(LINK_INSTANCE* link)
+{
+    if (link->pending_deliveries != NULL)
+    {
+        LIST_ITEM_HANDLE item = singlylinkedlist_get_head_item(link->pending_deliveries);
+        while (item != NULL)
+        {
+            LIST_ITEM_HANDLE next_item = singlylinkedlist_get_next_item(item);
+            DELIVERY_INSTANCE* delivery_instance = (DELIVERY_INSTANCE*)singlylinkedlist_item_get_value(item);
+            if (delivery_instance != NULL)
+            {
+                if (delivery_instance->on_delivery_settled != NULL)
+                {
+                    delivery_instance->on_delivery_settled(delivery_instance->callback_context, delivery_instance->delivery_id, NULL);
+                }
+                amqpalloc_free(delivery_instance);
+            }
+
+            item = next_item;
+        }
+
+        singlylinkedlist_destroy(link->pending_deliveries);
+        link->pending_deliveries = NULL;
+    }
+}
+
 static int send_flow(LINK_INSTANCE* link)
 {
 	int result;
@@ -533,10 +559,12 @@ static void on_session_state_changed(void* context, SESSION_STATE new_session_st
 	}
 	else if (new_session_state == SESSION_STATE_DISCARDING)
 	{
+        remove_all_pending_deliveries(link_instance);
 		set_link_state(link_instance, LINK_STATE_DETACHED);
 	}
 	else if (new_session_state == SESSION_STATE_ERROR)
 	{
+        remove_all_pending_deliveries(link_instance);
 		set_link_state(link_instance, LINK_STATE_ERROR);
 	}
 }
@@ -688,28 +716,13 @@ void link_destroy(LINK_HANDLE link)
 {
 	if (link != NULL)
 	{
+        remove_all_pending_deliveries((LINK_INSTANCE*)link);
+
         link->on_link_state_changed = NULL;
         (void)link_detach(link, true);
         session_destroy_link_endpoint(link->link_endpoint);
 		amqpvalue_destroy(link->source);
 		amqpvalue_destroy(link->target);
-		if (link->pending_deliveries != NULL)
-		{
-			LIST_ITEM_HANDLE item = singlylinkedlist_get_head_item(link->pending_deliveries);
-			while (item != NULL)
-			{
-				LIST_ITEM_HANDLE next_item = singlylinkedlist_get_next_item(item);
-				DELIVERY_INSTANCE* delivery_instance = (DELIVERY_INSTANCE*)singlylinkedlist_item_get_value(item);
-				if (delivery_instance != NULL)
-				{
-					amqpalloc_free(delivery_instance);
-				}
-
-				item = next_item;
-			}
-
-			singlylinkedlist_destroy(link->pending_deliveries);
-		}
 
 		if (link->name != NULL)
 		{

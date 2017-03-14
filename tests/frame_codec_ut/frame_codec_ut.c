@@ -1,14 +1,43 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#ifdef __cplusplus
 #include <cstdint>
+#include <cstdlib>
 #include <cstdbool>
-#include "azure_c_shared_utility/xio.h"
-#include "azure_c_shared_utility/singlylinkedlist.h"
+#else
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
+#endif
 #include "testrunnerswitcher.h"
-#include "micromock.h"
-#include "micromockcharstararenullterminatedstrings.h"
+#include "umock_c.h"
+#include "umocktypes_stdint.h"
+#include "umocktypes_bool.h"
+
+static void* my_gballoc_malloc(size_t size)
+{
+    return malloc(size);
+}
+
+static void* my_gballoc_realloc(void* ptr, size_t size)
+{
+    return realloc(ptr, size);
+}
+
+static void my_gballoc_free(void* ptr)
+{
+    free(ptr);
+}
+
+#define ENABLE_MOCKS
+
+#include "azure_c_shared_utility/gballoc.h"
+#include "azure_c_shared_utility/singlylinkedlist.h"
 #include "azure_uamqp_c/amqpvalue.h"
+
+#undef ENABLE_MOCKS
+
 #include "azure_uamqp_c/frame_codec.h"
 
 #define TEST_DESCRIPTION_AMQP_VALUE		(AMQP_VALUE)0x4243
@@ -17,7 +46,7 @@
 #define TEST_ERROR_CONTEXT				(void*)0x4248
 #define TEST_LIST_ITEM_HANDLE			(LIST_ITEM_HANDLE)0x4249
 
-const IO_INTERFACE_DESCRIPTION test_io_interface_description = { 0 };
+static const IO_INTERFACE_DESCRIPTION test_io_interface_description = { 0 };
 
 typedef struct TEST_LIST_ITEM_TAG
 {
@@ -50,134 +79,150 @@ void stringify_bytes(const unsigned char* bytes, size_t byte_count, char* output
 	output_string[pos++] = '\0';
 }
 
-TYPED_MOCK_CLASS(frame_codec_mocks, CGlobalMock)
-{
-public:
-    /* amqpalloc mocks */
-    MOCK_STATIC_METHOD_1(, void*, amqpalloc_malloc, size_t, size)
-        MOCK_METHOD_END(void*, malloc(size));
-    MOCK_STATIC_METHOD_1(, void, amqpalloc_free, void*, ptr)
-        free(ptr);
-    MOCK_VOID_METHOD_END();
-
     /* frame received callback */
-    MOCK_STATIC_METHOD_5(, void, on_frame_received_1, void*, context, const unsigned char*, type_specific, uint32_t, type_specific_size, const unsigned char*, frame_body, uint32_t, frame_body_size)
-        MOCK_VOID_METHOD_END();
-    MOCK_STATIC_METHOD_5(, void, on_frame_received_2, void*, context, const unsigned char*, type_specific, uint32_t, type_specific_size, const unsigned char*, frame_body, uint32_t, frame_body_size)
-        MOCK_VOID_METHOD_END();
-    MOCK_STATIC_METHOD_1(, void, test_frame_codec_decode_error, void*, context)
-        MOCK_VOID_METHOD_END();
+MOCK_FUNCTION_WITH_CODE(, void, on_frame_received_1, void*, context, const unsigned char*, type_specific, uint32_t, type_specific_size, const unsigned char*, frame_body, uint32_t, frame_body_size)
+MOCK_FUNCTION_END();
+MOCK_FUNCTION_WITH_CODE(, void, on_frame_received_2, void*, context, const unsigned char*, type_specific, uint32_t, type_specific_size, const unsigned char*, frame_body, uint32_t, frame_body_size)
+MOCK_FUNCTION_END();
+MOCK_FUNCTION_WITH_CODE(, void, test_frame_codec_decode_error, void*, context)
+MOCK_FUNCTION_END();
 
-    /* list mocks */
-    MOCK_STATIC_METHOD_0(, SINGLYLINKEDLIST_HANDLE, singlylinkedlist_create)
-        MOCK_METHOD_END(SINGLYLINKEDLIST_HANDLE, TEST_LIST_HANDLE);
-    MOCK_STATIC_METHOD_1(, void, singlylinkedlist_destroy, SINGLYLINKEDLIST_HANDLE, list)
-    MOCK_VOID_METHOD_END();
-    MOCK_STATIC_METHOD_2(, LIST_ITEM_HANDLE, singlylinkedlist_add, SINGLYLINKEDLIST_HANDLE, list, const void*, item)
-        TEST_LIST_ITEM** items = (TEST_LIST_ITEM**)realloc(list_items, (list_item_count + 1) * sizeof(TEST_LIST_ITEM*));
-        LIST_ITEM_HANDLE to_return = NULL;
-        if (items != NULL)
-        {
-            list_items = items;
-            list_items[list_item_count] = (TEST_LIST_ITEM*)malloc(sizeof(TEST_LIST_ITEM));
-            if (list_items[list_item_count] != NULL)
-            {
-                list_items[list_item_count]->item_value = item;
-                to_return = (LIST_ITEM_HANDLE)list_items[list_item_count];
-                list_item_count++;
-            }
-        }
-    MOCK_METHOD_END(LIST_ITEM_HANDLE, to_return);
-    MOCK_STATIC_METHOD_1(, const void*, singlylinkedlist_item_get_value, LIST_ITEM_HANDLE, item_handle)
-    MOCK_METHOD_END(const void*, ((TEST_LIST_ITEM*)item_handle)->item_value);
-    MOCK_STATIC_METHOD_3(, LIST_ITEM_HANDLE, singlylinkedlist_find, SINGLYLINKEDLIST_HANDLE, handle, LIST_MATCH_FUNCTION, match_function, const void*, match_context)
-        size_t i;
-        LIST_ITEM_HANDLE found_item = NULL;
-        for (i = 0; i < list_item_count; i++)
-        {
-            if (match_function((LIST_ITEM_HANDLE)list_items[i], match_context))
-            {
-                found_item = (LIST_ITEM_HANDLE)list_items[i];
-                break;
-            }
-        }
-    MOCK_METHOD_END(LIST_ITEM_HANDLE, found_item);
-    MOCK_STATIC_METHOD_2(, int, singlylinkedlist_remove, SINGLYLINKEDLIST_HANDLE, list, LIST_ITEM_HANDLE, list_item)
-        size_t i;
-        for (i = 0; i < list_item_count; i++)
-        {
-            if (((LIST_ITEM_HANDLE)list_items[i]) == list_item)
-            {
-                break;
-            }
-        }
-        if (i < list_item_count)
-        {
-            free(list_items[i]);
-            memmove(&list_items[i], &list_items[i + 1], (list_item_count - i - 1) * sizeof(TEST_LIST_ITEM*));
-            list_item_count--;
-            if (list_item_count == 0)
-            {
-                free(list_items);
-                list_items = NULL;
-            }
-        }
-    MOCK_METHOD_END(int, 0);
-
-    MOCK_STATIC_METHOD_4(, void, test_on_bytes_encoded, void*, context, const unsigned char*, bytes, size_t, length, bool, encode_complete)
-        unsigned char* new_bytes = (unsigned char*)realloc(sent_io_bytes, sent_io_byte_count + length);
+MOCK_FUNCTION_WITH_CODE(, void, test_on_bytes_encoded, void*, context, const unsigned char*, bytes, size_t, length, bool, encode_complete)
+    unsigned char* new_bytes = (unsigned char*)my_gballoc_realloc(sent_io_bytes, sent_io_byte_count + length);
     if (new_bytes != NULL)
     {
         sent_io_bytes = new_bytes;
         (void)memcpy(sent_io_bytes + sent_io_byte_count, bytes, length);
         sent_io_byte_count += length;
     }
-    MOCK_VOID_METHOD_END();
-};
+MOCK_FUNCTION_END();
 
-extern "C"
+static LIST_ITEM_HANDLE my_singlylinkedlist_add(SINGLYLINKEDLIST_HANDLE list, const void* item)
 {
-    DECLARE_GLOBAL_MOCK_METHOD_1(frame_codec_mocks, , void*, amqpalloc_malloc, size_t, size);
-    DECLARE_GLOBAL_MOCK_METHOD_1(frame_codec_mocks, , void, amqpalloc_free, void*, ptr);
-
-    DECLARE_GLOBAL_MOCK_METHOD_5(frame_codec_mocks, , void, on_frame_received_1, void*, context, const unsigned char*, type_specific, uint32_t, type_specific_size, const unsigned char*, frame_body, uint32_t, frame_body_size);
-    DECLARE_GLOBAL_MOCK_METHOD_5(frame_codec_mocks, , void, on_frame_received_2, void*, context, const unsigned char*, type_specific, uint32_t, type_specific_size, const unsigned char*, frame_body, uint32_t, frame_body_size);
-    DECLARE_GLOBAL_MOCK_METHOD_1(frame_codec_mocks, , void, test_frame_codec_decode_error, void*, context);
-
-    DECLARE_GLOBAL_MOCK_METHOD_0(frame_codec_mocks, , SINGLYLINKEDLIST_HANDLE, singlylinkedlist_create);
-    DECLARE_GLOBAL_MOCK_METHOD_1(frame_codec_mocks, , void, singlylinkedlist_destroy, SINGLYLINKEDLIST_HANDLE, list);
-    DECLARE_GLOBAL_MOCK_METHOD_2(frame_codec_mocks, , LIST_ITEM_HANDLE, singlylinkedlist_add, SINGLYLINKEDLIST_HANDLE, list, const void*, item);
-    DECLARE_GLOBAL_MOCK_METHOD_1(frame_codec_mocks, , const void*, singlylinkedlist_item_get_value, LIST_ITEM_HANDLE, item_handle);
-    DECLARE_GLOBAL_MOCK_METHOD_3(frame_codec_mocks, , LIST_ITEM_HANDLE, singlylinkedlist_find, SINGLYLINKEDLIST_HANDLE, handle, LIST_MATCH_FUNCTION, match_function, const void*, match_context);
-    DECLARE_GLOBAL_MOCK_METHOD_2(frame_codec_mocks, , int, singlylinkedlist_remove, SINGLYLINKEDLIST_HANDLE, list, LIST_ITEM_HANDLE, list_item);
-
-    DECLARE_GLOBAL_MOCK_METHOD_4(frame_codec_mocks, , void, test_on_bytes_encoded, void*, context, const unsigned char*, bytes, size_t, length, bool, encode_complete);
+    TEST_LIST_ITEM** items = (TEST_LIST_ITEM**)my_gballoc_realloc(list_items, (list_item_count + 1) * sizeof(TEST_LIST_ITEM*));
+    LIST_ITEM_HANDLE to_return = NULL;
+    (void)list;
+    if (items != NULL)
+    {
+        list_items = items;
+        list_items[list_item_count] = (TEST_LIST_ITEM*)my_gballoc_malloc(sizeof(TEST_LIST_ITEM));
+        if (list_items[list_item_count] != NULL)
+        {
+            list_items[list_item_count]->item_value = item;
+            to_return = (LIST_ITEM_HANDLE)list_items[list_item_count];
+            list_item_count++;
+        }
+    }
+    return to_return;
 }
 
-static MICROMOCK_MUTEX_HANDLE g_testByTest;
-static MICROMOCK_GLOBAL_SEMAPHORE_HANDLE g_dllByDll;
+static const void* my_singlylinkedlist_item_get_value(LIST_ITEM_HANDLE item_handle)
+{
+    return ((TEST_LIST_ITEM*)item_handle)->item_value;
+}
+
+static LIST_ITEM_HANDLE my_singlylinkedlist_find(SINGLYLINKEDLIST_HANDLE handle, LIST_MATCH_FUNCTION match_function, const void* match_context)
+{
+    size_t i;
+    LIST_ITEM_HANDLE found_item = NULL;
+    (void)handle;
+
+    for (i = 0; i < list_item_count; i++)
+    {
+        if (match_function((LIST_ITEM_HANDLE)list_items[i], match_context))
+        {
+            found_item = (LIST_ITEM_HANDLE)list_items[i];
+            break;
+        }
+    }
+    return found_item;
+}
+
+static int my_singlylinkedlist_remove(SINGLYLINKEDLIST_HANDLE list, LIST_ITEM_HANDLE list_item)
+{
+    size_t i;
+    (void)list;
+
+    for (i = 0; i < list_item_count; i++)
+    {
+        if (((LIST_ITEM_HANDLE)list_items[i]) == list_item)
+        {
+            break;
+        }
+    }
+    if (i < list_item_count)
+    {
+        my_gballoc_free(list_items[i]);
+        memmove(&list_items[i], &list_items[i + 1], (list_item_count - i - 1) * sizeof(TEST_LIST_ITEM*));
+        list_item_count--;
+        if (list_item_count == 0)
+        {
+            my_gballoc_free(list_items);
+            list_items = NULL;
+        }
+    }
+    return 0;
+}
+
+static TEST_MUTEX_HANDLE g_testByTest;
+static TEST_MUTEX_HANDLE g_dllByDll;
+
+DEFINE_ENUM_STRINGS(UMOCK_C_ERROR_CODE, UMOCK_C_ERROR_CODE_VALUES)
+
+static void on_umock_c_error(UMOCK_C_ERROR_CODE error_code)
+{
+    char temp_str[256];
+    (void)snprintf(temp_str, sizeof(temp_str), "umock_c reported error :%s", ENUM_TO_STRING(UMOCK_C_ERROR_CODE, error_code));
+    ASSERT_FAIL(temp_str);
+}
 
 BEGIN_TEST_SUITE(frame_codec_ut)
 
 TEST_SUITE_INITIALIZE(suite_init)
 {
+    int result;
+
     TEST_INITIALIZE_MEMORY_DEBUG(g_dllByDll);
-    g_testByTest = MicroMockCreateMutex();
+    g_testByTest = TEST_MUTEX_CREATE();
     ASSERT_IS_NOT_NULL(g_testByTest);
+
+    umock_c_init(on_umock_c_error);
+
+    result = umocktypes_stdint_register_types();
+    ASSERT_ARE_EQUAL_WITH_MSG(int, 0, result, "Failed registering stdint types");
+    result = umocktypes_bool_register_types();
+    ASSERT_ARE_EQUAL_WITH_MSG(int, 0, result, "Failed registering bool types");
+
+    REGISTER_GLOBAL_MOCK_HOOK(gballoc_malloc, my_gballoc_malloc);
+    REGISTER_GLOBAL_MOCK_HOOK(gballoc_free, my_gballoc_free);
+    REGISTER_GLOBAL_MOCK_HOOK(gballoc_realloc, my_gballoc_realloc);
+    REGISTER_GLOBAL_MOCK_RETURN(singlylinkedlist_create, TEST_LIST_HANDLE);
+    REGISTER_GLOBAL_MOCK_HOOK(singlylinkedlist_add, my_singlylinkedlist_add);
+    REGISTER_GLOBAL_MOCK_HOOK(singlylinkedlist_item_get_value, my_singlylinkedlist_item_get_value);
+    REGISTER_GLOBAL_MOCK_HOOK(singlylinkedlist_find, my_singlylinkedlist_find);
+    REGISTER_GLOBAL_MOCK_HOOK(singlylinkedlist_remove, my_singlylinkedlist_remove);
+
+    REGISTER_UMOCK_ALIAS_TYPE(SINGLYLINKEDLIST_HANDLE, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(LIST_MATCH_FUNCTION, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(LIST_ITEM_HANDLE, void*);
 }
 
 TEST_SUITE_CLEANUP(suite_cleanup)
 {
-    MicroMockDestroyMutex(g_testByTest);
+    umock_c_deinit();
+
+    TEST_MUTEX_DESTROY(g_testByTest);
     TEST_DEINITIALIZE_MEMORY_DEBUG(g_dllByDll);
 }
 
 TEST_FUNCTION_INITIALIZE(method_init)
 {
-    if (!MicroMockAcquireMutex(g_testByTest))
+    if (TEST_MUTEX_ACQUIRE(g_testByTest))
     {
         ASSERT_FAIL("our mutex is ABANDONED. Failure in test framework");
     }
+
+    umock_c_reset_all_calls();
 }
 
 TEST_FUNCTION_CLEANUP(method_cleanup)
@@ -198,10 +243,7 @@ TEST_FUNCTION_CLEANUP(method_cleanup)
 
 	sent_io_byte_count = 0;
 
-    if (!MicroMockReleaseMutex(g_testByTest))
-    {
-        ASSERT_FAIL("failure in test framework at ReleaseMutex");
-    }
+    TEST_MUTEX_RELEASE(g_testByTest);
 }
 
 /* frame_codec_create */
@@ -210,17 +252,15 @@ TEST_FUNCTION_CLEANUP(method_cleanup)
 TEST_FUNCTION(frame_codec_create_with_valid_args_succeeds)
 {
 	// arrange
-	frame_codec_mocks mocks;
-
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_create());
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(singlylinkedlist_create());
 
 	// act
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 
 	// assert
 	ASSERT_IS_NOT_NULL(frame_codec);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -230,30 +270,28 @@ TEST_FUNCTION(frame_codec_create_with_valid_args_succeeds)
 TEST_FUNCTION(frame_codec_create_with_NULL_on_error_decode_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 
 	// act
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(NULL, TEST_ERROR_CONTEXT);
 
 	// assert
-	ASSERT_IS_NULL(frame_codec);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NULL(frame_codec);
 }
 
 /* Tests_SRS_FRAME_CODEC_01_104: [The callback_context shall be allowed to be NULL.] */
 TEST_FUNCTION(frame_codec_create_with_NULL_frame_codec_decode_error_calback_context_succeeds)
 {
 	// arrange
-	frame_codec_mocks mocks;
-
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_create());
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(singlylinkedlist_create());
 
 	// act
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, NULL);
 
 	// assert
 	ASSERT_IS_NOT_NULL(frame_codec);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -263,10 +301,8 @@ TEST_FUNCTION(frame_codec_create_with_NULL_frame_codec_decode_error_calback_cont
 TEST_FUNCTION(when_allocating_memory_for_the_frame_codec_fails_frame_code_create_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
-
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG))
-		.SetReturn((void*)NULL);
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+		.SetReturn(NULL);
 
 	// act
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
@@ -280,19 +316,19 @@ TEST_FUNCTION(when_allocating_memory_for_the_frame_codec_fails_frame_code_create
 TEST_FUNCTION(sending_a_frame_with_more_than_512_bytes_of_total_frame_size_fails_immediately_after_create)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	mocks.ResetAllCalls();
-
-	unsigned char bytes[505] = { 0 };
-	PAYLOAD payload = { bytes, sizeof(bytes) };
+    unsigned char bytes[505] = { 0 };
+    PAYLOAD payload;
+    payload.bytes = bytes;
+    payload.length = sizeof(bytes);
+    umock_c_reset_all_calls();
 
 	// act
 	int result = frame_codec_encode_frame(frame_codec, 0, &payload, 1, NULL, 0, NULL, NULL);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -303,18 +339,18 @@ TEST_FUNCTION(sending_a_frame_with_more_than_512_bytes_of_total_frame_size_fails
 TEST_FUNCTION(a_frame_of_exactly_max_frame_size_immediately_after_create_can_be_sent)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	mocks.ResetAllCalls();
+    unsigned char bytes[504] = { 0 };
+    PAYLOAD payload;
+    payload.bytes = bytes;
+    payload.length = sizeof(bytes);
+    umock_c_reset_all_calls();
 
-	EXPECTED_CALL(mocks, test_on_bytes_encoded((void*)0x4242, IGNORED_PTR_ARG, IGNORED_NUM_ARG, false))
-		.ValidateArgument(1).ValidateArgument(4).IgnoreAllCalls();
-	EXPECTED_CALL(mocks, test_on_bytes_encoded((void*)0x4242, IGNORED_PTR_ARG, IGNORED_NUM_ARG, true))
-		.ValidateArgument(1).ValidateArgument(4);
-
-	unsigned char bytes[504] = { 0 };
-	PAYLOAD payload = { bytes, sizeof(bytes) };
-
+	STRICT_EXPECTED_CALL(test_on_bytes_encoded((void*)0x4242, IGNORED_PTR_ARG, IGNORED_NUM_ARG, false));
+    STRICT_EXPECTED_CALL(test_on_bytes_encoded((void*)0x4242, IGNORED_PTR_ARG, IGNORED_NUM_ARG, false))
+        .IgnoreAllCalls();
+	STRICT_EXPECTED_CALL(test_on_bytes_encoded((void*)0x4242, IGNORED_PTR_ARG, IGNORED_NUM_ARG, true));
+   
 	// act
 	int result = frame_codec_encode_frame(frame_codec, 0, &payload, 1, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
 
@@ -324,7 +360,7 @@ TEST_FUNCTION(a_frame_of_exactly_max_frame_size_immediately_after_create_can_be_
 	stringify_bytes(expected_bytes, sizeof(expected_bytes), expected_stringified_io);
 	ASSERT_ARE_EQUAL(char_ptr, expected_stringified_io, actual_stringified_io);
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -336,20 +372,19 @@ TEST_FUNCTION(a_frame_of_exactly_max_frame_size_immediately_after_create_can_be_
 TEST_FUNCTION(receiving_a_frame_with_more_than_512_bytes_of_total_frame_size_immediately_after_create_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 	unsigned char frame[] = { 0x00, 0x00, 0x02, 0x01 };
 
-	STRICT_EXPECTED_CALL(mocks, test_frame_codec_decode_error(TEST_ERROR_CONTEXT));
+	STRICT_EXPECTED_CALL(test_frame_codec_decode_error(TEST_ERROR_CONTEXT));
 
 	// act
 	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     frame_codec_unsubscribe(frame_codec, 0);
@@ -361,30 +396,28 @@ TEST_FUNCTION(receiving_a_frame_with_more_than_512_bytes_of_total_frame_size_imm
 TEST_FUNCTION(receiving_a_frame_with_exactly_512_bytes_of_total_frame_size_immediately_after_create_succeeds)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 	unsigned char frame[512] = { 0x00, 0x00, 0x02, 0x00, 0x02, 0x00 };
 	(void)memset(frame + 6, 0, 506);
 
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(mocks, on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 504))
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 504))
 		.ValidateArgumentBuffer(2, &frame[6], 2)
 		.ValidateArgumentBuffer(4, &frame[8], 504);
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
 	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -397,54 +430,51 @@ TEST_FUNCTION(receiving_a_frame_with_exactly_512_bytes_of_total_frame_size_immed
 TEST_FUNCTION(frame_codec_destroy_frees_the_memory_for_frame_codec)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_destroy(TEST_LIST_HANDLE));
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+	STRICT_EXPECTED_CALL(singlylinkedlist_destroy(TEST_LIST_HANDLE));
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
 	frame_codec_destroy(frame_codec);
 
 	// assert
-	// uMock checks the calls
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
 /* Tests_SRS_FRAME_CODEC_01_024: [If frame_codec is NULL, frame_codec_destroy shall do nothing.] */
 TEST_FUNCTION(when_frame_codec_is_NULL_frame_codec_destroy_does_nothing)
 {
 	// arrange
-	frame_codec_mocks mocks;
 
 	// act
 	frame_codec_destroy(NULL);
 
 	// assert
-	// uMock checks the calls
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
 /* Tests_SRS_FRAME_CODEC_01_023: [frame_codec_destroy shall free all resources associated with a frame_codec instance.] */
 TEST_FUNCTION(frame_codec_destroy_while_receiving_type_specific_data_frees_the_type_specific_buffer)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x00 };
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
     (void)frame_codec_unsubscribe(frame_codec, 0);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_destroy(TEST_LIST_HANDLE));
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+	STRICT_EXPECTED_CALL(singlylinkedlist_destroy(TEST_LIST_HANDLE));
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
 	frame_codec_destroy(frame_codec);
 
 	// assert
-	// uMock checks the calls
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
 /* frame_codec_set_max_frame_size */
@@ -454,16 +484,15 @@ TEST_FUNCTION(frame_codec_destroy_while_receiving_type_specific_data_frees_the_t
 TEST_FUNCTION(frame_codec_set_max_frame_size_with_8_succeeds)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	int result = frame_codec_set_max_frame_size(frame_codec, 8);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -474,17 +503,16 @@ TEST_FUNCTION(frame_codec_set_max_frame_size_with_8_succeeds)
 TEST_FUNCTION(when_a_frame_bigger_than_max_frame_size_is_sent_frame_codec_encode_frame_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_set_max_frame_size(frame_codec, 1024);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	int result = frame_codec_encode_frame(frame_codec, 0, 1017, NULL, 0, NULL, NULL);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -494,14 +522,13 @@ TEST_FUNCTION(when_a_frame_bigger_than_max_frame_size_is_sent_frame_codec_encode
 TEST_FUNCTION(a_frame_of_exactly_max_frame_size_can_be_sent)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_set_max_frame_size(frame_codec, 1024);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	EXPECTED_CALL(mocks, xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ExpectedAtLeastTimes(1);
-	EXPECTED_CALL(mocks, xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.IgnoreAllCalls();
 
 	// act
@@ -511,7 +538,7 @@ TEST_FUNCTION(a_frame_of_exactly_max_frame_size_can_be_sent)
 	stringify_bytes(sent_io_bytes, sent_io_byte_count, actual_stringified_io);
 	ASSERT_ARE_EQUAL(char_ptr, "[0x00,0x00,0x04,0x00,0x02,0x00,0x00,0x00]", actual_stringified_io);
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -523,21 +550,20 @@ TEST_FUNCTION(a_frame_of_exactly_max_frame_size_can_be_sent)
 TEST_FUNCTION(receiving_a_frame_with_more_than_max_frame_size_bytes_of_total_frame_size_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_set_max_frame_size(frame_codec, 1024);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 	unsigned char frame[] = { 0x00, 0x00, 0x04, 0x01 };
 
-	STRICT_EXPECTED_CALL(mocks, test_frame_codec_decode_error(TEST_ERROR_CONTEXT));
+	STRICT_EXPECTED_CALL(test_frame_codec_decode_error(TEST_ERROR_CONTEXT));
 
 	// act
 	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -548,31 +574,29 @@ TEST_FUNCTION(receiving_a_frame_with_more_than_max_frame_size_bytes_of_total_fra
 TEST_FUNCTION(receiving_a_frame_with_exactly_max_frame_size_bytes_of_total_frame_size_fails_succeeds)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	(void)frame_codec_set_max_frame_size(frame_codec, 1024);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 	unsigned char frame[1024] = { 0x00, 0x00, 0x04, 0x00, 0x02, 0x00 };
 	(void)memset(frame + 6, 0, 1016);
 
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(mocks, on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 1016))
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 1016))
 		.ValidateArgumentBuffer(2, &frame[6], 2)
 		.ValidateArgumentBuffer(4, &frame[8], 1016);
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
 	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -583,13 +607,13 @@ TEST_FUNCTION(receiving_a_frame_with_exactly_max_frame_size_bytes_of_total_frame
 TEST_FUNCTION(when_frame_codec_is_NULL_frame_codec_set_max_frame_size_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 
 	// act
 	int result = frame_codec_set_max_frame_size(NULL, 1024);
 
 	// assert
-	ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
 }
 
 /* Tests_SRS_FRAME_CODEC_01_078: [If max_frame_size is invalid according to the AMQP standard, frame_codec_set_max_frame_size shall return a non-zero value.] */
@@ -597,16 +621,15 @@ TEST_FUNCTION(when_frame_codec_is_NULL_frame_codec_set_max_frame_size_fails)
 TEST_FUNCTION(when_frame_codec_is_too_small_then_frame_codec_set_max_frame_size_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	int result = frame_codec_set_max_frame_size(frame_codec, 7);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -616,21 +639,20 @@ TEST_FUNCTION(when_frame_codec_is_too_small_then_frame_codec_set_max_frame_size_
 TEST_FUNCTION(attempting_to_set_a_max_frame_size_lower_than_the_size_of_the_currently_being_received_frame_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_set_max_frame_size(frame_codec, 1024);
 	unsigned char frame[1024] = { 0x00, 0x00, 0x04, 0x00, 0x02, 0x00 };
 	(void)memset(frame + 6, 0, 1016);
 
 	(void)frame_codec_receive_bytes(frame_codec, frame, 4);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	int result = frame_codec_set_max_frame_size(frame_codec, 8);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -640,21 +662,20 @@ TEST_FUNCTION(attempting_to_set_a_max_frame_size_lower_than_the_size_of_the_curr
 TEST_FUNCTION(attempting_to_set_a_max_frame_size_when_the_decoder_is_in_error_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_set_max_frame_size(frame_codec, 1024);
 	unsigned char frame[1024] = { 0x00, 0x00, 0x04, 0x00, 0x02, 0x00 };
 	(void)memset(frame + 6, 0, 1016);
 
 	(void)frame_codec_receive_bytes(frame_codec, frame, 4);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	int result = frame_codec_set_max_frame_size(frame_codec, 8);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -664,19 +685,18 @@ TEST_FUNCTION(attempting_to_set_a_max_frame_size_when_the_decoder_is_in_error_fa
 TEST_FUNCTION(setting_the_max_frame_size_on_a_codec_with_a_decode_error_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x07 };
 
 	(void)frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	int result = frame_codec_set_max_frame_size(frame_codec, 1024);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -687,13 +707,12 @@ TEST_FUNCTION(setting_the_max_frame_size_on_a_codec_with_a_decode_error_fails)
 TEST_FUNCTION(setting_the_max_frame_size_on_a_codec_with_an_encode_error_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	unsigned char bytes[] = { 0x42, 0x43 };
 	(void)frame_codec_encode_frame(frame_codec, 0x42, sizeof(bytes), NULL, 0, NULL, NULL);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, sizeof(bytes), IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, sizeof(bytes), IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(2, &bytes, sizeof(bytes))
 		.SetReturn(1);
 
@@ -704,7 +723,7 @@ TEST_FUNCTION(setting_the_max_frame_size_on_a_codec_with_an_encode_error_fails)
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -716,23 +735,22 @@ TEST_FUNCTION(setting_the_max_frame_size_on_a_codec_with_an_encode_error_fails)
 TEST_FUNCTION(setting_a_new_max_frame_while_the_frame_size_is_being_received_makes_the_new_frame_size_be_in_effect)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x09, 0x02, 0x00, 0x00, 0x00, 0x00 };
 
 	(void)frame_codec_receive_bytes(frame_codec, frame, 3);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	(void)frame_codec_set_max_frame_size(frame_codec, 8);
 
-	STRICT_EXPECTED_CALL(mocks, test_frame_codec_decode_error(TEST_ERROR_CONTEXT));
+	STRICT_EXPECTED_CALL(test_frame_codec_decode_error(TEST_ERROR_CONTEXT));
 
 	// act
 	int result = frame_codec_receive_bytes(frame_codec, frame + 3, sizeof(frame) - 3);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -760,29 +778,26 @@ TEST_FUNCTION(setting_a_new_max_frame_while_the_frame_size_is_being_received_mak
 TEST_FUNCTION(frame_codec_receive_bytes_decodes_one_empty_frame)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x00, 0x00 };
 
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(mocks, on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 0))
-		.ValidateArgumentBuffer(2, &frame[6], 2)
-		.IgnoreArgument(4);
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 0))
+		.ValidateArgumentBuffer(2, &frame[6], 2);
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
 	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -794,25 +809,23 @@ TEST_FUNCTION(frame_codec_receive_bytes_decodes_one_empty_frame)
 TEST_FUNCTION(frame_codec_receive_bytes_with_not_enough_bytes_for_a_frame_does_not_trigger_callback)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x00 };
 
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 
 	// act
 	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -823,31 +836,30 @@ TEST_FUNCTION(frame_codec_receive_bytes_with_not_enough_bytes_for_a_frame_does_n
 TEST_FUNCTION(frame_codec_receive_bytes_with_NULL_frame_codec_handle_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x00, 0x00 };
 
 	// act
 	int result = frame_codec_receive_bytes(NULL, frame, sizeof(frame));
 
 	// assert
-	ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
 }
 
 /* Tests_SRS_FRAME_CODEC_01_026: [If frame_codec or buffer are NULL, frame_codec_receive_bytes shall return a non-zero value.] */
 TEST_FUNCTION(frame_codec_receive_bytes_with_NULL_buffer_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	int result = frame_codec_receive_bytes(frame_codec, NULL, 1);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -858,18 +870,17 @@ TEST_FUNCTION(frame_codec_receive_bytes_with_NULL_buffer_fails)
 TEST_FUNCTION(frame_codec_receive_bytes_with_zero_size_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x00, 0x00 };
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	int result = frame_codec_receive_bytes(frame_codec, frame, 0);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -882,22 +893,19 @@ TEST_FUNCTION(frame_codec_receive_bytes_with_zero_size_fails)
 TEST_FUNCTION(when_frame_codec_receive_1_byte_in_one_call_and_the_rest_of_the_frame_in_another_call_yields_succesfull_decode)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x00, 0x00 };
 
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(mocks, on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 0))
-		.ValidateArgumentBuffer(2, &frame[6], 2)
-		.IgnoreArgument(4);
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 0))
+		.ValidateArgumentBuffer(2, &frame[6], 2);
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	(void)frame_codec_receive_bytes(frame_codec, frame, 1);
 
@@ -906,7 +914,7 @@ TEST_FUNCTION(when_frame_codec_receive_1_byte_in_one_call_and_the_rest_of_the_fr
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -917,23 +925,20 @@ TEST_FUNCTION(when_frame_codec_receive_1_byte_in_one_call_and_the_rest_of_the_fr
 TEST_FUNCTION(when_frame_codec_receive_the_frame_bytes_in_1_byte_per_call_a_succesfull_decode_happens)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x00, 0x00 };
 	size_t i;
 
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(mocks, on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 0))
-		.ValidateArgumentBuffer(2, &frame[6], 2)
-		.IgnoreArgument(4);
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 0))
+		.ValidateArgumentBuffer(2, &frame[6], 2);
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	for (i = 0; i < sizeof(frame) - 1; i++)
 	{
@@ -945,7 +950,7 @@ TEST_FUNCTION(when_frame_codec_receive_the_frame_bytes_in_1_byte_per_call_a_succ
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -956,22 +961,19 @@ TEST_FUNCTION(when_frame_codec_receive_the_frame_bytes_in_1_byte_per_call_a_succ
 TEST_FUNCTION(a_frame_codec_receive_bytes_call_with_bad_args_before_any_real_frame_bytes_does_not_affect_decoding)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x00, 0x00 };
 
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(mocks, on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 0))
-		.ValidateArgumentBuffer(2, &frame[6], 2)
-		.IgnoreArgument(4);
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 0))
+		.ValidateArgumentBuffer(2, &frame[6], 2);
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	(void)frame_codec_receive_bytes(frame_codec, NULL, 1);
 
@@ -980,7 +982,7 @@ TEST_FUNCTION(a_frame_codec_receive_bytes_call_with_bad_args_before_any_real_fra
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -991,22 +993,19 @@ TEST_FUNCTION(a_frame_codec_receive_bytes_call_with_bad_args_before_any_real_fra
 TEST_FUNCTION(a_frame_codec_receive_bytes_call_with_bad_args_in_the_middle_of_the_frame_does_not_affect_decoding)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x00, 0x00 };
 
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(mocks, on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 0))
-		.ValidateArgumentBuffer(2, &frame[6], 2)
-		.IgnoreArgument(4);
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 0))
+		.ValidateArgumentBuffer(2, &frame[6], 2);
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	(void)frame_codec_receive_bytes(frame_codec, frame, 1);
 	(void)frame_codec_receive_bytes(frame_codec, NULL, 1);
@@ -1016,7 +1015,7 @@ TEST_FUNCTION(a_frame_codec_receive_bytes_call_with_bad_args_in_the_middle_of_th
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -1027,33 +1026,28 @@ TEST_FUNCTION(a_frame_codec_receive_bytes_call_with_bad_args_in_the_middle_of_th
 TEST_FUNCTION(frame_codec_receive_bytes_decodes_2_empty_frames)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 	unsigned char frame1[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x01, 0x02 };
 	unsigned char frame2[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x03, 0x04 };
 
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame1[5], 1);
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(mocks, on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 0))
-		.ValidateArgumentBuffer(2, &frame1[6], 2)
-		.IgnoreArgument(4);
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 0))
+		.ValidateArgumentBuffer(2, &frame1[6], 2);
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame2[5], 1);
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(mocks, on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 0))
-		.ValidateArgumentBuffer(2, &frame2[6], 2)
-		.IgnoreArgument(4);
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 0))
+		.ValidateArgumentBuffer(2, &frame2[6], 2);
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	(void)frame_codec_receive_bytes(frame_codec, frame1, sizeof(frame1));
 
@@ -1062,7 +1056,7 @@ TEST_FUNCTION(frame_codec_receive_bytes_decodes_2_empty_frames)
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -1073,33 +1067,28 @@ TEST_FUNCTION(frame_codec_receive_bytes_decodes_2_empty_frames)
 TEST_FUNCTION(a_call_to_frame_codec_receive_bytes_with_bad_args_between_2_frames_does_not_affect_decoding)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 	unsigned char frame1[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x01, 0x02 };
 	unsigned char frame2[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x03, 0x04 };
 
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame1[5], 1);
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(mocks, on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 0))
-		.ValidateArgumentBuffer(2, &frame1[6], 2)
-		.IgnoreArgument(4);
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 0))
+		.ValidateArgumentBuffer(2, &frame1[6], 2);
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame2[5], 1);
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(mocks, on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 0))
-		.ValidateArgumentBuffer(2, &frame2[6], 2)
-		.IgnoreArgument(4);
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 0))
+		.ValidateArgumentBuffer(2, &frame2[6], 2);
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	(void)frame_codec_receive_bytes(frame_codec, frame1, sizeof(frame1));
 	(void)frame_codec_receive_bytes(frame_codec, NULL, 1);
@@ -1109,7 +1098,7 @@ TEST_FUNCTION(a_call_to_frame_codec_receive_bytes_with_bad_args_between_2_frames
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -1120,24 +1109,22 @@ TEST_FUNCTION(a_call_to_frame_codec_receive_bytes_with_bad_args_between_2_frames
 TEST_FUNCTION(when_getting_the_list_item_value_fails_no_callback_is_invoked)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x01, 0x02 };
 
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG))
-		.SetReturn((const void*)NULL);
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG))
+		.SetReturn(NULL);
 
 	// act
 	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -1149,20 +1136,19 @@ TEST_FUNCTION(when_getting_the_list_item_value_fails_no_callback_is_invoked)
 TEST_FUNCTION(when_frame_size_is_bad_frame_codec_receive_bytes_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x07, 0x02, 0x00, 0x01, 0x02 };
 
-	STRICT_EXPECTED_CALL(mocks, test_frame_codec_decode_error(TEST_ERROR_CONTEXT));
+	STRICT_EXPECTED_CALL(test_frame_codec_decode_error(TEST_ERROR_CONTEXT));
 
 	// act
 	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -1174,20 +1160,19 @@ TEST_FUNCTION(when_frame_size_is_bad_frame_codec_receive_bytes_fails)
 TEST_FUNCTION(when_frame_size_has_a_bad_doff_frame_codec_receive_bytes_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x01, 0x00, 0x01, 0x02 };
 
-	STRICT_EXPECTED_CALL(mocks, test_frame_codec_decode_error(TEST_ERROR_CONTEXT));
+	STRICT_EXPECTED_CALL(test_frame_codec_decode_error(TEST_ERROR_CONTEXT));
 
 	// act
 	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -1198,21 +1183,20 @@ TEST_FUNCTION(when_frame_size_has_a_bad_doff_frame_codec_receive_bytes_fails)
 TEST_FUNCTION(after_a_frame_decode_error_occurs_due_to_frame_size_a_subsequent_decode_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	unsigned char bad_frame[] = { 0x00, 0x00, 0x00, 0x07, 0x02, 0x00, 0x01, 0x02 };
 	unsigned char good_frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x01, 0x02 };
 
 	(void)frame_codec_receive_bytes(frame_codec, bad_frame, sizeof(bad_frame));
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	int result = frame_codec_receive_bytes(frame_codec, good_frame, sizeof(good_frame));
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -1223,21 +1207,20 @@ TEST_FUNCTION(after_a_frame_decode_error_occurs_due_to_frame_size_a_subsequent_d
 TEST_FUNCTION(after_a_frame_decode_error_occurs_due_to_bad_doff_size_a_subsequent_decode_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	unsigned char bad_frame[] = { 0x00, 0x00, 0x00, 0x08, 0x01, 0x00, 0x01, 0x02 };
 	unsigned char good_frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x01, 0x02 };
 
 	(void)frame_codec_receive_bytes(frame_codec, bad_frame, sizeof(bad_frame));
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	int result = frame_codec_receive_bytes(frame_codec, good_frame, sizeof(good_frame));
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -1251,29 +1234,27 @@ TEST_FUNCTION(after_a_frame_decode_error_occurs_due_to_bad_doff_size_a_subsequen
 TEST_FUNCTION(receiving_a_frame_with_1_byte_frame_body_succeeds)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x09, 0x02, 0x00, 0x01, 0x02, 0x42 };
 
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(mocks, on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 1))
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 1))
 		.ValidateArgumentBuffer(2, &frame[6], 2)
 		.ValidateArgumentBuffer(4, &frame[8], 1);
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
 	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -1285,28 +1266,26 @@ TEST_FUNCTION(receiving_a_frame_with_1_byte_frame_body_succeeds)
 TEST_FUNCTION(when_allocating_type_specific_data_fails_frame_codec_receive_bytes_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x09, 0x02, 0x00, 0x01, 0x02, 0x42 };
 
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG))
-		.SetReturn((void*)NULL);
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+		.SetReturn(NULL);
 
-	STRICT_EXPECTED_CALL(mocks, test_frame_codec_decode_error(TEST_ERROR_CONTEXT));
+	STRICT_EXPECTED_CALL(test_frame_codec_decode_error(TEST_ERROR_CONTEXT));
 
 	// act
 	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -1318,24 +1297,23 @@ TEST_FUNCTION(when_allocating_type_specific_data_fails_frame_codec_receive_bytes
 TEST_FUNCTION(when_allocating_type_specific_data_fails_a_subsequent_decode_Call_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x09, 0x02, 0x00, 0x01, 0x02, 0x42 };
 
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG))
-		.SetReturn((void*)NULL);
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+		.SetReturn(NULL);
 
 	(void)frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -1346,29 +1324,27 @@ TEST_FUNCTION(when_allocating_type_specific_data_fails_a_subsequent_decode_Call_
 TEST_FUNCTION(a_frame_with_2_bytes_received_together_with_the_header_passes_the_bytes_in_one_call)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x0A, 0x02, 0x00, 0x01, 0x02, 0x42, 0x43 };
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(mocks, on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 2))
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 2))
 		.ValidateArgumentBuffer(2, &frame[6], 2)
 		.ValidateArgumentBuffer(4, &frame[sizeof(frame) - 2], 2);
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
 	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -1379,40 +1355,35 @@ TEST_FUNCTION(a_frame_with_2_bytes_received_together_with_the_header_passes_the_
 TEST_FUNCTION(two_empty_frames_received_in_the_same_call_yields_2_callbacks)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x01, 0x02,
 		0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x03, 0x04 };
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(mocks, on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 0))
-		.ValidateArgumentBuffer(2, &frame[6], 2)
-		.IgnoreArgument(4);
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 0))
+		.ValidateArgumentBuffer(2, &frame[6], 2);
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(mocks, on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 0))
-		.ValidateArgumentBuffer(2, &frame[14], 2)
-		.IgnoreArgument(4);
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 0))
+		.ValidateArgumentBuffer(2, &frame[14], 2);
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
 	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -1423,40 +1394,37 @@ TEST_FUNCTION(two_empty_frames_received_in_the_same_call_yields_2_callbacks)
 TEST_FUNCTION(two_frames_with_1_byte_each_received_in_the_same_call_yields_2_callbacks)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x09, 0x02, 0x00, 0x01, 0x02, 0x42,
 		0x00, 0x00, 0x00, 0x09, 0x02, 0x00, 0x03, 0x04, 0x43 };
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(mocks, on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 1))
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 1))
 		.ValidateArgumentBuffer(2, &frame[6], 2)
 		.ValidateArgumentBuffer(4, &frame[8], 1);
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(mocks, on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 1))
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 1))
 		.ValidateArgumentBuffer(2, &frame[15], 2)
 		.ValidateArgumentBuffer(4, &frame[17], 1);
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
 	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -1470,24 +1438,21 @@ TEST_FUNCTION(two_frames_with_1_byte_each_received_in_the_same_call_yields_2_cal
 TEST_FUNCTION(frame_codec_subscribe_with_valid_args_succeeds)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	uint8_t frame_type = 0;
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame_type, 1);
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_add(TEST_LIST_HANDLE, IGNORED_PTR_ARG))
-		.IgnoreArgument(2);
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(singlylinkedlist_add(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
 
 	// act
 	int result = frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -1499,25 +1464,22 @@ TEST_FUNCTION(frame_codec_subscribe_with_valid_args_succeeds)
 TEST_FUNCTION(when_list_find_returns_NULL_a_new_subscription_is_created)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	uint8_t frame_type = 0;
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame_type, 1)
-		.SetReturn((LIST_ITEM_HANDLE)NULL);
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_add(TEST_LIST_HANDLE, IGNORED_PTR_ARG))
-		.IgnoreArgument(2);
+		.SetReturn(NULL);
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(singlylinkedlist_add(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
 
 	// act
 	int result = frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -1528,25 +1490,23 @@ TEST_FUNCTION(when_list_find_returns_NULL_a_new_subscription_is_created)
 TEST_FUNCTION(when_list_item_get_value_returns_NULL_subscribe_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	uint8_t frame_type = 0;
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame_type, 1);
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG))
-		.SetReturn((void*)NULL);
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG))
+		.SetReturn(NULL);
 
 	// act
 	int result = frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -1557,7 +1517,6 @@ TEST_FUNCTION(when_list_item_get_value_returns_NULL_subscribe_fails)
 TEST_FUNCTION(when_frame_codec_is_NULL_frame_codec_subscribe_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 
 	// act
 	int result = frame_codec_subscribe(NULL, 0, on_frame_received_1, (void*)0x01);
@@ -1570,16 +1529,15 @@ TEST_FUNCTION(when_frame_codec_is_NULL_frame_codec_subscribe_fails)
 TEST_FUNCTION(when_on_frame_received_is_NULL_frame_codec_subscribe_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	int result = frame_codec_subscribe(frame_codec, 0, NULL, frame_codec);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -1589,23 +1547,21 @@ TEST_FUNCTION(when_on_frame_received_is_NULL_frame_codec_subscribe_fails)
 TEST_FUNCTION(when_a_frame_type_that_has_no_subscribers_is_received_no_callback_is_called)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x01, 0x00, 0x00 };
 
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
 
 	// act
 	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -1616,13 +1572,11 @@ TEST_FUNCTION(when_a_frame_type_that_has_no_subscribers_is_received_no_callback_
 TEST_FUNCTION(when_no_subscribe_is_done_no_callback_is_called)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x01, 0x00, 0x00 };
 
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
 
 	// act
@@ -1630,7 +1584,7 @@ TEST_FUNCTION(when_no_subscribe_is_done_no_callback_is_called)
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -1640,30 +1594,28 @@ TEST_FUNCTION(when_no_subscribe_is_done_no_callback_is_called)
 TEST_FUNCTION(when_2_subscriptions_exist_and_first_one_matches_the_callback_is_invoked)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	(void)frame_codec_subscribe(frame_codec, 1, on_frame_received_2, frame_codec);
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x0A, 0x02, 0x00, 0x01, 0x02, 0x42, 0x43 };
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(mocks, on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 2))
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 2))
 		.ValidateArgumentBuffer(2, &frame[6], 2)
 		.ValidateArgumentBuffer(4, &frame[sizeof(frame) - 2], 2);
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
 	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -1675,31 +1627,29 @@ TEST_FUNCTION(when_2_subscriptions_exist_and_first_one_matches_the_callback_is_i
 TEST_FUNCTION(when_2_subscriptions_exist_and_second_one_matches_the_callback_is_invoked)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	(void)frame_codec_subscribe(frame_codec, 1, on_frame_received_2, frame_codec);
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x0A, 0x02, 0x01, 0x01, 0x02, 0x42, 0x43 };
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(mocks, on_frame_received_2(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 2))
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(on_frame_received_2(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 2))
 		.ValidateArgumentBuffer(2, &frame[6], 2)
 		.ValidateArgumentBuffer(4, &frame[sizeof(frame) - 2], 2);
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
 	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -1711,24 +1661,22 @@ TEST_FUNCTION(when_2_subscriptions_exist_and_second_one_matches_the_callback_is_
 TEST_FUNCTION(when_frame_codec_subscribe_is_called_twice_for_the_same_frame_type_it_succeeds)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	uint8_t frame_type = 0;
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame_type, 1);
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
 
 	// act
 	int result = frame_codec_subscribe(frame_codec, 0, on_frame_received_2, frame_codec);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -1739,31 +1687,29 @@ TEST_FUNCTION(when_frame_codec_subscribe_is_called_twice_for_the_same_frame_type
 TEST_FUNCTION(the_callbacks_for_the_2nd_frame_codec_subscribe_for_the_same_frame_type_remain_in_effect)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_2, frame_codec);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x0A, 0x02, 0x00, 0x01, 0x02, 0x42, 0x43 };
 
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(mocks, on_frame_received_2(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 2))
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(on_frame_received_2(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 2))
 		.ValidateArgumentBuffer(2, &frame[6], 2)
 		.ValidateArgumentBuffer(4, &frame[sizeof(frame) - 2], 2);
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
 	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -1774,23 +1720,21 @@ TEST_FUNCTION(the_callbacks_for_the_2nd_frame_codec_subscribe_for_the_same_frame
 TEST_FUNCTION(when_allocating_memory_for_the_subscription_fails_frame_codec_subscribe_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	uint8_t frame_type = 0;
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame_type, 1);
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG))
-		.SetReturn((void*)NULL);
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+		.SetReturn(NULL);
 
 	// act
 	int result = frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -1800,26 +1744,23 @@ TEST_FUNCTION(when_allocating_memory_for_the_subscription_fails_frame_codec_subs
 TEST_FUNCTION(when_adding_the_subscription_fails_then_frame_codec_subscribe_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	uint8_t frame_type = 0;
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame_type, 1);
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_add(TEST_LIST_HANDLE, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
-		.SetReturn((LIST_ITEM_HANDLE)NULL);
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(singlylinkedlist_add(TEST_LIST_HANDLE, IGNORED_PTR_ARG))
+		.SetReturn(NULL);
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
 	int result = frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -1831,28 +1772,24 @@ TEST_FUNCTION(when_adding_the_subscription_fails_then_frame_codec_subscribe_fail
 TEST_FUNCTION(removing_an_existing_subscription_succeeds)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
-	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x0A, 0x02, 0x00, 0x01, 0x02, 0x42, 0x43 };
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	uint8_t frame_type = 0;
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame_type, 1);
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_remove(TEST_LIST_HANDLE, IGNORED_PTR_ARG))
-		.IgnoreArgument(2);
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
 
 	// act
 	int result = frame_codec_unsubscribe(frame_codec, 0);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -1862,15 +1799,13 @@ TEST_FUNCTION(removing_an_existing_subscription_succeeds)
 TEST_FUNCTION(removing_an_existing_subscription_does_not_trigger_callback_when_a_frame_of_that_type_is_received)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	(void)frame_codec_unsubscribe(frame_codec, 0);
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x0A, 0x02, 0x00, 0x01, 0x02, 0x42, 0x43 };
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
 
 	// act
@@ -1878,7 +1813,7 @@ TEST_FUNCTION(removing_an_existing_subscription_does_not_trigger_callback_when_a
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -1888,26 +1823,24 @@ TEST_FUNCTION(removing_an_existing_subscription_does_not_trigger_callback_when_a
 TEST_FUNCTION(frame_codec_unsubscribe_with_NULL_frame_codec_handle_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 
 	// act
 	int result = frame_codec_unsubscribe(NULL, 0);
 
 	// assert
-	ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
 }
 
 /* Tests_SRS_FRAME_CODEC_01_040: [If no subscription for the type frame type exists, frame_codec_unsubscribe shall return a non-zero value.] */
 TEST_FUNCTION(frame_codec_unsubscribe_with_no_subscribe_call_has_been_made_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	uint8_t frame_type = 0;
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame_type, 1);
 
 	// act
@@ -1915,7 +1848,7 @@ TEST_FUNCTION(frame_codec_unsubscribe_with_no_subscribe_call_has_been_made_fails
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -1925,22 +1858,20 @@ TEST_FUNCTION(frame_codec_unsubscribe_with_no_subscribe_call_has_been_made_fails
 TEST_FUNCTION(when_list_remove_matching_item_fails_then_frame_codec_unsubscribe_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	uint8_t frame_type = 0;
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame_type, 1)
-		.SetReturn((LIST_ITEM_HANDLE)NULL);
+		.SetReturn(NULL);
 
 	// act
 	int result = frame_codec_unsubscribe(frame_codec, 0);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -1950,28 +1881,25 @@ TEST_FUNCTION(when_list_remove_matching_item_fails_then_frame_codec_unsubscribe_
 TEST_FUNCTION(unsubscribe_one_of_2_subscriptions_succeeds)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	(void)frame_codec_subscribe(frame_codec, 1, on_frame_received_2, frame_codec);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	uint8_t frame_type = 0;
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame_type, 1);
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_remove(TEST_LIST_HANDLE, IGNORED_PTR_ARG))
-		.IgnoreArgument(2);
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+	STRICT_EXPECTED_CALL(singlylinkedlist_remove(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
 
 	// act
 	int result = frame_codec_unsubscribe(frame_codec, 0);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 1);
@@ -1982,29 +1910,26 @@ TEST_FUNCTION(unsubscribe_one_of_2_subscriptions_succeeds)
 TEST_FUNCTION(unsubscribe_2nd_out_of_2_subscriptions_succeeds)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	(void)frame_codec_subscribe(frame_codec, 1, on_frame_received_2, frame_codec);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	uint8_t frame_type = 1;
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame_type, 1);
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-	EXPECTED_CALL(mocks, amqpalloc_free(IGNORED_PTR_ARG));
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_remove(TEST_LIST_HANDLE, IGNORED_PTR_ARG))
-		.IgnoreArgument(2);
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+	STRICT_EXPECTED_CALL(singlylinkedlist_remove(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
 
 	// act
 	int result = frame_codec_unsubscribe(frame_codec, 1);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -2015,26 +1940,23 @@ TEST_FUNCTION(unsubscribe_2nd_out_of_2_subscriptions_succeeds)
 TEST_FUNCTION(subscribe_unsubscribe_subscribe_succeeds)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	(void)frame_codec_unsubscribe(frame_codec, 0);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	uint8_t frame_type = 0;
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame_type, 1);
-	EXPECTED_CALL(mocks, amqpalloc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_add(TEST_LIST_HANDLE, IGNORED_PTR_ARG))
-		.IgnoreArgument(2);
+	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(singlylinkedlist_add(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
 
 	// act
 	int result = frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
     (void)frame_codec_unsubscribe(frame_codec, 0);
@@ -2046,15 +1968,13 @@ TEST_FUNCTION(subscribe_unsubscribe_subscribe_succeeds)
 TEST_FUNCTION(subscribe_unsubscribe_unsubscribe_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	(void)frame_codec_unsubscribe(frame_codec, 0);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	uint8_t frame_type = 0;
-	STRICT_EXPECTED_CALL(mocks, singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
+	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame_type, 1);
 
 	// act
@@ -2062,7 +1982,7 @@ TEST_FUNCTION(subscribe_unsubscribe_unsubscribe_fails)
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -2081,7 +2001,8 @@ TEST_FUNCTION(frame_type_amqp_is_zero)
 	// act
 
 	// assert
-	ASSERT_ARE_EQUAL(uint8_t, 0, FRAME_TYPE_AMQP);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_EQUAL(uint8_t, 0, FRAME_TYPE_AMQP);
 }
 
 /* Tests_SRS_FRAME_CODEC_01_016: [The type code indicates the format and purpose of the frame.] */
@@ -2097,7 +2018,8 @@ TEST_FUNCTION(frame_type_sasl_is_one)
 	// act
 
 	// assert
-	ASSERT_ARE_EQUAL(uint8_t, 1, FRAME_TYPE_SASL);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_EQUAL(uint8_t, 1, FRAME_TYPE_SASL);
 }
 
 /* frame_codec_encode_frame */
@@ -2118,13 +2040,12 @@ TEST_FUNCTION(frame_type_sasl_is_one)
 TEST_FUNCTION(frame_codec_encode_frame_with_a_zero_frame_body_length_succeeds)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	EXPECTED_CALL(mocks, xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ExpectedAtLeastTimes(1);
-	EXPECTED_CALL(mocks, xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.IgnoreAllCalls();
 
 	// act
@@ -2134,7 +2055,7 @@ TEST_FUNCTION(frame_codec_encode_frame_with_a_zero_frame_body_length_succeeds)
 	stringify_bytes(sent_io_bytes, sent_io_byte_count, actual_stringified_io);
 	ASSERT_ARE_EQUAL(char_ptr, "[0x00,0x00,0x00,0x08,0x02,0x00,0x00,0x00]", actual_stringified_io);
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -2144,29 +2065,28 @@ TEST_FUNCTION(frame_codec_encode_frame_with_a_zero_frame_body_length_succeeds)
 TEST_FUNCTION(when_frame_codec_is_NULL_frame_codec_encode_frame_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 
 	// act
 	int result = frame_codec_encode_frame(NULL, 0, 0, NULL, 0, NULL, NULL);
 
 	// assert
-	ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
 }
 
 /* Tests_SRS_FRAME_CODEC_01_091: [If the argument type_specific_size is greater than 0 and type_specific_bytes is NULL, frame_codec_encode_frame shall return a non-zero value.] */
 TEST_FUNCTION(when_type_specific_size_is_positive_and_type_specific_bytes_is_NULL_frame_codec_encode_frame_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	int result = frame_codec_encode_frame(frame_codec, 0, 0, NULL, 1, NULL, NULL);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -2179,18 +2099,17 @@ TEST_FUNCTION(when_type_specific_size_is_positive_and_type_specific_bytes_is_NUL
 TEST_FUNCTION(when_type_specific_size_is_too_big_then_frame_codec_encode_frame_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	unsigned char expected_frame[1020] = { 0x00, 0x00, 0x00, 0x0A, 0xFF, 0x00, 0x00, 0x00 };
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_set_max_frame_size(frame_codec, 4096);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	int result = frame_codec_encode_frame(frame_codec, 0, 0, &expected_frame[6], 1015, NULL, NULL);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -2207,15 +2126,14 @@ TEST_FUNCTION(when_type_specific_size_is_too_big_then_frame_codec_encode_frame_f
 TEST_FUNCTION(when_type_specific_size_is_max_allowed_then_frame_codec_encode_frame_succeeds)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	unsigned char expected_frame[1020] = { 0x00, 0x00, 0x03, 0xFC, 0xFF, 0x00, 0x00, 0x00 };
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_set_max_frame_size(frame_codec, 4096);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	EXPECTED_CALL(mocks, xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ExpectedAtLeastTimes(1);
-	EXPECTED_CALL(mocks, xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.IgnoreAllCalls();
 
 	// act
@@ -2227,7 +2145,7 @@ TEST_FUNCTION(when_type_specific_size_is_max_allowed_then_frame_codec_encode_fra
 	stringify_bytes(sent_io_bytes, sent_io_byte_count, actual_stringified_io);
 	ASSERT_ARE_EQUAL(char_ptr, expected_stringified_io, actual_stringified_io);
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -2241,14 +2159,13 @@ TEST_FUNCTION(when_type_specific_size_is_max_allowed_then_frame_codec_encode_fra
 TEST_FUNCTION(one_byte_of_padding_is_added_to_type_specific_data_to_make_the_frame_header)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	unsigned char expected_frame[] = { 0x00, 0x00, 0x00, 0x8, 0x02, 0x00, 0x42, 0x00 };
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	EXPECTED_CALL(mocks, xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ExpectedAtLeastTimes(1);
-	EXPECTED_CALL(mocks, xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.IgnoreAllCalls();
 
 	// act
@@ -2259,7 +2176,7 @@ TEST_FUNCTION(one_byte_of_padding_is_added_to_type_specific_data_to_make_the_fra
 	stringify_bytes(sent_io_bytes, sent_io_byte_count, actual_stringified_io);
 	ASSERT_ARE_EQUAL(char_ptr, expected_stringified_io, actual_stringified_io);
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -2273,16 +2190,15 @@ TEST_FUNCTION(one_byte_of_padding_is_added_to_type_specific_data_to_make_the_fra
 TEST_FUNCTION(no_bytes_of_padding_are_added_to_type_specific_data_when_enough_bytes_are_there)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	unsigned char expected_frame[] = { 0x00, 0x00, 0x00, 0x8, 0x02, 0x00, 0x42, 0x00 };
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	EXPECTED_CALL(mocks, xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ExpectedAtLeastTimes(1);
-	EXPECTED_CALL(mocks, xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, 0, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, 0, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgument(3).NeverInvoked();
-	EXPECTED_CALL(mocks, xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.IgnoreAllCalls();
 
 	// act
@@ -2293,7 +2209,7 @@ TEST_FUNCTION(no_bytes_of_padding_are_added_to_type_specific_data_when_enough_by
 	stringify_bytes(sent_io_bytes, sent_io_byte_count, actual_stringified_io);
 	ASSERT_ARE_EQUAL(char_ptr, expected_stringified_io, actual_stringified_io);
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -2303,13 +2219,12 @@ TEST_FUNCTION(no_bytes_of_padding_are_added_to_type_specific_data_when_enough_by
 TEST_FUNCTION(the_type_is_placed_in_the_underlying_frame)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	EXPECTED_CALL(mocks, xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ExpectedAtLeastTimes(1);
-	EXPECTED_CALL(mocks, xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.IgnoreAllCalls();
 
 	// act
@@ -2319,7 +2234,7 @@ TEST_FUNCTION(the_type_is_placed_in_the_underlying_frame)
 	stringify_bytes(sent_io_bytes, sent_io_byte_count, actual_stringified_io);
 	ASSERT_ARE_EQUAL(char_ptr, "[0x00,0x00,0x00,0x08,0x02,0x42,0x00,0x00]", actual_stringified_io);
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -2333,13 +2248,12 @@ TEST_FUNCTION(the_type_is_placed_in_the_underlying_frame)
 TEST_FUNCTION(frame_codec_encode_frame_bytes_with_1_encoded_byte_succeeds)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_encode_frame(frame_codec, 0x42, 1, NULL, 0, NULL, NULL);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 	uint8_t byte = 0x42;
 
-	STRICT_EXPECTED_CALL(mocks, xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, 1, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, 1, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(2, &byte, 1);
 
 	// act
@@ -2347,7 +2261,7 @@ TEST_FUNCTION(frame_codec_encode_frame_bytes_with_1_encoded_byte_succeeds)
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -2358,13 +2272,12 @@ TEST_FUNCTION(frame_codec_encode_frame_bytes_with_1_encoded_byte_succeeds)
 TEST_FUNCTION(frame_codec_encode_frame_bytes_with_2_bytes_succeeds)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	unsigned char bytes[] = { 0x42, 0x43 };
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_encode_frame(frame_codec, 0x42, sizeof(bytes), NULL, 0, NULL, NULL);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, sizeof(bytes), IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, sizeof(bytes), IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(2, &bytes, sizeof(bytes));
 
 	// act
@@ -2372,7 +2285,7 @@ TEST_FUNCTION(frame_codec_encode_frame_bytes_with_2_bytes_succeeds)
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -2382,31 +2295,30 @@ TEST_FUNCTION(frame_codec_encode_frame_bytes_with_2_bytes_succeeds)
 TEST_FUNCTION(frame_codec_encode_frame_bytes_with_NULL_frame_codec_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	unsigned char bytes[] = { 0x42, 0x43 };
 
 	// act
 	int result = frame_codec_encode_frame_bytes(NULL, bytes, sizeof(bytes));
 
 	// assert
-	ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
 }
 
 /* Tests_SRS_FRAME_CODEC_01_049: [If any of the frame_codec or bytes arguments is NULL, frame_codec_encode_frame_bytes shall return a non-zero value.] */
 TEST_FUNCTION(frame_codec_encode_frame_bytes_with_NULL_bytes_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_encode_frame(frame_codec, 0x42, 1, NULL, 0, NULL, NULL);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	int result = frame_codec_encode_frame_bytes(frame_codec, NULL, 1);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -2416,18 +2328,17 @@ TEST_FUNCTION(frame_codec_encode_frame_bytes_with_NULL_bytes_fails)
 TEST_FUNCTION(frame_codec_encode_frame_bytes_with_zero_length_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	unsigned char bytes[] = { 0x42, 0x43 };
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_encode_frame(frame_codec, 0x42, sizeof(bytes), NULL, 0, NULL, NULL);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	int result = frame_codec_encode_frame_bytes(frame_codec, bytes, 0);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -2437,18 +2348,17 @@ TEST_FUNCTION(frame_codec_encode_frame_bytes_with_zero_length_fails)
 TEST_FUNCTION(when_more_bytes_are_passed_than_expected_frame_codec_encode_frame_bytes_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	unsigned char bytes[] = { 0x42, 0x43 };
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_encode_frame(frame_codec, 0x42, sizeof(bytes), NULL, 0, NULL, NULL);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
 	// act
 	int result = frame_codec_encode_frame_bytes(frame_codec, bytes, 3);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -2458,13 +2368,12 @@ TEST_FUNCTION(when_more_bytes_are_passed_than_expected_frame_codec_encode_frame_
 TEST_FUNCTION(when_io_send_fails_then_frame_codec_encode_frame_bytes_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	unsigned char bytes[] = { 0x42, 0x43 };
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_encode_frame(frame_codec, 0x42, sizeof(bytes), NULL, 0, NULL, NULL);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, sizeof(bytes), IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, sizeof(bytes), IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(2, &bytes, sizeof(bytes))
 		.SetReturn(1);
 
@@ -2473,7 +2382,7 @@ TEST_FUNCTION(when_io_send_fails_then_frame_codec_encode_frame_bytes_fails)
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -2484,13 +2393,12 @@ TEST_FUNCTION(when_io_send_fails_then_frame_codec_encode_frame_bytes_fails)
 TEST_FUNCTION(sending_only_1_byte_out_of_2_frame_body_bytes_succeeds)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	unsigned char bytes[] = { 0x42, 0x43 };
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_encode_frame(frame_codec, 0x42, sizeof(bytes), NULL, 0, NULL, NULL);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, 1, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, 1, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(2, &bytes, 1);
 
 	// act
@@ -2498,7 +2406,7 @@ TEST_FUNCTION(sending_only_1_byte_out_of_2_frame_body_bytes_succeeds)
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -2509,15 +2417,14 @@ TEST_FUNCTION(sending_only_1_byte_out_of_2_frame_body_bytes_succeeds)
 TEST_FUNCTION(sending_2_bytes_1_by_1_via_frame_codec_encode_frame_bytes_succeeds)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	unsigned char bytes[] = { 0x42, 0x43 };
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_encode_frame(frame_codec, 0x42, sizeof(bytes), NULL, 0, NULL, NULL);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, 1, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, 1, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(2, &bytes, 1);
-	STRICT_EXPECTED_CALL(mocks, xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, 1, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, 1, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(2, &bytes[1], 1);
 
 	(void)frame_codec_encode_frame_bytes(frame_codec, bytes, 1);
@@ -2527,7 +2434,7 @@ TEST_FUNCTION(sending_2_bytes_1_by_1_via_frame_codec_encode_frame_bytes_succeeds
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -2538,13 +2445,12 @@ TEST_FUNCTION(sending_2_bytes_1_by_1_via_frame_codec_encode_frame_bytes_succeeds
 TEST_FUNCTION(sending_an_extra_byte_1_by_1_via_frame_codec_encode_frame_bytes_fails)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	unsigned char bytes[] = { 0x42, 0x43 };
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_encode_frame(frame_codec, 0x42, 1, NULL, 0, NULL, NULL);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, 1, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, 1, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(2, &bytes, 1);
 
 	(void)frame_codec_encode_frame_bytes(frame_codec, bytes, 1);
@@ -2554,7 +2460,7 @@ TEST_FUNCTION(sending_an_extra_byte_1_by_1_via_frame_codec_encode_frame_bytes_fa
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -2565,16 +2471,15 @@ TEST_FUNCTION(sending_an_extra_byte_1_by_1_via_frame_codec_encode_frame_bytes_fa
 TEST_FUNCTION(after_a_frame_is_completed_another_one_can_be_started)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	unsigned char bytes[] = { 0x42, 0x43 };
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_encode_frame(frame_codec, 0x42, 1, NULL, 0, NULL, NULL);
 	frame_codec_encode_frame_bytes(frame_codec, bytes, 1);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	EXPECTED_CALL(mocks, xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ExpectedAtLeastTimes(1);
-	EXPECTED_CALL(mocks, xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.IgnoreAllCalls();
 
 	// act
@@ -2584,7 +2489,7 @@ TEST_FUNCTION(after_a_frame_is_completed_another_one_can_be_started)
 	stringify_bytes(sent_io_bytes, sent_io_byte_count, actual_stringified_io);
 	ASSERT_ARE_EQUAL(char_ptr, "[0x00,0x00,0x00,0x09,0x02,0x42,0x00,0x00,0x42,0x00,0x00,0x00,0x08,0x02,0x42,0x00,0x00]", actual_stringified_io);
 	ASSERT_ARE_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
@@ -2594,13 +2499,12 @@ TEST_FUNCTION(after_a_frame_is_completed_another_one_can_be_started)
 TEST_FUNCTION(when_encoding_frame_body_bytes_fails_subsequent_frame_encoding_attempts_fail)
 {
 	// arrange
-	frame_codec_mocks mocks;
 	unsigned char bytes[] = { 0x42, 0x43 };
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_encode_frame(frame_codec, 0x42, 1, NULL, 0, NULL, NULL);
-	mocks.ResetAllCalls();
+	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(mocks, xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, 1, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+	STRICT_EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, 1, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(2, &bytes, 1)
 		.SetReturn(1);
 
@@ -2611,7 +2515,7 @@ TEST_FUNCTION(when_encoding_frame_body_bytes_fails_subsequent_frame_encoding_att
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	mocks.AssertActualAndExpectedCalls();
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);

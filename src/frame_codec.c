@@ -6,12 +6,11 @@
 #include <stdbool.h>
 #include <string.h>
 #include "azure_c_shared_utility/optimize_size.h"
+#include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/xlogging.h"
-#include "azure_c_shared_utility/xio.h"
 #include "azure_c_shared_utility/singlylinkedlist.h"
 #include "azure_uamqp_c/frame_codec.h"
 #include "azure_uamqp_c/amqpvalue.h"
-#include "azure_uamqp_c/amqpalloc.h"
 
 #define FRAME_HEADER_SIZE 8
 #define MAX_TYPE_SPECIFIC_SIZE	((255 * 4) - 6)
@@ -92,7 +91,7 @@ FRAME_CODEC_HANDLE frame_codec_create(ON_FRAME_CODEC_ERROR on_frame_codec_error,
 	}
 	else
 	{
-		result = amqpalloc_malloc(sizeof(FRAME_CODEC_INSTANCE));
+		result = malloc(sizeof(FRAME_CODEC_INSTANCE));
 		/* Codes_SRS_FRAME_CODEC_01_022: [If allocating memory for the frame_codec instance fails, frame_codec_create shall return NULL.] */
 		if (result != NULL)
 		{
@@ -124,11 +123,11 @@ void frame_codec_destroy(FRAME_CODEC_HANDLE frame_codec)
 		singlylinkedlist_destroy(frame_codec_data->subscription_list);
 		if (frame_codec_data->receive_frame_bytes != NULL)
 		{
-			amqpalloc_free(frame_codec_data->receive_frame_bytes);
+			free(frame_codec_data->receive_frame_bytes);
 		}
 
 		/* Codes_SRS_FRAME_CODEC_01_023: [frame_codec_destroy shall free all resources associated with a frame_codec instance.] */
-		amqpalloc_free(frame_codec);
+		free(frame_codec);
 	}
 }
 
@@ -290,7 +289,7 @@ int frame_codec_receive_bytes(FRAME_CODEC_HANDLE frame_codec, const unsigned cha
 						frame_codec_data->receive_frame_pos = 0;
 
 						/* Codes_SRS_FRAME_CODEC_01_102: [frame_codec_receive_bytes shall allocate memory to hold the frame_body bytes.] */
-						frame_codec_data->receive_frame_bytes = (unsigned char*)amqpalloc_malloc(frame_codec_data->receive_frame_size - 6);
+						frame_codec_data->receive_frame_bytes = (unsigned char*)malloc(frame_codec_data->receive_frame_size - 6);
 						if (frame_codec_data->receive_frame_bytes == NULL)
 						{
 							/* Codes_SRS_FRAME_CODEC_01_101: [If the memory for the frame_body bytes cannot be allocated, frame_codec_receive_bytes shall fail and return a non-zero value.] */
@@ -348,7 +347,7 @@ int frame_codec_receive_bytes(FRAME_CODEC_HANDLE frame_codec, const unsigned cha
 							/* Codes_SRS_FRAME_CODEC_01_006: [The treatment of this area depends on the frame type.] */
 							/* Codes_SRS_FRAME_CODEC_01_100: [If the frame body size is 0, the frame_body pointer passed to on_frame_received shall be NULL.] */
 							frame_codec_data->receive_frame_subscription->on_frame_received(frame_codec_data->receive_frame_subscription->callback_context, frame_codec_data->receive_frame_bytes, frame_codec_data->type_specific_size, NULL, 0);
-							amqpalloc_free(frame_codec_data->receive_frame_bytes);
+							free(frame_codec_data->receive_frame_bytes);
 							frame_codec_data->receive_frame_bytes = NULL;
 						}
 
@@ -393,7 +392,7 @@ int frame_codec_receive_bytes(FRAME_CODEC_HANDLE frame_codec, const unsigned cha
 						/* Codes_SRS_FRAME_CODEC_01_006: [The treatment of this area depends on the frame type.] */
 						/* Codes_SRS_FRAME_CODEC_01_099: [A pointer to the frame_body bytes shall also be passed to the on_frame_received.] */
 						frame_codec_data->receive_frame_subscription->on_frame_received(frame_codec_data->receive_frame_subscription->callback_context, frame_codec_data->receive_frame_bytes, frame_codec_data->type_specific_size, frame_codec_data->receive_frame_bytes + frame_codec_data->type_specific_size, frame_body_size);
-						amqpalloc_free(frame_codec_data->receive_frame_bytes);
+						free(frame_codec_data->receive_frame_bytes);
 						frame_codec_data->receive_frame_bytes = NULL;
 					}
 
@@ -452,7 +451,7 @@ int frame_codec_subscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type, ON_FRAME
 		else
 		{
 			/* add a new subscription */
-			subscription = (SUBSCRIPTION*)amqpalloc_malloc(sizeof(SUBSCRIPTION));
+			subscription = (SUBSCRIPTION*)malloc(sizeof(SUBSCRIPTION));
 			/* Codes_SRS_FRAME_CODEC_01_037: [If any failure occurs while performing the subscribe operation, frame_codec_subscribe shall return a non-zero value.] */
 			if (subscription == NULL)
 			{
@@ -467,7 +466,7 @@ int frame_codec_subscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type, ON_FRAME
 				/* Codes_SRS_FRAME_CODEC_01_037: [If any failure occurs while performing the subscribe operation, frame_codec_subscribe shall return a non-zero value.] */
 				if (singlylinkedlist_add(frame_codec_data->subscription_list, subscription) == NULL)
 				{
-					amqpalloc_free(subscription);
+					free(subscription);
 					result = __FAILURE__;
 				}
 				else
@@ -512,7 +511,7 @@ int frame_codec_unsubscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type)
 			}
 			else
 			{
-				amqpalloc_free(subscription);
+				free(subscription);
 				if (singlylinkedlist_remove(frame_codec_data->subscription_list, list_item) != 0)
 				{
 					/* Codes_SRS_FRAME_CODEC_01_041: [If any failure occurs while performing the unsubscribe operation, frame_codec_unsubscribe shall return a non-zero value.] */

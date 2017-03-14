@@ -85,9 +85,16 @@ int main(int argc, char** argv)
 		/* create SASL MSSBCBS handler */
 		SASL_MECHANISM_HANDLE sasl_mechanism_handle = saslmechanism_create(saslmssbcbs_get_interface(), NULL);
 		XIO_HANDLE ws_io;
+        WSIO_CONFIG ws_io_config;
 
 		/* create the TLS IO */
-		WSIO_CONFIG ws_io_config = { IOT_HUB_HOST, 443, "AMQPWSB10",  "/$iothub/websocket", true };
+        ws_io_config.hostname = IOT_HUB_HOST;
+        ws_io_config.port = 443;
+        ws_io_config.protocol = "AMQPWSB10";
+        ws_io_config.resource_name = "/$iothub/websocket";
+        ws_io_config.underlying_io_interface = NULL;
+        ws_io_config.underlying_io_parameters = NULL;
+
 		const IO_INTERFACE_DESCRIPTION* tlsio_interface = wsio_get_interface_description();
 		ws_io = xio_create(tlsio_interface, &ws_io_config);
 

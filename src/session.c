@@ -3,10 +3,10 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include "azure_c_shared_utility/optimize_size.h"
+#include "azure_c_shared_utility/gballoc.h"
 #include "azure_uamqp_c/session.h"
 #include "azure_uamqp_c/connection.h"
-#include "azure_uamqp_c/amqpalloc.h"
-#include "azure_c_shared_utility/optimize_size.h"
 #include "azure_c_shared_utility/xlogging.h"
 
 typedef struct LINK_ENDPOINT_INSTANCE_TAG
@@ -620,7 +620,7 @@ SESSION_HANDLE session_create(CONNECTION_HANDLE connection, ON_LINK_ATTACHED on_
 	else
 	{
 		/* Codes_SRS_SESSION_01_030: [session_create shall create a new session instance and return a non-NULL handle to it.] */
-		result = amqpalloc_malloc(sizeof(SESSION_INSTANCE));
+		result = malloc(sizeof(SESSION_INSTANCE));
 		/* Codes_SRS_SESSION_01_042: [If allocating memory for the session fails, session_create shall fail and return NULL.] */
 		if (result != NULL)
 		{
@@ -650,7 +650,7 @@ SESSION_HANDLE session_create(CONNECTION_HANDLE connection, ON_LINK_ATTACHED on_
 			if (result->endpoint == NULL)
 			{
 				/* Codes_SRS_SESSION_01_033: [If connection_create_endpoint fails, session_create shall fail and return NULL.] */
-				amqpalloc_free(result);
+				free(result);
 				result = NULL;
 			}
 			else
@@ -673,7 +673,7 @@ SESSION_HANDLE session_create_from_endpoint(CONNECTION_HANDLE connection, ENDPOI
 	}
 	else
 	{
-		result = amqpalloc_malloc(sizeof(SESSION_INSTANCE));
+		result = malloc(sizeof(SESSION_INSTANCE));
 		if (result != NULL)
 		{
 			result->connection = connection;
@@ -716,10 +716,10 @@ void session_destroy(SESSION_HANDLE session)
 		connection_destroy_endpoint(session_instance->endpoint);
 		if (session_instance->link_endpoints != NULL)
 		{
-			amqpalloc_free(session_instance->link_endpoints);
+			free(session_instance->link_endpoints);
 		}
 
-		amqpalloc_free(session);
+		free(session);
 	}
 }
 
@@ -964,7 +964,7 @@ LINK_ENDPOINT_HANDLE session_create_link_endpoint(SESSION_HANDLE session, const 
 		/* Codes_SRS_SESSION_01_043: [session_create_link_endpoint shall create a link endpoint associated with a given session and return a non-NULL handle to it.] */
 		SESSION_INSTANCE* session_instance = (SESSION_INSTANCE*)session;
 
-		result = (LINK_ENDPOINT_INSTANCE*)amqpalloc_malloc(sizeof(LINK_ENDPOINT_INSTANCE));
+		result = (LINK_ENDPOINT_INSTANCE*)malloc(sizeof(LINK_ENDPOINT_INSTANCE));
 		/* Codes_SRS_SESSION_01_045: [If allocating memory for the link endpoint fails, session_create_link_endpoint shall fail and return NULL.] */
 		if (result != NULL)
 		{
@@ -988,11 +988,11 @@ LINK_ENDPOINT_HANDLE session_create_link_endpoint(SESSION_HANDLE session, const 
 			result->callback_context = NULL;
 			result->output_handle = selected_handle;
 			result->input_handle = 0xFFFFFFFF;
-			result->name = amqpalloc_malloc(strlen(name) + 1);
+			result->name = malloc(strlen(name) + 1);
 			if (result->name == NULL)
 			{
 				/* Codes_SRS_SESSION_01_045: [If allocating memory for the link endpoint fails, session_create_link_endpoint shall fail and return NULL.] */
-				amqpalloc_free(result);
+				free(result);
 				result = NULL;
 			}
 			else
@@ -1001,12 +1001,12 @@ LINK_ENDPOINT_HANDLE session_create_link_endpoint(SESSION_HANDLE session, const 
 				strcpy(result->name, name);
 				result->session = session;
 
-				new_link_endpoints = amqpalloc_realloc(session_instance->link_endpoints, sizeof(LINK_ENDPOINT_INSTANCE*) * (session_instance->link_endpoint_count + 1));
+				new_link_endpoints = realloc(session_instance->link_endpoints, sizeof(LINK_ENDPOINT_INSTANCE*) * (session_instance->link_endpoint_count + 1));
 				if (new_link_endpoints == NULL)
 				{
 					/* Codes_SRS_SESSION_01_045: [If allocating memory for the link endpoint fails, session_create_link_endpoint shall fail and return NULL.] */
-                    amqpalloc_free(result->name);
-					amqpalloc_free(result);
+                    free(result->name);
+					free(result);
 					result = NULL;
 				}
 				else
@@ -1059,12 +1059,12 @@ void session_destroy_link_endpoint(LINK_ENDPOINT_HANDLE link_endpoint)
 
 			if (session_instance->link_endpoint_count == 0)
 			{
-				amqpalloc_free(session_instance->link_endpoints);
+				free(session_instance->link_endpoints);
 				session_instance->link_endpoints = NULL;
 			}
 			else
 			{
-				new_endpoints = (LINK_ENDPOINT_INSTANCE**)amqpalloc_realloc(session_instance->link_endpoints, sizeof(LINK_ENDPOINT_INSTANCE*) * session_instance->link_endpoint_count);
+				new_endpoints = (LINK_ENDPOINT_INSTANCE**)realloc(session_instance->link_endpoints, sizeof(LINK_ENDPOINT_INSTANCE*) * session_instance->link_endpoint_count);
 				if (new_endpoints != NULL)
 				{
 					session_instance->link_endpoints = new_endpoints;
@@ -1074,10 +1074,10 @@ void session_destroy_link_endpoint(LINK_ENDPOINT_HANDLE link_endpoint)
 
 		if (endpoint_instance->name != NULL)
 		{
-			amqpalloc_free(endpoint_instance->name);
+			free(endpoint_instance->name);
 		}
 
-		amqpalloc_free(endpoint_instance);
+		free(endpoint_instance);
 	}
 }
 
@@ -1486,7 +1486,7 @@ SESSION_SEND_TRANSFER_RESULT session_send_transfer(LINK_ENDPOINT_HANDLE link_end
                                         }
 
                                         transfer_frame_payload_count = (uint32_t)(temp_current_payload_index - current_payload_index + 1);
-                                        PAYLOAD* transfer_frame_payloads = (PAYLOAD*)amqpalloc_malloc(transfer_frame_payload_count * sizeof(PAYLOAD));
+                                        PAYLOAD* transfer_frame_payloads = (PAYLOAD*)malloc(transfer_frame_payload_count * sizeof(PAYLOAD));
                                         if (transfer_frame_payloads == NULL)
                                         {
                                             amqpvalue_destroy(multi_transfer_amqp_value);
@@ -1522,12 +1522,12 @@ SESSION_SEND_TRANSFER_RESULT session_send_transfer(LINK_ENDPOINT_HANDLE link_end
 
                                         if (connection_encode_frame(session_instance->endpoint, multi_transfer_amqp_value, transfer_frame_payloads, transfer_frame_payload_count, on_send_complete, callback_context) != 0)
                                         {
-                                            amqpalloc_free(transfer_frame_payloads);
+                                            free(transfer_frame_payloads);
                                             amqpvalue_destroy(multi_transfer_amqp_value);
                                             break;
                                         }
 
-                                        amqpalloc_free(transfer_frame_payloads);
+                                        free(transfer_frame_payloads);
                                         amqpvalue_destroy(multi_transfer_amqp_value);
                                         payload_size -= current_transfer_frame_payload_size;
                                     }

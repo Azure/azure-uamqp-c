@@ -156,7 +156,6 @@ set(uamqp_h_files
     ./inc/azure_uamqp_c/amqp_frame_codec.h
     ./inc/azure_uamqp_c/amqp_management.h
     ./inc/azure_uamqp_c/amqp_types.h
-    ./inc/azure_uamqp_c/amqpalloc.h
     ./inc/azure_uamqp_c/amqpvalue.h
     ./inc/azure_uamqp_c/amqpvalue_to_string.h
     ./inc/azure_uamqp_c/cbs.h
@@ -182,7 +181,6 @@ set(uamqp_c_files
     ./src/amqp_definitions.c
     ./src/amqp_frame_codec.c
     ./src/amqp_management.c
-    ./src/amqpalloc.c
     ./src/amqpvalue.c
     ./src/amqpvalue_to_string.c
     ./src/cbs.c

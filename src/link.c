@@ -5,11 +5,11 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include "azure_c_shared_utility/gballoc.h"
 #include "azure_uamqp_c/link.h"
 #include "azure_uamqp_c/session.h"
 #include "azure_uamqp_c/amqpvalue.h"
 #include "azure_uamqp_c/amqp_definitions.h"
-#include "azure_uamqp_c/amqpalloc.h"
 #include "azure_uamqp_c/amqp_frame_codec.h"
 #include "azure_c_shared_utility/optimize_size.h"
 #include "azure_c_shared_utility/xlogging.h"
@@ -82,7 +82,7 @@ static void remove_all_pending_deliveries(LINK_INSTANCE* link, bool indicate_set
                 {
                     delivery_instance->on_delivery_settled(delivery_instance->callback_context, delivery_instance->delivery_id, NULL);
                 }
-                amqpalloc_free(delivery_instance);
+                free(delivery_instance);
             }
 
             item = next_item;
@@ -472,7 +472,7 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                                 else
                                 {
                                     delivery_instance->on_delivery_settled(delivery_instance->callback_context, delivery_instance->delivery_id, delivery_state);
-                                    amqpalloc_free(delivery_instance);
+                                    free(delivery_instance);
                                     if (singlylinkedlist_remove(link_instance->pending_deliveries, pending_delivery) != 0)
                                     {
                                         /* error */
@@ -587,14 +587,14 @@ static void on_send_complete(void* context, IO_SEND_RESULT send_result)
 	if (link_instance->snd_settle_mode == sender_settle_mode_settled)
 	{
 		delivery_instance->on_delivery_settled(delivery_instance->callback_context, delivery_instance->delivery_id, NULL);
-		amqpalloc_free(delivery_instance);
+		free(delivery_instance);
 		(void)singlylinkedlist_remove(link_instance->pending_deliveries, delivery_instance_list_item);
 	}
 }
 
 LINK_HANDLE link_create(SESSION_HANDLE session, const char* name, role role, AMQP_VALUE source, AMQP_VALUE target)
 {
-	LINK_INSTANCE* result = amqpalloc_malloc(sizeof(LINK_INSTANCE));
+	LINK_INSTANCE* result = malloc(sizeof(LINK_INSTANCE));
 	if (result != NULL)
 	{
 		result->link_state = LINK_STATE_DETACHED;
@@ -619,16 +619,16 @@ LINK_HANDLE link_create(SESSION_HANDLE session, const char* name, role role, AMQ
 		result->pending_deliveries = singlylinkedlist_create();
 		if (result->pending_deliveries == NULL)
 		{
-			amqpalloc_free(result);
+			free(result);
 			result = NULL;
 		}
 		else
 		{
-			result->name = amqpalloc_malloc(strlen(name) + 1);
+			result->name = malloc(strlen(name) + 1);
 			if (result->name == NULL)
 			{
 				singlylinkedlist_destroy(result->pending_deliveries);
-				amqpalloc_free(result);
+				free(result);
 				result = NULL;
 			}
 			else
@@ -642,8 +642,8 @@ LINK_HANDLE link_create(SESSION_HANDLE session, const char* name, role role, AMQ
 				if (result->link_endpoint == NULL)
 				{
 					singlylinkedlist_destroy(result->pending_deliveries);
-					amqpalloc_free(result->name);
-					amqpalloc_free(result);
+					free(result->name);
+					free(result);
 					result = NULL;
 				}
 			}
@@ -655,7 +655,7 @@ LINK_HANDLE link_create(SESSION_HANDLE session, const char* name, role role, AMQ
 
 LINK_HANDLE link_create_from_endpoint(SESSION_HANDLE session, LINK_ENDPOINT_HANDLE link_endpoint, const char* name, role role, AMQP_VALUE source, AMQP_VALUE target)
 {
-	LINK_INSTANCE* result = amqpalloc_malloc(sizeof(LINK_INSTANCE));
+	LINK_INSTANCE* result = malloc(sizeof(LINK_INSTANCE));
 	if (result != NULL)
 	{
 		result->link_state = LINK_STATE_DETACHED;
@@ -687,16 +687,16 @@ LINK_HANDLE link_create_from_endpoint(SESSION_HANDLE session, LINK_ENDPOINT_HAND
 		result->pending_deliveries = singlylinkedlist_create();
 		if (result->pending_deliveries == NULL)
 		{
-			amqpalloc_free(result);
+			free(result);
 			result = NULL;
 		}
 		else
 		{
-			result->name = amqpalloc_malloc(strlen(name) + 1);
+			result->name = malloc(strlen(name) + 1);
 			if (result->name == NULL)
 			{
 				singlylinkedlist_destroy(result->pending_deliveries);
-				amqpalloc_free(result);
+				free(result);
 				result = NULL;
 			}
 			else
@@ -726,7 +726,7 @@ void link_destroy(LINK_HANDLE link)
 
 		if (link->name != NULL)
 		{
-			amqpalloc_free(link->name);
+			free(link->name);
 		}
 
 		if (link->attach_properties != NULL)
@@ -739,7 +739,7 @@ void link_destroy(LINK_HANDLE link)
             free(link->received_payload);
         }
 
-		amqpalloc_free(link);
+		free(link);
 	}
 }
 
@@ -1074,7 +1074,7 @@ LINK_TRANSFER_RESULT link_transfer(LINK_HANDLE link, message_format message_form
 					}
 					else
 					{
-						DELIVERY_INSTANCE* pending_delivery = amqpalloc_malloc(sizeof(DELIVERY_INSTANCE));
+						DELIVERY_INSTANCE* pending_delivery = malloc(sizeof(DELIVERY_INSTANCE));
 						if (pending_delivery == NULL)
 						{
 							result = LINK_TRANSFER_ERROR;
@@ -1089,7 +1089,7 @@ LINK_TRANSFER_RESULT link_transfer(LINK_HANDLE link, message_format message_form
 
 							if (delivery_instance_list_item == NULL)
 							{
-								amqpalloc_free(pending_delivery);
+								free(pending_delivery);
 								result = LINK_TRANSFER_ERROR;
 							}
 							else
@@ -1100,14 +1100,14 @@ LINK_TRANSFER_RESULT link_transfer(LINK_HANDLE link, message_format message_form
 								default:
 								case SESSION_SEND_TRANSFER_ERROR:
 									singlylinkedlist_remove(link->pending_deliveries, delivery_instance_list_item);
-									amqpalloc_free(pending_delivery);
+									free(pending_delivery);
 									result = LINK_TRANSFER_ERROR;
 									break;
 
 								case SESSION_SEND_TRANSFER_BUSY:
 									/* Ensure we remove from list again since sender will attempt to transfer again on flow on */
 									singlylinkedlist_remove(link->pending_deliveries, delivery_instance_list_item);
-									amqpalloc_free(pending_delivery);
+									free(pending_delivery);
 									result = LINK_TRANSFER_BUSY;
 									break;
 

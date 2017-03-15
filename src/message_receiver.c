@@ -4,8 +4,8 @@
 #include <stdlib.h>
 
 #include "azure_c_shared_utility/optimize_size.h"
+#include "azure_c_shared_utility/gballoc.h"
 #include "azure_uamqp_c/message_receiver.h"
-#include "azure_uamqp_c/amqpalloc.h"
 #include "azure_uamqp_c/amqpvalue.h"
 #include "azure_uamqp_c/amqp_definitions.h"
 
@@ -246,7 +246,7 @@ static void on_link_state_changed(void* context, LINK_STATE new_link_state, LINK
 
 MESSAGE_RECEIVER_HANDLE messagereceiver_create(LINK_HANDLE link, ON_MESSAGE_RECEIVER_STATE_CHANGED on_message_receiver_state_changed, void* context)
 {
-	MESSAGE_RECEIVER_INSTANCE* result = (MESSAGE_RECEIVER_INSTANCE*)amqpalloc_malloc(sizeof(MESSAGE_RECEIVER_INSTANCE));
+	MESSAGE_RECEIVER_INSTANCE* result = (MESSAGE_RECEIVER_INSTANCE*)malloc(sizeof(MESSAGE_RECEIVER_INSTANCE));
 	if (result != NULL)
 	{
 		result->link = link;
@@ -263,7 +263,7 @@ void messagereceiver_destroy(MESSAGE_RECEIVER_HANDLE message_receiver)
 	if (message_receiver != NULL)
 	{
 		(void)messagereceiver_close(message_receiver);
-		amqpalloc_free(message_receiver);
+		free(message_receiver);
 	}
 }
 

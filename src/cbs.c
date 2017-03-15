@@ -6,9 +6,9 @@
 #include <stdio.h>
 #include <string.h>
 #include "azure_c_shared_utility/optimize_size.h"
+#include "azure_c_shared_utility/gballoc.h"
 #include "azure_uamqp_c/cbs.h"
 #include "azure_uamqp_c/amqp_management.h"
-#include "azure_uamqp_c/amqpalloc.h"
 #include "azure_uamqp_c/session.h"
 
 typedef struct CBS_INSTANCE_TAG
@@ -114,13 +114,13 @@ CBS_HANDLE cbs_create(SESSION_HANDLE session, ON_AMQP_MANAGEMENT_STATE_CHANGED o
     }
     else
     {
-        result = (CBS_INSTANCE*)amqpalloc_malloc(sizeof(CBS_INSTANCE));
+        result = (CBS_INSTANCE*)malloc(sizeof(CBS_INSTANCE));
         if (result != NULL)
         {
             result->amqp_management = amqpmanagement_create(session, "$cbs", on_amqp_management_state_changed, callback_context);
             if (result->amqp_management == NULL)
             {
-                amqpalloc_free(result);
+                free(result);
                 result = NULL;
             }
         }
@@ -134,7 +134,7 @@ void cbs_destroy(CBS_HANDLE cbs)
     {
         (void)cbs_close(cbs);
         amqpmanagement_destroy(cbs->amqp_management);
-        amqpalloc_free(cbs);
+        free(cbs);
     }
 }
 

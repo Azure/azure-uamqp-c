@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "azure_c_shared_utility/optimize_size.h"
+#include "azure_c_shared_utility/gballoc.h"
 #include "azure_uamqp_c/sasl_mssbcbs.h"
-#include "azure_uamqp_c/amqpalloc.h"
 
 typedef struct SASL_MSSBCBS_INSTANCE_TAG
 {
@@ -24,14 +24,14 @@ static const SASL_MECHANISM_INTERFACE_DESCRIPTION saslmssbcbs_interface =
 CONCRETE_SASL_MECHANISM_HANDLE saslmssbcbs_create(void* config)
 {
     (void)config;
-	return amqpalloc_malloc(sizeof(SASL_MSSBCBS_INSTANCE));
+	return malloc(sizeof(SASL_MSSBCBS_INSTANCE));
 }
 
 void saslmssbcbs_destroy(CONCRETE_SASL_MECHANISM_HANDLE sasl_mechanism_concrete_handle)
 {
 	if (sasl_mechanism_concrete_handle != NULL)
 	{
-		amqpalloc_free(sasl_mechanism_concrete_handle);
+		free(sasl_mechanism_concrete_handle);
 	}
 }
 

@@ -5,9 +5,9 @@
 
 #include <stdlib.h>
 #include "azure_c_shared_utility/optimize_size.h"
+#include "azure_c_shared_utility/gballoc.h"
 #include "azure_uamqp_c/amqpvalue.h"
 #include "azure_uamqp_c/amqp_definitions.h"
-#include "azure_uamqp_c/amqpalloc.h"
 #include <stdlib.h>
 #include <stdbool.h>
 
@@ -111,7 +111,7 @@ typedef struct ERROR_INSTANCE_TAG
 
 static ERROR_HANDLE error_create_internal(void)
 {
-	ERROR_INSTANCE* error_instance = (ERROR_INSTANCE*)amqpalloc_malloc(sizeof(ERROR_INSTANCE));
+	ERROR_INSTANCE* error_instance = (ERROR_INSTANCE*)malloc(sizeof(ERROR_INSTANCE));
 	if (error_instance != NULL)
 	{
 		error_instance->composite_value = NULL;
@@ -122,13 +122,13 @@ static ERROR_HANDLE error_create_internal(void)
 
 ERROR_HANDLE error_create(const char* condition_value)
 {
-	ERROR_INSTANCE* error_instance = (ERROR_INSTANCE*)amqpalloc_malloc(sizeof(ERROR_INSTANCE));
+	ERROR_INSTANCE* error_instance = (ERROR_INSTANCE*)malloc(sizeof(ERROR_INSTANCE));
 	if (error_instance != NULL)
 	{
 		error_instance->composite_value = amqpvalue_create_composite_with_ulong_descriptor(29);
 		if (error_instance->composite_value == NULL)
 		{
-			amqpalloc_free(error_instance);
+			free(error_instance);
 			error_instance = NULL;
 		}
 		else
@@ -151,13 +151,13 @@ ERROR_HANDLE error_create(const char* condition_value)
 
 ERROR_HANDLE error_clone(ERROR_HANDLE value)
 {
-	ERROR_INSTANCE* error_instance = (ERROR_INSTANCE*)amqpalloc_malloc(sizeof(ERROR_INSTANCE));
+	ERROR_INSTANCE* error_instance = (ERROR_INSTANCE*)malloc(sizeof(ERROR_INSTANCE));
 	if (error_instance != NULL)
 	{
 		error_instance->composite_value = amqpvalue_clone(((ERROR_INSTANCE*)value)->composite_value);
 		if (error_instance->composite_value == NULL)
 		{
-			amqpalloc_free(error_instance);
+			free(error_instance);
 			error_instance = NULL;
 		}
 	}
@@ -171,7 +171,7 @@ void error_destroy(ERROR_HANDLE error)
 	{
 		ERROR_INSTANCE* error_instance = (ERROR_INSTANCE*)error;
 		amqpvalue_destroy(error_instance->composite_value);
-		amqpalloc_free(error_instance);
+		free(error_instance);
 	}
 }
 
@@ -544,7 +544,7 @@ typedef struct OPEN_INSTANCE_TAG
 
 static OPEN_HANDLE open_create_internal(void)
 {
-	OPEN_INSTANCE* open_instance = (OPEN_INSTANCE*)amqpalloc_malloc(sizeof(OPEN_INSTANCE));
+	OPEN_INSTANCE* open_instance = (OPEN_INSTANCE*)malloc(sizeof(OPEN_INSTANCE));
 	if (open_instance != NULL)
 	{
 		open_instance->composite_value = NULL;
@@ -555,13 +555,13 @@ static OPEN_HANDLE open_create_internal(void)
 
 OPEN_HANDLE open_create(const char* container_id_value)
 {
-	OPEN_INSTANCE* open_instance = (OPEN_INSTANCE*)amqpalloc_malloc(sizeof(OPEN_INSTANCE));
+	OPEN_INSTANCE* open_instance = (OPEN_INSTANCE*)malloc(sizeof(OPEN_INSTANCE));
 	if (open_instance != NULL)
 	{
 		open_instance->composite_value = amqpvalue_create_composite_with_ulong_descriptor(16);
 		if (open_instance->composite_value == NULL)
 		{
-			amqpalloc_free(open_instance);
+			free(open_instance);
 			open_instance = NULL;
 		}
 		else
@@ -584,13 +584,13 @@ OPEN_HANDLE open_create(const char* container_id_value)
 
 OPEN_HANDLE open_clone(OPEN_HANDLE value)
 {
-	OPEN_INSTANCE* open_instance = (OPEN_INSTANCE*)amqpalloc_malloc(sizeof(OPEN_INSTANCE));
+	OPEN_INSTANCE* open_instance = (OPEN_INSTANCE*)malloc(sizeof(OPEN_INSTANCE));
 	if (open_instance != NULL)
 	{
 		open_instance->composite_value = amqpvalue_clone(((OPEN_INSTANCE*)value)->composite_value);
 		if (open_instance->composite_value == NULL)
 		{
-			amqpalloc_free(open_instance);
+			free(open_instance);
 			open_instance = NULL;
 		}
 	}
@@ -604,7 +604,7 @@ void open_destroy(OPEN_HANDLE open)
 	{
 		OPEN_INSTANCE* open_instance = (OPEN_INSTANCE*)open;
 		amqpvalue_destroy(open_instance->composite_value);
-		amqpalloc_free(open_instance);
+		free(open_instance);
 	}
 }
 
@@ -1584,7 +1584,7 @@ typedef struct BEGIN_INSTANCE_TAG
 
 static BEGIN_HANDLE begin_create_internal(void)
 {
-	BEGIN_INSTANCE* begin_instance = (BEGIN_INSTANCE*)amqpalloc_malloc(sizeof(BEGIN_INSTANCE));
+	BEGIN_INSTANCE* begin_instance = (BEGIN_INSTANCE*)malloc(sizeof(BEGIN_INSTANCE));
 	if (begin_instance != NULL)
 	{
 		begin_instance->composite_value = NULL;
@@ -1595,13 +1595,13 @@ static BEGIN_HANDLE begin_create_internal(void)
 
 BEGIN_HANDLE begin_create(transfer_number next_outgoing_id_value, uint32_t incoming_window_value, uint32_t outgoing_window_value)
 {
-	BEGIN_INSTANCE* begin_instance = (BEGIN_INSTANCE*)amqpalloc_malloc(sizeof(BEGIN_INSTANCE));
+	BEGIN_INSTANCE* begin_instance = (BEGIN_INSTANCE*)malloc(sizeof(BEGIN_INSTANCE));
 	if (begin_instance != NULL)
 	{
 		begin_instance->composite_value = amqpvalue_create_composite_with_ulong_descriptor(17);
 		if (begin_instance->composite_value == NULL)
 		{
-			amqpalloc_free(begin_instance);
+			free(begin_instance);
 			begin_instance = NULL;
 		}
 		else
@@ -1638,13 +1638,13 @@ BEGIN_HANDLE begin_create(transfer_number next_outgoing_id_value, uint32_t incom
 
 BEGIN_HANDLE begin_clone(BEGIN_HANDLE value)
 {
-	BEGIN_INSTANCE* begin_instance = (BEGIN_INSTANCE*)amqpalloc_malloc(sizeof(BEGIN_INSTANCE));
+	BEGIN_INSTANCE* begin_instance = (BEGIN_INSTANCE*)malloc(sizeof(BEGIN_INSTANCE));
 	if (begin_instance != NULL)
 	{
 		begin_instance->composite_value = amqpvalue_clone(((BEGIN_INSTANCE*)value)->composite_value);
 		if (begin_instance->composite_value == NULL)
 		{
-			amqpalloc_free(begin_instance);
+			free(begin_instance);
 			begin_instance = NULL;
 		}
 	}
@@ -1658,7 +1658,7 @@ void begin_destroy(BEGIN_HANDLE begin)
 	{
 		BEGIN_INSTANCE* begin_instance = (BEGIN_INSTANCE*)begin;
 		amqpvalue_destroy(begin_instance->composite_value);
-		amqpalloc_free(begin_instance);
+		free(begin_instance);
 	}
 }
 
@@ -2453,7 +2453,7 @@ typedef struct ATTACH_INSTANCE_TAG
 
 static ATTACH_HANDLE attach_create_internal(void)
 {
-	ATTACH_INSTANCE* attach_instance = (ATTACH_INSTANCE*)amqpalloc_malloc(sizeof(ATTACH_INSTANCE));
+	ATTACH_INSTANCE* attach_instance = (ATTACH_INSTANCE*)malloc(sizeof(ATTACH_INSTANCE));
 	if (attach_instance != NULL)
 	{
 		attach_instance->composite_value = NULL;
@@ -2464,13 +2464,13 @@ static ATTACH_HANDLE attach_create_internal(void)
 
 ATTACH_HANDLE attach_create(const char* name_value, handle handle_value, role role_value)
 {
-	ATTACH_INSTANCE* attach_instance = (ATTACH_INSTANCE*)amqpalloc_malloc(sizeof(ATTACH_INSTANCE));
+	ATTACH_INSTANCE* attach_instance = (ATTACH_INSTANCE*)malloc(sizeof(ATTACH_INSTANCE));
 	if (attach_instance != NULL)
 	{
 		attach_instance->composite_value = amqpvalue_create_composite_with_ulong_descriptor(18);
 		if (attach_instance->composite_value == NULL)
 		{
-			amqpalloc_free(attach_instance);
+			free(attach_instance);
 			attach_instance = NULL;
 		}
 		else
@@ -2507,13 +2507,13 @@ ATTACH_HANDLE attach_create(const char* name_value, handle handle_value, role ro
 
 ATTACH_HANDLE attach_clone(ATTACH_HANDLE value)
 {
-	ATTACH_INSTANCE* attach_instance = (ATTACH_INSTANCE*)amqpalloc_malloc(sizeof(ATTACH_INSTANCE));
+	ATTACH_INSTANCE* attach_instance = (ATTACH_INSTANCE*)malloc(sizeof(ATTACH_INSTANCE));
 	if (attach_instance != NULL)
 	{
 		attach_instance->composite_value = amqpvalue_clone(((ATTACH_INSTANCE*)value)->composite_value);
 		if (attach_instance->composite_value == NULL)
 		{
-			amqpalloc_free(attach_instance);
+			free(attach_instance);
 			attach_instance = NULL;
 		}
 	}
@@ -2527,7 +2527,7 @@ void attach_destroy(ATTACH_HANDLE attach)
 	{
 		ATTACH_INSTANCE* attach_instance = (ATTACH_INSTANCE*)attach;
 		amqpvalue_destroy(attach_instance->composite_value);
-		amqpalloc_free(attach_instance);
+		free(attach_instance);
 	}
 }
 
@@ -3828,7 +3828,7 @@ typedef struct FLOW_INSTANCE_TAG
 
 static FLOW_HANDLE flow_create_internal(void)
 {
-	FLOW_INSTANCE* flow_instance = (FLOW_INSTANCE*)amqpalloc_malloc(sizeof(FLOW_INSTANCE));
+	FLOW_INSTANCE* flow_instance = (FLOW_INSTANCE*)malloc(sizeof(FLOW_INSTANCE));
 	if (flow_instance != NULL)
 	{
 		flow_instance->composite_value = NULL;
@@ -3839,13 +3839,13 @@ static FLOW_HANDLE flow_create_internal(void)
 
 FLOW_HANDLE flow_create(uint32_t incoming_window_value, transfer_number next_outgoing_id_value, uint32_t outgoing_window_value)
 {
-	FLOW_INSTANCE* flow_instance = (FLOW_INSTANCE*)amqpalloc_malloc(sizeof(FLOW_INSTANCE));
+	FLOW_INSTANCE* flow_instance = (FLOW_INSTANCE*)malloc(sizeof(FLOW_INSTANCE));
 	if (flow_instance != NULL)
 	{
 		flow_instance->composite_value = amqpvalue_create_composite_with_ulong_descriptor(19);
 		if (flow_instance->composite_value == NULL)
 		{
-			amqpalloc_free(flow_instance);
+			free(flow_instance);
 			flow_instance = NULL;
 		}
 		else
@@ -3882,13 +3882,13 @@ FLOW_HANDLE flow_create(uint32_t incoming_window_value, transfer_number next_out
 
 FLOW_HANDLE flow_clone(FLOW_HANDLE value)
 {
-	FLOW_INSTANCE* flow_instance = (FLOW_INSTANCE*)amqpalloc_malloc(sizeof(FLOW_INSTANCE));
+	FLOW_INSTANCE* flow_instance = (FLOW_INSTANCE*)malloc(sizeof(FLOW_INSTANCE));
 	if (flow_instance != NULL)
 	{
 		flow_instance->composite_value = amqpvalue_clone(((FLOW_INSTANCE*)value)->composite_value);
 		if (flow_instance->composite_value == NULL)
 		{
-			amqpalloc_free(flow_instance);
+			free(flow_instance);
 			flow_instance = NULL;
 		}
 	}
@@ -3902,7 +3902,7 @@ void flow_destroy(FLOW_HANDLE flow)
 	{
 		FLOW_INSTANCE* flow_instance = (FLOW_INSTANCE*)flow;
 		amqpvalue_destroy(flow_instance->composite_value);
-		amqpalloc_free(flow_instance);
+		free(flow_instance);
 	}
 }
 
@@ -4963,7 +4963,7 @@ typedef struct TRANSFER_INSTANCE_TAG
 
 static TRANSFER_HANDLE transfer_create_internal(void)
 {
-	TRANSFER_INSTANCE* transfer_instance = (TRANSFER_INSTANCE*)amqpalloc_malloc(sizeof(TRANSFER_INSTANCE));
+	TRANSFER_INSTANCE* transfer_instance = (TRANSFER_INSTANCE*)malloc(sizeof(TRANSFER_INSTANCE));
 	if (transfer_instance != NULL)
 	{
 		transfer_instance->composite_value = NULL;
@@ -4974,13 +4974,13 @@ static TRANSFER_HANDLE transfer_create_internal(void)
 
 TRANSFER_HANDLE transfer_create(handle handle_value)
 {
-	TRANSFER_INSTANCE* transfer_instance = (TRANSFER_INSTANCE*)amqpalloc_malloc(sizeof(TRANSFER_INSTANCE));
+	TRANSFER_INSTANCE* transfer_instance = (TRANSFER_INSTANCE*)malloc(sizeof(TRANSFER_INSTANCE));
 	if (transfer_instance != NULL)
 	{
 		transfer_instance->composite_value = amqpvalue_create_composite_with_ulong_descriptor(20);
 		if (transfer_instance->composite_value == NULL)
 		{
-			amqpalloc_free(transfer_instance);
+			free(transfer_instance);
 			transfer_instance = NULL;
 		}
 		else
@@ -5003,13 +5003,13 @@ TRANSFER_HANDLE transfer_create(handle handle_value)
 
 TRANSFER_HANDLE transfer_clone(TRANSFER_HANDLE value)
 {
-	TRANSFER_INSTANCE* transfer_instance = (TRANSFER_INSTANCE*)amqpalloc_malloc(sizeof(TRANSFER_INSTANCE));
+	TRANSFER_INSTANCE* transfer_instance = (TRANSFER_INSTANCE*)malloc(sizeof(TRANSFER_INSTANCE));
 	if (transfer_instance != NULL)
 	{
 		transfer_instance->composite_value = amqpvalue_clone(((TRANSFER_INSTANCE*)value)->composite_value);
 		if (transfer_instance->composite_value == NULL)
 		{
-			amqpalloc_free(transfer_instance);
+			free(transfer_instance);
 			transfer_instance = NULL;
 		}
 	}
@@ -5023,7 +5023,7 @@ void transfer_destroy(TRANSFER_HANDLE transfer)
 	{
 		TRANSFER_INSTANCE* transfer_instance = (TRANSFER_INSTANCE*)transfer;
 		amqpvalue_destroy(transfer_instance->composite_value);
-		amqpalloc_free(transfer_instance);
+		free(transfer_instance);
 	}
 }
 
@@ -6083,7 +6083,7 @@ typedef struct DISPOSITION_INSTANCE_TAG
 
 static DISPOSITION_HANDLE disposition_create_internal(void)
 {
-	DISPOSITION_INSTANCE* disposition_instance = (DISPOSITION_INSTANCE*)amqpalloc_malloc(sizeof(DISPOSITION_INSTANCE));
+	DISPOSITION_INSTANCE* disposition_instance = (DISPOSITION_INSTANCE*)malloc(sizeof(DISPOSITION_INSTANCE));
 	if (disposition_instance != NULL)
 	{
 		disposition_instance->composite_value = NULL;
@@ -6094,13 +6094,13 @@ static DISPOSITION_HANDLE disposition_create_internal(void)
 
 DISPOSITION_HANDLE disposition_create(role role_value, delivery_number first_value)
 {
-	DISPOSITION_INSTANCE* disposition_instance = (DISPOSITION_INSTANCE*)amqpalloc_malloc(sizeof(DISPOSITION_INSTANCE));
+	DISPOSITION_INSTANCE* disposition_instance = (DISPOSITION_INSTANCE*)malloc(sizeof(DISPOSITION_INSTANCE));
 	if (disposition_instance != NULL)
 	{
 		disposition_instance->composite_value = amqpvalue_create_composite_with_ulong_descriptor(21);
 		if (disposition_instance->composite_value == NULL)
 		{
-			amqpalloc_free(disposition_instance);
+			free(disposition_instance);
 			disposition_instance = NULL;
 		}
 		else
@@ -6130,13 +6130,13 @@ DISPOSITION_HANDLE disposition_create(role role_value, delivery_number first_val
 
 DISPOSITION_HANDLE disposition_clone(DISPOSITION_HANDLE value)
 {
-	DISPOSITION_INSTANCE* disposition_instance = (DISPOSITION_INSTANCE*)amqpalloc_malloc(sizeof(DISPOSITION_INSTANCE));
+	DISPOSITION_INSTANCE* disposition_instance = (DISPOSITION_INSTANCE*)malloc(sizeof(DISPOSITION_INSTANCE));
 	if (disposition_instance != NULL)
 	{
 		disposition_instance->composite_value = amqpvalue_clone(((DISPOSITION_INSTANCE*)value)->composite_value);
 		if (disposition_instance->composite_value == NULL)
 		{
-			amqpalloc_free(disposition_instance);
+			free(disposition_instance);
 			disposition_instance = NULL;
 		}
 	}
@@ -6150,7 +6150,7 @@ void disposition_destroy(DISPOSITION_HANDLE disposition)
 	{
 		DISPOSITION_INSTANCE* disposition_instance = (DISPOSITION_INSTANCE*)disposition;
 		amqpvalue_destroy(disposition_instance->composite_value);
-		amqpalloc_free(disposition_instance);
+		free(disposition_instance);
 	}
 }
 
@@ -6758,7 +6758,7 @@ typedef struct DETACH_INSTANCE_TAG
 
 static DETACH_HANDLE detach_create_internal(void)
 {
-	DETACH_INSTANCE* detach_instance = (DETACH_INSTANCE*)amqpalloc_malloc(sizeof(DETACH_INSTANCE));
+	DETACH_INSTANCE* detach_instance = (DETACH_INSTANCE*)malloc(sizeof(DETACH_INSTANCE));
 	if (detach_instance != NULL)
 	{
 		detach_instance->composite_value = NULL;
@@ -6769,13 +6769,13 @@ static DETACH_HANDLE detach_create_internal(void)
 
 DETACH_HANDLE detach_create(handle handle_value)
 {
-	DETACH_INSTANCE* detach_instance = (DETACH_INSTANCE*)amqpalloc_malloc(sizeof(DETACH_INSTANCE));
+	DETACH_INSTANCE* detach_instance = (DETACH_INSTANCE*)malloc(sizeof(DETACH_INSTANCE));
 	if (detach_instance != NULL)
 	{
 		detach_instance->composite_value = amqpvalue_create_composite_with_ulong_descriptor(22);
 		if (detach_instance->composite_value == NULL)
 		{
-			amqpalloc_free(detach_instance);
+			free(detach_instance);
 			detach_instance = NULL;
 		}
 		else
@@ -6798,13 +6798,13 @@ DETACH_HANDLE detach_create(handle handle_value)
 
 DETACH_HANDLE detach_clone(DETACH_HANDLE value)
 {
-	DETACH_INSTANCE* detach_instance = (DETACH_INSTANCE*)amqpalloc_malloc(sizeof(DETACH_INSTANCE));
+	DETACH_INSTANCE* detach_instance = (DETACH_INSTANCE*)malloc(sizeof(DETACH_INSTANCE));
 	if (detach_instance != NULL)
 	{
 		detach_instance->composite_value = amqpvalue_clone(((DETACH_INSTANCE*)value)->composite_value);
 		if (detach_instance->composite_value == NULL)
 		{
-			amqpalloc_free(detach_instance);
+			free(detach_instance);
 			detach_instance = NULL;
 		}
 	}
@@ -6818,7 +6818,7 @@ void detach_destroy(DETACH_HANDLE detach)
 	{
 		DETACH_INSTANCE* detach_instance = (DETACH_INSTANCE*)detach;
 		amqpvalue_destroy(detach_instance->composite_value);
-		amqpalloc_free(detach_instance);
+		free(detach_instance);
 	}
 }
 
@@ -7172,7 +7172,7 @@ typedef struct END_INSTANCE_TAG
 
 static END_HANDLE end_create_internal(void)
 {
-	END_INSTANCE* end_instance = (END_INSTANCE*)amqpalloc_malloc(sizeof(END_INSTANCE));
+	END_INSTANCE* end_instance = (END_INSTANCE*)malloc(sizeof(END_INSTANCE));
 	if (end_instance != NULL)
 	{
 		end_instance->composite_value = NULL;
@@ -7183,13 +7183,13 @@ static END_HANDLE end_create_internal(void)
 
 END_HANDLE end_create(void)
 {
-	END_INSTANCE* end_instance = (END_INSTANCE*)amqpalloc_malloc(sizeof(END_INSTANCE));
+	END_INSTANCE* end_instance = (END_INSTANCE*)malloc(sizeof(END_INSTANCE));
 	if (end_instance != NULL)
 	{
 		end_instance->composite_value = amqpvalue_create_composite_with_ulong_descriptor(23);
 		if (end_instance->composite_value == NULL)
 		{
-			amqpalloc_free(end_instance);
+			free(end_instance);
 			end_instance = NULL;
 		}
 	}
@@ -7199,13 +7199,13 @@ END_HANDLE end_create(void)
 
 END_HANDLE end_clone(END_HANDLE value)
 {
-	END_INSTANCE* end_instance = (END_INSTANCE*)amqpalloc_malloc(sizeof(END_INSTANCE));
+	END_INSTANCE* end_instance = (END_INSTANCE*)malloc(sizeof(END_INSTANCE));
 	if (end_instance != NULL)
 	{
 		end_instance->composite_value = amqpvalue_clone(((END_INSTANCE*)value)->composite_value);
 		if (end_instance->composite_value == NULL)
 		{
-			amqpalloc_free(end_instance);
+			free(end_instance);
 			end_instance = NULL;
 		}
 	}
@@ -7219,7 +7219,7 @@ void end_destroy(END_HANDLE end)
 	{
 		END_INSTANCE* end_instance = (END_INSTANCE*)end;
 		amqpvalue_destroy(end_instance->composite_value);
-		amqpalloc_free(end_instance);
+		free(end_instance);
 	}
 }
 
@@ -7389,7 +7389,7 @@ typedef struct CLOSE_INSTANCE_TAG
 
 static CLOSE_HANDLE close_create_internal(void)
 {
-	CLOSE_INSTANCE* close_instance = (CLOSE_INSTANCE*)amqpalloc_malloc(sizeof(CLOSE_INSTANCE));
+	CLOSE_INSTANCE* close_instance = (CLOSE_INSTANCE*)malloc(sizeof(CLOSE_INSTANCE));
 	if (close_instance != NULL)
 	{
 		close_instance->composite_value = NULL;
@@ -7400,13 +7400,13 @@ static CLOSE_HANDLE close_create_internal(void)
 
 CLOSE_HANDLE close_create(void)
 {
-	CLOSE_INSTANCE* close_instance = (CLOSE_INSTANCE*)amqpalloc_malloc(sizeof(CLOSE_INSTANCE));
+	CLOSE_INSTANCE* close_instance = (CLOSE_INSTANCE*)malloc(sizeof(CLOSE_INSTANCE));
 	if (close_instance != NULL)
 	{
 		close_instance->composite_value = amqpvalue_create_composite_with_ulong_descriptor(24);
 		if (close_instance->composite_value == NULL)
 		{
-			amqpalloc_free(close_instance);
+			free(close_instance);
 			close_instance = NULL;
 		}
 	}
@@ -7416,13 +7416,13 @@ CLOSE_HANDLE close_create(void)
 
 CLOSE_HANDLE close_clone(CLOSE_HANDLE value)
 {
-	CLOSE_INSTANCE* close_instance = (CLOSE_INSTANCE*)amqpalloc_malloc(sizeof(CLOSE_INSTANCE));
+	CLOSE_INSTANCE* close_instance = (CLOSE_INSTANCE*)malloc(sizeof(CLOSE_INSTANCE));
 	if (close_instance != NULL)
 	{
 		close_instance->composite_value = amqpvalue_clone(((CLOSE_INSTANCE*)value)->composite_value);
 		if (close_instance->composite_value == NULL)
 		{
-			amqpalloc_free(close_instance);
+			free(close_instance);
 			close_instance = NULL;
 		}
 	}
@@ -7436,7 +7436,7 @@ void close_destroy(CLOSE_HANDLE close)
 	{
 		CLOSE_INSTANCE* close_instance = (CLOSE_INSTANCE*)close;
 		amqpvalue_destroy(close_instance->composite_value);
-		amqpalloc_free(close_instance);
+		free(close_instance);
 	}
 }
 
@@ -7613,7 +7613,7 @@ typedef struct SASL_MECHANISMS_INSTANCE_TAG
 
 static SASL_MECHANISMS_HANDLE sasl_mechanisms_create_internal(void)
 {
-	SASL_MECHANISMS_INSTANCE* sasl_mechanisms_instance = (SASL_MECHANISMS_INSTANCE*)amqpalloc_malloc(sizeof(SASL_MECHANISMS_INSTANCE));
+	SASL_MECHANISMS_INSTANCE* sasl_mechanisms_instance = (SASL_MECHANISMS_INSTANCE*)malloc(sizeof(SASL_MECHANISMS_INSTANCE));
 	if (sasl_mechanisms_instance != NULL)
 	{
 		sasl_mechanisms_instance->composite_value = NULL;
@@ -7624,13 +7624,13 @@ static SASL_MECHANISMS_HANDLE sasl_mechanisms_create_internal(void)
 
 SASL_MECHANISMS_HANDLE sasl_mechanisms_create(AMQP_VALUE sasl_server_mechanisms_value)
 {
-	SASL_MECHANISMS_INSTANCE* sasl_mechanisms_instance = (SASL_MECHANISMS_INSTANCE*)amqpalloc_malloc(sizeof(SASL_MECHANISMS_INSTANCE));
+	SASL_MECHANISMS_INSTANCE* sasl_mechanisms_instance = (SASL_MECHANISMS_INSTANCE*)malloc(sizeof(SASL_MECHANISMS_INSTANCE));
 	if (sasl_mechanisms_instance != NULL)
 	{
 		sasl_mechanisms_instance->composite_value = amqpvalue_create_composite_with_ulong_descriptor(64);
 		if (sasl_mechanisms_instance->composite_value == NULL)
 		{
-			amqpalloc_free(sasl_mechanisms_instance);
+			free(sasl_mechanisms_instance);
 			sasl_mechanisms_instance = NULL;
 		}
 		else
@@ -7653,13 +7653,13 @@ SASL_MECHANISMS_HANDLE sasl_mechanisms_create(AMQP_VALUE sasl_server_mechanisms_
 
 SASL_MECHANISMS_HANDLE sasl_mechanisms_clone(SASL_MECHANISMS_HANDLE value)
 {
-	SASL_MECHANISMS_INSTANCE* sasl_mechanisms_instance = (SASL_MECHANISMS_INSTANCE*)amqpalloc_malloc(sizeof(SASL_MECHANISMS_INSTANCE));
+	SASL_MECHANISMS_INSTANCE* sasl_mechanisms_instance = (SASL_MECHANISMS_INSTANCE*)malloc(sizeof(SASL_MECHANISMS_INSTANCE));
 	if (sasl_mechanisms_instance != NULL)
 	{
 		sasl_mechanisms_instance->composite_value = amqpvalue_clone(((SASL_MECHANISMS_INSTANCE*)value)->composite_value);
 		if (sasl_mechanisms_instance->composite_value == NULL)
 		{
-			amqpalloc_free(sasl_mechanisms_instance);
+			free(sasl_mechanisms_instance);
 			sasl_mechanisms_instance = NULL;
 		}
 	}
@@ -7673,7 +7673,7 @@ void sasl_mechanisms_destroy(SASL_MECHANISMS_HANDLE sasl_mechanisms)
 	{
 		SASL_MECHANISMS_INSTANCE* sasl_mechanisms_instance = (SASL_MECHANISMS_INSTANCE*)sasl_mechanisms;
 		amqpvalue_destroy(sasl_mechanisms_instance->composite_value);
-		amqpalloc_free(sasl_mechanisms_instance);
+		free(sasl_mechanisms_instance);
 	}
 }
 
@@ -7846,7 +7846,7 @@ typedef struct SASL_INIT_INSTANCE_TAG
 
 static SASL_INIT_HANDLE sasl_init_create_internal(void)
 {
-	SASL_INIT_INSTANCE* sasl_init_instance = (SASL_INIT_INSTANCE*)amqpalloc_malloc(sizeof(SASL_INIT_INSTANCE));
+	SASL_INIT_INSTANCE* sasl_init_instance = (SASL_INIT_INSTANCE*)malloc(sizeof(SASL_INIT_INSTANCE));
 	if (sasl_init_instance != NULL)
 	{
 		sasl_init_instance->composite_value = NULL;
@@ -7857,13 +7857,13 @@ static SASL_INIT_HANDLE sasl_init_create_internal(void)
 
 SASL_INIT_HANDLE sasl_init_create(const char* mechanism_value)
 {
-	SASL_INIT_INSTANCE* sasl_init_instance = (SASL_INIT_INSTANCE*)amqpalloc_malloc(sizeof(SASL_INIT_INSTANCE));
+	SASL_INIT_INSTANCE* sasl_init_instance = (SASL_INIT_INSTANCE*)malloc(sizeof(SASL_INIT_INSTANCE));
 	if (sasl_init_instance != NULL)
 	{
 		sasl_init_instance->composite_value = amqpvalue_create_composite_with_ulong_descriptor(65);
 		if (sasl_init_instance->composite_value == NULL)
 		{
-			amqpalloc_free(sasl_init_instance);
+			free(sasl_init_instance);
 			sasl_init_instance = NULL;
 		}
 		else
@@ -7886,13 +7886,13 @@ SASL_INIT_HANDLE sasl_init_create(const char* mechanism_value)
 
 SASL_INIT_HANDLE sasl_init_clone(SASL_INIT_HANDLE value)
 {
-	SASL_INIT_INSTANCE* sasl_init_instance = (SASL_INIT_INSTANCE*)amqpalloc_malloc(sizeof(SASL_INIT_INSTANCE));
+	SASL_INIT_INSTANCE* sasl_init_instance = (SASL_INIT_INSTANCE*)malloc(sizeof(SASL_INIT_INSTANCE));
 	if (sasl_init_instance != NULL)
 	{
 		sasl_init_instance->composite_value = amqpvalue_clone(((SASL_INIT_INSTANCE*)value)->composite_value);
 		if (sasl_init_instance->composite_value == NULL)
 		{
-			amqpalloc_free(sasl_init_instance);
+			free(sasl_init_instance);
 			sasl_init_instance = NULL;
 		}
 	}
@@ -7906,7 +7906,7 @@ void sasl_init_destroy(SASL_INIT_HANDLE sasl_init)
 	{
 		SASL_INIT_INSTANCE* sasl_init_instance = (SASL_INIT_INSTANCE*)sasl_init;
 		amqpvalue_destroy(sasl_init_instance->composite_value);
-		amqpalloc_free(sasl_init_instance);
+		free(sasl_init_instance);
 	}
 }
 
@@ -8251,7 +8251,7 @@ typedef struct SASL_CHALLENGE_INSTANCE_TAG
 
 static SASL_CHALLENGE_HANDLE sasl_challenge_create_internal(void)
 {
-	SASL_CHALLENGE_INSTANCE* sasl_challenge_instance = (SASL_CHALLENGE_INSTANCE*)amqpalloc_malloc(sizeof(SASL_CHALLENGE_INSTANCE));
+	SASL_CHALLENGE_INSTANCE* sasl_challenge_instance = (SASL_CHALLENGE_INSTANCE*)malloc(sizeof(SASL_CHALLENGE_INSTANCE));
 	if (sasl_challenge_instance != NULL)
 	{
 		sasl_challenge_instance->composite_value = NULL;
@@ -8262,13 +8262,13 @@ static SASL_CHALLENGE_HANDLE sasl_challenge_create_internal(void)
 
 SASL_CHALLENGE_HANDLE sasl_challenge_create(amqp_binary challenge_value)
 {
-	SASL_CHALLENGE_INSTANCE* sasl_challenge_instance = (SASL_CHALLENGE_INSTANCE*)amqpalloc_malloc(sizeof(SASL_CHALLENGE_INSTANCE));
+	SASL_CHALLENGE_INSTANCE* sasl_challenge_instance = (SASL_CHALLENGE_INSTANCE*)malloc(sizeof(SASL_CHALLENGE_INSTANCE));
 	if (sasl_challenge_instance != NULL)
 	{
 		sasl_challenge_instance->composite_value = amqpvalue_create_composite_with_ulong_descriptor(66);
 		if (sasl_challenge_instance->composite_value == NULL)
 		{
-			amqpalloc_free(sasl_challenge_instance);
+			free(sasl_challenge_instance);
 			sasl_challenge_instance = NULL;
 		}
 		else
@@ -8291,13 +8291,13 @@ SASL_CHALLENGE_HANDLE sasl_challenge_create(amqp_binary challenge_value)
 
 SASL_CHALLENGE_HANDLE sasl_challenge_clone(SASL_CHALLENGE_HANDLE value)
 {
-	SASL_CHALLENGE_INSTANCE* sasl_challenge_instance = (SASL_CHALLENGE_INSTANCE*)amqpalloc_malloc(sizeof(SASL_CHALLENGE_INSTANCE));
+	SASL_CHALLENGE_INSTANCE* sasl_challenge_instance = (SASL_CHALLENGE_INSTANCE*)malloc(sizeof(SASL_CHALLENGE_INSTANCE));
 	if (sasl_challenge_instance != NULL)
 	{
 		sasl_challenge_instance->composite_value = amqpvalue_clone(((SASL_CHALLENGE_INSTANCE*)value)->composite_value);
 		if (sasl_challenge_instance->composite_value == NULL)
 		{
-			amqpalloc_free(sasl_challenge_instance);
+			free(sasl_challenge_instance);
 			sasl_challenge_instance = NULL;
 		}
 	}
@@ -8311,7 +8311,7 @@ void sasl_challenge_destroy(SASL_CHALLENGE_HANDLE sasl_challenge)
 	{
 		SASL_CHALLENGE_INSTANCE* sasl_challenge_instance = (SASL_CHALLENGE_INSTANCE*)sasl_challenge;
 		amqpvalue_destroy(sasl_challenge_instance->composite_value);
-		amqpalloc_free(sasl_challenge_instance);
+		free(sasl_challenge_instance);
 	}
 }
 
@@ -8482,7 +8482,7 @@ typedef struct SASL_RESPONSE_INSTANCE_TAG
 
 static SASL_RESPONSE_HANDLE sasl_response_create_internal(void)
 {
-	SASL_RESPONSE_INSTANCE* sasl_response_instance = (SASL_RESPONSE_INSTANCE*)amqpalloc_malloc(sizeof(SASL_RESPONSE_INSTANCE));
+	SASL_RESPONSE_INSTANCE* sasl_response_instance = (SASL_RESPONSE_INSTANCE*)malloc(sizeof(SASL_RESPONSE_INSTANCE));
 	if (sasl_response_instance != NULL)
 	{
 		sasl_response_instance->composite_value = NULL;
@@ -8493,13 +8493,13 @@ static SASL_RESPONSE_HANDLE sasl_response_create_internal(void)
 
 SASL_RESPONSE_HANDLE sasl_response_create(amqp_binary response_value)
 {
-	SASL_RESPONSE_INSTANCE* sasl_response_instance = (SASL_RESPONSE_INSTANCE*)amqpalloc_malloc(sizeof(SASL_RESPONSE_INSTANCE));
+	SASL_RESPONSE_INSTANCE* sasl_response_instance = (SASL_RESPONSE_INSTANCE*)malloc(sizeof(SASL_RESPONSE_INSTANCE));
 	if (sasl_response_instance != NULL)
 	{
 		sasl_response_instance->composite_value = amqpvalue_create_composite_with_ulong_descriptor(67);
 		if (sasl_response_instance->composite_value == NULL)
 		{
-			amqpalloc_free(sasl_response_instance);
+			free(sasl_response_instance);
 			sasl_response_instance = NULL;
 		}
 		else
@@ -8522,13 +8522,13 @@ SASL_RESPONSE_HANDLE sasl_response_create(amqp_binary response_value)
 
 SASL_RESPONSE_HANDLE sasl_response_clone(SASL_RESPONSE_HANDLE value)
 {
-	SASL_RESPONSE_INSTANCE* sasl_response_instance = (SASL_RESPONSE_INSTANCE*)amqpalloc_malloc(sizeof(SASL_RESPONSE_INSTANCE));
+	SASL_RESPONSE_INSTANCE* sasl_response_instance = (SASL_RESPONSE_INSTANCE*)malloc(sizeof(SASL_RESPONSE_INSTANCE));
 	if (sasl_response_instance != NULL)
 	{
 		sasl_response_instance->composite_value = amqpvalue_clone(((SASL_RESPONSE_INSTANCE*)value)->composite_value);
 		if (sasl_response_instance->composite_value == NULL)
 		{
-			amqpalloc_free(sasl_response_instance);
+			free(sasl_response_instance);
 			sasl_response_instance = NULL;
 		}
 	}
@@ -8542,7 +8542,7 @@ void sasl_response_destroy(SASL_RESPONSE_HANDLE sasl_response)
 	{
 		SASL_RESPONSE_INSTANCE* sasl_response_instance = (SASL_RESPONSE_INSTANCE*)sasl_response;
 		amqpvalue_destroy(sasl_response_instance->composite_value);
-		amqpalloc_free(sasl_response_instance);
+		free(sasl_response_instance);
 	}
 }
 
@@ -8713,7 +8713,7 @@ typedef struct SASL_OUTCOME_INSTANCE_TAG
 
 static SASL_OUTCOME_HANDLE sasl_outcome_create_internal(void)
 {
-	SASL_OUTCOME_INSTANCE* sasl_outcome_instance = (SASL_OUTCOME_INSTANCE*)amqpalloc_malloc(sizeof(SASL_OUTCOME_INSTANCE));
+	SASL_OUTCOME_INSTANCE* sasl_outcome_instance = (SASL_OUTCOME_INSTANCE*)malloc(sizeof(SASL_OUTCOME_INSTANCE));
 	if (sasl_outcome_instance != NULL)
 	{
 		sasl_outcome_instance->composite_value = NULL;
@@ -8724,13 +8724,13 @@ static SASL_OUTCOME_HANDLE sasl_outcome_create_internal(void)
 
 SASL_OUTCOME_HANDLE sasl_outcome_create(sasl_code code_value)
 {
-	SASL_OUTCOME_INSTANCE* sasl_outcome_instance = (SASL_OUTCOME_INSTANCE*)amqpalloc_malloc(sizeof(SASL_OUTCOME_INSTANCE));
+	SASL_OUTCOME_INSTANCE* sasl_outcome_instance = (SASL_OUTCOME_INSTANCE*)malloc(sizeof(SASL_OUTCOME_INSTANCE));
 	if (sasl_outcome_instance != NULL)
 	{
 		sasl_outcome_instance->composite_value = amqpvalue_create_composite_with_ulong_descriptor(68);
 		if (sasl_outcome_instance->composite_value == NULL)
 		{
-			amqpalloc_free(sasl_outcome_instance);
+			free(sasl_outcome_instance);
 			sasl_outcome_instance = NULL;
 		}
 		else
@@ -8753,13 +8753,13 @@ SASL_OUTCOME_HANDLE sasl_outcome_create(sasl_code code_value)
 
 SASL_OUTCOME_HANDLE sasl_outcome_clone(SASL_OUTCOME_HANDLE value)
 {
-	SASL_OUTCOME_INSTANCE* sasl_outcome_instance = (SASL_OUTCOME_INSTANCE*)amqpalloc_malloc(sizeof(SASL_OUTCOME_INSTANCE));
+	SASL_OUTCOME_INSTANCE* sasl_outcome_instance = (SASL_OUTCOME_INSTANCE*)malloc(sizeof(SASL_OUTCOME_INSTANCE));
 	if (sasl_outcome_instance != NULL)
 	{
 		sasl_outcome_instance->composite_value = amqpvalue_clone(((SASL_OUTCOME_INSTANCE*)value)->composite_value);
 		if (sasl_outcome_instance->composite_value == NULL)
 		{
-			amqpalloc_free(sasl_outcome_instance);
+			free(sasl_outcome_instance);
 			sasl_outcome_instance = NULL;
 		}
 	}
@@ -8773,7 +8773,7 @@ void sasl_outcome_destroy(SASL_OUTCOME_HANDLE sasl_outcome)
 	{
 		SASL_OUTCOME_INSTANCE* sasl_outcome_instance = (SASL_OUTCOME_INSTANCE*)sasl_outcome;
 		amqpvalue_destroy(sasl_outcome_instance->composite_value);
-		amqpalloc_free(sasl_outcome_instance);
+		free(sasl_outcome_instance);
 	}
 }
 
@@ -9059,7 +9059,7 @@ typedef struct SOURCE_INSTANCE_TAG
 
 static SOURCE_HANDLE source_create_internal(void)
 {
-	SOURCE_INSTANCE* source_instance = (SOURCE_INSTANCE*)amqpalloc_malloc(sizeof(SOURCE_INSTANCE));
+	SOURCE_INSTANCE* source_instance = (SOURCE_INSTANCE*)malloc(sizeof(SOURCE_INSTANCE));
 	if (source_instance != NULL)
 	{
 		source_instance->composite_value = NULL;
@@ -9070,13 +9070,13 @@ static SOURCE_HANDLE source_create_internal(void)
 
 SOURCE_HANDLE source_create(void)
 {
-	SOURCE_INSTANCE* source_instance = (SOURCE_INSTANCE*)amqpalloc_malloc(sizeof(SOURCE_INSTANCE));
+	SOURCE_INSTANCE* source_instance = (SOURCE_INSTANCE*)malloc(sizeof(SOURCE_INSTANCE));
 	if (source_instance != NULL)
 	{
 		source_instance->composite_value = amqpvalue_create_composite_with_ulong_descriptor(40);
 		if (source_instance->composite_value == NULL)
 		{
-			amqpalloc_free(source_instance);
+			free(source_instance);
 			source_instance = NULL;
 		}
 	}
@@ -9086,13 +9086,13 @@ SOURCE_HANDLE source_create(void)
 
 SOURCE_HANDLE source_clone(SOURCE_HANDLE value)
 {
-	SOURCE_INSTANCE* source_instance = (SOURCE_INSTANCE*)amqpalloc_malloc(sizeof(SOURCE_INSTANCE));
+	SOURCE_INSTANCE* source_instance = (SOURCE_INSTANCE*)malloc(sizeof(SOURCE_INSTANCE));
 	if (source_instance != NULL)
 	{
 		source_instance->composite_value = amqpvalue_clone(((SOURCE_INSTANCE*)value)->composite_value);
 		if (source_instance->composite_value == NULL)
 		{
-			amqpalloc_free(source_instance);
+			free(source_instance);
 			source_instance = NULL;
 		}
 	}
@@ -9106,7 +9106,7 @@ void source_destroy(SOURCE_HANDLE source)
 	{
 		SOURCE_INSTANCE* source_instance = (SOURCE_INSTANCE*)source;
 		amqpvalue_destroy(source_instance->composite_value);
-		amqpalloc_free(source_instance);
+		free(source_instance);
 	}
 }
 
@@ -10152,7 +10152,7 @@ typedef struct TARGET_INSTANCE_TAG
 
 static TARGET_HANDLE target_create_internal(void)
 {
-	TARGET_INSTANCE* target_instance = (TARGET_INSTANCE*)amqpalloc_malloc(sizeof(TARGET_INSTANCE));
+	TARGET_INSTANCE* target_instance = (TARGET_INSTANCE*)malloc(sizeof(TARGET_INSTANCE));
 	if (target_instance != NULL)
 	{
 		target_instance->composite_value = NULL;
@@ -10163,13 +10163,13 @@ static TARGET_HANDLE target_create_internal(void)
 
 TARGET_HANDLE target_create(void)
 {
-	TARGET_INSTANCE* target_instance = (TARGET_INSTANCE*)amqpalloc_malloc(sizeof(TARGET_INSTANCE));
+	TARGET_INSTANCE* target_instance = (TARGET_INSTANCE*)malloc(sizeof(TARGET_INSTANCE));
 	if (target_instance != NULL)
 	{
 		target_instance->composite_value = amqpvalue_create_composite_with_ulong_descriptor(41);
 		if (target_instance->composite_value == NULL)
 		{
-			amqpalloc_free(target_instance);
+			free(target_instance);
 			target_instance = NULL;
 		}
 	}
@@ -10179,13 +10179,13 @@ TARGET_HANDLE target_create(void)
 
 TARGET_HANDLE target_clone(TARGET_HANDLE value)
 {
-	TARGET_INSTANCE* target_instance = (TARGET_INSTANCE*)amqpalloc_malloc(sizeof(TARGET_INSTANCE));
+	TARGET_INSTANCE* target_instance = (TARGET_INSTANCE*)malloc(sizeof(TARGET_INSTANCE));
 	if (target_instance != NULL)
 	{
 		target_instance->composite_value = amqpvalue_clone(((TARGET_INSTANCE*)value)->composite_value);
 		if (target_instance->composite_value == NULL)
 		{
-			amqpalloc_free(target_instance);
+			free(target_instance);
 			target_instance = NULL;
 		}
 	}
@@ -10199,7 +10199,7 @@ void target_destroy(TARGET_HANDLE target)
 	{
 		TARGET_INSTANCE* target_instance = (TARGET_INSTANCE*)target;
 		amqpvalue_destroy(target_instance->composite_value);
-		amqpalloc_free(target_instance);
+		free(target_instance);
 	}
 }
 
@@ -10954,7 +10954,7 @@ typedef struct HEADER_INSTANCE_TAG
 
 static HEADER_HANDLE header_create_internal(void)
 {
-	HEADER_INSTANCE* header_instance = (HEADER_INSTANCE*)amqpalloc_malloc(sizeof(HEADER_INSTANCE));
+	HEADER_INSTANCE* header_instance = (HEADER_INSTANCE*)malloc(sizeof(HEADER_INSTANCE));
 	if (header_instance != NULL)
 	{
 		header_instance->composite_value = NULL;
@@ -10965,13 +10965,13 @@ static HEADER_HANDLE header_create_internal(void)
 
 HEADER_HANDLE header_create(void)
 {
-	HEADER_INSTANCE* header_instance = (HEADER_INSTANCE*)amqpalloc_malloc(sizeof(HEADER_INSTANCE));
+	HEADER_INSTANCE* header_instance = (HEADER_INSTANCE*)malloc(sizeof(HEADER_INSTANCE));
 	if (header_instance != NULL)
 	{
 		header_instance->composite_value = amqpvalue_create_composite_with_ulong_descriptor(112);
 		if (header_instance->composite_value == NULL)
 		{
-			amqpalloc_free(header_instance);
+			free(header_instance);
 			header_instance = NULL;
 		}
 	}
@@ -10981,13 +10981,13 @@ HEADER_HANDLE header_create(void)
 
 HEADER_HANDLE header_clone(HEADER_HANDLE value)
 {
-	HEADER_INSTANCE* header_instance = (HEADER_INSTANCE*)amqpalloc_malloc(sizeof(HEADER_INSTANCE));
+	HEADER_INSTANCE* header_instance = (HEADER_INSTANCE*)malloc(sizeof(HEADER_INSTANCE));
 	if (header_instance != NULL)
 	{
 		header_instance->composite_value = amqpvalue_clone(((HEADER_INSTANCE*)value)->composite_value);
 		if (header_instance->composite_value == NULL)
 		{
-			amqpalloc_free(header_instance);
+			free(header_instance);
 			header_instance = NULL;
 		}
 	}
@@ -11001,7 +11001,7 @@ void header_destroy(HEADER_HANDLE header)
 	{
 		HEADER_INSTANCE* header_instance = (HEADER_INSTANCE*)header;
 		amqpvalue_destroy(header_instance->composite_value);
-		amqpalloc_free(header_instance);
+		free(header_instance);
 	}
 }
 
@@ -11891,7 +11891,7 @@ typedef struct PROPERTIES_INSTANCE_TAG
 
 static PROPERTIES_HANDLE properties_create_internal(void)
 {
-	PROPERTIES_INSTANCE* properties_instance = (PROPERTIES_INSTANCE*)amqpalloc_malloc(sizeof(PROPERTIES_INSTANCE));
+	PROPERTIES_INSTANCE* properties_instance = (PROPERTIES_INSTANCE*)malloc(sizeof(PROPERTIES_INSTANCE));
 	if (properties_instance != NULL)
 	{
 		properties_instance->composite_value = NULL;
@@ -11902,13 +11902,13 @@ static PROPERTIES_HANDLE properties_create_internal(void)
 
 PROPERTIES_HANDLE properties_create(void)
 {
-	PROPERTIES_INSTANCE* properties_instance = (PROPERTIES_INSTANCE*)amqpalloc_malloc(sizeof(PROPERTIES_INSTANCE));
+	PROPERTIES_INSTANCE* properties_instance = (PROPERTIES_INSTANCE*)malloc(sizeof(PROPERTIES_INSTANCE));
 	if (properties_instance != NULL)
 	{
 		properties_instance->composite_value = amqpvalue_create_composite_with_ulong_descriptor(115);
 		if (properties_instance->composite_value == NULL)
 		{
-			amqpalloc_free(properties_instance);
+			free(properties_instance);
 			properties_instance = NULL;
 		}
 	}
@@ -11918,13 +11918,13 @@ PROPERTIES_HANDLE properties_create(void)
 
 PROPERTIES_HANDLE properties_clone(PROPERTIES_HANDLE value)
 {
-	PROPERTIES_INSTANCE* properties_instance = (PROPERTIES_INSTANCE*)amqpalloc_malloc(sizeof(PROPERTIES_INSTANCE));
+	PROPERTIES_INSTANCE* properties_instance = (PROPERTIES_INSTANCE*)malloc(sizeof(PROPERTIES_INSTANCE));
 	if (properties_instance != NULL)
 	{
 		properties_instance->composite_value = amqpvalue_clone(((PROPERTIES_INSTANCE*)value)->composite_value);
 		if (properties_instance->composite_value == NULL)
 		{
-			amqpalloc_free(properties_instance);
+			free(properties_instance);
 			properties_instance = NULL;
 		}
 	}
@@ -11938,7 +11938,7 @@ void properties_destroy(PROPERTIES_HANDLE properties)
 	{
 		PROPERTIES_INSTANCE* properties_instance = (PROPERTIES_INSTANCE*)properties;
 		amqpvalue_destroy(properties_instance->composite_value);
-		amqpalloc_free(properties_instance);
+		free(properties_instance);
 	}
 }
 
@@ -13084,7 +13084,7 @@ typedef struct RECEIVED_INSTANCE_TAG
 
 static RECEIVED_HANDLE received_create_internal(void)
 {
-	RECEIVED_INSTANCE* received_instance = (RECEIVED_INSTANCE*)amqpalloc_malloc(sizeof(RECEIVED_INSTANCE));
+	RECEIVED_INSTANCE* received_instance = (RECEIVED_INSTANCE*)malloc(sizeof(RECEIVED_INSTANCE));
 	if (received_instance != NULL)
 	{
 		received_instance->composite_value = NULL;
@@ -13095,13 +13095,13 @@ static RECEIVED_HANDLE received_create_internal(void)
 
 RECEIVED_HANDLE received_create(uint32_t section_number_value, uint64_t section_offset_value)
 {
-	RECEIVED_INSTANCE* received_instance = (RECEIVED_INSTANCE*)amqpalloc_malloc(sizeof(RECEIVED_INSTANCE));
+	RECEIVED_INSTANCE* received_instance = (RECEIVED_INSTANCE*)malloc(sizeof(RECEIVED_INSTANCE));
 	if (received_instance != NULL)
 	{
 		received_instance->composite_value = amqpvalue_create_composite_with_ulong_descriptor(35);
 		if (received_instance->composite_value == NULL)
 		{
-			amqpalloc_free(received_instance);
+			free(received_instance);
 			received_instance = NULL;
 		}
 		else
@@ -13131,13 +13131,13 @@ RECEIVED_HANDLE received_create(uint32_t section_number_value, uint64_t section_
 
 RECEIVED_HANDLE received_clone(RECEIVED_HANDLE value)
 {
-	RECEIVED_INSTANCE* received_instance = (RECEIVED_INSTANCE*)amqpalloc_malloc(sizeof(RECEIVED_INSTANCE));
+	RECEIVED_INSTANCE* received_instance = (RECEIVED_INSTANCE*)malloc(sizeof(RECEIVED_INSTANCE));
 	if (received_instance != NULL)
 	{
 		received_instance->composite_value = amqpvalue_clone(((RECEIVED_INSTANCE*)value)->composite_value);
 		if (received_instance->composite_value == NULL)
 		{
-			amqpalloc_free(received_instance);
+			free(received_instance);
 			received_instance = NULL;
 		}
 	}
@@ -13151,7 +13151,7 @@ void received_destroy(RECEIVED_HANDLE received)
 	{
 		RECEIVED_INSTANCE* received_instance = (RECEIVED_INSTANCE*)received;
 		amqpvalue_destroy(received_instance->composite_value);
-		amqpalloc_free(received_instance);
+		free(received_instance);
 	}
 }
 
@@ -13410,7 +13410,7 @@ typedef struct ACCEPTED_INSTANCE_TAG
 
 static ACCEPTED_HANDLE accepted_create_internal(void)
 {
-	ACCEPTED_INSTANCE* accepted_instance = (ACCEPTED_INSTANCE*)amqpalloc_malloc(sizeof(ACCEPTED_INSTANCE));
+	ACCEPTED_INSTANCE* accepted_instance = (ACCEPTED_INSTANCE*)malloc(sizeof(ACCEPTED_INSTANCE));
 	if (accepted_instance != NULL)
 	{
 		accepted_instance->composite_value = NULL;
@@ -13421,13 +13421,13 @@ static ACCEPTED_HANDLE accepted_create_internal(void)
 
 ACCEPTED_HANDLE accepted_create(void)
 {
-	ACCEPTED_INSTANCE* accepted_instance = (ACCEPTED_INSTANCE*)amqpalloc_malloc(sizeof(ACCEPTED_INSTANCE));
+	ACCEPTED_INSTANCE* accepted_instance = (ACCEPTED_INSTANCE*)malloc(sizeof(ACCEPTED_INSTANCE));
 	if (accepted_instance != NULL)
 	{
 		accepted_instance->composite_value = amqpvalue_create_composite_with_ulong_descriptor(36);
 		if (accepted_instance->composite_value == NULL)
 		{
-			amqpalloc_free(accepted_instance);
+			free(accepted_instance);
 			accepted_instance = NULL;
 		}
 	}
@@ -13437,13 +13437,13 @@ ACCEPTED_HANDLE accepted_create(void)
 
 ACCEPTED_HANDLE accepted_clone(ACCEPTED_HANDLE value)
 {
-	ACCEPTED_INSTANCE* accepted_instance = (ACCEPTED_INSTANCE*)amqpalloc_malloc(sizeof(ACCEPTED_INSTANCE));
+	ACCEPTED_INSTANCE* accepted_instance = (ACCEPTED_INSTANCE*)malloc(sizeof(ACCEPTED_INSTANCE));
 	if (accepted_instance != NULL)
 	{
 		accepted_instance->composite_value = amqpvalue_clone(((ACCEPTED_INSTANCE*)value)->composite_value);
 		if (accepted_instance->composite_value == NULL)
 		{
-			amqpalloc_free(accepted_instance);
+			free(accepted_instance);
 			accepted_instance = NULL;
 		}
 	}
@@ -13457,7 +13457,7 @@ void accepted_destroy(ACCEPTED_HANDLE accepted)
 	{
 		ACCEPTED_INSTANCE* accepted_instance = (ACCEPTED_INSTANCE*)accepted;
 		amqpvalue_destroy(accepted_instance->composite_value);
-		amqpalloc_free(accepted_instance);
+		free(accepted_instance);
 	}
 }
 
@@ -13539,7 +13539,7 @@ typedef struct REJECTED_INSTANCE_TAG
 
 static REJECTED_HANDLE rejected_create_internal(void)
 {
-	REJECTED_INSTANCE* rejected_instance = (REJECTED_INSTANCE*)amqpalloc_malloc(sizeof(REJECTED_INSTANCE));
+	REJECTED_INSTANCE* rejected_instance = (REJECTED_INSTANCE*)malloc(sizeof(REJECTED_INSTANCE));
 	if (rejected_instance != NULL)
 	{
 		rejected_instance->composite_value = NULL;
@@ -13550,13 +13550,13 @@ static REJECTED_HANDLE rejected_create_internal(void)
 
 REJECTED_HANDLE rejected_create(void)
 {
-	REJECTED_INSTANCE* rejected_instance = (REJECTED_INSTANCE*)amqpalloc_malloc(sizeof(REJECTED_INSTANCE));
+	REJECTED_INSTANCE* rejected_instance = (REJECTED_INSTANCE*)malloc(sizeof(REJECTED_INSTANCE));
 	if (rejected_instance != NULL)
 	{
 		rejected_instance->composite_value = amqpvalue_create_composite_with_ulong_descriptor(37);
 		if (rejected_instance->composite_value == NULL)
 		{
-			amqpalloc_free(rejected_instance);
+			free(rejected_instance);
 			rejected_instance = NULL;
 		}
 	}
@@ -13566,13 +13566,13 @@ REJECTED_HANDLE rejected_create(void)
 
 REJECTED_HANDLE rejected_clone(REJECTED_HANDLE value)
 {
-	REJECTED_INSTANCE* rejected_instance = (REJECTED_INSTANCE*)amqpalloc_malloc(sizeof(REJECTED_INSTANCE));
+	REJECTED_INSTANCE* rejected_instance = (REJECTED_INSTANCE*)malloc(sizeof(REJECTED_INSTANCE));
 	if (rejected_instance != NULL)
 	{
 		rejected_instance->composite_value = amqpvalue_clone(((REJECTED_INSTANCE*)value)->composite_value);
 		if (rejected_instance->composite_value == NULL)
 		{
-			amqpalloc_free(rejected_instance);
+			free(rejected_instance);
 			rejected_instance = NULL;
 		}
 	}
@@ -13586,7 +13586,7 @@ void rejected_destroy(REJECTED_HANDLE rejected)
 	{
 		REJECTED_INSTANCE* rejected_instance = (REJECTED_INSTANCE*)rejected;
 		amqpvalue_destroy(rejected_instance->composite_value);
-		amqpalloc_free(rejected_instance);
+		free(rejected_instance);
 	}
 }
 
@@ -13756,7 +13756,7 @@ typedef struct RELEASED_INSTANCE_TAG
 
 static RELEASED_HANDLE released_create_internal(void)
 {
-	RELEASED_INSTANCE* released_instance = (RELEASED_INSTANCE*)amqpalloc_malloc(sizeof(RELEASED_INSTANCE));
+	RELEASED_INSTANCE* released_instance = (RELEASED_INSTANCE*)malloc(sizeof(RELEASED_INSTANCE));
 	if (released_instance != NULL)
 	{
 		released_instance->composite_value = NULL;
@@ -13767,13 +13767,13 @@ static RELEASED_HANDLE released_create_internal(void)
 
 RELEASED_HANDLE released_create(void)
 {
-	RELEASED_INSTANCE* released_instance = (RELEASED_INSTANCE*)amqpalloc_malloc(sizeof(RELEASED_INSTANCE));
+	RELEASED_INSTANCE* released_instance = (RELEASED_INSTANCE*)malloc(sizeof(RELEASED_INSTANCE));
 	if (released_instance != NULL)
 	{
 		released_instance->composite_value = amqpvalue_create_composite_with_ulong_descriptor(38);
 		if (released_instance->composite_value == NULL)
 		{
-			amqpalloc_free(released_instance);
+			free(released_instance);
 			released_instance = NULL;
 		}
 	}
@@ -13783,13 +13783,13 @@ RELEASED_HANDLE released_create(void)
 
 RELEASED_HANDLE released_clone(RELEASED_HANDLE value)
 {
-	RELEASED_INSTANCE* released_instance = (RELEASED_INSTANCE*)amqpalloc_malloc(sizeof(RELEASED_INSTANCE));
+	RELEASED_INSTANCE* released_instance = (RELEASED_INSTANCE*)malloc(sizeof(RELEASED_INSTANCE));
 	if (released_instance != NULL)
 	{
 		released_instance->composite_value = amqpvalue_clone(((RELEASED_INSTANCE*)value)->composite_value);
 		if (released_instance->composite_value == NULL)
 		{
-			amqpalloc_free(released_instance);
+			free(released_instance);
 			released_instance = NULL;
 		}
 	}
@@ -13803,7 +13803,7 @@ void released_destroy(RELEASED_HANDLE released)
 	{
 		RELEASED_INSTANCE* released_instance = (RELEASED_INSTANCE*)released;
 		amqpvalue_destroy(released_instance->composite_value);
-		amqpalloc_free(released_instance);
+		free(released_instance);
 	}
 }
 
@@ -13885,7 +13885,7 @@ typedef struct MODIFIED_INSTANCE_TAG
 
 static MODIFIED_HANDLE modified_create_internal(void)
 {
-	MODIFIED_INSTANCE* modified_instance = (MODIFIED_INSTANCE*)amqpalloc_malloc(sizeof(MODIFIED_INSTANCE));
+	MODIFIED_INSTANCE* modified_instance = (MODIFIED_INSTANCE*)malloc(sizeof(MODIFIED_INSTANCE));
 	if (modified_instance != NULL)
 	{
 		modified_instance->composite_value = NULL;
@@ -13896,13 +13896,13 @@ static MODIFIED_HANDLE modified_create_internal(void)
 
 MODIFIED_HANDLE modified_create(void)
 {
-	MODIFIED_INSTANCE* modified_instance = (MODIFIED_INSTANCE*)amqpalloc_malloc(sizeof(MODIFIED_INSTANCE));
+	MODIFIED_INSTANCE* modified_instance = (MODIFIED_INSTANCE*)malloc(sizeof(MODIFIED_INSTANCE));
 	if (modified_instance != NULL)
 	{
 		modified_instance->composite_value = amqpvalue_create_composite_with_ulong_descriptor(39);
 		if (modified_instance->composite_value == NULL)
 		{
-			amqpalloc_free(modified_instance);
+			free(modified_instance);
 			modified_instance = NULL;
 		}
 	}
@@ -13912,13 +13912,13 @@ MODIFIED_HANDLE modified_create(void)
 
 MODIFIED_HANDLE modified_clone(MODIFIED_HANDLE value)
 {
-	MODIFIED_INSTANCE* modified_instance = (MODIFIED_INSTANCE*)amqpalloc_malloc(sizeof(MODIFIED_INSTANCE));
+	MODIFIED_INSTANCE* modified_instance = (MODIFIED_INSTANCE*)malloc(sizeof(MODIFIED_INSTANCE));
 	if (modified_instance != NULL)
 	{
 		modified_instance->composite_value = amqpvalue_clone(((MODIFIED_INSTANCE*)value)->composite_value);
 		if (modified_instance->composite_value == NULL)
 		{
-			amqpalloc_free(modified_instance);
+			free(modified_instance);
 			modified_instance = NULL;
 		}
 	}
@@ -13932,7 +13932,7 @@ void modified_destroy(MODIFIED_HANDLE modified)
 	{
 		MODIFIED_INSTANCE* modified_instance = (MODIFIED_INSTANCE*)modified;
 		amqpvalue_destroy(modified_instance->composite_value);
-		amqpalloc_free(modified_instance);
+		free(modified_instance);
 	}
 }
 

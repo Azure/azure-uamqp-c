@@ -1,9 +1,10 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#include <stdlib.h>
 #include "azure_c_shared_utility/optimize_size.h"
+#include "azure_c_shared_utility/gballoc.h"
 #include "azure_uamqp_c/header_detect_io.h"
-#include "azure_uamqp_c/amqpalloc.h"
 
 typedef enum IO_STATE_TAG
 {
@@ -195,7 +196,7 @@ CONCRETE_IO_HANDLE headerdetectio_create(void* io_create_parameters)
 	else
 	{
 		HEADERDETECTIO_CONFIG* header_detect_io_config = (HEADERDETECTIO_CONFIG*)io_create_parameters;
-		result = (HEADER_DETECT_IO_INSTANCE*)amqpalloc_malloc(sizeof(HEADER_DETECT_IO_INSTANCE));
+		result = (HEADER_DETECT_IO_INSTANCE*)malloc(sizeof(HEADER_DETECT_IO_INSTANCE));
 		if (result != NULL)
 		{
 			result->underlying_io = header_detect_io_config->underlying_io;
@@ -222,7 +223,7 @@ void headerdetectio_destroy(CONCRETE_IO_HANDLE header_detect_io)
 		HEADER_DETECT_IO_INSTANCE* header_detect_io_instance = (HEADER_DETECT_IO_INSTANCE*)header_detect_io;
 		(void)headerdetectio_close(header_detect_io, NULL, NULL);
 		xio_destroy(header_detect_io_instance->underlying_io);
-		amqpalloc_free(header_detect_io);
+		free(header_detect_io);
 	}
 }
 

@@ -2,6 +2,7 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
+uamqp_generator/bin/*
 *.jar
 *.lastbuildstate
 *.log

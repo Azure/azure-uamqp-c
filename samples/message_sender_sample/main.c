@@ -4,12 +4,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/platform.h"
 #include "azure_c_shared_utility/tlsio.h"
 #include "azure_uamqp_c/message_sender.h"
 #include "azure_uamqp_c/message.h"
 #include "azure_uamqp_c/messaging.h"
-#include "azure_uamqp_c/amqpalloc.h"
 #include "azure_uamqp_c/saslclientio.h"
 #include "azure_uamqp_c/sasl_plain.h"
 #include "azure_uamqp_c/cbs.h"
@@ -43,8 +43,6 @@ int main(int argc, char** argv)
 
     (void)argc;
     (void)argv;
-
-	amqpalloc_set_memory_tracing_enabled(true);
 
 	if (platform_init() != 0)
 	{
@@ -122,8 +120,8 @@ int main(int argc, char** argv)
 				size_t maximum_memory_used;
 				connection_dowork(connection);
 
-				current_memory_used = amqpalloc_get_current_memory_used();
-				maximum_memory_used = amqpalloc_get_maximum_memory_used();
+				current_memory_used = gballoc_getCurrentMemoryUsed();
+				maximum_memory_used = gballoc_getMaximumMemoryUsed();
 
 				if (current_memory_used != last_memory_used)
 				{
@@ -157,8 +155,8 @@ int main(int argc, char** argv)
 		saslmechanism_destroy(sasl_mechanism_handle);
 		platform_deinit();
 
-		(void)printf("Max memory usage:%lu\r\n", (unsigned long)amqpalloc_get_maximum_memory_used());
-		(void)printf("Current memory usage:%lu\r\n", (unsigned long)amqpalloc_get_current_memory_used());
+		(void)printf("Max memory usage:%lu\r\n", (unsigned long)gballoc_getCurrentMemoryUsed());
+		(void)printf("Current memory usage:%lu\r\n", (unsigned long)gballoc_getMaximumMemoryUsed());
 
 		result = 0;
 	}

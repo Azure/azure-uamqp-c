@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#include "azure_c_shared_utility/gballoc.h"
 #include "azure_uamqp_c/socket_listener.h"
-#include "azure_uamqp_c/amqpalloc.h"
 #include "winsock2.h"
 #include "ws2tcpip.h"
 #include "windows.h"
@@ -19,7 +19,7 @@ typedef struct SOCKET_LISTENER_INSTANCE_TAG
 
 SOCKET_LISTENER_HANDLE socketlistener_create(int port)
 {
-	SOCKET_LISTENER_INSTANCE* result = (SOCKET_LISTENER_INSTANCE*)amqpalloc_malloc(sizeof(SOCKET_LISTENER_INSTANCE));
+	SOCKET_LISTENER_INSTANCE* result = (SOCKET_LISTENER_INSTANCE*)malloc(sizeof(SOCKET_LISTENER_INSTANCE));
 	if (result != NULL)
 	{
 		result->port = port;
@@ -35,7 +35,7 @@ void socketlistener_destroy(SOCKET_LISTENER_HANDLE socket_listener)
 	if (socket_listener != NULL)
 	{
 		socketlistener_stop(socket_listener);
-		amqpalloc_free(socket_listener);
+		free(socket_listener);
 	}
 }
 

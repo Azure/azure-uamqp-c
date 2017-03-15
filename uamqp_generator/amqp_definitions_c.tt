@@ -12,9 +12,9 @@
 
 #include <stdlib.h>
 #include "azure_c_shared_utility/optimize_size.h"
+#include "azure_c_shared_utility/gballoc.h"
 #include "azure_uamqp_c/amqpvalue.h"
 #include "azure_uamqp_c/amqp_definitions.h"
-#include "azure_uamqp_c/amqpalloc.h"
 #include <stdlib.h>
 #include <stdbool.h>
 
@@ -39,7 +39,7 @@ typedef struct <#= type_name.ToUpper() #>_INSTANCE_TAG
 <#				KeyValuePair<field, int>[] mandatory_args = Program.GetMandatoryArgs(type).ToArray(); #>
 static <#= type_name.ToUpper() #>_HANDLE <#= type_name #>_create_internal(void)
 {
-	<#= type_name.ToUpper() #>_INSTANCE* <#= type_name #>_instance = (<#= type_name.ToUpper() #>_INSTANCE*)amqpalloc_malloc(sizeof(<#= type_name.ToUpper() #>_INSTANCE));
+	<#= type_name.ToUpper() #>_INSTANCE* <#= type_name #>_instance = (<#= type_name.ToUpper() #>_INSTANCE*)malloc(sizeof(<#= type_name.ToUpper() #>_INSTANCE));
 	if (<#= type_name #>_instance != NULL)
 	{
 		<#= type_name #>_instance->composite_value = NULL;
@@ -50,13 +50,13 @@ static <#= type_name.ToUpper() #>_HANDLE <#= type_name #>_create_internal(void)
 
 <#= type_name.ToUpper() #>_HANDLE <#= type_name #>_create(<#= arg_list #>)
 {
-	<#= type_name.ToUpper() #>_INSTANCE* <#= type_name #>_instance = (<#= type_name.ToUpper() #>_INSTANCE*)amqpalloc_malloc(sizeof(<#= type_name.ToUpper() #>_INSTANCE));
+	<#= type_name.ToUpper() #>_INSTANCE* <#= type_name #>_instance = (<#= type_name.ToUpper() #>_INSTANCE*)malloc(sizeof(<#= type_name.ToUpper() #>_INSTANCE));
 	if (<#= type_name #>_instance != NULL)
 	{
 		<#= type_name #>_instance->composite_value = amqpvalue_create_composite_with_ulong_descriptor(<#= Program.GetDescriptorCode(Program.GetDescriptor(type)) #>);
 		if (<#= type_name #>_instance->composite_value == NULL)
 		{
-			amqpalloc_free(<#= type_name #>_instance);
+			free(<#= type_name #>_instance);
 			<#= type_name #>_instance = NULL;
 		}
 <#				if (mandatory_args.Count() > 0) #>
@@ -102,13 +102,13 @@ static <#= type_name.ToUpper() #>_HANDLE <#= type_name #>_create_internal(void)
 
 <#= type_name.ToUpper() #>_HANDLE <#= type_name #>_clone(<#= type_name.ToUpper() #>_HANDLE value)
 {
-	<#= type_name.ToUpper() #>_INSTANCE* <#= type_name #>_instance = (<#= type_name.ToUpper() #>_INSTANCE*)amqpalloc_malloc(sizeof(<#= type_name.ToUpper() #>_INSTANCE));
+	<#= type_name.ToUpper() #>_INSTANCE* <#= type_name #>_instance = (<#= type_name.ToUpper() #>_INSTANCE*)malloc(sizeof(<#= type_name.ToUpper() #>_INSTANCE));
 	if (<#= type_name #>_instance != NULL)
 	{
 		<#= type_name #>_instance->composite_value = amqpvalue_clone(((<#= type_name.ToUpper() #>_INSTANCE*)value)->composite_value);
 		if (<#= type_name #>_instance->composite_value == NULL)
 		{
-			amqpalloc_free(<#= type_name #>_instance);
+			free(<#= type_name #>_instance);
 			<#= type_name #>_instance = NULL;
 		}
 	}
@@ -122,7 +122,7 @@ void <#= type_name #>_destroy(<#= type_name.ToUpper() #>_HANDLE <#= type_name #>
 	{
 		<#= type_name.ToUpper() #>_INSTANCE* <#= type_name #>_instance = (<#= type_name.ToUpper() #>_INSTANCE*)<#= type_name #>;
 		amqpvalue_destroy(<#= type_name #>_instance->composite_value);
-		amqpalloc_free(<#= type_name #>_instance);
+		free(<#= type_name #>_instance);
 	}
 }
 

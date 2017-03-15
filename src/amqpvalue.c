@@ -10,7 +10,6 @@
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_uamqp_c/amqp_types.h"
 #include "azure_uamqp_c/amqpvalue.h"
-#include "azure_uamqp_c/amqpalloc.h"
 
 /* Requirements satisfied by the current implementation without any code:
 Codes_SRS_AMQPVALUE_01_270: [<encoding code="0x56" category="fixed" width="1" label="boolean with the octet 0x00 being false and octet 0x01 being true"/>]

@@ -5,9 +5,9 @@
 #include <stdbool.h>
 #include <string.h>
 #include "azure_c_shared_utility/optimize_size.h"
+#include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_uamqp_c/message_sender.h"
-#include "azure_uamqp_c/amqpalloc.h"
 #include "azure_uamqp_c/amqpvalue_to_string.h"
 
 typedef enum MESSAGE_SEND_STATE_TAG
@@ -53,7 +53,7 @@ static void remove_pending_message_by_index(MESSAGE_SENDER_INSTANCE* message_sen
         message_sender_instance->messages[index]->message = NULL;
     }
 
-    amqpalloc_free(message_sender_instance->messages[index]);
+    free(message_sender_instance->messages[index]);
 
     if (message_sender_instance->message_count - index > 1)
     {
@@ -64,7 +64,7 @@ static void remove_pending_message_by_index(MESSAGE_SENDER_INSTANCE* message_sen
 
     if (message_sender_instance->message_count > 0)
     {
-        new_messages = (MESSAGE_WITH_CALLBACK**)amqpalloc_realloc(message_sender_instance->messages, sizeof(MESSAGE_WITH_CALLBACK*) * (message_sender_instance->message_count));
+        new_messages = (MESSAGE_WITH_CALLBACK**)realloc(message_sender_instance->messages, sizeof(MESSAGE_WITH_CALLBACK*) * (message_sender_instance->message_count));
         if (new_messages != NULL)
         {
             message_sender_instance->messages = new_messages;
@@ -72,7 +72,7 @@ static void remove_pending_message_by_index(MESSAGE_SENDER_INSTANCE* message_sen
     }
     else
     {
-        amqpalloc_free(message_sender_instance->messages);
+        free(message_sender_instance->messages);
         message_sender_instance->messages = NULL;
     }
 }
@@ -147,7 +147,7 @@ static void log_message_chunk(MESSAGE_SENDER_INSTANCE* message_sender_instance, 
         LOG(AZ_LOG_TRACE, 0, "%s", (value_as_string = amqpvalue_to_string(value)));
         if (value_as_string != NULL)
         {
-            amqpalloc_free(value_as_string);
+            free(value_as_string);
         }
     }
 #endif
@@ -296,7 +296,7 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
 
         if (result == 0)
         {
-            void* data_bytes = amqpalloc_malloc(total_encoded_size);
+            void* data_bytes = malloc(total_encoded_size);
             PAYLOAD payload;
             payload.bytes = data_bytes;
             payload.length = 0;
@@ -419,7 +419,7 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
                 }
             }
 
-            amqpalloc_free(data_bytes);
+            free(data_bytes);
 
             if (body_amqp_value != NULL)
             {
@@ -496,14 +496,14 @@ static void indicate_all_messages_as_error(MESSAGE_SENDER_INSTANCE* message_send
         }
 
         message_destroy(message_sender_instance->messages[i]->message);
-        amqpalloc_free(message_sender_instance->messages[i]);
+        free(message_sender_instance->messages[i]);
     }
 
     if (message_sender_instance->messages != NULL)
     {
         message_sender_instance->message_count = 0;
 
-        amqpalloc_free(message_sender_instance->messages);
+        free(message_sender_instance->messages);
         message_sender_instance->messages = NULL;
     }
 }
@@ -556,7 +556,7 @@ static void on_link_flow_on(void* context)
 
 MESSAGE_SENDER_HANDLE messagesender_create(LINK_HANDLE link, ON_MESSAGE_SENDER_STATE_CHANGED on_message_sender_state_changed, void* context)
 {
-    MESSAGE_SENDER_INSTANCE* result = amqpalloc_malloc(sizeof(MESSAGE_SENDER_INSTANCE));
+    MESSAGE_SENDER_INSTANCE* result = malloc(sizeof(MESSAGE_SENDER_INSTANCE));
     if (result != NULL)
     {
         result->messages = NULL;
@@ -581,7 +581,7 @@ void messagesender_destroy(MESSAGE_SENDER_HANDLE message_sender)
 
         indicate_all_messages_as_error(message_sender_instance);
 
-        amqpalloc_free(message_sender);
+        free(message_sender);
     }
 }
 
@@ -672,17 +672,17 @@ int messagesender_send(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDLE mess
         }
         else
         {
-            MESSAGE_WITH_CALLBACK* message_with_callback = (MESSAGE_WITH_CALLBACK*)amqpalloc_malloc(sizeof(MESSAGE_WITH_CALLBACK));
+            MESSAGE_WITH_CALLBACK* message_with_callback = (MESSAGE_WITH_CALLBACK*)malloc(sizeof(MESSAGE_WITH_CALLBACK));
             if (message_with_callback == NULL)
             {
                 result = __FAILURE__;
             }
             else
             {
-                MESSAGE_WITH_CALLBACK** new_messages = (MESSAGE_WITH_CALLBACK**)amqpalloc_realloc(message_sender_instance->messages, sizeof(MESSAGE_WITH_CALLBACK*) * (message_sender_instance->message_count + 1));
+                MESSAGE_WITH_CALLBACK** new_messages = (MESSAGE_WITH_CALLBACK**)realloc(message_sender_instance->messages, sizeof(MESSAGE_WITH_CALLBACK*) * (message_sender_instance->message_count + 1));
                 if (new_messages == NULL)
                 {
-                    amqpalloc_free(message_with_callback);
+                    free(message_with_callback);
                     result = __FAILURE__;
                 }
                 else
@@ -695,7 +695,7 @@ int messagesender_send(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDLE mess
                         message_with_callback->message = message_clone(message);
                         if (message_with_callback->message == NULL)
                         {
-                            amqpalloc_free(message_with_callback);
+                            free(message_with_callback);
                             result = __FAILURE__;
                         }
 
@@ -731,7 +731,7 @@ int messagesender_send(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDLE mess
                                 message_with_callback->message = message_clone(message);
                                 if (message_with_callback->message == NULL)
                                 {
-                                    amqpalloc_free(message_with_callback);
+                                    free(message_with_callback);
                                     result = __FAILURE__;
                                 }
                                 else

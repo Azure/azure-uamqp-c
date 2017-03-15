@@ -6,9 +6,9 @@
 #include <stdbool.h>
 #include <string.h>
 #include "azure_c_shared_utility/optimize_size.h"
+#include "azure_c_shared_utility/gballoc.h"
 #include "azure_uamqp_c/amqp_management.h"
 #include "azure_uamqp_c/link.h"
-#include "azure_uamqp_c/amqpalloc.h"
 #include "azure_uamqp_c/message_sender.h"
 #include "azure_uamqp_c/message_receiver.h"
 #include "azure_uamqp_c/messaging.h"
@@ -61,7 +61,7 @@ static void amqpmanagement_set_state(AMQP_MANAGEMENT_INSTANCE* amqp_management_i
 static void remove_operation_message_by_index(AMQP_MANAGEMENT_INSTANCE* amqp_management_instance, size_t index)
 {
     message_destroy(amqp_management_instance->operation_messages[index]->message);
-    amqpalloc_free(amqp_management_instance->operation_messages[index]);
+    free(amqp_management_instance->operation_messages[index]);
 
     if (amqp_management_instance->operation_message_count - index > 1)
     {
@@ -70,12 +70,12 @@ static void remove_operation_message_by_index(AMQP_MANAGEMENT_INSTANCE* amqp_man
 
     if (amqp_management_instance->operation_message_count == 1)
     {
-        amqpalloc_free(amqp_management_instance->operation_messages);
+        free(amqp_management_instance->operation_messages);
         amqp_management_instance->operation_messages = NULL;
     }
     else
     {
-        OPERATION_MESSAGE_INSTANCE** new_operation_messages = (OPERATION_MESSAGE_INSTANCE**)amqpalloc_realloc(amqp_management_instance->operation_messages, sizeof(OPERATION_MESSAGE_INSTANCE*) * (amqp_management_instance->operation_message_count - 1));
+        OPERATION_MESSAGE_INSTANCE** new_operation_messages = (OPERATION_MESSAGE_INSTANCE**)realloc(amqp_management_instance->operation_messages, sizeof(OPERATION_MESSAGE_INSTANCE*) * (amqp_management_instance->operation_message_count - 1));
         if (new_operation_messages != NULL)
         {
             amqp_management_instance->operation_messages = new_operation_messages;
@@ -398,7 +398,7 @@ AMQP_MANAGEMENT_HANDLE amqpmanagement_create(SESSION_HANDLE session, const char*
     }
     else
     {
-        result = (AMQP_MANAGEMENT_INSTANCE*)amqpalloc_malloc(sizeof(AMQP_MANAGEMENT_INSTANCE));
+        result = (AMQP_MANAGEMENT_INSTANCE*)malloc(sizeof(AMQP_MANAGEMENT_INSTANCE));
         if (result != NULL)
         {
             result->session = session;
@@ -412,7 +412,7 @@ AMQP_MANAGEMENT_HANDLE amqpmanagement_create(SESSION_HANDLE session, const char*
             AMQP_VALUE source = messaging_create_source(management_node);
             if (source == NULL)
             {
-                amqpalloc_free(result);
+                free(result);
                 result = NULL;
             }
             else
@@ -420,14 +420,14 @@ AMQP_MANAGEMENT_HANDLE amqpmanagement_create(SESSION_HANDLE session, const char*
                 AMQP_VALUE target = messaging_create_target(management_node);
                 if (target == NULL)
                 {
-                    amqpalloc_free(result);
+                    free(result);
                     result = NULL;
                 }
                 else
                 {
                     static const char* sender_suffix = "-sender";
 
-                    char* sender_link_name = (char*)amqpalloc_malloc(strlen(management_node) + strlen(sender_suffix) + 1);
+                    char* sender_link_name = (char*)malloc(strlen(management_node) + strlen(sender_suffix) + 1);
                     if (sender_link_name == NULL)
                     {
                         result = NULL;
@@ -439,7 +439,7 @@ AMQP_MANAGEMENT_HANDLE amqpmanagement_create(SESSION_HANDLE session, const char*
                         (void)strcpy(sender_link_name, management_node);
                         (void)strcat(sender_link_name, sender_suffix);
 
-                        char* receiver_link_name = (char*)amqpalloc_malloc(strlen(management_node) + strlen(receiver_suffix) + 1);
+                        char* receiver_link_name = (char*)malloc(strlen(management_node) + strlen(receiver_suffix) + 1);
                         if (receiver_link_name == NULL)
                         {
                             result = NULL;
@@ -452,7 +452,7 @@ AMQP_MANAGEMENT_HANDLE amqpmanagement_create(SESSION_HANDLE session, const char*
                             result->sender_link = link_create(session, "cbs-sender", role_sender, source, target);
                             if (result->sender_link == NULL)
                             {
-                                amqpalloc_free(result);
+                                free(result);
                                 result = NULL;
                             }
                             else
@@ -461,7 +461,7 @@ AMQP_MANAGEMENT_HANDLE amqpmanagement_create(SESSION_HANDLE session, const char*
                                 if (result->receiver_link == NULL)
                                 {
                                     link_destroy(result->sender_link);
-                                    amqpalloc_free(result);
+                                    free(result);
                                     result = NULL;
                                 }
                                 else
@@ -471,7 +471,7 @@ AMQP_MANAGEMENT_HANDLE amqpmanagement_create(SESSION_HANDLE session, const char*
                                     {
                                         link_destroy(result->sender_link);
                                         link_destroy(result->receiver_link);
-                                        amqpalloc_free(result);
+                                        free(result);
                                         result = NULL;
                                     }
                                     else
@@ -481,7 +481,7 @@ AMQP_MANAGEMENT_HANDLE amqpmanagement_create(SESSION_HANDLE session, const char*
                                         {
                                             link_destroy(result->sender_link);
                                             link_destroy(result->receiver_link);
-                                            amqpalloc_free(result);
+                                            free(result);
                                             result = NULL;
                                         }
                                         else
@@ -492,7 +492,7 @@ AMQP_MANAGEMENT_HANDLE amqpmanagement_create(SESSION_HANDLE session, const char*
                                                 messagesender_destroy(result->message_sender);
                                                 link_destroy(result->sender_link);
                                                 link_destroy(result->receiver_link);
-                                                amqpalloc_free(result);
+                                                free(result);
                                                 result = NULL;
                                             }
                                             else
@@ -504,10 +504,10 @@ AMQP_MANAGEMENT_HANDLE amqpmanagement_create(SESSION_HANDLE session, const char*
                                 }
                             }
 
-                            amqpalloc_free(receiver_link_name);
+                            free(receiver_link_name);
                         }
 
-                        amqpalloc_free(sender_link_name);
+                        free(sender_link_name);
                     }
 
                     amqpvalue_destroy(target);
@@ -533,17 +533,17 @@ void amqpmanagement_destroy(AMQP_MANAGEMENT_HANDLE amqp_management)
             for (i = 0; i < amqp_management->operation_message_count; i++)
             {
                 message_destroy(amqp_management->operation_messages[i]->message);
-                amqpalloc_free(amqp_management->operation_messages[i]);
+                free(amqp_management->operation_messages[i]);
             }
 
-            amqpalloc_free(amqp_management->operation_messages);
+            free(amqp_management->operation_messages);
         }
 
         link_destroy(amqp_management->sender_link);
         link_destroy(amqp_management->receiver_link);
         messagesender_destroy(amqp_management->message_sender);
         messagereceiver_destroy(amqp_management->message_receiver);
-        amqpalloc_free(amqp_management);
+        free(amqp_management);
     }
 }
 
@@ -635,7 +635,7 @@ int amqpmanagement_start_operation(AMQP_MANAGEMENT_HANDLE amqp_management, const
                 }
                 else
                 {
-                    OPERATION_MESSAGE_INSTANCE* pending_operation_message = amqpalloc_malloc(sizeof(OPERATION_MESSAGE_INSTANCE));
+                    OPERATION_MESSAGE_INSTANCE* pending_operation_message = malloc(sizeof(OPERATION_MESSAGE_INSTANCE));
                     if (pending_operation_message == NULL)
                     {
                         result = __FAILURE__;
@@ -650,11 +650,11 @@ int amqpmanagement_start_operation(AMQP_MANAGEMENT_HANDLE amqp_management, const
 
                         amqp_management->next_message_id++;
 
-                        OPERATION_MESSAGE_INSTANCE** new_operation_messages = amqpalloc_realloc(amqp_management->operation_messages, (amqp_management->operation_message_count + 1) * sizeof(OPERATION_MESSAGE_INSTANCE*));
+                        OPERATION_MESSAGE_INSTANCE** new_operation_messages = realloc(amqp_management->operation_messages, (amqp_management->operation_message_count + 1) * sizeof(OPERATION_MESSAGE_INSTANCE*));
                         if (new_operation_messages == NULL)
                         {
                             message_destroy(message);
-                            amqpalloc_free(pending_operation_message);
+                            free(pending_operation_message);
                             result = __FAILURE__;
                         }
                         else

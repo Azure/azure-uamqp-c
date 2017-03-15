@@ -42,9 +42,9 @@ namespace amqplib_generator
 
 #include <stdlib.h>
 #include ""azure_c_shared_utility/optimize_size.h""
+#include ""azure_c_shared_utility/gballoc.h""
 #include ""azure_uamqp_c/amqpvalue.h""
 #include ""azure_uamqp_c/amqp_definitions.h""
-#include ""azure_uamqp_c/amqpalloc.h""
 #include <stdlib.h>
 #include <stdbool.h>
 
@@ -178,7 +178,7 @@ namespace amqplib_generator
             
             #line default
             #line hidden
-            this.Write("_INSTANCE*)amqpalloc_malloc(sizeof(");
+            this.Write("_INSTANCE*)malloc(sizeof(");
             
             #line 42 "D:\repos\azure-uamqp-c\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
@@ -248,7 +248,7 @@ namespace amqplib_generator
             
             #line default
             #line hidden
-            this.Write("_INSTANCE*)amqpalloc_malloc(sizeof(");
+            this.Write("_INSTANCE*)malloc(sizeof(");
             
             #line 53 "D:\repos\azure-uamqp-c\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
@@ -283,7 +283,7 @@ namespace amqplib_generator
             
             #line default
             #line hidden
-            this.Write("_instance->composite_value == NULL)\r\n\t\t{\r\n\t\t\tamqpalloc_free(");
+            this.Write("_instance->composite_value == NULL)\r\n\t\t{\r\n\t\t\tfree(");
             
             #line 59 "D:\repos\azure-uamqp-c\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
@@ -558,7 +558,7 @@ namespace amqplib_generator
             
             #line default
             #line hidden
-            this.Write("_INSTANCE*)amqpalloc_malloc(sizeof(");
+            this.Write("_INSTANCE*)malloc(sizeof(");
             
             #line 105 "D:\repos\azure-uamqp-c\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
@@ -593,7 +593,7 @@ namespace amqplib_generator
             
             #line default
             #line hidden
-            this.Write("_instance->composite_value == NULL)\r\n\t\t{\r\n\t\t\tamqpalloc_free(");
+            this.Write("_instance->composite_value == NULL)\r\n\t\t{\r\n\t\t\tfree(");
             
             #line 111 "D:\repos\azure-uamqp-c\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
@@ -677,7 +677,7 @@ namespace amqplib_generator
             
             #line default
             #line hidden
-            this.Write("_instance->composite_value);\r\n\t\tamqpalloc_free(");
+            this.Write("_instance->composite_value);\r\n\t\tfree(");
             
             #line 125 "D:\repos\azure-uamqp-c\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));

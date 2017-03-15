@@ -7,9 +7,9 @@
 #include <string.h>
 #include <stdio.h>
 #include "azure_c_shared_utility/optimize_size.h"
+#include "azure_c_shared_utility/gballoc.h"
 #include "azure_uamqp_c/amqpvalue_to_string.h"
 #include "azure_uamqp_c/amqpvalue.h"
-#include "azure_uamqp_c/amqpalloc.h"
 
 #if _WIN32
 /* The MS runtime does not have snprintf */
@@ -41,7 +41,7 @@ static int string_concat(char** string, const char* to_concat)
 
 		length += src_length;
 
-		char* new_string = amqpalloc_realloc(*string, length);
+		char* new_string = realloc(*string, length);
 		if (new_string == NULL)
 		{
 			result = __FAILURE__;
@@ -73,7 +73,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 		case AMQP_TYPE_NULL:
 			if (string_concat(&result, "NULL") != 0)
 			{
-				amqpalloc_free(result);
+				free(result);
 				result = NULL;
 			}
 			break;
@@ -83,7 +83,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 			if ((amqpvalue_get_boolean(amqp_value, &value) != 0) ||
 				(string_concat(&result, (value == true) ? "true" : "false") != 0))
 			{
-				amqpalloc_free(result);
+				free(result);
 				result = NULL;
 			}
 			break;
@@ -94,7 +94,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 			uint8_t value;
 			if (amqpvalue_get_ubyte(amqp_value, &value) != 0)
 			{
-				amqpalloc_free(result);
+				free(result);
 				result = NULL;
 			}
 			else
@@ -103,7 +103,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 				if ((sprintf(str_value, "%u", uint_value) < 0) ||
 					(string_concat(&result, str_value) != 0))
 				{
-					amqpalloc_free(result);
+					free(result);
 					result = NULL;
 				}
 			}
@@ -115,7 +115,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 			uint16_t value;
 			if (amqpvalue_get_ushort(amqp_value, &value) != 0)
 			{
-				amqpalloc_free(result);
+				free(result);
 				result = NULL;
 			}
 			else
@@ -124,7 +124,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 				if ((sprintf(str_value, "%u", uint_value) < 0) ||
 					(string_concat(&result, str_value) != 0))
 				{
-					amqpalloc_free(result);
+					free(result);
 					result = NULL;
 				}
 			}
@@ -136,7 +136,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 			uint32_t value;
 			if (amqpvalue_get_uint(amqp_value, &value) != 0)
 			{
-				amqpalloc_free(result);
+				free(result);
 				result = NULL;
 			}
 			else
@@ -145,7 +145,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 				if ((sprintf(str_value, "%lu", uint_value) < 0) ||
 					(string_concat(&result, str_value) != 0))
 				{
-					amqpalloc_free(result);
+					free(result);
 					result = NULL;
 				}
 			}
@@ -157,7 +157,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 			uint64_t value;
 			if (amqpvalue_get_ulong(amqp_value, &value) != 0)
 			{
-				amqpalloc_free(result);
+				free(result);
 				result = NULL;
 			}
 			else
@@ -166,7 +166,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 				if ((sprintf(str_value, "%llu", uint_value) < 0) ||
 					(string_concat(&result, str_value) != 0))
 				{
-					amqpalloc_free(result);
+					free(result);
 					result = NULL;
 				}
 			}
@@ -178,7 +178,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 			uint8_t value;
 			if (amqpvalue_get_ubyte(amqp_value, &value) != 0)
 			{
-				amqpalloc_free(result);
+				free(result);
 				result = NULL;
 			}
 			else
@@ -187,7 +187,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 				if ((sprintf(str_value, "%d", int_value) < 0) ||
 					(string_concat(&result, str_value) != 0))
 				{
-					amqpalloc_free(result);
+					free(result);
 					result = NULL;
 				}
 			}
@@ -199,7 +199,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 			uint16_t value;
 			if (amqpvalue_get_ushort(amqp_value, &value) != 0)
 			{
-				amqpalloc_free(result);
+				free(result);
 				result = NULL;
 			}
 			else
@@ -208,7 +208,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 				if ((sprintf(str_value, "%d", int_value) < 0) ||
 					(string_concat(&result, str_value) != 0))
 				{
-					amqpalloc_free(result);
+					free(result);
 					result = NULL;
 				}
 			}
@@ -220,7 +220,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 			int32_t value;
 			if (amqpvalue_get_int(amqp_value, &value) != 0)
 			{
-				amqpalloc_free(result);
+				free(result);
 				result = NULL;
 			}
 			else
@@ -229,7 +229,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 				if ((sprintf(str_value, "%ld", int_value) < 0) ||
 					(string_concat(&result, str_value) != 0))
 				{
-					amqpalloc_free(result);
+					free(result);
 					result = NULL;
 				}
 			}
@@ -241,7 +241,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 			uint64_t value;
 			if (amqpvalue_get_ulong(amqp_value, &value) != 0)
 			{
-				amqpalloc_free(result);
+				free(result);
 				result = NULL;
 			}
 			else
@@ -250,7 +250,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 				if ((sprintf(str_value, "%lld", int_value) < 0) ||
 					(string_concat(&result, str_value) != 0))
 				{
-					amqpalloc_free(result);
+					free(result);
 					result = NULL;
 				}
 			}
@@ -261,7 +261,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 			float float_value;
 			if (amqpvalue_get_float(amqp_value, &float_value) != 0)
 			{
-				amqpalloc_free(result);
+				free(result);
 				result = NULL;
 			}
 			else
@@ -270,12 +270,12 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 				if ((snprintf(str_value, sizeof(str_value), "%.02f", float_value) < 0) ||
 					(string_concat(&result, str_value) != 0))
 				{
-					amqpalloc_free(result);
+					free(result);
 					result = NULL;
 				}
 				if (string_concat(&result, str_value) != 0)
 				{
-					amqpalloc_free(result);
+					free(result);
 					result = NULL;
 				}
 			}
@@ -286,7 +286,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 			double double_value;
 			if (amqpvalue_get_double(amqp_value, &double_value) != 0)
 			{
-				amqpalloc_free(result);
+				free(result);
 				result = NULL;
 			}
 			else
@@ -295,12 +295,12 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 				if ((snprintf(str_value, sizeof(str_value), "%.02lf", double_value) < 0) ||
 					(string_concat(&result, str_value) != 0))
 				{
-					amqpalloc_free(result);
+					free(result);
 					result = NULL;
 				}
 				if (string_concat(&result, str_value) != 0)
 				{
-					amqpalloc_free(result);
+					free(result);
 					result = NULL;
 				}
 			}
@@ -311,7 +311,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 			uint32_t char_code;
 			if (amqpvalue_get_char(amqp_value, &char_code) != 0)
 			{
-				amqpalloc_free(result);
+				free(result);
 				result = NULL;
 			}
 			else
@@ -320,12 +320,12 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 				if ((snprintf(str_value, sizeof(str_value), "U%02X%02X%02X%02X", char_code >> 24, (char_code >> 16) & 0xFF, (char_code >> 8) & 0xFF, char_code & 0xFF) < 0) ||
 					(string_concat(&result, str_value) != 0))
 				{
-					amqpalloc_free(result);
+					free(result);
 					result = NULL;
 				}
 				if (string_concat(&result, str_value) != 0)
 				{
-					amqpalloc_free(result);
+					free(result);
 					result = NULL;
 				}
 			}
@@ -337,7 +337,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 			int64_t value;
 			if (amqpvalue_get_timestamp(amqp_value, &value) != 0)
 			{
-				amqpalloc_free(result);
+				free(result);
 				result = NULL;
 			}
 			else
@@ -346,7 +346,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 				if ((sprintf(str_value, "%lld", int_value) < 0) ||
 					(string_concat(&result, str_value) != 0))
 				{
-					amqpalloc_free(result);
+					free(result);
 					result = NULL;
 				}
 			}
@@ -359,14 +359,14 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 			amqp_binary binary_value;
 			if (amqpvalue_get_binary(amqp_value, &binary_value) != 0)
 			{
-				amqpalloc_free(result);
+				free(result);
 				result = NULL;
 			}
 			else
 			{
 				if (string_concat(&result, "<") != 0)
 				{
-					amqpalloc_free(result);
+					free(result);
 					result = NULL;
 				}
 				else
@@ -385,12 +385,12 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 
 					if (i < binary_value.length)
 					{
-						amqpalloc_free(result);
+						free(result);
 						result = NULL;
 					}
 					else if (string_concat(&result, ">") != 0)
 					{
-						amqpalloc_free(result);
+						free(result);
 						result = NULL;
 					}
 				}
@@ -402,14 +402,14 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 			const char* string_value;
 			if (amqpvalue_get_string(amqp_value, &string_value) != 0)
 			{
-				amqpalloc_free(result);
+				free(result);
 				result = NULL;
 			}
 			else
 			{
 				if (string_concat(&result, string_value) != 0)
 				{
-					amqpalloc_free(result);
+					free(result);
 					result = NULL;
 				}
 			}
@@ -420,14 +420,14 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 			const char* string_value;
 			if (amqpvalue_get_symbol(amqp_value, &string_value) != 0)
 			{
-				amqpalloc_free(result);
+				free(result);
 				result = NULL;
 			}
 			else
 			{
 				if (string_concat(&result, string_value) != 0)
 				{
-					amqpalloc_free(result);
+					free(result);
 					result = NULL;
 				}
 			}
@@ -439,7 +439,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 			if ((amqpvalue_get_list_item_count(amqp_value, &count) != 0) ||
 				(string_concat(&result, "{") != 0))
 			{
-				amqpalloc_free(result);
+				free(result);
 				result = NULL;
 			}
 			else
@@ -464,18 +464,18 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 						{
 							if ((i > 0) && (string_concat(&result, ",") != 0))
 							{
-								amqpalloc_free(result);
+								free(result);
 								result = NULL;
 								break;
 							}
 							else if (string_concat(&result, item_string) != 0)
 							{
-								amqpalloc_free(result);
+								free(result);
 								result = NULL;
 								break;
 							}
 
-							amqpalloc_free(item_string);
+							free(item_string);
 						}
 
 						amqpvalue_destroy(item);
@@ -485,7 +485,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 				if ((i < count) ||
 					(string_concat(&result, "}") != 0))
 				{
-					amqpalloc_free(result);
+					free(result);
 					result = NULL;
 				}
 			}
@@ -497,7 +497,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 			if ((amqpvalue_get_map_pair_count(amqp_value, &count) != 0) ||
 				(string_concat(&result, "{") != 0))
 			{
-				amqpalloc_free(result);
+				free(result);
 				result = NULL;
 			}
 			else
@@ -525,7 +525,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 							char* value_string = amqpvalue_to_string(value);
 							if (key_string == NULL)
 							{
-								amqpalloc_free(key_string);
+								free(key_string);
 								amqpvalue_destroy(key);
 								amqpvalue_destroy(value);
 								break;
@@ -539,17 +539,17 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 									(string_concat(&result, value_string) != 0) ||
 									(string_concat(&result, "]") != 0))
 								{
-									amqpalloc_free(key_string);
-									amqpalloc_free(value_string);
+									free(key_string);
+									free(value_string);
 									amqpvalue_destroy(key);
 									amqpvalue_destroy(value);
 									break;
 								}
 
-								amqpalloc_free(value_string);
+								free(value_string);
 							}
 
-							amqpalloc_free(key_string);
+							free(key_string);
 						}
 
 						amqpvalue_destroy(key);
@@ -560,7 +560,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 				if ((i < count) ||
 					(string_concat(&result, "}") != 0))
 				{
-					amqpalloc_free(result);
+					free(result);
 					result = NULL;
 				}
 			}
@@ -572,7 +572,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 			if ((amqpvalue_get_array_item_count(amqp_value, &count) != 0) ||
 				(string_concat(&result, "{") != 0))
 			{
-				amqpalloc_free(result);
+				free(result);
 				result = NULL;
 			}
 			else
@@ -597,18 +597,18 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 						{
 							if ((i > 0) && (string_concat(&result, ",") != 0))
 							{
-								amqpalloc_free(result);
+								free(result);
 								result = NULL;
 								break;
 							}
 							else if (string_concat(&result, item_string) != 0)
 							{
-								amqpalloc_free(result);
+								free(result);
 								result = NULL;
 								break;
 							}
 
-							amqpalloc_free(item_string);
+							free(item_string);
 						}
 
 						amqpvalue_destroy(item);
@@ -618,7 +618,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 				if ((i < count) ||
 					(string_concat(&result, "}") != 0))
 				{
-					amqpalloc_free(result);
+					free(result);
 					result = NULL;
 				}
 			}
@@ -630,14 +630,14 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 			AMQP_VALUE described_value = amqpvalue_get_inplace_described_value(amqp_value);
 			if (described_value == NULL)
 			{
-				amqpalloc_free(result);
+				free(result);
 				result = NULL;
 			}
 			else
 			{
 				if (string_concat(&result, "* ") != 0)
 				{
-					amqpalloc_free(result);
+					free(result);
 					result = NULL;
 				}
 				else
@@ -645,18 +645,18 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 					char* described_value_string = amqpvalue_to_string(described_value);
 					if (described_value_string == NULL)
 					{
-						amqpalloc_free(result);
+						free(result);
 						result = NULL;
 					}
 					else
 					{
 						if (string_concat(&result, described_value_string) != 0)
 						{
-							amqpalloc_free(result);
+							free(result);
 							result = NULL;
 						}
 
-						amqpalloc_free(described_value_string);
+						free(described_value_string);
 					}
 				}
 			}

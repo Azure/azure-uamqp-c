@@ -4,12 +4,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/platform.h"
 #include "azure_c_shared_utility/xio.h"
 #include "azure_uamqp_c/message_receiver.h"
 #include "azure_uamqp_c/message.h"
 #include "azure_uamqp_c/messaging.h"
-#include "azure_uamqp_c/amqpalloc.h"
 #include "azure_uamqp_c/socket_listener.h"
 #include "azure_uamqp_c/header_detect_io.h"
 #include "azure_uamqp_c/connection.h"
@@ -72,7 +72,6 @@ int main(int argc, char** argv)
 	int result;
 
     (void)argc, argv;
-	amqpalloc_set_memory_tracing_enabled(true);
 
 	if (platform_init() != 0)
 	{
@@ -95,8 +94,8 @@ int main(int argc, char** argv)
 				size_t maximum_memory_used;
 				socketlistener_dowork(socket_listener);
 
-				current_memory_used = amqpalloc_get_current_memory_used();
-				maximum_memory_used = amqpalloc_get_maximum_memory_used();
+				current_memory_used = gballoc_getCurrentMemoryUsed();
+				maximum_memory_used = gballoc_getMaximumMemoryUsed();
 
 				if (current_memory_used != last_memory_used)
 				{
@@ -121,8 +120,8 @@ int main(int argc, char** argv)
 		socketlistener_destroy(socket_listener);
 		platform_deinit();
 
-		printf("Max memory usage:%lu\r\n", (unsigned long)amqpalloc_get_maximum_memory_used());
-		printf("Current memory usage:%lu\r\n", (unsigned long)amqpalloc_get_current_memory_used());
+		printf("Max memory usage:%lu\r\n", (unsigned long)gballoc_getCurrentMemoryUsed());
+		printf("Current memory usage:%lu\r\n", (unsigned long)gballoc_getMaximumMemoryUsed());
 	}
 
 	return result;

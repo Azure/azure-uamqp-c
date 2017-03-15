@@ -84,7 +84,7 @@ extern "C" {
 	MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_clone, AMQP_VALUE, value);
 
 	/* encoding */
-	typedef int (*AMQPVALUE_ENCODER_OUTPUT)( void* context, const unsigned char* bytes, size_t length);
+	typedef int (*AMQPVALUE_ENCODER_OUTPUT)(void* context, const unsigned char* bytes, size_t length);
 
 	MOCKABLE_FUNCTION(, int, amqpvalue_encode, AMQP_VALUE, value, AMQPVALUE_ENCODER_OUTPUT, encoder_output, void*, context);
 	MOCKABLE_FUNCTION(, int, amqpvalue_get_encoded_size, AMQP_VALUE, value, size_t*, encoded_size);

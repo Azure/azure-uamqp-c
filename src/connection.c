@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "azure_c_shared_utility/optimize_size.h"
+#include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/xio.h"
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_c_shared_utility/tickcounter.h"
@@ -13,7 +14,6 @@
 #include "azure_uamqp_c/frame_codec.h"
 #include "azure_uamqp_c/amqp_frame_codec.h"
 #include "azure_uamqp_c/amqp_definitions.h"
-#include "azure_uamqp_c/amqpalloc.h"
 #include "azure_uamqp_c/amqpvalue_to_string.h"
 
 /* Requirements satisfied by the virtue of implementing the ISO:*/
@@ -194,7 +194,7 @@ static void log_incoming_frame(AMQP_VALUE performative)
         LOG(AZ_LOG_TRACE, LOG_LINE, (performative_as_string = amqpvalue_to_string(performative)));
         if (performative_as_string != NULL)
         {
-            amqpalloc_free(performative_as_string);
+            free(performative_as_string);
         }
     }
 #endif
@@ -214,7 +214,7 @@ static void log_outgoing_frame(AMQP_VALUE performative)
         LOG(AZ_LOG_TRACE, LOG_LINE, (performative_as_string = amqpvalue_to_string(performative)));
         if (performative_as_string != NULL)
         {
-            amqpalloc_free(performative_as_string);
+            free(performative_as_string);
         }
     }
 #endif
@@ -929,7 +929,7 @@ CONNECTION_HANDLE connection_create2(XIO_HANDLE xio, const char* hostname, const
     }
     else
     {
-        result = (CONNECTION_INSTANCE*)amqpalloc_malloc(sizeof(CONNECTION_INSTANCE));
+        result = (CONNECTION_INSTANCE*)malloc(sizeof(CONNECTION_INSTANCE));
         /* Codes_SRS_CONNECTION_01_081: [If allocating the memory for the connection fails then connection_create shall return NULL.] */
         if (result != NULL)
         {
@@ -940,7 +940,7 @@ CONNECTION_HANDLE connection_create2(XIO_HANDLE xio, const char* hostname, const
             if (result->frame_codec == NULL)
             {
                 /* Codes_SRS_CONNECTION_01_083: [If frame_codec_create fails then connection_create shall return NULL.] */
-                amqpalloc_free(result);
+                free(result);
                 result = NULL;
             }
             else
@@ -950,20 +950,20 @@ CONNECTION_HANDLE connection_create2(XIO_HANDLE xio, const char* hostname, const
                 {
                     /* Codes_SRS_CONNECTION_01_108: [If amqp_frame_codec_create fails, connection_create shall return NULL.] */
                     frame_codec_destroy(result->frame_codec);
-                    amqpalloc_free(result);
+                    free(result);
                     result = NULL;
                 }
                 else
                 {
                     if (hostname != NULL)
                     {
-                        result->host_name = (char*)amqpalloc_malloc(strlen(hostname) + 1);
+                        result->host_name = (char*)malloc(strlen(hostname) + 1);
                         if (result->host_name == NULL)
                         {
                             /* Codes_SRS_CONNECTION_01_081: [If allocating the memory for the connection fails then connection_create shall return NULL.] */
                             amqp_frame_codec_destroy(result->amqp_frame_codec);
                             frame_codec_destroy(result->frame_codec);
-                            amqpalloc_free(result);
+                            free(result);
                             result = NULL;
                         }
                         else
@@ -978,14 +978,14 @@ CONNECTION_HANDLE connection_create2(XIO_HANDLE xio, const char* hostname, const
 
                     if (result != NULL)
                     {
-                        result->container_id = (char*)amqpalloc_malloc(strlen(container_id) + 1);
+                        result->container_id = (char*)malloc(strlen(container_id) + 1);
                         if (result->container_id == NULL)
                         {
                             /* Codes_SRS_CONNECTION_01_081: [If allocating the memory for the connection fails then connection_create shall return NULL.] */
-                            amqpalloc_free(result->host_name);
+                            free(result->host_name);
                             amqp_frame_codec_destroy(result->amqp_frame_codec);
                             frame_codec_destroy(result->frame_codec);
-                            amqpalloc_free(result);
+                            free(result);
                             result = NULL;
                         }
                         else
@@ -993,11 +993,11 @@ CONNECTION_HANDLE connection_create2(XIO_HANDLE xio, const char* hostname, const
                             result->tick_counter = tickcounter_create();
                             if (result->tick_counter == NULL)
                             {
-                                amqpalloc_free(result->container_id);
-                                amqpalloc_free(result->host_name);
+                                free(result->container_id);
+                                free(result->host_name);
                                 amqp_frame_codec_destroy(result->amqp_frame_codec);
                                 frame_codec_destroy(result->frame_codec);
-                                amqpalloc_free(result);
+                                free(result);
                                 result = NULL;
                             }
                             else
@@ -1038,11 +1038,11 @@ CONNECTION_HANDLE connection_create2(XIO_HANDLE xio, const char* hostname, const
                                 {
                                     LogError("Could not retrieve time for last frame received time");
                                     tickcounter_destroy(result->tick_counter);
-                                    amqpalloc_free(result->container_id);
-                                    amqpalloc_free(result->host_name);
+                                    free(result->container_id);
+                                    free(result->host_name);
                                     amqp_frame_codec_destroy(result->amqp_frame_codec);
                                     frame_codec_destroy(result->frame_codec);
-                                    amqpalloc_free(result);
+                                    free(result);
                                     result = NULL;
                                 }
                                 else
@@ -1078,11 +1078,11 @@ void connection_destroy(CONNECTION_HANDLE connection)
         frame_codec_destroy(connection->frame_codec);
         tickcounter_destroy(connection->tick_counter);
 
-        amqpalloc_free(connection->host_name);
-        amqpalloc_free(connection->container_id);
+        free(connection->host_name);
+        free(connection->container_id);
 
         /* Codes_SRS_CONNECTION_01_074: [connection_destroy shall close the socket connection.] */
-        amqpalloc_free(connection);
+        free(connection);
     }
 }
 
@@ -1481,7 +1481,7 @@ ENDPOINT_HANDLE connection_create_endpoint(CONNECTION_HANDLE connection)
             }
 
             /* Codes_SRS_CONNECTION_01_127: [On success, connection_create_endpoint shall return a non-NULL handle to the newly created endpoint.] */
-            result = amqpalloc_malloc(sizeof(ENDPOINT_INSTANCE));
+            result = malloc(sizeof(ENDPOINT_INSTANCE));
             /* Codes_SRS_CONNECTION_01_196: [If memory cannot be allocated for the new endpoint, connection_create_endpoint shall fail and return NULL.] */
             if (result != NULL)
             {
@@ -1494,11 +1494,11 @@ ENDPOINT_HANDLE connection_create_endpoint(CONNECTION_HANDLE connection)
                 result->connection = connection;
 
                 /* Codes_SRS_CONNECTION_01_197: [The newly created endpoint shall be added to the endpoints list, so that it can be tracked.] */
-                new_endpoints = (ENDPOINT_INSTANCE**)amqpalloc_realloc(connection->endpoints, sizeof(ENDPOINT_INSTANCE*) * (connection->endpoint_count + 1));
+                new_endpoints = (ENDPOINT_INSTANCE**)realloc(connection->endpoints, sizeof(ENDPOINT_INSTANCE*) * (connection->endpoint_count + 1));
                 if (new_endpoints == NULL)
                 {
                     /* Tests_SRS_CONNECTION_01_198: [If adding the endpoint to the endpoints list tracked by the connection fails, connection_create_endpoint shall fail and return NULL.] */
-                    amqpalloc_free(result);
+                    free(result);
                     result = NULL;
                 }
                 else
@@ -1584,7 +1584,7 @@ void connection_destroy_endpoint(ENDPOINT_HANDLE endpoint)
 		{
 			(void)memmove(connection->endpoints + i, connection->endpoints + i + 1, sizeof(ENDPOINT_INSTANCE*) * (connection->endpoint_count - i - 1));
 
-			ENDPOINT_INSTANCE** new_endpoints = (ENDPOINT_INSTANCE**)amqpalloc_realloc(connection->endpoints, (connection->endpoint_count - 1) * sizeof(ENDPOINT_INSTANCE*));
+			ENDPOINT_INSTANCE** new_endpoints = (ENDPOINT_INSTANCE**)realloc(connection->endpoints, (connection->endpoint_count - 1) * sizeof(ENDPOINT_INSTANCE*));
 			if (new_endpoints != NULL)
 			{
 				connection->endpoints = new_endpoints;
@@ -1594,12 +1594,12 @@ void connection_destroy_endpoint(ENDPOINT_HANDLE endpoint)
 		}
 		else if (connection->endpoint_count == 1)
 		{
-			amqpalloc_free(connection->endpoints);
+			free(connection->endpoints);
 			connection->endpoints = NULL;
 			connection->endpoint_count = 0;
 		}
 
-        amqpalloc_free(endpoint);
+        free(endpoint);
     }
 }
 

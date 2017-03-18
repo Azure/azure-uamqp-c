@@ -18,7 +18,7 @@ frame_codec is module that encodes/decodes frames (regardless of their type).
 	extern int frame_codec_subscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type, ON_FRAME_RECEIVED on_frame_received, void* callback_context);
 	extern int frame_codec_unsubscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type);
 	extern int frame_codec_receive_bytes(FRAME_CODEC_HANDLE frame_codec, const unsigned char* buffer, size_t size);
-	extern int frame_codec_encode_frame(FRAME_CODEC_HANDLE frame_codec, uint8_t type, const PAYLOAD* payloads, size_t payload_count, const unsigned char* type_specific_bytes, uint32_t type_specific_size, ON_BYTES_ENCODED encoded_bytes, void* callback_context);
+	extern int frame_codec_encode_frame(FRAME_CODEC_HANDLE frame_codec, uint8_t type, const PAYLOAD* payloads, size_t payload_count, const unsigned char* type_specific_bytes, uint32_t type_specific_size, ON_BYTES_ENCODED on_bytes_encoded, void* callback_context);
 ```
 
 ###frame_codec_create
@@ -55,7 +55,6 @@ extern int frame_codec_set_max_frame_size(FRAME_CODEC_HANDLE frame_codec, uint32
 **SRS_FRAME_CODEC_01_079: [**The new frame size shall take effect immediately, even for a frame that is being decoded at the time of the call.**]** 
 **SRS_FRAME_CODEC_01_081: [**If a frame being decoded already has a size bigger than the max_frame_size argument then frame_codec_set_max_frame_size shall return a non-zero value and the previous frame size shall be kept.**]** 
 **SRS_FRAME_CODEC_01_097: [**Setting a frame size on a frame_codec that had a decode error shall fail.**]** 
-**SRS_FRAME_CODEC_01_098: [**Setting a frame size on a frame_codec that had an encode error shall fail.**]** 
 
 ###frame_codec_receive_bytes
 
@@ -106,19 +105,23 @@ extern int frame_codec_unsubscribe(FRAME_CODEC frame_codec, uint8_t type);
 ###frame_codec_encode_frame
 
 ```C
-extern int frame_codec_encode_frame(FRAME_CODEC_HANDLE frame_codec, uint8_t type, const PAYLOAD* payloads, size_t payload_count, const unsigned char* type_specific_bytes, uint32_t type_specific_size, ON_BYTES_ENCODED encoded_bytes, void* callback_context);
+extern int frame_codec_encode_frame(FRAME_CODEC_HANDLE frame_codec, uint8_t type, const PAYLOAD* payloads, size_t payload_count, const unsigned char* type_specific_bytes, uint32_t type_specific_size, ON_BYTES_ENCODED on_bytes_encoded, void* callback_context);
 ```
 
-**SRS_FRAME_CODEC_01_042: [**frame_codec_encode_frame encodes the header and type specific bytes of a frame that has frame_payload_size bytes.**]** 
+**SRS_FRAME_CODEC_01_042: [**frame_codec_encode_frame encodes the header, type specific bytes and frame payload of a frame that has frame_payload_size bytes.**]** 
 **SRS_FRAME_CODEC_01_043: [**On success it shall return 0.**]** 
-**SRS_FRAME_CODEC_01_044: [**If the argument frame_codec is NULL, frame_codec_encode_frame shall return a non-zero value.**]** 
-**SRS_FRAME_CODEC_01_107: [**If the argument payloads is NULL and payload_count is non-zero, frame_codec_encode_frame shall return a non-zero value.**]** 
+**SRS_FRAME_CODEC_01_110: [** If the `bytes` member of a payload entry is NULL, `frame_codec_encode_frame` shall fail and return a non-zero value. **]**
+**SRS_FRAME_CODEC_01_111: [** If the `length` member of a payload entry is 0, `frame_codec_encode_frame` shall fail and return a non-zero value. **]**
+**SRS_FRAME_CODEC_01_108: [** Memory shall be allocated to hold the entire frame. **]**
+**SRS_FRAME_CODEC_01_109: [** If allocating memory fails, `frame_codec_encode_frame` shall fail and return a non-zero value. **]**
+**SRS_FRAME_CODEC_01_044: [**If any of arguments `frame_codec` or `on_bytes_encoded` is NULL, `frame_codec_encode_frame` shall return a non-zero value.**]** 
+**SRS_FRAME_CODEC_01_107: [**If the argument `payloads` is NULL and `payload_count` is non-zero, `frame_codec_encode_frame` shall return a non-zero value.**]** 
 **SRS_FRAME_CODEC_01_090: [**If the type_specific_size - 2 does not divide by 4, frame_codec_encode_frame shall pad the type_specific bytes with zeroes so that type specific data is according to the AMQP ISO.**]** 
 **SRS_FRAME_CODEC_01_092: [**If type_specific_size is too big to allow encoding the frame according to the AMQP ISO then frame_codec_encode_frame shall return a non-zero value.**]** 
 **SRS_FRAME_CODEC_01_091: [**If the argument type_specific_size is greater than 0 and type_specific_bytes is NULL, frame_codec_encode_frame shall return a non-zero value.**]** 
 **SRS_FRAME_CODEC_01_105: [**The frame_payload_size shall be computed by summing up the lengths of the payload segments identified by the payloads argument.**]** 
 **SRS_FRAME_CODEC_01_106: [**All payloads shall be encoded in order as part of the frame.**]** 
-**SRS_FRAME_CODEC_01_088: [**Encoded bytes shall be passed to the on_bytes_encoded callback.**]** 
+**SRS_FRAME_CODEC_01_088: [**Encoded bytes shall be passed to the `on_bytes_encoded` callback in a single call, while setting the `encode complete` argument to true.**]** 
 **SRS_FRAME_CODEC_01_095: [**If the frame_size needed for the frame is bigger than the maximum frame size, frame_codec_encode_frame shall fail and return a non-zero value.**]** 
 
 ##ISO section (receive)

@@ -25,12 +25,6 @@ typedef enum RECEIVE_FRAME_STATE_TAG
 	RECEIVE_FRAME_STATE_ERROR
 } RECEIVE_FRAME_STATE;
 
-typedef enum ENCODE_FRAME_STATE_TAG
-{
-	ENCODE_FRAME_STATE_IDLE,
-	ENCODE_FRAME_STATE_ERROR
-} ENCODE_FRAME_STATE;
-
 typedef struct SUBSCRIPTION_TAG
 {
 	uint8_t frame_type;
@@ -54,9 +48,6 @@ typedef struct FRAME_CODEC_INSTANCE_TAG
 	unsigned char* receive_frame_bytes;
 	ON_FRAME_CODEC_ERROR on_frame_codec_error;
 	void* on_frame_codec_error_callback_context;
-
-	/* encode frame */
-	ENCODE_FRAME_STATE encode_frame_state;
 
 	/* configuration */
 	uint32_t max_frame_size;
@@ -96,7 +87,6 @@ FRAME_CODEC_HANDLE frame_codec_create(ON_FRAME_CODEC_ERROR on_frame_codec_error,
 		if (result != NULL)
 		{
 			/* Codes_SRS_FRAME_CODEC_01_021: [frame_codec_create shall create a new instance of frame_codec and return a non-NULL handle to it on success.] */
-			result->encode_frame_state = ENCODE_FRAME_STATE_IDLE;
 			result->receive_frame_state = RECEIVE_FRAME_STATE_FRAME_SIZE;
 			result->on_frame_codec_error = on_frame_codec_error;
 			result->on_frame_codec_error_callback_context = callback_context;
@@ -143,9 +133,7 @@ int frame_codec_set_max_frame_size(FRAME_CODEC_HANDLE frame_codec, uint32_t max_
 		/* Codes_SRS_FRAME_CODEC_01_081: [If a frame being decoded already has a size bigger than the max_frame_size argument then frame_codec_set_max_frame_size shall return a non-zero value and the previous frame size shall be kept.] */
 		((max_frame_size < frame_codec_data->receive_frame_size) && (frame_codec_data->receive_frame_state != RECEIVE_FRAME_STATE_FRAME_SIZE)) ||
 		/* Codes_SRS_FRAME_CODEC_01_097: [Setting a frame size on a frame_codec that had a decode error shall fail.] */
-		(frame_codec_data->receive_frame_state == RECEIVE_FRAME_STATE_ERROR) ||
-		/* Codes_SRS_FRAME_CODEC_01_098: [Setting a frame size on a frame_codec that had an encode error shall fail.] */
-		(frame_codec_data->encode_frame_state == ENCODE_FRAME_STATE_ERROR))
+		(frame_codec_data->receive_frame_state == RECEIVE_FRAME_STATE_ERROR))
 	{
 		result = __FAILURE__;
 	}
@@ -535,17 +523,25 @@ int frame_codec_encode_frame(FRAME_CODEC_HANDLE frame_codec, uint8_t type, const
 
 	FRAME_CODEC_INSTANCE* frame_codec_data = (FRAME_CODEC_INSTANCE*)frame_codec;
 
-	/* Codes_SRS_FRAME_CODEC_01_044: [If the argument frame_codec is NULL, frame_codec_encode_frame shall return a non-zero value.] */
+	/* Codes_SRS_FRAME_CODEC_01_044: [If any of arguments `frame_codec` or `on_bytes_encoded` is NULL, `frame_codec_encode_frame` shall return a non-zero value.] */
 	if ((frame_codec == NULL) ||
+        (on_bytes_encoded == NULL) ||
 		/* Codes_SRS_FRAME_CODEC_01_091: [If the argument type_specific_size is greater than 0 and type_specific_bytes is NULL, frame_codec_encode_frame shall return a non-zero value.] */
 		((type_specific_size > 0) && (type_specific_bytes == NULL)) ||
 		/* Codes_SRS_FRAME_CODEC_01_092: [If type_specific_size is too big to allow encoding the frame according to the AMQP ISO then frame_codec_encode_frame shall return a non-zero value.] */
-		(type_specific_size > MAX_TYPE_SPECIFIC_SIZE) ||
-		(frame_codec_data->encode_frame_state == ENCODE_FRAME_STATE_ERROR))
+		(type_specific_size > MAX_TYPE_SPECIFIC_SIZE))
 	{
+        LogError("Bad arguments: frame_codec = %p, on_bytes_encoded = %p, type_specific_size = %u, type_specific_bytes = %p",
+            frame_codec, on_bytes_encoded, (unsigned int)type_specific_size, type_specific_bytes);
 		result = __FAILURE__;
 	}
-	else
+    else if ((payloads == NULL) && (payload_count > 0))
+    {
+        /* Codes_SRS_FRAME_CODEC_01_107: [If the argument `payloads` is NULL and `payload_count` is non-zero, `frame_codec_encode_frame` shall return a non-zero value.]*/
+        LogError("NULL payloads argument with non-zero payload count");
+        result = __FAILURE__;
+    }
+    else
 	{
         /* round up to the 4 bytes for doff */
         /* Codes_SRS_FRAME_CODEC_01_067: [The value of the data offset is an unsigned, 8-bit integer specifying a count of 4-byte words.] */
@@ -561,67 +557,102 @@ int frame_codec_encode_frame(FRAME_CODEC_HANDLE frame_codec, uint8_t type, const
 
         for (i = 0; i < payload_count; i++)
         {
+            /* Codes_SRS_FRAME_CODEC_01_110: [ If the `bytes` member of a payload entry is NULL, `frame_codec_encode_frame` shall fail and return a non-zero value. ] */
+            if ((payloads[i].bytes == NULL) ||
+                /* Codes_SRS_FRAME_CODEC_01_111: [ If the `length` member of a payload entry is 0, `frame_codec_encode_frame` shall fail and return a non-zero value. ] */
+                (payloads[i].length == 0))
+            {
+                break;
+            }
+
             frame_body_size += payloads[i].length;
         }
 
-        /* Codes_SRS_FRAME_CODEC_01_063: [This is an unsigned 32-bit integer that MUST contain the total frame size of the frame header, extended header, and frame body.] */
-        frame_size = frame_body_size + frame_body_offset;
-
-        if (frame_size > frame_codec_data->max_frame_size)
+        if (i < payload_count)
         {
-            /* Codes_SRS_FRAME_CODEC_01_095: [If the frame_size needed for the frame is bigger than the maximum frame size, frame_codec_encode_frame shall fail and return a non-zero value.] */
+            LogError("Bad payload entry");
             result = __FAILURE__;
         }
         else
         {
-            /* Codes_SRS_FRAME_CODEC_01_042: [frame_codec_encode_frame encodes the header and type specific bytes of a frame that has frame_payload_size bytes.]  */
-            /* Codes_SRS_FRAME_CODEC_01_055: [Frames are divided into three distinct areas: a fixed width frame header, a variable width extended header, and a variable width frame body.] */
-            /* Codes_SRS_FRAME_CODEC_01_056: [frame header The frame header is a fixed size (8 byte) structure that precedes each frame.] */
-            /* Codes_SRS_FRAME_CODEC_01_057: [The frame header includes mandatory information necessary to parse the rest of the frame including size and type information.] */
-            /* Codes_SRS_FRAME_CODEC_01_058: [extended header The extended header is a variable width area preceding the frame body.] */
-            /* Codes_SRS_FRAME_CODEC_01_059: [This is an extension point defined for future expansion.] */
-            /* Codes_SRS_FRAME_CODEC_01_060: [The treatment of this area depends on the frame type.]*/
-            /* Codes_SRS_FRAME_CODEC_01_062: [SIZE Bytes 0-3 of the frame header contain the frame size.] */
             /* Codes_SRS_FRAME_CODEC_01_063: [This is an unsigned 32-bit integer that MUST contain the total frame size of the frame header, extended header, and frame body.] */
-            /* Codes_SRS_FRAME_CODEC_01_064: [The frame is malformed if the size is less than the size of the frame header (8 bytes).] */
-            unsigned char frame_header[6];
+            frame_size = frame_body_size + frame_body_offset;
 
-            frame_header[0] = (frame_size >> 24) & 0xFF;
-            frame_header[1] = (frame_size >> 16) & 0xFF;
-            frame_header[2] = (frame_size >> 8) & 0xFF;
-            frame_header[3] = frame_size & 0xFF;
-            /* Codes_SRS_FRAME_CODEC_01_065: [DOFF Byte 4 of the frame header is the data offset.] */
-            frame_header[4] = doff;
-            /* Codes_SRS_FRAME_CODEC_01_069: [TYPE Byte 5 of the frame header is a type code.] */
-            frame_header[5] = type;
-
-            /* Codes_SRS_FRAME_CODEC_01_088: [Encoded bytes shall be passed to the on_bytes_encoded callback.] */
-            on_bytes_encoded(callback_context, frame_header, sizeof(frame_header), ((frame_body_size + type_specific_bytes + padding_byte_count) == 0) ? true : false);
-
-            /* Codes_SRS_FRAME_CODEC_01_088: [Encoded bytes shall be passed to the on_bytes_encoded callback.] */
-            if (type_specific_size > 0)
+            if (frame_size > frame_codec_data->max_frame_size)
             {
-                on_bytes_encoded(callback_context, type_specific_bytes, type_specific_size, ((frame_body_size + padding_byte_count) == 0) ? true : false);
+                /* Codes_SRS_FRAME_CODEC_01_095: [If the frame_size needed for the frame is bigger than the maximum frame size, frame_codec_encode_frame shall fail and return a non-zero value.] */
+                LogError("Encoded frame size exceeds the maximum allowed frame size");
+                result = __FAILURE__;
             }
-
-            /* send padding bytes */
-            /* Codes_SRS_FRAME_CODEC_01_090: [If the type_specific_size - 2 does not divide by 4, frame_codec_encode_frame shall pad the type_specific bytes with zeroes so that type specific data is according to the AMQP ISO.] */
-            unsigned char padding_bytes[] = { 0x00, 0x00, 0x00 };
-
-            /* Codes_SRS_FRAME_CODEC_01_088: [Encoded bytes shall be passed to the on_bytes_encoded callback.] */
-            if (padding_byte_count > 0)
+            else
             {
-                on_bytes_encoded(callback_context, padding_bytes, padding_byte_count, (payload_count == 0) ? true : false);
-            }
+                /* Codes_SRS_FRAME_CODEC_01_108: [ Memory shall be allocated to hold the entire frame. ]*/
+                unsigned char* encoded_frame = (unsigned char*)malloc(frame_size);
+                if (encoded_frame == NULL)
+                {
+                    /* Codes_SRS_FRAME_CODEC_01_109: [ If allocating memory fails, `frame_codec_encode_frame` shall fail and return a non-zero value. ]*/
+                    LogError("Cannot allocate memory for frame");
+                    result = __FAILURE__;
+                }
+                else
+                {
+                    /* Codes_SRS_FRAME_CODEC_01_042: [frame_codec_encode_frame encodes the header, type specific bytes and frame payload of a frame that has frame_payload_size bytes.]*/
+                    /* Codes_SRS_FRAME_CODEC_01_055: [Frames are divided into three distinct areas: a fixed width frame header, a variable width extended header, and a variable width frame body.] */
+                    /* Codes_SRS_FRAME_CODEC_01_056: [frame header The frame header is a fixed size (8 byte) structure that precedes each frame.] */
+                    /* Codes_SRS_FRAME_CODEC_01_057: [The frame header includes mandatory information necessary to parse the rest of the frame including size and type information.] */
+                    /* Codes_SRS_FRAME_CODEC_01_058: [extended header The extended header is a variable width area preceding the frame body.] */
+                    /* Codes_SRS_FRAME_CODEC_01_059: [This is an extension point defined for future expansion.] */
+                    /* Codes_SRS_FRAME_CODEC_01_060: [The treatment of this area depends on the frame type.]*/
+                    /* Codes_SRS_FRAME_CODEC_01_062: [SIZE Bytes 0-3 of the frame header contain the frame size.] */
+                    /* Codes_SRS_FRAME_CODEC_01_063: [This is an unsigned 32-bit integer that MUST contain the total frame size of the frame header, extended header, and frame body.] */
+                    /* Codes_SRS_FRAME_CODEC_01_064: [The frame is malformed if the size is less than the size of the frame header (8 bytes).] */
+                    unsigned char frame_header[6];
+                    size_t current_pos = 0;
 
-            for (i = 0; i < payload_count; i++)
-            {
-                /* Codes_SRS_FRAME_CODEC_01_088: [Encoded bytes shall be passed to the on_bytes_encoded callback.] */
-                on_bytes_encoded(callback_context, payloads[i].bytes, payloads[i].length, (i == payload_count - 1) ? true : false);
-            }
+                    frame_header[0] = (frame_size >> 24) & 0xFF;
+                    frame_header[1] = (frame_size >> 16) & 0xFF;
+                    frame_header[2] = (frame_size >> 8) & 0xFF;
+                    frame_header[3] = frame_size & 0xFF;
+                    /* Codes_SRS_FRAME_CODEC_01_065: [DOFF Byte 4 of the frame header is the data offset.] */
+                    frame_header[4] = doff;
+                    /* Codes_SRS_FRAME_CODEC_01_069: [TYPE Byte 5 of the frame header is a type code.] */
+                    frame_header[5] = type;
 
-            /* Codes_SRS_FRAME_CODEC_01_043: [On success it shall return 0.] */
-            result = 0;
+                    (void)memcpy(encoded_frame, frame_header, sizeof(frame_header));
+                    current_pos += sizeof(frame_header);
+
+                    if (type_specific_size > 0)
+                    {
+                        (void)memcpy(encoded_frame + current_pos, type_specific_bytes, type_specific_size);
+                        current_pos += type_specific_size;
+                    }
+
+                    /* send padding bytes */
+                    /* Codes_SRS_FRAME_CODEC_01_090: [If the type_specific_size - 2 does not divide by 4, frame_codec_encode_frame shall pad the type_specific bytes with zeroes so that type specific data is according to the AMQP ISO.] */
+                    unsigned char padding_bytes[] = { 0x00, 0x00, 0x00 };
+
+                    if (padding_byte_count > 0)
+                    {
+                        (void)memcpy(encoded_frame + current_pos, padding_bytes, padding_byte_count);
+                        current_pos += padding_byte_count;
+                    }
+
+                    /* Codes_SRS_FRAME_CODEC_01_106: [All payloads shall be encoded in order as part of the frame.] */
+                    for (i = 0; i < payload_count; i++)
+                    {
+                        (void)memcpy(encoded_frame + current_pos, payloads[i].bytes, payloads[i].length);
+                        current_pos += payloads[i].length;
+                    }
+
+                    /* Codes_SRS_FRAME_CODEC_01_088: [Encoded bytes shall be passed to the `on_bytes_encoded` callback in a single call, while setting the `encode complete` argument to true.] */
+                    on_bytes_encoded(callback_context, encoded_frame, frame_size, true);
+
+                    free(encoded_frame);
+
+                    /* Codes_SRS_FRAME_CODEC_01_043: [On success it shall return 0.] */
+                    result = 0;
+                }
+            }
         }
 	}
 

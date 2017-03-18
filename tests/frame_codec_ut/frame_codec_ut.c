@@ -336,6 +336,8 @@ TEST_FUNCTION(sending_a_frame_with_more_than_512_bytes_of_total_frame_size_fails
 
 /* Tests_SRS_FRAME_CODEC_01_082: [The initial max_frame_size_shall be 512.] */
 /* Tests_SRS_FRAME_CODEC_01_075: [frame_codec_set_max_frame_size shall set the maximum frame size for a frame_codec.] */
+/* Tests_SRS_FRAME_CODEC_01_088: [Encoded bytes shall be passed to the `on_bytes_encoded` callback in a single call, while setting the `encode complete` argument to true.] */
+/* Tests_SRS_FRAME_CODEC_01_108: [ Memory shall be allocated to hold the entire frame. ]*/
 TEST_FUNCTION(a_frame_of_exactly_max_frame_size_immediately_after_create_can_be_sent)
 {
 	// arrange
@@ -346,10 +348,9 @@ TEST_FUNCTION(a_frame_of_exactly_max_frame_size_immediately_after_create_can_be_
     payload.length = sizeof(bytes);
     umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(test_on_bytes_encoded((void*)0x4242, IGNORED_PTR_ARG, IGNORED_NUM_ARG, false));
-    STRICT_EXPECTED_CALL(test_on_bytes_encoded((void*)0x4242, IGNORED_PTR_ARG, IGNORED_NUM_ARG, false))
-        .IgnoreAllCalls();
-	STRICT_EXPECTED_CALL(test_on_bytes_encoded((void*)0x4242, IGNORED_PTR_ARG, IGNORED_NUM_ARG, true));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(test_on_bytes_encoded((void*)0x4242, IGNORED_PTR_ARG, IGNORED_NUM_ARG, true));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
    
 	// act
 	int result = frame_codec_encode_frame(frame_codec, 0, &payload, 1, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
@@ -637,29 +638,6 @@ TEST_FUNCTION(when_frame_codec_is_too_small_then_frame_codec_set_max_frame_size_
 
 /* Tests_SRS_FRAME_CODEC_01_081: [If a frame being decoded already has a size bigger than the max_frame_size argument then frame_codec_set_max_frame_size shall return a non-zero value and the previous frame size shall be kept.] */
 TEST_FUNCTION(attempting_to_set_a_max_frame_size_lower_than_the_size_of_the_currently_being_received_frame_fails)
-{
-	// arrange
-	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	(void)frame_codec_set_max_frame_size(frame_codec, 1024);
-	unsigned char frame[1024] = { 0x00, 0x00, 0x04, 0x00, 0x02, 0x00 };
-	(void)memset(frame + 6, 0, 1016);
-
-	(void)frame_codec_receive_bytes(frame_codec, frame, 4);
-	umock_c_reset_all_calls();
-
-	// act
-	int result = frame_codec_set_max_frame_size(frame_codec, 8);
-
-	// assert
-	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-
-	// cleanup
-	frame_codec_destroy(frame_codec);
-}
-
-/* Tests_SRS_FRAME_CODEC_01_098: [Setting a frame size on a frame_codec that had an encode error shall fail.] */
-TEST_FUNCTION(attempting_to_set_a_max_frame_size_when_the_decoder_is_in_error_fails)
 {
 	// arrange
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
@@ -2024,10 +2002,9 @@ TEST_FUNCTION(frame_type_sasl_is_one)
 
 /* frame_codec_encode_frame */
 
-#if 0
-/* Tests_SRS_FRAME_CODEC_01_042: [frame_codec_encode_frame encodes the header and type specific bytes of a frame that has frame_payload_size bytes.] */
+/* Tests_SRS_FRAME_CODEC_01_042: [frame_codec_encode_frame encodes the header, type specific bytes and frame payload of a frame that has frame_payload_size bytes.]*/
 /* Tests_SRS_FRAME_CODEC_01_043: [On success it shall return 0.] */
-/* Tests_SRS_FRAME_CODEC_01_088: [Encoded bytes shall be passed to the on_bytes_encoded callback.] */
+/* Tests_SRS_FRAME_CODEC_01_088: [Encoded bytes shall be passed to the `on_bytes_encoded` callback in a single call, while setting the `encode complete` argument to true.] */
 /* Tests_SRS_FRAME_CODEC_01_055: [Frames are divided into three distinct areas: a fixed width frame header, a variable width extended header, and a variable width frame body.] */
 /* Tests_SRS_FRAME_CODEC_01_056: [frame header The frame header is a fixed size (8 byte) structure that precedes each frame.] */
 /* Tests_SRS_FRAME_CODEC_01_057: [The frame header includes mandatory information necessary to parse the rest of the frame including size and type information.] */
@@ -2043,13 +2020,12 @@ TEST_FUNCTION(frame_codec_encode_frame_with_a_zero_frame_body_length_succeeds)
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	umock_c_reset_all_calls();
 
-	EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.ExpectedAtLeastTimes(1);
-	EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(test_on_bytes_encoded((void*)0x4242, IGNORED_PTR_ARG, IGNORED_NUM_ARG, true));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-	int result = frame_codec_encode_frame(frame_codec, 0, 0, NULL, 0, NULL, NULL);
+	int result = frame_codec_encode_frame(frame_codec, 0, NULL, 0, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
 
 	// assert
 	stringify_bytes(sent_io_bytes, sent_io_byte_count, actual_stringified_io);
@@ -2061,17 +2037,35 @@ TEST_FUNCTION(frame_codec_encode_frame_with_a_zero_frame_body_length_succeeds)
 	frame_codec_destroy(frame_codec);
 }
 
-/* Tests_SRS_FRAME_CODEC_01_044: [If the argument frame_codec is NULL, frame_codec_encode_frame shall return a non-zero value.] */
+/* Tests_SRS_FRAME_CODEC_01_044: [If any of arguments `frame_codec` or `on_bytes_encoded` is NULL, `frame_codec_encode_frame` shall return a non-zero value.] */
 TEST_FUNCTION(when_frame_codec_is_NULL_frame_codec_encode_frame_fails)
 {
 	// arrange
 
 	// act
-	int result = frame_codec_encode_frame(NULL, 0, 0, NULL, 0, NULL, NULL);
+    int result = frame_codec_encode_frame(NULL, 0, NULL, 0, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
 
 	// assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
     ASSERT_ARE_NOT_EQUAL(int, 0, result);
+}
+
+/* Tests_SRS_FRAME_CODEC_01_044: [If any of arguments `frame_codec` or `on_bytes_encoded` is NULL, `frame_codec_encode_frame` shall return a non-zero value.] */
+TEST_FUNCTION(when_on_bytes_encoded_is_NULL_frame_codec_encode_frame_fails)
+{
+    // arrange
+    FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+    umock_c_reset_all_calls();
+
+    // act
+    int result = frame_codec_encode_frame(frame_codec, 0, NULL, 0, NULL, 0, NULL, (void*)0x4242);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+
+    // cleanup
+    frame_codec_destroy(frame_codec);
 }
 
 /* Tests_SRS_FRAME_CODEC_01_091: [If the argument type_specific_size is greater than 0 and type_specific_bytes is NULL, frame_codec_encode_frame shall return a non-zero value.] */
@@ -2082,7 +2076,7 @@ TEST_FUNCTION(when_type_specific_size_is_positive_and_type_specific_bytes_is_NUL
 	umock_c_reset_all_calls();
 
 	// act
-	int result = frame_codec_encode_frame(frame_codec, 0, 0, NULL, 1, NULL, NULL);
+    int result = frame_codec_encode_frame(frame_codec, 0, NULL, 0, NULL, 1, test_on_bytes_encoded, (void*)0x4242);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -2105,7 +2099,7 @@ TEST_FUNCTION(when_type_specific_size_is_too_big_then_frame_codec_encode_frame_f
 	umock_c_reset_all_calls();
 
 	// act
-	int result = frame_codec_encode_frame(frame_codec, 0, 0, &expected_frame[6], 1015, NULL, NULL);
+    int result = frame_codec_encode_frame(frame_codec, 0, NULL, 0, &expected_frame[6], 1015, test_on_bytes_encoded, (void*)0x4242);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -2131,13 +2125,12 @@ TEST_FUNCTION(when_type_specific_size_is_max_allowed_then_frame_codec_encode_fra
 	(void)frame_codec_set_max_frame_size(frame_codec, 4096);
 	umock_c_reset_all_calls();
 
-	EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.ExpectedAtLeastTimes(1);
-	EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(test_on_bytes_encoded((void*)0x4242, IGNORED_PTR_ARG, IGNORED_NUM_ARG, true));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-	int result = frame_codec_encode_frame(frame_codec, 0, 0, &expected_frame[6], 1014, NULL, NULL);
+    int result = frame_codec_encode_frame(frame_codec, 0, NULL, 0, &expected_frame[6], 1014, test_on_bytes_encoded, (void*)0x4242);
 
 	// assert
 	memset(expected_frame + 6, 0, 1020 - 6);
@@ -2163,13 +2156,12 @@ TEST_FUNCTION(one_byte_of_padding_is_added_to_type_specific_data_to_make_the_fra
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	umock_c_reset_all_calls();
 
-	EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.ExpectedAtLeastTimes(1);
-	EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(test_on_bytes_encoded((void*)0x4242, IGNORED_PTR_ARG, IGNORED_NUM_ARG, true));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-	int result = frame_codec_encode_frame(frame_codec, 0, 0, &expected_frame[6], 1, NULL, NULL);
+    int result = frame_codec_encode_frame(frame_codec, 0, NULL, 0, &expected_frame[6], 1, test_on_bytes_encoded, (void*)0x4242);
 
 	// assert
 	stringify_bytes(expected_frame, sizeof(expected_frame), expected_stringified_io);
@@ -2194,15 +2186,12 @@ TEST_FUNCTION(no_bytes_of_padding_are_added_to_type_specific_data_when_enough_by
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	umock_c_reset_all_calls();
 
-	EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.ExpectedAtLeastTimes(1);
-	EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, 0, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.ValidateArgument(3).NeverInvoked();
-	EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(test_on_bytes_encoded((void*)0x4242, IGNORED_PTR_ARG, IGNORED_NUM_ARG, true));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-	int result = frame_codec_encode_frame(frame_codec, 0, 0, &expected_frame[6], 2, NULL, NULL);
+    int result = frame_codec_encode_frame(frame_codec, 0, NULL, 0, &expected_frame[6], 2, test_on_bytes_encoded, (void*)0x4242);
 
 	// assert
 	stringify_bytes(expected_frame, sizeof(expected_frame), expected_stringified_io);
@@ -2222,13 +2211,12 @@ TEST_FUNCTION(the_type_is_placed_in_the_underlying_frame)
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	umock_c_reset_all_calls();
 
-	EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.ExpectedAtLeastTimes(1);
-	EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(test_on_bytes_encoded((void*)0x4242, IGNORED_PTR_ARG, IGNORED_NUM_ARG, true));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-	int result = frame_codec_encode_frame(frame_codec, 0x42, 0, NULL, 0, NULL, NULL);
+    int result = frame_codec_encode_frame(frame_codec, 0x42, NULL, 0, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
 
 	// assert
 	stringify_bytes(sent_io_bytes, sent_io_byte_count, actual_stringified_io);
@@ -2240,48 +2228,54 @@ TEST_FUNCTION(the_type_is_placed_in_the_underlying_frame)
 	frame_codec_destroy(frame_codec);
 }
 
-/* frame_codec_encode_frame_bytes */
-
-/* Tests_SRS_FRAME_CODEC_01_047: [frame_codec_encode_frame_bytes encodes the frame bytes for a frame encoding started with a frame_codec_start_encode_frame call.] */
-/* Tests_SRS_FRAME_CODEC_01_048: [If all bytes are successfully encoded, frame_codec_encode_frame_bytes shall return 0.] */
+/* Tests_SRS_FRAME_CODEC_01_105: [The frame_payload_size shall be computed by summing up the lengths of the payload segments identified by the payloads argument.]*/
+/* ----------- Tests_SRS_FRAME_CODEC_01_048: [If all bytes are successfully encoded, frame_codec_encode_frame_bytes shall return 0.] */
 /* Tests_SRS_FRAME_CODEC_01_061: [frame body The frame body is a variable width sequence of bytes the format of which depends on the frame type.] */
 TEST_FUNCTION(frame_codec_encode_frame_bytes_with_1_encoded_byte_succeeds)
 {
 	// arrange
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	(void)frame_codec_encode_frame(frame_codec, 0x42, 1, NULL, 0, NULL, NULL);
 	umock_c_reset_all_calls();
 	uint8_t byte = 0x42;
+    PAYLOAD payloads[1];
+    payloads[0].bytes = &byte;
+    payloads[0].length = 1;
 
-	STRICT_EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, 1, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.ValidateArgumentBuffer(2, &byte, 1);
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(test_on_bytes_encoded((void*)0x4242, IGNORED_PTR_ARG, IGNORED_NUM_ARG, true));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-	int result = frame_codec_encode_frame_bytes(frame_codec, &byte, 1);
+    int result = frame_codec_encode_frame(frame_codec, 0x42, payloads, 1, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    stringify_bytes(sent_io_bytes, sent_io_byte_count, actual_stringified_io);
+    ASSERT_ARE_EQUAL(char_ptr, "[0x00,0x00,0x00,0x09,0x02,0x42,0x00,0x00,0x42]", actual_stringified_io);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
 }
 
-/* Tests_SRS_FRAME_CODEC_01_047: [frame_codec_encode_frame_bytes encodes the frame bytes for a frame encoding started with a frame_codec_start_encode_frame call.] */
-/* Tests_SRS_FRAME_CODEC_01_048: [If all bytes are successfully encoded, frame_codec_encode_frame_bytes shall return 0.] */
+/* ----------- Tests_SRS_FRAME_CODEC_01_047: [frame_codec_encode_frame_bytes encodes the frame bytes for a frame encoding started with a frame_codec_start_encode_frame call.] */
+/* ----------- Tests_SRS_FRAME_CODEC_01_048: [If all bytes are successfully encoded, frame_codec_encode_frame_bytes shall return 0.] */
 TEST_FUNCTION(frame_codec_encode_frame_bytes_with_2_bytes_succeeds)
 {
 	// arrange
 	unsigned char bytes[] = { 0x42, 0x43 };
-	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	(void)frame_codec_encode_frame(frame_codec, 0x42, sizeof(bytes), NULL, 0, NULL, NULL);
+    PAYLOAD payloads[1];
+    payloads[0].bytes = bytes;
+    payloads[0].length = sizeof(bytes);
+    FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, sizeof(bytes), IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.ValidateArgumentBuffer(2, &bytes, sizeof(bytes));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(test_on_bytes_encoded((void*)0x4242, IGNORED_PTR_ARG, IGNORED_NUM_ARG, true));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-	int result = frame_codec_encode_frame_bytes(frame_codec, bytes, sizeof(bytes));
+    int result = frame_codec_encode_frame(frame_codec, 0x42, payloads, 1, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -2291,30 +2285,18 @@ TEST_FUNCTION(frame_codec_encode_frame_bytes_with_2_bytes_succeeds)
 	frame_codec_destroy(frame_codec);
 }
 
-/* Tests_SRS_FRAME_CODEC_01_049: [If any of the frame_codec or bytes arguments is NULL, frame_codec_encode_frame_bytes shall return a non-zero value.] */
-TEST_FUNCTION(frame_codec_encode_frame_bytes_with_NULL_frame_codec_fails)
-{
-	// arrange
-	unsigned char bytes[] = { 0x42, 0x43 };
-
-	// act
-	int result = frame_codec_encode_frame_bytes(NULL, bytes, sizeof(bytes));
-
-	// assert
-    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-    ASSERT_ARE_NOT_EQUAL(int, 0, result);
-}
-
-/* Tests_SRS_FRAME_CODEC_01_049: [If any of the frame_codec or bytes arguments is NULL, frame_codec_encode_frame_bytes shall return a non-zero value.] */
+/* Tests_SRS_FRAME_CODEC_01_110: [ If the `bytes` member of a payload entry is NULL, `frame_codec_encode_frame` shall fail and return a non-zero value. ] */
 TEST_FUNCTION(frame_codec_encode_frame_bytes_with_NULL_bytes_fails)
 {
 	// arrange
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	(void)frame_codec_encode_frame(frame_codec, 0x42, 1, NULL, 0, NULL, NULL);
+    PAYLOAD payloads[1];
+    payloads[0].bytes = NULL;
+    payloads[0].length = 1;
 	umock_c_reset_all_calls();
 
 	// act
-	int result = frame_codec_encode_frame_bytes(frame_codec, NULL, 1);
+    int result = frame_codec_encode_frame(frame_codec, 0x42, payloads, 1, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -2324,17 +2306,19 @@ TEST_FUNCTION(frame_codec_encode_frame_bytes_with_NULL_bytes_fails)
 	frame_codec_destroy(frame_codec);
 }
 
-/* Tests_SRS_FRAME_CODEC_01_050: [If the length argument is zero, frame_codec_encode_frame_bytes shall return a non-zero value.] */
+/* Tests_SRS_FRAME_CODEC_01_111: [ If the `length` member of a payload entry is 0, `frame_codec_encode_frame` shall fail and return a non-zero value. ] */
 TEST_FUNCTION(frame_codec_encode_frame_bytes_with_zero_length_fails)
 {
 	// arrange
 	unsigned char bytes[] = { 0x42, 0x43 };
-	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	(void)frame_codec_encode_frame(frame_codec, 0x42, sizeof(bytes), NULL, 0, NULL, NULL);
+    PAYLOAD payloads[1];
+    payloads[0].bytes = bytes;
+    payloads[0].length = 0;
+    FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	umock_c_reset_all_calls();
 
 	// act
-	int result = frame_codec_encode_frame_bytes(frame_codec, bytes, 0);
+    int result = frame_codec_encode_frame(frame_codec, 0x42, payloads, 1, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -2344,150 +2328,60 @@ TEST_FUNCTION(frame_codec_encode_frame_bytes_with_zero_length_fails)
 	frame_codec_destroy(frame_codec);
 }
 
-/* Tests_SRS_FRAME_CODEC_01_053: [If length is bigger than the expected amount of bytes for the frame currently being encoded, then frame_codec_encode_frame_bytes shall return a non-zero value.] */
-TEST_FUNCTION(when_more_bytes_are_passed_than_expected_frame_codec_encode_frame_bytes_fails)
-{
-	// arrange
-	unsigned char bytes[] = { 0x42, 0x43 };
-	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	(void)frame_codec_encode_frame(frame_codec, 0x42, sizeof(bytes), NULL, 0, NULL, NULL);
-	umock_c_reset_all_calls();
-
-	// act
-	int result = frame_codec_encode_frame_bytes(frame_codec, bytes, 3);
-
-	// assert
-	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-
-	// cleanup
-	frame_codec_destroy(frame_codec);
-}
-
-/* Tests_SRS_FRAME_CODEC_01_054: [If any encoding error (passing the data to the IO interface) occurs, frame_codec_encode_frame_bytes shall return a non-zero value.] */
-TEST_FUNCTION(when_io_send_fails_then_frame_codec_encode_frame_bytes_fails)
-{
-	// arrange
-	unsigned char bytes[] = { 0x42, 0x43 };
-	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	(void)frame_codec_encode_frame(frame_codec, 0x42, sizeof(bytes), NULL, 0, NULL, NULL);
-	umock_c_reset_all_calls();
-
-	STRICT_EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, sizeof(bytes), IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.ValidateArgumentBuffer(2, &bytes, sizeof(bytes))
-		.SetReturn(1);
-
-	// act
-	int result = frame_codec_encode_frame_bytes(frame_codec, bytes, sizeof(bytes));
-
-	// assert
-	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-
-	// cleanup
-	frame_codec_destroy(frame_codec);
-}
-
-/* Tests_SRS_FRAME_CODEC_01_051: [The total number of bytes to be encoded for a frame can be passed in multiple frame_codec_encode_frame_bytes calls.] */
-/* Tests_SRS_FRAME_CODEC_01_052: [At each call, the frame_codec instance shall decrease the amount of bytes still needed to be encoded for the frame.] */
+/* Tests_SRS_FRAME_CODEC_01_105: [The frame_payload_size shall be computed by summing up the lengths of the payload segments identified by the payloads argument.] */
+/* Tests_SRS_FRAME_CODEC_01_106: [All payloads shall be encoded in order as part of the frame.] */
 TEST_FUNCTION(sending_only_1_byte_out_of_2_frame_body_bytes_succeeds)
 {
 	// arrange
 	unsigned char bytes[] = { 0x42, 0x43 };
-	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	(void)frame_codec_encode_frame(frame_codec, 0x42, sizeof(bytes), NULL, 0, NULL, NULL);
+    PAYLOAD payloads[2];
+    payloads[0].bytes = bytes;
+    payloads[0].length = 1;
+    payloads[1].bytes = bytes + 1;
+    payloads[1].length = 1;
+    FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, 1, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.ValidateArgumentBuffer(2, &bytes, 1);
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(test_on_bytes_encoded((void*)0x4242, IGNORED_PTR_ARG, IGNORED_NUM_ARG, true));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-	int result = frame_codec_encode_frame_bytes(frame_codec, bytes, 1);
+    int result = frame_codec_encode_frame(frame_codec, 0x42, payloads, 2, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    stringify_bytes(sent_io_bytes, sent_io_byte_count, actual_stringified_io);
+    ASSERT_ARE_EQUAL(char_ptr, "[0x00,0x00,0x00,0x0A,0x02,0x42,0x00,0x00,0x42,0x43]", actual_stringified_io);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
 	// cleanup
 	frame_codec_destroy(frame_codec);
 }
 
-/* Tests_SRS_FRAME_CODEC_01_051: [The total number of bytes to be encoded for a frame can be passed in multiple frame_codec_encode_frame_bytes calls.] */
-/* Tests_SRS_FRAME_CODEC_01_052: [At each call, the frame_codec instance shall decrease the amount of bytes still needed to be encoded for the frame.] */
-TEST_FUNCTION(sending_2_bytes_1_by_1_via_frame_codec_encode_frame_bytes_succeeds)
+/* Tests_SRS_FRAME_CODEC_01_105: [The frame_payload_size shall be computed by summing up the lengths of the payload segments identified by the payloads argument.] */
+/* Tests_SRS_FRAME_CODEC_01_106: [All payloads shall be encoded in order as part of the frame.] */
+TEST_FUNCTION(a_send_after_send_succeeds)
 {
 	// arrange
 	unsigned char bytes[] = { 0x42, 0x43 };
-	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	(void)frame_codec_encode_frame(frame_codec, 0x42, sizeof(bytes), NULL, 0, NULL, NULL);
-	umock_c_reset_all_calls();
+    PAYLOAD payloads[1];
+    payloads[0].bytes = bytes;
+    payloads[0].length = 2;
+    FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+    (void)frame_codec_encode_frame(frame_codec, 0x42, payloads, 1, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, 1, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.ValidateArgumentBuffer(2, &bytes, 1);
-	STRICT_EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, 1, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.ValidateArgumentBuffer(2, &bytes[1], 1);
-
-	(void)frame_codec_encode_frame_bytes(frame_codec, bytes, 1);
-
-	// act
-	int result = frame_codec_encode_frame_bytes(frame_codec, bytes + 1, 1);
-
-	// assert
-	ASSERT_ARE_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-
-	// cleanup
-	frame_codec_destroy(frame_codec);
-}
-
-/* Tests_SRS_FRAME_CODEC_01_051: [The total number of bytes to be encoded for a frame can be passed in multiple frame_codec_encode_frame_bytes calls.] */
-/* Tests_SRS_FRAME_CODEC_01_052: [At each call, the frame_codec instance shall decrease the amount of bytes still needed to be encoded for the frame.] */
-TEST_FUNCTION(sending_an_extra_byte_1_by_1_via_frame_codec_encode_frame_bytes_fails)
-{
-	// arrange
-	unsigned char bytes[] = { 0x42, 0x43 };
-	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	(void)frame_codec_encode_frame(frame_codec, 0x42, 1, NULL, 0, NULL, NULL);
-	umock_c_reset_all_calls();
-
-	STRICT_EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, 1, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.ValidateArgumentBuffer(2, &bytes, 1);
-
-	(void)frame_codec_encode_frame_bytes(frame_codec, bytes, 1);
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(test_on_bytes_encoded((void*)0x4242, IGNORED_PTR_ARG, IGNORED_NUM_ARG, true));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-	int result = frame_codec_encode_frame_bytes(frame_codec, bytes + 1, 1);
-
-	// assert
-	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-
-	// cleanup
-	frame_codec_destroy(frame_codec);
-}
-
-/* Tests_SRS_FRAME_CODEC_01_051: [The total number of bytes to be encoded for a frame can be passed in multiple frame_codec_encode_frame_bytes calls.] */
-/* Tests_SRS_FRAME_CODEC_01_052: [At each call, the frame_codec instance shall decrease the amount of bytes still needed to be encoded for the frame.] */
-TEST_FUNCTION(after_a_frame_is_completed_another_one_can_be_started)
-{
-	// arrange
-	unsigned char bytes[] = { 0x42, 0x43 };
-	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	(void)frame_codec_encode_frame(frame_codec, 0x42, 1, NULL, 0, NULL, NULL);
-	frame_codec_encode_frame_bytes(frame_codec, bytes, 1);
-	umock_c_reset_all_calls();
-
-	EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.ExpectedAtLeastTimes(1);
-	EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreAllCalls();
-
-	// act
-	int result = frame_codec_encode_frame(frame_codec, 0x42, 0, NULL, 0, NULL, NULL);
+    int result = frame_codec_encode_frame(frame_codec, 0x42, payloads, 1, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
 
 	// assert
 	stringify_bytes(sent_io_bytes, sent_io_byte_count, actual_stringified_io);
-	ASSERT_ARE_EQUAL(char_ptr, "[0x00,0x00,0x00,0x09,0x02,0x42,0x00,0x00,0x42,0x00,0x00,0x00,0x08,0x02,0x42,0x00,0x00]", actual_stringified_io);
+	ASSERT_ARE_EQUAL(char_ptr, "[0x00,0x00,0x00,0x0A,0x02,0x42,0x00,0x00,0x42,0x43,0x00,0x00,0x00,0x0A,0x02,0x42,0x00,0x00,0x42,0x43]", actual_stringified_io);
 	ASSERT_ARE_EQUAL(int, 0, result);
 	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
@@ -2495,31 +2389,43 @@ TEST_FUNCTION(after_a_frame_is_completed_another_one_can_be_started)
 	frame_codec_destroy(frame_codec);
 }
 
-/* Tests_SRS_FRAME_CODEC_01_094: [Once encoding has failed due to IO issues, all subsequent encoding calls to shall fail and return a non-zero value.] */
-TEST_FUNCTION(when_encoding_frame_body_bytes_fails_subsequent_frame_encoding_attempts_fail)
+/* Tests_SRS_FRAME_CODEC_01_109: [ If allocating memory fails, `frame_codec_encode_frame` shall fail and return a non-zero value. ]*/
+TEST_FUNCTION(when_allocating_memory_for_the_encoded_frame_fails_frame_codec_encode_frame_fails)
 {
-	// arrange
-	unsigned char bytes[] = { 0x42, 0x43 };
-	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	(void)frame_codec_encode_frame(frame_codec, 0x42, 1, NULL, 0, NULL, NULL);
-	umock_c_reset_all_calls();
+    // arrange
+    FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, 1, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.ValidateArgumentBuffer(2, &bytes, 1)
-		.SetReturn(1);
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .SetReturn(NULL);
 
-	(void)frame_codec_encode_frame_bytes(frame_codec, bytes, 1);
+    // act
+    int result = frame_codec_encode_frame(frame_codec, 0, NULL, 0, NULL, 0, test_on_bytes_encoded, NULL);
 
-	// act
-	int result = frame_codec_encode_frame(frame_codec, 0x42, 0, NULL, 0, NULL, NULL);
+    // assert
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// assert
-	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-
-	// cleanup
-	frame_codec_destroy(frame_codec);
+    // cleanup
+    frame_codec_destroy(frame_codec);
 }
-#endif
+
+/* Tests_SRS_FRAME_CODEC_01_107: [If the argument `payloads` is NULL and `payload_count` is non-zero, `frame_codec_encode_frame` shall return a non-zero value.]*/
+TEST_FUNCTION(frame_codec_encode_frame_with_NULL_payloads_and_non_zero_payload_count_fails)
+{
+    // arrange
+    FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+    umock_c_reset_all_calls();
+
+    // act
+    int result = frame_codec_encode_frame(frame_codec, 0, NULL, 1, NULL, 0, test_on_bytes_encoded, NULL);
+
+    // assert
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    frame_codec_destroy(frame_codec);
+}
 
 END_TEST_SUITE(frame_codec_ut)

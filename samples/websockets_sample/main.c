@@ -30,8 +30,16 @@ static bool auth = false;
 static void on_cbs_open_complete(void* context, CBS_OPEN_COMPLETE_RESULT open_complete_result)
 {
     (void)context;
-    (void)open_complete_result;
-    (void)printf("CBS instance open.\r\n");
+    switch (open_complete_result)
+    {
+    default:
+        (void)printf("CBS instance open failed.\r\n");
+        break;
+
+    case CBS_OPEN_OK:
+        (void)printf("CBS instance open.\r\n");
+        break;
+    }
 }
 
 static void on_cbs_error(void* context)

@@ -326,27 +326,39 @@ static int set_message_id(MESSAGE_HANDLE message, unsigned long next_message_id)
     }
     else
     {
-        AMQP_VALUE message_id = amqpvalue_create_message_id_ulong(next_message_id);
-        if (message_id == NULL)
+        if (properties == NULL)
+        {
+            properties = properties_create();
+        }
+
+        if (properties == NULL)
         {
             result = __FAILURE__;
         }
         else
         {
-            if (properties_set_message_id(properties, message_id) != 0)
+            AMQP_VALUE message_id = amqpvalue_create_message_id_ulong(next_message_id);
+            if (message_id == NULL)
+            {
+                result = __FAILURE__;
+            }
+            else
+            {
+                if (properties_set_message_id(properties, message_id) != 0)
+                {
+                    result = __FAILURE__;
+                }
+
+                amqpvalue_destroy(message_id);
+            }
+
+            if (message_set_properties(message, properties) != 0)
             {
                 result = __FAILURE__;
             }
 
-            amqpvalue_destroy(message_id);
+            properties_destroy(properties);
         }
-
-        if (message_set_properties(message, properties) != 0)
-        {
-            result = __FAILURE__;
-        }
-
-        properties_destroy(properties);
     }
 
     return result;
@@ -667,7 +679,7 @@ int amqpmanagement_start_operation(AMQP_MANAGEMENT_HANDLE amqp_management, const
                             {
                                 if (on_operation_complete != NULL)
                                 {
-                                    on_operation_complete(context, OPERATION_RESULT_CBS_ERROR, 0, NULL);
+                                    on_operation_complete(context, OPERATION_RESULT_ERROR, 0, NULL);
                                 }
 
                                 result = __FAILURE__;

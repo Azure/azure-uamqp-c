@@ -25,15 +25,17 @@ static unsigned int sent_messages = 0;
 static const size_t msg_count = 1;
 static bool auth = false;
 
-static void on_amqp_management_state_chaged(void* context, AMQP_MANAGEMENT_STATE new_amqp_management_state, AMQP_MANAGEMENT_STATE previous_amqp_management_state)
+static void on_cbs_open_complete(void* context, CBS_OPEN_COMPLETE_RESULT open_complete_result)
 {
 	(void)context;
-	(void)previous_amqp_management_state;
+    (void)open_complete_result;
+	(void)printf("CBS instance open.\r\n");
+}
 
-	if (new_amqp_management_state == AMQP_MANAGEMENT_STATE_IDLE)
-	{
-		printf("Disconnected.\r\n");
-	}
+static void on_cbs_error(void* context)
+{
+    (void)context;
+    (void)printf("CBS error.\r\n");
 }
 
 static void on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_result)
@@ -79,6 +81,8 @@ int main(int argc, char** argv)
 
 		size_t last_memory_used = 0;
 
+        gballoc_init();
+
 		/* create SASL MSSBCBS handler */
 		SASL_MECHANISM_HANDLE sasl_mechanism_handle = saslmechanism_create(saslmssbcbs_get_interface(), NULL);
 		XIO_HANDLE tls_io;
@@ -100,10 +104,10 @@ int main(int argc, char** argv)
 		session_set_incoming_window(session, 2147483647);
 		session_set_outgoing_window(session, 2);
 
-		CBS_HANDLE cbs = cbs_create(session, NULL, NULL);
-		if (cbs_open(cbs) == 0)
+		CBS_HANDLE cbs = cbs_create(session);
+		if (cbs_open_async(cbs, on_cbs_open_complete, cbs, on_cbs_error, cbs) == 0)
 		{
-			(void)cbs_put_token(cbs, "servicebus.windows.net:sastoken", IOT_HUB_HOST "/devices/" IOT_HUB_DEVICE_NAME, IOT_HUB_DEVICE_SAS_TOKEN, on_cbs_operation_complete, cbs);
+			(void)cbs_put_token_async(cbs, "servicebus.windows.net:sastoken", IOT_HUB_HOST "/devices/" IOT_HUB_DEVICE_NAME, IOT_HUB_DEVICE_SAS_TOKEN, on_cbs_operation_complete, cbs);
 
 			while (!auth)
 			{
@@ -199,7 +203,9 @@ int main(int argc, char** argv)
 
 		printf("Max memory usage:%lu\r\n", (unsigned long)gballoc_getCurrentMemoryUsed());
 		printf("Current memory usage:%lu\r\n", (unsigned long)gballoc_getMaximumMemoryUsed());
-	}
+
+        gballoc_deinit();
+    }
 
 	return 0;
 }

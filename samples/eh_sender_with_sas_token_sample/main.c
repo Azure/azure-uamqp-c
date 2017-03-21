@@ -106,6 +106,8 @@ int main(int argc, char** argv)
         STRING_HANDLE sas_token;
         BUFFER_HANDLE buffer;
 
+        gballoc_init();
+
 		/* create the TLS IO */
         TLSIO_CONFIG tls_io_config = { EH_HOST, 5671 };
 		const IO_INTERFACE_DESCRIPTION* tlsio_interface = platform_get_default_tlsio();
@@ -239,6 +241,8 @@ int main(int argc, char** argv)
 
         (void)printf("Max memory usage:%lu\r\n", (unsigned long)gballoc_getCurrentMemoryUsed());
         (void)printf("Current memory usage:%lu\r\n", (unsigned long)gballoc_getMaximumMemoryUsed());
+
+        gballoc_deinit();
 
 		result = 0;
 	}

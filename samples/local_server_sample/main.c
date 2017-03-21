@@ -81,6 +81,8 @@ int main(int argc, char** argv)
 	{
 		size_t last_memory_used = 0;
 
+        gballoc_init();
+
 		SOCKET_LISTENER_HANDLE socket_listener = socketlistener_create(5672);
 		if (socketlistener_start(socket_listener, on_socket_accepted, NULL) != 0)
 		{
@@ -122,7 +124,9 @@ int main(int argc, char** argv)
 
 		printf("Max memory usage:%lu\r\n", (unsigned long)gballoc_getCurrentMemoryUsed());
 		printf("Current memory usage:%lu\r\n", (unsigned long)gballoc_getMaximumMemoryUsed());
-	}
+
+        gballoc_deinit();
+    }
 
 	return result;
 }

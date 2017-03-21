@@ -6,12 +6,14 @@
 #include <stdbool.h>
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/platform.h"
+#include "azure_c_shared_utility/sastoken.h"
 #include "azure_uamqp_c/message_sender.h"
 #include "azure_uamqp_c/message.h"
 #include "azure_uamqp_c/messaging.h"
 #include "azure_uamqp_c/saslclientio.h"
 #include "azure_uamqp_c/sasl_mssbcbs.h"
 #include "azure_c_shared_utility/wsio.h"
+#include "azure_c_shared_utility/tlsio.h"
 #include "azure_uamqp_c/cbs.h"
 #include "iothub_certs.h"
 
@@ -19,7 +21,7 @@
 
 #define IOT_HUB_HOST "<<<Replace with your own IoTHub host (like myiothub.azure-devices.net)>>>"
 #define IOT_HUB_DEVICE_NAME "<<<Replace with your device Id (like test_Device)>>>"
-#define IOT_HUB_DEVICE_SAS_TOKEN "<<<Replace with your own device SAS token (needs to be generated)>>>"
+#define IOT_HUB_DEVICE_KEY "<<<Replace with your own device key>>>"
 
 static const size_t msg_count = 1000;
 static unsigned int sent_messages = 0;
@@ -85,14 +87,22 @@ int main(int argc, char** argv)
 		SASL_MECHANISM_HANDLE sasl_mechanism_handle = saslmechanism_create(saslmssbcbs_get_interface(), NULL);
 		XIO_HANDLE ws_io;
         WSIO_CONFIG ws_io_config;
+        TLSIO_CONFIG tls_io_config;
+
+        gballoc_init();
+
+        tls_io_config.hostname = IOT_HUB_HOST;
+        tls_io_config.port = 443;
+        tls_io_config.underlying_io_interface = NULL;
+        tls_io_config.underlying_io_parameters = NULL;
 
 		/* create the TLS IO */
         ws_io_config.hostname = IOT_HUB_HOST;
         ws_io_config.port = 443;
         ws_io_config.protocol = "AMQPWSB10";
         ws_io_config.resource_name = "/$iothub/websocket";
-        ws_io_config.underlying_io_interface = NULL;
-        ws_io_config.underlying_io_parameters = NULL;
+        ws_io_config.underlying_io_interface = platform_get_default_tlsio();
+        ws_io_config.underlying_io_parameters = &tls_io_config;
 
 		const IO_INTERFACE_DESCRIPTION* tlsio_interface = wsio_get_interface_description();
 		ws_io = xio_create(tlsio_interface, &ws_io_config);
@@ -109,14 +119,27 @@ int main(int argc, char** argv)
 
 		/* create the connection, session and link */
 		connection = connection_create(sasl_io, IOT_HUB_HOST, "some", NULL, NULL);
+        connection_set_trace(connection, true);
 		session = session_create(connection, NULL, NULL);
 		session_set_incoming_window(session, 2147483647);
 		session_set_outgoing_window(session, 65536);
 
+        STRING_HANDLE key_string = STRING_new();
+        STRING_concat(key_string, IOT_HUB_DEVICE_KEY);
+        STRING_HANDLE scope_string = STRING_new();
+        STRING_concat(scope_string, IOT_HUB_HOST "/devices/" IOT_HUB_DEVICE_NAME);
+        STRING_HANDLE keyname_string = STRING_new();
+
+        STRING_HANDLE sas_token = SASToken_Create(key_string, scope_string, keyname_string, (size_t)time(NULL) + 3600);
+
+        STRING_delete(key_string);
+        STRING_delete(scope_string);
+        STRING_delete(keyname_string);
+
 		CBS_HANDLE cbs = cbs_create(session);
 		if (cbs_open_async(cbs, on_cbs_open_complete, cbs, on_cbs_error, cbs) == 0)
 		{
-			(void)cbs_put_token_async(cbs, "servicebus.windows.net:sastoken", IOT_HUB_HOST "/devices/" IOT_HUB_DEVICE_NAME, IOT_HUB_DEVICE_SAS_TOKEN, on_cbs_put_token_complete, cbs);
+			(void)cbs_put_token_async(cbs, "servicebus.windows.net:sastoken", IOT_HUB_HOST "/devices/" IOT_HUB_DEVICE_NAME, STRING_c_str(sas_token), on_cbs_put_token_complete, cbs);
 
 			while (!auth)
 			{
@@ -189,6 +212,8 @@ int main(int argc, char** argv)
             message_destroy(message);
         }
 
+        STRING_delete(sas_token);
+
 		messagesender_destroy(message_sender);
         cbs_destroy(cbs);
         link_destroy(link);
@@ -201,6 +226,8 @@ int main(int argc, char** argv)
 
 		printf("Max memory usage:%lu\r\n", (unsigned long)gballoc_getCurrentMemoryUsed());
 		printf("Current memory usage:%lu\r\n", (unsigned long)gballoc_getMaximumMemoryUsed());
+
+        gballoc_deinit();
 
 		result = 0;
 	}

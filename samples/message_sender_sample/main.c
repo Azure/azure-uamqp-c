@@ -59,6 +59,8 @@ int main(int argc, char** argv)
 
 		size_t last_memory_used = 0;
 
+        gballoc_init();
+
 		/* create SASL PLAIN handler */
 		SASL_PLAIN_CONFIG sasl_plain_config = { EH_KEY_NAME, EH_KEY, NULL };
 		SASL_MECHANISM_HANDLE sasl_mechanism_handle = saslmechanism_create(saslplain_get_interface(), &sasl_plain_config);
@@ -157,6 +159,8 @@ int main(int argc, char** argv)
 
 		(void)printf("Max memory usage:%lu\r\n", (unsigned long)gballoc_getCurrentMemoryUsed());
 		(void)printf("Current memory usage:%lu\r\n", (unsigned long)gballoc_getMaximumMemoryUsed());
+
+        gballoc_deinit();
 
 		result = 0;
 	}

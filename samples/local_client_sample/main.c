@@ -46,6 +46,8 @@ int main(int argc, char** argv)
 
 		size_t last_memory_used = 0;
 
+        gballoc_init();
+
 		/* create socket IO */
 		XIO_HANDLE socket_io;
 
@@ -130,7 +132,9 @@ int main(int argc, char** argv)
 		(void)printf("Current memory usage:%lu\r\n", (unsigned long)gballoc_getMaximumMemoryUsed());
 
 		result = 0;
-	}
+
+        gballoc_deinit();
+    }
 
 	return result;
 }

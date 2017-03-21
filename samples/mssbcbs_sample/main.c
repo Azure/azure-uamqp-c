@@ -81,6 +81,8 @@ int main(int argc, char** argv)
 
 		size_t last_memory_used = 0;
 
+        gballoc_init();
+
 		/* create SASL MSSBCBS handler */
 		SASL_MECHANISM_HANDLE sasl_mechanism_handle = saslmechanism_create(saslmssbcbs_get_interface(), NULL);
 		XIO_HANDLE tls_io;
@@ -201,7 +203,9 @@ int main(int argc, char** argv)
 
 		printf("Max memory usage:%lu\r\n", (unsigned long)gballoc_getCurrentMemoryUsed());
 		printf("Current memory usage:%lu\r\n", (unsigned long)gballoc_getMaximumMemoryUsed());
-	}
+
+        gballoc_deinit();
+    }
 
 	return 0;
 }

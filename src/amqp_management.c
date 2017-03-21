@@ -420,6 +420,7 @@ AMQP_MANAGEMENT_HANDLE amqpmanagement_create(SESSION_HANDLE session, const char*
             result->operation_messages = NULL;
             result->on_amqp_management_state_changed = on_amqp_management_state_changed;
             result->callback_context = callback_context;
+            result->amqp_management_state = AMQP_MANAGEMENT_STATE_IDLE;
 
             AMQP_VALUE source = messaging_create_source(management_node);
             if (source == NULL)

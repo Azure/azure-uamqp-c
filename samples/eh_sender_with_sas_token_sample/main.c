@@ -41,7 +41,20 @@ static const size_t msg_count = 1;
 static unsigned int sent_messages = 0;
 static bool auth = false;
 
-static void on_cbs_operation_complete(void* context, CBS_OPERATION_RESULT cbs_operation_result, unsigned int status_code, const char* status_description)
+static void on_cbs_open_complete(void* context, CBS_OPEN_COMPLETE_RESULT open_complete_result)
+{
+    (void)context;
+    (void)open_complete_result;
+    (void)printf("CBS instance open.\r\n");
+}
+
+static void on_cbs_error(void* context)
+{
+    (void)context;
+    (void)printf("CBS error.\r\n");
+}
+
+static void on_cbs_put_token_complete(void* context, CBS_OPERATION_RESULT cbs_operation_result, unsigned int status_code, const char* status_description)
 {
     (void)context;
     (void)status_code;
@@ -126,10 +139,10 @@ int main(int argc, char** argv)
 
         sas_token = SASToken_Create(sas_key_value, encoded_resource_uri, sas_key_name, expiry_time);
 
-		CBS_HANDLE cbs = cbs_create(session, NULL, NULL);
-		if (cbs_open(cbs) == 0)
+		CBS_HANDLE cbs = cbs_create(session);
+		if (cbs_open_async(cbs, on_cbs_open_complete, cbs, on_cbs_error, cbs) == 0)
 		{
-			(void)cbs_put_token(cbs, "servicebus.windows.net:sastoken", "sb://" EH_HOST "/" EH_NAME "/publishers/" EH_PUBLISHER, STRING_c_str(sas_token), on_cbs_operation_complete, cbs);
+			(void)cbs_put_token_async(cbs, "servicebus.windows.net:sastoken", "sb://" EH_HOST "/" EH_NAME "/publishers/" EH_PUBLISHER, STRING_c_str(sas_token), on_cbs_put_token_complete, cbs);
 
 			while (!auth)
 			{

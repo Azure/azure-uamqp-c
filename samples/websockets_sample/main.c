@@ -21,20 +21,21 @@
 #define IOT_HUB_DEVICE_NAME "<<<Replace with your device Id (like test_Device)>>>"
 #define IOT_HUB_DEVICE_SAS_TOKEN "<<<Replace with your own device SAS token (needs to be generated)>>>"
 
-
 static const size_t msg_count = 1000;
 static unsigned int sent_messages = 0;
 static bool auth = false;
 
-static void on_amqp_management_state_chaged(void* context, AMQP_MANAGEMENT_STATE new_amqp_management_state, AMQP_MANAGEMENT_STATE previous_amqp_management_state)
+static void on_cbs_open_complete(void* context, CBS_OPEN_COMPLETE_RESULT open_complete_result)
 {
-	(void)context;
-    (void)previous_amqp_management_state;
+    (void)context;
+    (void)open_complete_result;
+    (void)printf("CBS instance open.\r\n");
+}
 
-	if (new_amqp_management_state == AMQP_MANAGEMENT_STATE_IDLE)
-	{
-		printf("Disconnected.\r\n");
-	}
+static void on_cbs_error(void* context)
+{
+    (void)context;
+    (void)printf("CBS error.\r\n");
 }
 
 void on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_result)
@@ -46,7 +47,7 @@ void on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_result)
 	sent_messages++;
 }
 
-void on_cbs_operation_complete(void* context, CBS_OPERATION_RESULT cbs_operation_result, unsigned int status_code, const char* status_description)
+void on_cbs_put_token_complete(void* context, CBS_OPERATION_RESULT cbs_operation_result, unsigned int status_code, const char* status_description)
 {
 	(void)context;
     (void)status_code;
@@ -112,10 +113,10 @@ int main(int argc, char** argv)
 		session_set_incoming_window(session, 2147483647);
 		session_set_outgoing_window(session, 65536);
 
-		CBS_HANDLE cbs = cbs_create(session, NULL, NULL);
-		if (cbs_open(cbs) == 0)
+		CBS_HANDLE cbs = cbs_create(session);
+		if (cbs_open_async(cbs, on_cbs_open_complete, cbs, on_cbs_error, cbs) == 0)
 		{
-			(void)cbs_put_token(cbs, "servicebus.windows.net:sastoken", IOT_HUB_HOST "/devices/" IOT_HUB_DEVICE_NAME, IOT_HUB_DEVICE_SAS_TOKEN, on_cbs_operation_complete, cbs);
+			(void)cbs_put_token_async(cbs, "servicebus.windows.net:sastoken", IOT_HUB_HOST "/devices/" IOT_HUB_DEVICE_NAME, IOT_HUB_DEVICE_SAS_TOKEN, on_cbs_put_token_complete, cbs);
 
 			while (!auth)
 			{

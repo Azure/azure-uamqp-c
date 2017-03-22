@@ -19,6 +19,4 @@ if(WIN32)
     add_sample_directory(local_server_sample)
 endif()
 
-if(${use_wsio})
-    add_sample_directory(websockets_sample)
-endif()
+add_sample_directory(websockets_sample)

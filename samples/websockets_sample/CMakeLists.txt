@@ -20,5 +20,5 @@ if(WIN32)
         ws2_32
         aziotsharedutil)
 else()
-    target_link_libraries(websockets_sample	uamqp aziotsharedutil ssl crypto)
+    target_link_libraries(websockets_sample	uamqp aziotsharedutil)
 endif()

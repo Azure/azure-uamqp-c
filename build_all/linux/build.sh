@@ -7,7 +7,6 @@ set -e
 script_dir=$(cd "$(dirname "$0")" && pwd)
 build_root=$(cd "${script_dir}/../.." && pwd)
 run_unit_tests=ON
-use_wsio=OFF
 run_valgrind=0
 build_folder=$build_root"/cmake/uamqp_linux"
 run_unittests=OFF
@@ -18,7 +17,6 @@ usage ()
     echo "options"
     echo " -cl, --compileoption <value>  specify a compile option to be passed to gcc"
     echo "   Example: -cl -O1 -cl ..."
-	echo " --use-websockets              Enables the support for AMQP over WebSockets."
 	echo "-rv, --run_valgrind will execute ctest with valgrind"
     echo "--run-unittests run the unit tests"
     echo ""
@@ -61,7 +59,6 @@ process_args ()
       else
           case "$arg" in
               "-cl" | "--compileoption" ) save_next_arg=1;;
-			  "--use-websockets" ) use_wsio=ON;;
 			  "-rv" | "--run_valgrind" ) run_valgrind=1;;
               "--run-unittests" ) run_unittests=ON;;
               * ) usage;;
@@ -75,7 +72,7 @@ process_args $*
 rm -r -f $build_folder
 mkdir -p $build_folder
 pushd $build_folder
-cmake -DcompileOption_C:STRING="$extracloptions" -Duse_wsio:BOOL=$use_wsio -Drun_valgrind:BOOL=$run_valgrind $build_root -Drun_unittests:BOOL=$run_unittests
+cmake -DcompileOption_C:STRING="$extracloptions" -Drun_valgrind:BOOL=$run_valgrind $build_root -Drun_unittests:BOOL=$run_unittests
 make --jobs=$(nproc)
 
 if [[ $run_valgrind == 1 ]] ;

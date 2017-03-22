@@ -98,14 +98,6 @@ After any switch of branches (git checkout for example), one should also update 
 git submodule update --init --recursive
 ```
 
-## Websocket support
-
-- To enable websocket support, run: 
-
-```
-cmake .. -Duse_wsio:bool=ON
-```
-
 - Build
 
 ## Samples

@@ -33,7 +33,6 @@ rem // default build options
 set build-clean=0
 set build-config=Debug
 set build-platform=Win32
-set CMAKE_use_wsio=OFF
 set CMAKE_DIR=uamqp_win32
 set MAKE_NUGET_PKG=no
 
@@ -43,7 +42,6 @@ if "%1" equ "-c" goto arg-build-clean
 if "%1" equ "--clean" goto arg-build-clean
 if "%1" equ "--config" goto arg-build-config
 if "%1" equ "--platform" goto arg-build-platform
-if "%1" equ "--use-websockets" goto arg-use-websockets
 if "%1" equ "--make_nuget" goto arg-build-nuget
 call :usage && exit /b 1
 
@@ -66,10 +64,6 @@ if %build-platform% == x64 (
 ) else if %build-platform% == arm (
     set CMAKE_DIR=uamqp_arm
 )
-goto args-continue
-
-:arg-use-websockets
-set CMAKE_use_wsio=ON
 goto args-continue
 
 :arg-build-nuget
@@ -112,7 +106,7 @@ pushd %build-root%\cmake\%CMAKE_DIR%
 
 if %MAKE_NUGET_PKG% == yes (
     echo ***Running CMAKE for Win32***
-    cmake %build-root% -Duse_wsio:BOOL=%CMAKE_use_wsio% 
+    cmake %build-root% 
     if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
     popd
     
@@ -122,7 +116,7 @@ if %MAKE_NUGET_PKG% == yes (
     )
     mkdir %build-root%\cmake\uamqp_x64
     pushd %build-root%\cmake\uamqp_x64
-    cmake %build-root% -Duse_wsio:BOOL=%CMAKE_use_wsio% -G "Visual Studio 14 Win64" 
+    cmake %build-root% -G "Visual Studio 14 Win64" 
     if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
     popd
     
@@ -132,20 +126,20 @@ if %MAKE_NUGET_PKG% == yes (
     )    
     mkdir %build-root%\cmake\uamqp_arm
     pushd %build-root%\cmake\uamqp_arm
-    cmake %build-root% -Duse_wsio:BOOL=%CMAKE_use_wsio% -G "Visual Studio 14 ARM" 
+    cmake %build-root% -G "Visual Studio 14 ARM" 
     if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
     
 ) else if %build-platform% == Win32 (
     echo ***Running CMAKE for Win32***   
-    cmake %build-root% -Drun_unittests:BOOL=ON -Duse_wsio:BOOL=%CMAKE_use_wsio% 
+    cmake %build-root% -Drun_unittests:BOOL=ON 
     if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
 ) else if %build-platform% == arm (
     echo ***Running CMAKE for ARM***
-    cmake %build-root% -Drun_unittests:BOOL=ON -Duse_wsio:BOOL=%CMAKE_use_wsio% -G "Visual Studio 14 ARM" 
+    cmake %build-root% -Drun_unittests:BOOL=ON -G "Visual Studio 14 ARM" 
     if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
 ) else (
     echo ***Running CMAKE for Win64***    
-    cmake %build-root% -Drun_unittests:BOOL=ON -Duse_wsio:BOOL=%CMAKE_use_wsio% -G "Visual Studio 14 Win64" 
+    cmake %build-root% -Drun_unittests:BOOL=ON -G "Visual Studio 14 Win64" 
     if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
 )
 
@@ -200,7 +194,6 @@ echo options:
 echo  -c, --clean           delete artifacts from previous build before building
 echo  --config ^<value^>      [Debug] build configuration (e.g. Debug, Release)
 echo  --platform ^<value^>    [Win32] build platform (e.g. Win32, x64, arm, ...)
-echo  --use-websockets      Build websockets IO and samples
 goto :eof
 
 rem -----------------------------------------------------------------------------

@@ -45,6 +45,11 @@ option(skip_samples "set skip_samples to ON to skip building samples (default is
 option(compileOption_C "passes a string to the command line of the C compiler" OFF)
 option(compileOption_CXX "passes a string to the command line of the C++ compiler" OFF)
 option(use_installed_dependencies "set use_installed_dependencies to ON to use installed packages instead of building dependencies from submodules" OFF)
+option(memory_trace "set memory_trace to ON if memory usage is to be used, set to OFF to not use it" OFF)
+
+if(${memory_trace})
+    add_definitions(-DGB_MEASURE_MEMORY_FOR_THIS -DGB_DEBUG_ALLOC)
+endif()
 
 if(WIN32)
     option(use_schannel "set use_schannel to ON if schannel is to be used, set to OFF to not use schannel" ON)
@@ -135,16 +140,9 @@ macro(compileAsC11)
   endif()
 endmacro(compileAsC11)
 
-option(memory_trace "set memory_trace to ON if memory usage is to be used, set to OFF to not use it" ON)
-
 include_directories(${CMAKE_CURRENT_LIST_DIR}/inc ${SHARED_UTIL_INC_FOLDER})
 
 add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-
-if(${memory_trace})
-else()
-    add_definitions(-DDISABLE_MEMORY_TRACE)
-endif()
 
 if(WIN32)
     include_directories($ENV{OpenSSLDir}/include)

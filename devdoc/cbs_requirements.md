@@ -11,7 +11,7 @@
 	{
 		CBS_OPERATION_RESULT_OK,
 		CBS_OPERATION_RESULT_CBS_ERROR,
-		CBS_OPERATION_RESULT_OPERATION_FAILED
+		AMQP_MANAGEMENT_EXECUTE_OPERATION_FAILED_BAD_STATUS
 	} CBS_OPERATION_RESULT;
 
     typedef enum CBS_OPEN_COMPLETE_RESULT_TAG
@@ -38,7 +38,7 @@
 ### cbs_create
 
 ```c
-MOCKABLE_FUNCTION(, CBS_HANDLE, cbs_create, SESSION_HANDLE, session, ON_AMQP_MANAGEMENT_STATE_CHANGED, on_amqp_management_state_changed, void*, callback_context);
+MOCKABLE_FUNCTION(, CBS_HANDLE, cbs_create, SESSION_HANDLE, session);
 ```
 
 XX**SRS_CBS_01_001: [** `cbs_create` shall create a new CBS instance and on success return a non-NULL handle to it. **]**
@@ -46,8 +46,8 @@ XX**SRS_CBS_01_033: [** If `session` is NULL then `cbs_create` shall fail and re
 XX**SRS_CBS_01_097: [** `cbs_create` shall create a singly linked list for pending operations by calling `singlylinkedlist_create`. **]**
 XX**SRS_CBS_01_101: [** If `singlylinkedlist_create` fails, `cbs_create` shall fail and return NULL. **]**
 XX**SRS_CBS_01_076: [** If allocating memory for the new handle fails, `cbs_create` shall fail and return NULL. **]**
-XX**SRS_CBS_01_034: [** `cbs_create` shall create an AMQP management handle by calling `amqpmanagement_create`. **]**
-XX**SRS_CBS_01_035: [** If `amqpmanagement_create` fails then `cbs_create` shall fail and return NULL. **]**
+XX**SRS_CBS_01_034: [** `cbs_create` shall create an AMQP management handle by calling `amqp_management_create`. **]**
+XX**SRS_CBS_01_035: [** If `amqp_management_create` fails then `cbs_create` shall fail and return NULL. **]**
 
 ### cbs_destroy
 
@@ -60,7 +60,7 @@ XX**SRS_CBS_01_037: [** If `cbs` is NULL, `cbs_destroy` shall do nothing. **]**
 XX**SRS_CBS_01_100: [** If the CBS instance is not closed, all actions performed by `cbs_close` shall be performed. **]**
 XX**SRS_CBS_01_099: [** All pending operations shall be freed. **]**
 XX**SRS_CBS_01_098: [** `cbs_destroy` shall free the pending operations list by calling `singlylinkedlist_destroy`. **]**
-XX**SRS_CBS_01_038: [** `cbs_destroy` shall free the AMQP management handle created in `cbs_create` by calling `amqpmanagement_destroy`. **]**
+XX**SRS_CBS_01_038: [** `cbs_destroy` shall free the AMQP management handle created in `cbs_create` by calling `amqp_management_destroy`. **]**
 
 ### cbs_open_async
 
@@ -68,13 +68,13 @@ XX**SRS_CBS_01_038: [** `cbs_destroy` shall free the AMQP management handle crea
 MOCKABLE_FUNCTION(, int, cbs_open_async, CBS_HANDLE, cbs, ON_CBS_OPEN_COMPLETE, on_cbs_open_complete, void*, on_cbs_open_complete_context, ON_CBS_ERROR, on_cbs_error, void*, on_cbs_error_context);
 ```
 
-XX**SRS_CBS_01_039: [** `cbs_open_async` shall open the cbs communication by calling `amqpmanagement_open` on the AMQP management handle created in `cbs_create`. **]**
+XX**SRS_CBS_01_039: [** `cbs_open_async` shall open the cbs communication by calling `amqp_management_open_async` on the AMQP management handle created in `cbs_create`. **]**
 XX**SRS_CBS_01_077: [** On success, `cbs_open_async` shall return 0. **]**
 XX**SRS_CBS_01_040: [** If any of the arguments `cbs`, `on_cbs_open_complete` or `on_cbs_error` is NULL, then `cbs_open_async` shall fail and return a non-zero value. **]**
-XX**SRS_CBS_01_041: [** If `amqpmanagement_open` fails, shall fail and return a non-zero value. **]**
+XX**SRS_CBS_01_041: [** If `amqp_management_open_async` fails, shall fail and return a non-zero value. **]**
 XX**SRS_CBS_01_042: [** `on_cbs_open_complete_context` and `on_cbs_error_context` shall be allowed to be NULL. **]**
 XX**SRS_CBS_01_043: [** `cbs_open_async` while already open or opening shall fail and return a non-zero value. **]**
-XX**SRS_CBS_01_078: [** The cbs instance shall be considered OPENING until the `on_amqp_management_state_changed` is called by the AMQP management instance indicating that the open has completed (succesfull or not). **]**
+XX**SRS_CBS_01_078: [** The cbs instance shall be considered OPENING until the `on_amqp_management_open_complete` callback is called by the AMQP management instance indicating that the open has completed (succesfull or not). **]**
 
 ### cbs_close
 
@@ -82,11 +82,11 @@ XX**SRS_CBS_01_078: [** The cbs instance shall be considered OPENING until the `
 MOCKABLE_FUNCTION(, int, cbs_close, CBS_HANDLE, cbs);
 ```
 
-XX**SRS_CBS_01_044: [** `cbs_close` shall close the CBS instance by calling `amqpmanagement_close` on the underlying AMQP management handle. **]**
+XX**SRS_CBS_01_044: [** `cbs_close` shall close the CBS instance by calling `amqp_management_close` on the underlying AMQP management handle. **]**
 XX**SRS_CBS_01_080: [** On success, `cbs_close` shall return 0. **]**
 XX**SRS_CBS_01_079: [** If `cbs_close` is called while OPENING, the `on_cbs_open_complete` callback shall be called with `CBS_OPEN_CANCELLED`, while passing the `on_cbs_open_complete_context` as argument. **]**
 XX**SRS_CBS_01_045: [** If the argument `cbs` is NULL, `cbs_close` shall fail and return a non-zero value. **]**
-XX**SRS_CBS_01_046: [** If `amqpmanagement_close` fails, `cbs_close` shall fail and return a non-zero value. **]**
+XX**SRS_CBS_01_046: [** If `amqp_management_close` fails, `cbs_close` shall fail and return a non-zero value. **]**
 XX**SRS_CBS_01_047: [** `cbs_close` when closed shall fail and return a non-zero value. **]**
 XX**SRS_CBS_01_048: [** `cbs_close` when not opened shall fail and return a non-zero value. **]**
 **SRS_CBS_01_099: [** All pending operations shall be freed. **]**
@@ -101,15 +101,15 @@ XX**SRS_CBS_01_049: [** `cbs_put_token_async` shall construct a request message 
 XX**SRS_CBS_01_081: [** On success `cbs_put_token_async` shall return 0. **]**
 XX**SRS_CBS_01_050: [** If any of the arguments `cbs`, `type`, `audience`, `token` or `on_cbs_put_token_complete` is NULL `cbs_put_token_async` shall fail and return a non-zero value. **]**
 XX**SRS_CBS_01_083: [** `on_cbs_put_token_complete_context` shall be allowed to be NULL. **]**
-XX**SRS_CBS_01_051: [** `cbs_put_token_async` shall start the AMQP management operation by calling `amqpmanagement_start_operation`, while passing to it: **]**
+XX**SRS_CBS_01_051: [** `cbs_put_token_async` shall start the AMQP management operation by calling `amqp_management_execute_operation_async`, while passing to it: **]**
 XX**SRS_CBS_01_052: [** The `amqp_management` argument shall be the one for the AMQP management instance created in `cbs_create`. **]**
 XX**SRS_CBS_01_053: [** The `operation` argument shall be `put-token`. **]**
 XX**SRS_CBS_01_054: [** The `type` argument shall be set to the `type` argument. **]**
 XX**SRS_CBS_01_055: [** The `locales` argument shall be set to NULL. **]**
 XX**SRS_CBS_01_056: [** The `message` argument shall be the message constructed earlier according to the CBS spec. **]**
 XX**SRS_CBS_01_072: [** If constructing the message fails, `cbs_put_token_async` shall fail and return a non-zero value. **]**
-XX**SRS_CBS_01_084: [** If `amqpmanagement_start_operation` fails `cbs_put_token_async` shall fail and return a non-zero value. **]**
-XX**SRS_CBS_01_057: [** The arguments `on_operation_complete` and `context` shall be set to a callback that is to be called by the AMQP management module when the operation is complete. **]**
+XX**SRS_CBS_01_084: [** If `amqp_management_execute_operation_async` fails `cbs_put_token_async` shall fail and return a non-zero value. **]**
+XX**SRS_CBS_01_057: [** The arguments `on_execute_operation_complete` and `context` shall be set to a callback that is to be called by the AMQP management module when the operation is complete. **]**
 XX**SRS_CBS_01_058: [** If `cbs_put_token_async` is called when the CBS instance is not yet open or in error, it shall fail and return a non-zero value. **]**
 
 ### cbs_delete_token_async
@@ -122,15 +122,15 @@ XX**SRS_CBS_01_059: [** `cbs_delete_token_async` shall construct a request messa
 XX**SRS_CBS_01_082: [** On success `cbs_delete_token_async` shall return 0. **]**
 XX**SRS_CBS_01_060: [** If any of the arguments `cbs`, `type`, `audience` or `on_cbs_delete_token_complete` is NULL `cbs_put_token_async` shall fail and return a non-zero value. **]**
 XX**SRS_CBS_01_086: [** `on_cbs_delete_token_complete_context` shall be allowed to be NULL. **]**
-XX**SRS_CBS_01_061: [** `cbs_delete_token_async` shall start the AMQP management operation by calling `amqpmanagement_start_operation`, while passing to it: **]**
+XX**SRS_CBS_01_061: [** `cbs_delete_token_async` shall start the AMQP management operation by calling `amqp_management_execute_operation_async`, while passing to it: **]**
 XX**SRS_CBS_01_085: [** The `amqp_management` argument shall be the one for the AMQP management instance created in `cbs_create`. **]**
 XX**SRS_CBS_01_062: [** The `operation` argument shall be `delete-token`. **]**
 XX**SRS_CBS_01_063: [** The `type` argument shall be set to the `type` argument. **]**
 XX**SRS_CBS_01_064: [** The `locales` argument shall be set to NULL. **]**
 XX**SRS_CBS_01_065: [** The `message` argument shall be the message constructed earlier according to the CBS spec. **]**
 XX**SRS_CBS_01_071: [** If constructing the message fails, `cbs_delete_token_async` shall fail and return a non-zero value. **]**
-XX**SRS_CBS_01_087: [** If `amqpmanagement_start_operation` fails `cbs_put_token_async` shall fail and return a non-zero value. **]**
-XX**SRS_CBS_01_066: [** The arguments `on_operation_complete` and `context` shall be set to a callback that is to be called by the AMQP management module when the operation is complete. **]**
+XX**SRS_CBS_01_087: [** If `amqp_management_execute_operation_async` fails `cbs_put_token_async` shall fail and return a non-zero value. **]**
+XX**SRS_CBS_01_066: [** The arguments `on_execute_operation_complete` and `context` shall be set to a callback that is to be called by the AMQP management module when the operation is complete. **]**
 XX**SRS_CBS_01_067: [** If `cbs_delete_token_async` is called when the CBS instance is not yet open or in error, it shall fail and return a non-zero value. **]**
 
 ### cbs_set_trace
@@ -139,34 +139,44 @@ XX**SRS_CBS_01_067: [** If `cbs_delete_token_async` is called when the CBS insta
 MOCKABLE_FUNCTION(, int, cbs_set_trace, CBS_HANDLE, cbs, bool, trace_on);
 ```
 
-XX**SRS_CBS_01_088: [** `cbs_set_trace` shall enable or disable tracing by calling `amqpmanagement_set_trace` to pass down the `trace_on` value. **]**
+XX**SRS_CBS_01_088: [** `cbs_set_trace` shall enable or disable tracing by calling `amqp_management_set_trace` to pass down the `trace_on` value. **]**
 XX**SRS_CBS_01_089: [** On success, `cbs_set_trace` shall return 0. **]**
 XX**SRS_CBS_01_090: [** If the argument `cbs` is NULL, `cbs_set_trace` shall fail and return a non-zero value. **]**
 
-### on_amqp_management_state_changed
+### on_amqp_management_open_complete
 
 ```c
-void on_amqp_management_state_changed(void* context, AMQP_MANAGEMENT_STATE new_amqp_management_state, AMQP_MANAGEMENT_STATE previous_amqp_management_state);
+void on_amqp_management_open_complete(void* context, AMQP_MANAGEMENT_OPEN_RESULT open_result);
 ```
 
-XX**SRS_CBS_01_068: [** When `on_amqp_management_state_changed` is called with NULL `context`, it shall do nothing. **]**
-XX**SRS_CBS_01_069: [** If there is a transition detected to a new state the following shall be performed: **]**
-XX**SRS_CBS_01_070: [** If CBS is opening and the new state is `AMQP_MANAGEMENT_STATE_OPEN` the callback `on_cbs_open_complete` shall be called with `CBS_OPEN_OK` and the `on_cbs_open_complete_context` shall be passed as argument. **]**
-XX**SRS_CBS_01_073: [** If CBS is opening and the new state is not `AMQP_MANAGEMENT_STATE_OPEN` the callback `on_cbs_open_complete` shall be called with `CBS_OPEN_ERROR` and the `on_cbs_open_complete_context` shall be passed as argument. **]**
-XX**SRS_CBS_01_074: [** If CBS is open and the new state is not `AMQP_MANAGEMENT_STATE_OPEN` the callback `on_cbs_error` shall be called and the `on_cbs_error_context` shall be passed as argument. **]**
-
-### on_amqp_management_operation_complete
+XX**SRS_CBS_01_105: [** When `on_amqp_management_open_complete` is called with NULL `context`, it shall do nothing. **]**
+XX**SRS_CBS_01_106: [** If CBS is OPENING and `open_result` is `AMQP_MANAGEMENT_OPEN_OK` the callback `on_cbs_open_complete` shall be called with `CBS_OPEN_OK` and the `on_cbs_open_complete_context` shall be passed as argument. **]**
+XX**SRS_CBS_01_107: [** If CBS is OPENING and `open_result` is `AMQP_MANAGEMENT_OPEN_ERROR` the callback `on_cbs_open_complete` shall be called with `CBS_OPEN_ERROR` and the `on_cbs_open_complete_context` shall be passed as argument. **]**
+XX**SRS_CBS_01_108: [** If CBS is OPENING and `open_result` is `AMQP_MANAGEMENT_OPEN_CANCELLED` the callback `on_cbs_open_complete` shall be called with `CBS_OPEN_CANCELLED` and the `on_cbs_open_complete_context` shall be passed as argument. **]**
+XX**SRS_CBS_01_109: [** When `on_amqp_management_open_complete` is called when the CBS is OPEN, the callback `on_cbs_error` shall be called and the `on_cbs_error_context` shall be passed as argument. **]**
+XX**SRS_CBS_01_113: [** When `on_amqp_management_open_complete` reports a failure, the underlying AMQP management shall be closed by calling `amqp_management_close`. **]**
 
 ```c
-void on_amqp_management_operation_complete(void* context, OPERATION_RESULT operation_result, unsigned int status_code, const char* status_description);
+void on_amqp_management_error(void* context);
 ```
 
-XX**SRS_CBS_01_091: [** When `on_amqp_management_operation_complete` is called with a NULL context it shall do nothing. **]**
+XX**SRS_CBS_01_110: [** When `on_amqp_management_error` is called with NULL `context`, it shall do nothing. **]**
+XX**SRS_CBS_01_111: [** If CBS is OPENING the callback `on_cbs_open_complete` shall be called with `CBS_OPEN_ERROR` and the `on_cbs_open_complete_context` shall be passed as argument. **]**
+XX**SRS_CBS_01_114: [** Additionally the underlying AMQP management shall be closed by calling `amqp_management_close`. **]**
+XX**SRS_CBS_01_112: [** If CBS is OPEN the callback `on_cbs_error` shall be called and the `on_cbs_error_context` shall be passed as argument. **]**
+
+### on_amqp_management_execute_operation_complete
+
+```c
+void on_amqp_management_execute_operation_complete(void* context, OPERATION_RESULT operation_result, unsigned int status_code, const char* status_description);
+```
+
+XX**SRS_CBS_01_091: [** When `on_amqp_management_execute_operation_complete` is called with a NULL context it shall do nothing. **]**
 XX**SRS_CBS_01_103: [** The `context` shall be used to obtain the pending operation information stored in the pending operations linked list by calling `singlylinkedlist_item_get_value`. **]**
-XX**SRS_CBS_01_104: [** If `singlylinkedlist_item_get_value` returns NULL, `on_amqp_management_operation_complete` shall do nothing. **]**
-XX**SRS_CBS_01_092: [** When `on_amqp_management_operation_complete` is called with `OPERATION_RESULT_OK`, the associated cbs operation complete callback shall be called with `CBS_OPERATION_RESULT_OK` and passing the `on_cbs_put_token_complete_context` as the context argument. **]**
-XX**SRS_CBS_01_093: [** When `on_amqp_management_operation_complete` is called with `OPERATION_RESULT_ERROR`, the associated cbs operation complete callback shall be called with `CBS_OPERATION_RESULT_CBS_ERROR` and passing the `on_cbs_put_token_complete_context` as the context argument. **]**
-XX**SRS_CBS_01_094: [** When `on_amqp_management_operation_complete` is called with `OPERATION_RESULT_OPERATION_FAILED`, the associated cbs operation complete callback shall be called with `CBS_OPERATION_RESULT_OPERATION_FAILED` and passing the `on_cbs_put_token_complete_context` as the context argument. **]**
+XX**SRS_CBS_01_104: [** If `singlylinkedlist_item_get_value` returns NULL, `on_amqp_management_execute_operation_complete` shall do nothing. **]**
+XX**SRS_CBS_01_092: [** When `on_amqp_management_execute_operation_complete` is called with `OPERATION_RESULT_OK`, the associated cbs operation complete callback shall be called with `CBS_OPERATION_RESULT_OK` and passing the `on_cbs_put_token_complete_context` as the context argument. **]**
+XX**SRS_CBS_01_093: [** When `on_amqp_management_execute_operation_complete` is called with `OPERATION_RESULT_ERROR`, the associated cbs operation complete callback shall be called with `CBS_OPERATION_RESULT_CBS_ERROR` and passing the `on_cbs_put_token_complete_context` as the context argument. **]**
+XX**SRS_CBS_01_094: [** When `on_amqp_management_execute_operation_complete` is called with `OPERATION_RESULT_OPERATION_FAILED`, the associated cbs operation complete callback shall be called with `AMQP_MANAGEMENT_EXECUTE_OPERATION_FAILED_BAD_STATUS` and passing the `on_cbs_put_token_complete_context` as the context argument. **]**
 XX**SRS_CBS_01_095: [** `status_code` and `status_description` shall be passed as they are to the cbs operation complete callback. **]**
 XX**SRS_CBS_01_102: [** The pending operation shall be removed from the pending operations list by calling `singlylinkedlist_remove`. **]**
 XX**SRS_CBS_01_096: [** The `context` for the operation shall also be freed. **]**

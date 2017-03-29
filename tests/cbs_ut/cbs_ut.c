@@ -55,10 +55,12 @@ static AMQP_VALUE test_name_propery_key = (AMQP_VALUE)0x4303;
 static AMQP_VALUE test_name_propery_value = (AMQP_VALUE)0x4304;
 static SINGLYLINKEDLIST_HANDLE test_singlylinkedlist = (SINGLYLINKEDLIST_HANDLE)0x4305;
 static AMQP_VALUE test_default_amqp_value = (AMQP_VALUE)0x4306;
-static ON_AMQP_MANAGEMENT_STATE_CHANGED saved_on_amqp_management_state_changed;
-static void* saved_on_amqp_management_state_changed_context;
-static ON_OPERATION_COMPLETE saved_on_operation_complete;
-static void* saved_on_operation_complete_context;
+static ON_AMQP_MANAGEMENT_OPEN_COMPLETE saved_on_amqp_management_open_complete;
+static void* saved_on_amqp_management_open_complete_context;
+static ON_AMQP_MANAGEMENT_ERROR saved_on_amqp_management_error;
+static void* saved_on_amqp_management_error_context;
+static ON_AMQP_MANAGEMENT_EXECUTE_OPERATION_COMPLETE saved_on_execute_operation_complete;
+static void* saved_on_execute_operation_complete_context;
 
 MOCK_FUNCTION_WITH_CODE(, void, test_on_cbs_open_complete, void*, context, CBS_OPEN_COMPLETE_RESULT, open_complete_result);
 MOCK_FUNCTION_END();
@@ -69,24 +71,32 @@ MOCK_FUNCTION_END();
 MOCK_FUNCTION_WITH_CODE(, void, test_on_cbs_delete_token_complete, void*, context, CBS_OPERATION_RESULT, delete_token_complete_result, unsigned int, status_code, const char*, status_description);
 MOCK_FUNCTION_END();
 
-AMQP_MANAGEMENT_HANDLE my_amqpmanagement_create(SESSION_HANDLE session, const char* management_node, ON_AMQP_MANAGEMENT_STATE_CHANGED on_amqp_management_state_changed, void* on_amqp_management_state_changed_context)
+AMQP_MANAGEMENT_HANDLE my_amqp_management_create(SESSION_HANDLE session, const char* management_node)
 {
     (void)session;
     (void)management_node;
-    saved_on_amqp_management_state_changed = on_amqp_management_state_changed;
-    saved_on_amqp_management_state_changed_context = on_amqp_management_state_changed_context;
     return test_amqp_management_handle;
 }
 
-int my_amqpmanagement_start_operation(AMQP_MANAGEMENT_HANDLE amqp_management, const char* operation, const char* type, const char* locales, MESSAGE_HANDLE message, ON_OPERATION_COMPLETE on_operation_complete, void* context)
+int my_amqp_management_open_async(AMQP_MANAGEMENT_HANDLE amqp_management, ON_AMQP_MANAGEMENT_OPEN_COMPLETE on_amqp_management_open_complete, void* on_amqp_management_open_complete_context, ON_AMQP_MANAGEMENT_ERROR on_amqp_management_error, void* on_amqp_management_error_context)
+{
+    (void)amqp_management;
+    saved_on_amqp_management_open_complete = on_amqp_management_open_complete;
+    saved_on_amqp_management_open_complete_context = on_amqp_management_open_complete_context;
+    saved_on_amqp_management_error = on_amqp_management_error;
+    saved_on_amqp_management_error_context = on_amqp_management_error_context;
+    return 0;
+}
+
+int my_amqp_management_execute_operation_async(AMQP_MANAGEMENT_HANDLE amqp_management, const char* operation, const char* type, const char* locales, MESSAGE_HANDLE message, ON_AMQP_MANAGEMENT_EXECUTE_OPERATION_COMPLETE on_execute_operation_complete, void* on_execute_operation_complete_context)
 {
     (void)message;
     (void)locales;
     (void)type;
     (void)operation;
     (void)amqp_management;
-    saved_on_operation_complete = on_operation_complete;
-    saved_on_operation_complete_context = context;
+    saved_on_execute_operation_complete = on_execute_operation_complete;
+    saved_on_execute_operation_complete_context = on_execute_operation_complete_context;
     return 0;
 }
 
@@ -193,8 +203,9 @@ TEST_SUITE_INITIALIZE(suite_init)
 
     REGISTER_GLOBAL_MOCK_HOOK(gballoc_malloc, my_gballoc_malloc);
     REGISTER_GLOBAL_MOCK_HOOK(gballoc_free, my_gballoc_free);
-    REGISTER_GLOBAL_MOCK_HOOK(amqpmanagement_create, my_amqpmanagement_create);
-    REGISTER_GLOBAL_MOCK_HOOK(amqpmanagement_start_operation, my_amqpmanagement_start_operation);
+    REGISTER_GLOBAL_MOCK_HOOK(amqp_management_create, my_amqp_management_create);
+    REGISTER_GLOBAL_MOCK_HOOK(amqp_management_open_async, my_amqp_management_open_async);
+    REGISTER_GLOBAL_MOCK_HOOK(amqp_management_execute_operation_async, my_amqp_management_execute_operation_async);
     REGISTER_GLOBAL_MOCK_RETURN(amqpvalue_create_string, test_default_amqp_value);
     REGISTER_GLOBAL_MOCK_RETURN(amqpvalue_create_map, test_default_amqp_value);
     REGISTER_GLOBAL_MOCK_RETURN(amqpvalue_set_map_value, 0);
@@ -207,17 +218,18 @@ TEST_SUITE_INITIALIZE(suite_init)
     REGISTER_GLOBAL_MOCK_HOOK(singlylinkedlist_add, my_singlylinkedlist_add);
     REGISTER_GLOBAL_MOCK_HOOK(singlylinkedlist_item_get_value, my_singlylinkedlist_item_get_value);
     REGISTER_GLOBAL_MOCK_HOOK(singlylinkedlist_find, my_singlylinkedlist_find);
-    REGISTER_UMOCKC_PAIRED_CREATE_DESTROY_CALLS(amqpmanagement_create, amqpmanagement_destroy);
+    REGISTER_UMOCKC_PAIRED_CREATE_DESTROY_CALLS(amqp_management_create, amqp_management_destroy);
     REGISTER_UMOCKC_PAIRED_CREATE_DESTROY_CALLS(message_create, message_destroy);
     REGISTER_UMOCKC_PAIRED_CREATE_DESTROY_CALLS(properties_create, properties_destroy);
     
     REGISTER_UMOCK_ALIAS_TYPE(CBS_HANDLE, void*);
     REGISTER_UMOCK_ALIAS_TYPE(SESSION_HANDLE, void*);
     REGISTER_UMOCK_ALIAS_TYPE(AMQP_MANAGEMENT_HANDLE, void*);
-    REGISTER_UMOCK_ALIAS_TYPE(ON_AMQP_MANAGEMENT_STATE_CHANGED, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(ON_AMQP_MANAGEMENT_OPEN_COMPLETE, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(ON_AMQP_MANAGEMENT_ERROR, void*);
     REGISTER_UMOCK_ALIAS_TYPE(MESSAGE_HANDLE, void*);
     REGISTER_UMOCK_ALIAS_TYPE(AMQP_VALUE, void*);
-    REGISTER_UMOCK_ALIAS_TYPE(ON_OPERATION_COMPLETE, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(ON_AMQP_MANAGEMENT_EXECUTE_OPERATION_COMPLETE, void*);
     REGISTER_UMOCK_ALIAS_TYPE(SINGLYLINKEDLIST_HANDLE, void*);
     REGISTER_UMOCK_ALIAS_TYPE(LIST_ITEM_HANDLE, void*);
 }
@@ -248,7 +260,7 @@ TEST_FUNCTION_CLEANUP(test_cleanup)
 /* cbs_create */
 
 /* Tests_SRS_CBS_01_001: [ `cbs_create` shall create a new CBS instance and on success return a non-NULL handle to it. ]*/
-/* Tests_SRS_CBS_01_034: [ `cbs_create` shall create an AMQP management handle by calling `amqpmanagement_create`. ]*/
+/* Tests_SRS_CBS_01_034: [ `cbs_create` shall create an AMQP management handle by calling `amqp_management_create`. ]*/
 /* Tests_SRS_CBS_01_097: [ `cbs_create` shall create a singly linked list for pending operations by calling `singlylinkedlist_create`. ]*/
 /* Tests_SRS_CBS_01_002: [ Tokens are communicated between AMQP peers by sending specially-formatted AMQP messages to the Claims-based Security Node. ]*/
 /* Tests_SRS_CBS_01_003: [ The mechanism follows the scheme defined in the AMQP Management specification [AMQPMAN]. ]*/
@@ -258,7 +270,7 @@ TEST_FUNCTION(cbs_create_returns_a_valid_handle)
     CBS_HANDLE cbs;
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_create());
-    STRICT_EXPECTED_CALL(amqpmanagement_create(test_session_handle, "$cbs", IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqp_management_create(test_session_handle, "$cbs"));
 
     // act
     cbs = cbs_create(test_session_handle);
@@ -285,7 +297,7 @@ TEST_FUNCTION(cbs_create_with_NULL_session_handle_fails)
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
-/* Tests_SRS_CBS_01_035: [ If `amqpmanagement_create` fails then `cbs_create` shall fail and return NULL. ]*/
+/* Tests_SRS_CBS_01_035: [ If `amqp_management_create` fails then `cbs_create` shall fail and return NULL. ]*/
 /* Tests_SRS_CBS_01_076: [ If allocating memory for the new handle fails, `cbs_create` shall fail and return NULL. ]*/
 /* Tests_SRS_CBS_01_101: [ If `singlylinkedlist_create` fails, `cbs_create` shall fail and return NULL. ]*/
 TEST_FUNCTION(when_one_of_the_functions_called_by_cbs_create_fails_then_cbs_create_fails)
@@ -300,7 +312,7 @@ TEST_FUNCTION(when_one_of_the_functions_called_by_cbs_create_fails_then_cbs_crea
         .SetFailReturn(NULL);
     STRICT_EXPECTED_CALL(singlylinkedlist_create())
         .SetReturn(NULL);
-    STRICT_EXPECTED_CALL(amqpmanagement_create(test_session_handle, "$cbs", IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqp_management_create(test_session_handle, "$cbs"))
         .SetFailReturn(NULL);
     umock_c_negative_tests_snapshot();
 
@@ -328,7 +340,7 @@ TEST_FUNCTION(when_one_of_the_functions_called_by_cbs_create_fails_then_cbs_crea
 /* cbs_destroy */
 
 /* Tests_SRS_CBS_01_036: [ `cbs_destroy` shall free all resources associated with the handle `cbs`. ]*/
-/* Tests_SRS_CBS_01_038: [ `cbs_destroy` shall free the AMQP management handle created in `cbs_create` by calling `amqpmanagement_destroy`. ]*/
+/* Tests_SRS_CBS_01_038: [ `cbs_destroy` shall free the AMQP management handle created in `cbs_create` by calling `amqp_management_destroy`. ]*/
 /* Tests_SRS_CBS_01_098: [ `cbs_destroy` shall free the pending operations list by calling `singlylinkedlist_destroy`. ]*/
 /* Tests_SRS_CBS_01_099: [ All pending operations shall be freed. ]*/
 TEST_FUNCTION(cbs_destroy_frees_all_resources)
@@ -338,7 +350,7 @@ TEST_FUNCTION(cbs_destroy_frees_all_resources)
     cbs = cbs_create(test_session_handle);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(amqpmanagement_destroy(test_amqp_management_handle));
+    STRICT_EXPECTED_CALL(amqp_management_destroy(test_amqp_management_handle));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinkedlist));
     STRICT_EXPECTED_CALL(singlylinkedlist_destroy(test_singlylinkedlist));
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
@@ -358,12 +370,12 @@ TEST_FUNCTION(cbs_destroy_frees_all_resources_including_the_pending_operations)
     CBS_HANDLE cbs;
     cbs = cbs_create(test_session_handle);
     (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_OPEN, AMQP_MANAGEMENT_STATE_OPENING);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
     (void)cbs_put_token_async(cbs, "some_type", "my_audience", "blah_token", test_on_cbs_put_token_complete, (void*)0x4244);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(amqpmanagement_close(test_amqp_management_handle));
-    STRICT_EXPECTED_CALL(amqpmanagement_destroy(test_amqp_management_handle));
+    STRICT_EXPECTED_CALL(amqp_management_close(test_amqp_management_handle));
+    STRICT_EXPECTED_CALL(amqp_management_destroy(test_amqp_management_handle));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinkedlist));
     STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(test_on_cbs_put_token_complete((void*)0x4244, CBS_OPERATION_RESULT_BECAUSE_DESTROY, 0, NULL));
@@ -394,9 +406,9 @@ TEST_FUNCTION(cbs_destroy_with_NULL_handle_does_nothing)
 
 /* cbs_open_async */
 
-/* Tests_SRS_CBS_01_039: [ `cbs_open_async` shall open the cbs communication by calling `amqpmanagement_open` on the AMQP management handle created in `cbs_create`. ]*/
+/* Tests_SRS_CBS_01_039: [ `cbs_open_async` shall open the cbs communication by calling `amqp_management_open_async` on the AMQP management handle created in `cbs_create`. ]*/
 /* Tests_SRS_CBS_01_077: [ On success, `cbs_open_async` shall return 0. ]*/
-/* Tests_SRS_CBS_01_078: [ The cbs instance shall be considered OPENING until the `on_amqp_management_state_changed` is called by the AMQP management instance indicating that the open has completed (succesfull or not). ]*/
+/* Tests_SRS_CBS_01_078: [ The cbs instance shall be considered OPENING until the `on_amqp_management_open_complete` callback is called by the AMQP management instance indicating that the open has completed (succesfull or not). ]*/
 TEST_FUNCTION(cbs_open_async_opens_the_amqp_management_instance)
 {
     // arrange
@@ -405,7 +417,7 @@ TEST_FUNCTION(cbs_open_async_opens_the_amqp_management_instance)
     cbs = cbs_create(test_session_handle);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(amqpmanagement_open(test_amqp_management_handle));
+    STRICT_EXPECTED_CALL(amqp_management_open_async(test_amqp_management_handle, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
 
     // act
     result = cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
@@ -473,7 +485,7 @@ TEST_FUNCTION(cbs_open_async_with_NULL_on_error_callback_fails)
     cbs_destroy(cbs);
 }
 
-/* Tests_SRS_CBS_01_041: [ If `amqpmanagement_open` fails, shall fail and return a non-zero value. ]*/
+/* Tests_SRS_CBS_01_041: [ If `amqp_management_open_async` fails, shall fail and return a non-zero value. ]*/
 TEST_FUNCTION(when_amqpmanagement_open_fails_cbs_open_async_fails)
 {
     // arrange
@@ -482,7 +494,7 @@ TEST_FUNCTION(when_amqpmanagement_open_fails_cbs_open_async_fails)
     cbs = cbs_create(test_session_handle);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(amqpmanagement_open(test_amqp_management_handle))
+    STRICT_EXPECTED_CALL(amqp_management_open_async(test_amqp_management_handle, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .SetReturn(1);
 
     // act
@@ -505,7 +517,7 @@ TEST_FUNCTION(cbs_open_async_with_NULL_on_open_complete_context_succeeds)
     cbs = cbs_create(test_session_handle);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(amqpmanagement_open(test_amqp_management_handle));
+    STRICT_EXPECTED_CALL(amqp_management_open_async(test_amqp_management_handle, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
 
     // act
     result = cbs_open_async(cbs, test_on_cbs_open_complete, NULL, test_on_cbs_error, (void*)0x4243);
@@ -527,7 +539,7 @@ TEST_FUNCTION(cbs_open_async_with_NULL_on_error_context_succeeds)
     cbs = cbs_create(test_session_handle);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(amqpmanagement_open(test_amqp_management_handle));
+    STRICT_EXPECTED_CALL(amqp_management_open_async(test_amqp_management_handle, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
 
     // act
     result = cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4243, test_on_cbs_error, NULL);
@@ -569,7 +581,7 @@ TEST_FUNCTION(cbs_open_async_while_already_open_fails)
     int result;
     cbs = cbs_create(test_session_handle);
     (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_OPEN, AMQP_MANAGEMENT_STATE_OPENING);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
     umock_c_reset_all_calls();
 
     // act
@@ -583,9 +595,84 @@ TEST_FUNCTION(cbs_open_async_while_already_open_fails)
     cbs_destroy(cbs);
 }
 
+/* Tests_SRS_CBS_01_039: [ `cbs_open_async` shall open the cbs communication by calling `amqp_management_open_async` on the AMQP management handle created in `cbs_create`. ]*/
+/* Tests_SRS_CBS_01_077: [ On success, `cbs_open_async` shall return 0. ]*/
+TEST_FUNCTION(after_an_open_cancelled_due_to_amqp_management_cbs_open_async_still_succeeds)
+{
+    // arrange
+    CBS_HANDLE cbs;
+    int result;
+    cbs = cbs_create(test_session_handle);
+    (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_CANCELLED);
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(amqp_management_open_async(test_amqp_management_handle, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+
+    // act
+    result = cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_EQUAL(int, 0, result);
+
+    // cleanup
+    cbs_destroy(cbs);
+}
+
+/* Tests_SRS_CBS_01_039: [ `cbs_open_async` shall open the cbs communication by calling `amqp_management_open_async` on the AMQP management handle created in `cbs_create`. ]*/
+/* Tests_SRS_CBS_01_077: [ On success, `cbs_open_async` shall return 0. ]*/
+TEST_FUNCTION(after_an_open_error_due_to_amqp_management_cbs_open_async_still_succeeds)
+{
+    // arrange
+    CBS_HANDLE cbs;
+    int result;
+    cbs = cbs_create(test_session_handle);
+    (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_ERROR);
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(amqp_management_open_async(test_amqp_management_handle, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+
+    // act
+    result = cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_EQUAL(int, 0, result);
+
+    // cleanup
+    cbs_destroy(cbs);
+}
+
+/* Tests_SRS_CBS_01_039: [ `cbs_open_async` shall open the cbs communication by calling `amqp_management_open_async` on the AMQP management handle created in `cbs_create`. ]*/
+/* Tests_SRS_CBS_01_077: [ On success, `cbs_open_async` shall return 0. ]*/
+TEST_FUNCTION(after_an_open_error_due_to_amqp_management_error_callback_cbs_open_async_still_succeeds)
+{
+    // arrange
+    CBS_HANDLE cbs;
+    int result;
+    cbs = cbs_create(test_session_handle);
+    (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
+    saved_on_amqp_management_error(saved_on_amqp_management_open_complete_context);
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(amqp_management_open_async(test_amqp_management_handle, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+
+    // act
+    result = cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_EQUAL(int, 0, result);
+
+    // cleanup
+    cbs_destroy(cbs);
+}
+
 /* cbs_close */
 
-/* Tests_SRS_CBS_01_044: [ `cbs_close` shall close the CBS instance by calling `amqpmanagement_close` on the underlying AMQP management handle. ]*/
+/* Tests_SRS_CBS_01_044: [ `cbs_close` shall close the CBS instance by calling `amqp_management_close` on the underlying AMQP management handle. ]*/
 /* Tests_SRS_CBS_01_080: [ On success, `cbs_close` shall return 0. ]*/
 TEST_FUNCTION(cbs_close_closes_the_underlying_amqp_management_instance)
 {
@@ -594,10 +681,10 @@ TEST_FUNCTION(cbs_close_closes_the_underlying_amqp_management_instance)
     int result;
     cbs = cbs_create(test_session_handle);
     (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_OPEN, AMQP_MANAGEMENT_STATE_OPENING);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(amqpmanagement_close(test_amqp_management_handle));
+    STRICT_EXPECTED_CALL(amqp_management_close(test_amqp_management_handle));
 
     // act
     result = cbs_close(cbs);
@@ -621,7 +708,7 @@ TEST_FUNCTION(cbs_close_when_opening_cancels_the_open)
     (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(amqpmanagement_close(test_amqp_management_handle));
+    STRICT_EXPECTED_CALL(amqp_management_close(test_amqp_management_handle));
     STRICT_EXPECTED_CALL(test_on_cbs_open_complete((void*)0x4242, CBS_OPEN_CANCELLED));
 
     // act
@@ -649,7 +736,7 @@ TEST_FUNCTION(cbs_close_with_NULL_handle_fails)
     ASSERT_ARE_NOT_EQUAL(int, 0, result);
 }
 
-/* Tests_SRS_CBS_01_046: [ If `amqpmanagement_close` fails, `cbs_close` shall fail and return a non-zero value. ]*/
+/* Tests_SRS_CBS_01_046: [ If `amqp_management_close` fails, `cbs_close` shall fail and return a non-zero value. ]*/
 TEST_FUNCTION(when_amqpmanagement_close_fails_then_cbs_close_fails)
 {
     // arrange
@@ -657,10 +744,10 @@ TEST_FUNCTION(when_amqpmanagement_close_fails_then_cbs_close_fails)
     int result;
     cbs = cbs_create(test_session_handle);
     (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_OPEN, AMQP_MANAGEMENT_STATE_OPENING);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(amqpmanagement_close(test_amqp_management_handle))
+    STRICT_EXPECTED_CALL(amqp_management_close(test_amqp_management_handle))
         .SetReturn(1);
 
     // act
@@ -682,7 +769,7 @@ TEST_FUNCTION(cbs_close_after_cbs_close_fails)
     int result;
     cbs = cbs_create(test_session_handle);
     (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_OPEN, AMQP_MANAGEMENT_STATE_OPENING);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
     (void)cbs_close(cbs);
     umock_c_reset_all_calls();
 
@@ -721,13 +808,13 @@ TEST_FUNCTION(cbs_close_when_not_open_fails)
 
 /* Tests_SRS_CBS_01_049: [ `cbs_put_token_async` shall construct a request message for the `put-token` operation. ]*/
 /* Tests_SRS_CBS_01_081: [ On success `cbs_put_token_async` shall return 0. ]*/
-/* Tests_SRS_CBS_01_051: [ `cbs_put_token_async` shall start the AMQP management operation by calling `amqpmanagement_start_operation`, while passing to it: ]*/
+/* Tests_SRS_CBS_01_051: [ `cbs_put_token_async` shall start the AMQP management operation by calling `amqp_management_execute_operation_async`, while passing to it: ]*/
 /* Tests_SRS_CBS_01_052: [ The `amqp_management` argument shall be the one for the AMQP management instance created in `cbs_create`. ]*/
 /* Tests_SRS_CBS_01_053: [ The `operation` argument shall be `put-token`. ]*/
 /* Tests_SRS_CBS_01_054: [ The `type` argument shall be set to the `type` argument. ]*/
 /* Tests_SRS_CBS_01_055: [ The `locales` argument shall be set to NULL. ]*/
 /* Tests_SRS_CBS_01_056: [ The `message` argument shall be the message constructed earlier according to the CBS spec. ]*/
-/* Tests_SRS_CBS_01_057: [ The arguments `on_operation_complete` and `context` shall be set to a callback that is to be called by the AMQP management module when the operation is complete. ]*/
+/* Tests_SRS_CBS_01_057: [ The arguments `on_execute_operation_complete` and `context` shall be set to a callback that is to be called by the AMQP management module when the operation is complete. ]*/
 /* Tests_SRS_CBS_01_005: [ operation	No	string	"put-token" ]*/
 /* Tests_SRS_CBS_01_006: [ Type	No	string	The type of the token being put, e.g., "amqp:jwt". ]*/
 /* Tests_SRS_CBS_01_007: [ name	No	string	The "audience" to which the token applies. ]*/
@@ -739,7 +826,7 @@ TEST_FUNCTION(cbs_put_token_async_creates_the_message_and_starts_the_amqp_manage
     int result;
     cbs = cbs_create(test_session_handle);
     (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_OPEN, AMQP_MANAGEMENT_STATE_OPENING);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(message_create());
@@ -758,7 +845,7 @@ TEST_FUNCTION(cbs_put_token_async_creates_the_message_and_starts_the_amqp_manage
     STRICT_EXPECTED_CALL(message_set_application_properties(test_message, test_map_value));
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqpmanagement_start_operation(test_amqp_management_handle, "put-token", "some_type", NULL, test_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqp_management_execute_operation_async(test_amqp_management_handle, "put-token", "some_type", NULL, test_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_map_value));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_token_value));
     STRICT_EXPECTED_CALL(message_destroy(test_message));
@@ -796,7 +883,7 @@ TEST_FUNCTION(cbs_put_token_async_with_NULL_type_fails)
     int result;
     cbs = cbs_create(test_session_handle);
     (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_OPEN, AMQP_MANAGEMENT_STATE_OPENING);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
     umock_c_reset_all_calls();
 
     // act
@@ -818,7 +905,7 @@ TEST_FUNCTION(cbs_put_token_async_with_NULL_audience_fails)
     int result;
     cbs = cbs_create(test_session_handle);
     (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_OPEN, AMQP_MANAGEMENT_STATE_OPENING);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
     umock_c_reset_all_calls();
 
     // act
@@ -840,7 +927,7 @@ TEST_FUNCTION(cbs_put_token_async_with_NULL_token_fails)
     int result;
     cbs = cbs_create(test_session_handle);
     (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_OPEN, AMQP_MANAGEMENT_STATE_OPENING);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
     umock_c_reset_all_calls();
 
     // act
@@ -862,7 +949,7 @@ TEST_FUNCTION(cbs_put_token_async_with_NULL_complete_callback_fails)
     int result;
     cbs = cbs_create(test_session_handle);
     (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_OPEN, AMQP_MANAGEMENT_STATE_OPENING);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
     umock_c_reset_all_calls();
 
     // act
@@ -884,7 +971,7 @@ TEST_FUNCTION(cbs_put_token_async_with_NULL_complete_context_succeeds)
     int result;
     cbs = cbs_create(test_session_handle);
     (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_OPEN, AMQP_MANAGEMENT_STATE_OPENING);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(message_create());
@@ -903,7 +990,7 @@ TEST_FUNCTION(cbs_put_token_async_with_NULL_complete_context_succeeds)
     STRICT_EXPECTED_CALL(message_set_application_properties(test_message, test_map_value));
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqpmanagement_start_operation(test_amqp_management_handle, "put-token", "some_type", NULL, test_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqp_management_execute_operation_async(test_amqp_management_handle, "put-token", "some_type", NULL, test_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_map_value));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_token_value));
     STRICT_EXPECTED_CALL(message_destroy(test_message));
@@ -920,7 +1007,7 @@ TEST_FUNCTION(cbs_put_token_async_with_NULL_complete_context_succeeds)
 }
 
 /* Tests_SRS_CBS_01_072: [ If constructing the message fails, `cbs_put_token_async` shall fail and return a non-zero value. ]*/
-/* Tests_SRS_CBS_01_084: [ If `amqpmanagement_start_operation` fails `cbs_put_token_async` shall fail and return a non-zero value. ]*/
+/* Tests_SRS_CBS_01_084: [ If `amqp_management_execute_operation_async` fails `cbs_put_token_async` shall fail and return a non-zero value. ]*/
 TEST_FUNCTION(when_any_underlying_call_fails_cbs_put_token_async_fails)
 {
     // arrange
@@ -933,7 +1020,7 @@ TEST_FUNCTION(when_any_underlying_call_fails_cbs_put_token_async_fails)
 
     cbs = cbs_create(test_session_handle);
     (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_OPEN, AMQP_MANAGEMENT_STATE_OPENING);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(message_create())
@@ -958,7 +1045,7 @@ TEST_FUNCTION(when_any_underlying_call_fails_cbs_put_token_async_fails)
         .SetFailReturn(NULL);
     STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist, IGNORED_PTR_ARG))
         .SetFailReturn(NULL);
-    STRICT_EXPECTED_CALL(amqpmanagement_start_operation(test_amqp_management_handle, "put-token", "some_type", NULL, test_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqp_management_execute_operation_async(test_amqp_management_handle, "put-token", "some_type", NULL, test_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .SetFailReturn(42);
 
     umock_c_negative_tests_snapshot();
@@ -1036,7 +1123,7 @@ TEST_FUNCTION(cbs_put_token_async_while_opening_succeeds)
     STRICT_EXPECTED_CALL(message_set_application_properties(test_message, test_map_value));
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqpmanagement_start_operation(test_amqp_management_handle, "put-token", "some_type", NULL, test_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqp_management_execute_operation_async(test_amqp_management_handle, "put-token", "some_type", NULL, test_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_map_value));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_token_value));
     STRICT_EXPECTED_CALL(message_destroy(test_message));
@@ -1060,8 +1147,8 @@ TEST_FUNCTION(cbs_put_token_async_when_in_error_fails)
     int result;
     cbs = cbs_create(test_session_handle);
     (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_OPEN, AMQP_MANAGEMENT_STATE_OPENING);
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_ERROR, AMQP_MANAGEMENT_STATE_OPEN);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
+    saved_on_amqp_management_error(saved_on_amqp_management_error_context);
     umock_c_reset_all_calls();
 
     // act
@@ -1079,7 +1166,7 @@ TEST_FUNCTION(cbs_put_token_async_when_in_error_fails)
 
 /* Tests_SRS_CBS_01_059: [ `cbs_delete_token_async` shall construct a request message for the `delete-token` operation. ]*/
 /* Tests_SRS_CBS_01_082: [ On success `cbs_delete_token_async` shall return 0. ]*/
-/* Tests_SRS_CBS_01_061: [ `cbs_delete_token_async` shall start the AMQP management operation by calling `amqpmanagement_start_operation`, while passing to it: ]*/
+/* Tests_SRS_CBS_01_061: [ `cbs_delete_token_async` shall start the AMQP management operation by calling `amqp_management_execute_operation_async`, while passing to it: ]*/
 /* Tests_SRS_CBS_01_085: [ The `amqp_management` argument shall be the one for the AMQP management instance created in `cbs_create`. ]*/
 /* Tests_SRS_CBS_01_062: [ The `operation` argument shall be `delete-token`. ]*/
 /* Tests_SRS_CBS_01_063: [ The `type` argument shall be set to the `type` argument. ]*/
@@ -1099,7 +1186,7 @@ TEST_FUNCTION(cbs_delete_token_async_creates_the_message_and_starts_the_amqp_man
     int result;
     cbs = cbs_create(test_session_handle);
     (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_OPEN, AMQP_MANAGEMENT_STATE_OPENING);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(message_create());
@@ -1115,7 +1202,7 @@ TEST_FUNCTION(cbs_delete_token_async_creates_the_message_and_starts_the_amqp_man
     STRICT_EXPECTED_CALL(message_set_application_properties(test_message, test_map_value));
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqpmanagement_start_operation(test_amqp_management_handle, "delete-token", "some_type", NULL, test_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqp_management_execute_operation_async(test_amqp_management_handle, "delete-token", "some_type", NULL, test_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_map_value));
     STRICT_EXPECTED_CALL(message_destroy(test_message));
 
@@ -1152,7 +1239,7 @@ TEST_FUNCTION(cbs_delete_token_with_NULL_type_fails)
     int result;
     cbs = cbs_create(test_session_handle);
     (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_OPEN, AMQP_MANAGEMENT_STATE_OPENING);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
     umock_c_reset_all_calls();
 
     // act
@@ -1174,7 +1261,7 @@ TEST_FUNCTION(cbs_delete_token_with_NULL_audience_fails)
     int result;
     cbs = cbs_create(test_session_handle);
     (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_OPEN, AMQP_MANAGEMENT_STATE_OPENING);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
     umock_c_reset_all_calls();
 
     // act
@@ -1196,7 +1283,7 @@ TEST_FUNCTION(cbs_delete_token_with_NULL_complete_callback_fails)
     int result;
     cbs = cbs_create(test_session_handle);
     (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_OPEN, AMQP_MANAGEMENT_STATE_OPENING);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
     umock_c_reset_all_calls();
 
     // act
@@ -1218,7 +1305,7 @@ TEST_FUNCTION(cbs_delete_token_async_with_NULL_complete_context_succeeds)
     int result;
     cbs = cbs_create(test_session_handle);
     (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_OPEN, AMQP_MANAGEMENT_STATE_OPENING);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(message_create());
@@ -1234,7 +1321,7 @@ TEST_FUNCTION(cbs_delete_token_async_with_NULL_complete_context_succeeds)
     STRICT_EXPECTED_CALL(message_set_application_properties(test_message, test_map_value));
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqpmanagement_start_operation(test_amqp_management_handle, "delete-token", "some_type", NULL, test_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqp_management_execute_operation_async(test_amqp_management_handle, "delete-token", "some_type", NULL, test_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_map_value));
     STRICT_EXPECTED_CALL(message_destroy(test_message));
 
@@ -1250,7 +1337,7 @@ TEST_FUNCTION(cbs_delete_token_async_with_NULL_complete_context_succeeds)
 }
 
 /* Tests_SRS_CBS_01_071: [ If constructing the message fails, `cbs_delete_token_async` shall fail and return a non-zero value. ]*/
-/* Tests_SRS_CBS_01_087: [ If `amqpmanagement_start_operation` fails `cbs_put_token_async` shall fail and return a non-zero value. ]*/
+/* Tests_SRS_CBS_01_087: [ If `amqp_management_execute_operation_async` fails `cbs_put_token_async` shall fail and return a non-zero value. ]*/
 TEST_FUNCTION(when_any_underlying_call_fails_cbs_delete_token_async_fails)
 {
     // arrange
@@ -1263,7 +1350,7 @@ TEST_FUNCTION(when_any_underlying_call_fails_cbs_delete_token_async_fails)
 
     cbs = cbs_create(test_session_handle);
     (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_OPEN, AMQP_MANAGEMENT_STATE_OPENING);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(message_create())
@@ -1284,7 +1371,7 @@ TEST_FUNCTION(when_any_underlying_call_fails_cbs_delete_token_async_fails)
         .SetFailReturn(NULL);
     STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist, IGNORED_PTR_ARG))
         .SetFailReturn(NULL);
-    STRICT_EXPECTED_CALL(amqpmanagement_start_operation(test_amqp_management_handle, "delete-token", "some_type", NULL, test_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqp_management_execute_operation_async(test_amqp_management_handle, "delete-token", "some_type", NULL, test_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .SetFailReturn(42);
 
     umock_c_negative_tests_snapshot();
@@ -1359,7 +1446,7 @@ TEST_FUNCTION(cbs_delete_token_async_while_opening_succeeds)
     STRICT_EXPECTED_CALL(message_set_application_properties(test_message, test_map_value));
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqpmanagement_start_operation(test_amqp_management_handle, "delete-token", "some_type", NULL, test_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqp_management_execute_operation_async(test_amqp_management_handle, "delete-token", "some_type", NULL, test_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_map_value));
     STRICT_EXPECTED_CALL(message_destroy(test_message));
 
@@ -1382,8 +1469,8 @@ TEST_FUNCTION(cbs_delete_token_async_when_in_error_fails)
     int result;
     cbs = cbs_create(test_session_handle);
     (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_OPEN, AMQP_MANAGEMENT_STATE_OPENING);
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_ERROR, AMQP_MANAGEMENT_STATE_OPEN);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
+    saved_on_amqp_management_error(saved_on_amqp_management_error_context);
     umock_c_reset_all_calls();
 
     // act
@@ -1399,7 +1486,7 @@ TEST_FUNCTION(cbs_delete_token_async_when_in_error_fails)
 
 /* cbs_set_trace */
 
-/* Tests_SRS_CBS_01_088: [ `cbs_set_trace` shall enable or disable tracing by calling `amqpmanagement_set_trace` to pass down the `trace_on` value. ]*/
+/* Tests_SRS_CBS_01_088: [ `cbs_set_trace` shall enable or disable tracing by calling `amqp_management_set_trace` to pass down the `trace_on` value. ]*/
 TEST_FUNCTION(cbs_set_trace_with_true_succeeds)
 {
     // arrange
@@ -1408,7 +1495,7 @@ TEST_FUNCTION(cbs_set_trace_with_true_succeeds)
     cbs = cbs_create(test_session_handle);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(amqpmanagement_set_trace(test_amqp_management_handle, true));
+    STRICT_EXPECTED_CALL(amqp_management_set_trace(test_amqp_management_handle, true));
 
     // act
     result = cbs_set_trace(cbs, true);
@@ -1421,7 +1508,7 @@ TEST_FUNCTION(cbs_set_trace_with_true_succeeds)
     cbs_destroy(cbs);
 }
 
-/* Tests_SRS_CBS_01_088: [ `cbs_set_trace` shall enable or disable tracing by calling `amqpmanagement_set_trace` to pass down the `trace_on` value. ]*/
+/* Tests_SRS_CBS_01_088: [ `cbs_set_trace` shall enable or disable tracing by calling `amqp_management_set_trace` to pass down the `trace_on` value. ]*/
 /* Tests_SRS_CBS_01_089: [ On success, `cbs_set_trace` shall return 0. ]*/
 TEST_FUNCTION(cbs_set_trace_with_false_succeeds)
 {
@@ -1431,7 +1518,7 @@ TEST_FUNCTION(cbs_set_trace_with_false_succeeds)
     cbs = cbs_create(test_session_handle);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(amqpmanagement_set_trace(test_amqp_management_handle, false));
+    STRICT_EXPECTED_CALL(amqp_management_set_trace(test_amqp_management_handle, false));
 
     // act
     result = cbs_set_trace(cbs, false);
@@ -1464,10 +1551,10 @@ TEST_FUNCTION(cbs_set_trace_with_NULL_handle_fails)
     cbs_destroy(cbs);
 }
 
-/* on_amqp_management_state_changed */
+/* on_amqp_management_open_complete */
 
-/* Tests_SRS_CBS_01_068: [ When `on_amqp_management_state_changed` is called with NULL `context`, it shall do nothing. ]*/
-TEST_FUNCTION(on_amqp_management_state_changed_with_NULL_context_does_nothing)
+/* Tests_SRS_CBS_01_105: [ When `on_amqp_management_open_complete` is called with NULL `context`, it shall do nothing. ]*/
+TEST_FUNCTION(on_amqp_management_open_complete_with_NULL_context_does_nothing)
 {
     // arrange
     CBS_HANDLE cbs;
@@ -1476,7 +1563,7 @@ TEST_FUNCTION(on_amqp_management_state_changed_with_NULL_context_does_nothing)
     umock_c_reset_all_calls();
 
     // act
-    saved_on_amqp_management_state_changed(NULL, AMQP_MANAGEMENT_STATE_OPEN, AMQP_MANAGEMENT_STATE_OPENING);
+    saved_on_amqp_management_open_complete(NULL, AMQP_MANAGEMENT_OPEN_OK);
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
@@ -1485,27 +1572,8 @@ TEST_FUNCTION(on_amqp_management_state_changed_with_NULL_context_does_nothing)
     cbs_destroy(cbs);
 }
 
-/* Tests_SRS_CBS_01_069: [ If there is a transition detected to a new state the following shall be performed: ]*/
-TEST_FUNCTION(on_amqp_management_state_changed_with_no_transition_does_nothing)
-{
-    // arrange
-    CBS_HANDLE cbs;
-    cbs = cbs_create(test_session_handle);
-    (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
-    umock_c_reset_all_calls();
-
-    // act
-    saved_on_amqp_management_state_changed(NULL, AMQP_MANAGEMENT_STATE_OPENING, AMQP_MANAGEMENT_STATE_OPENING);
-
-    // assert
-    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-
-    // cleanup
-    cbs_destroy(cbs);
-}
-
-/* Tests_SRS_CBS_01_070: [ If CBS is opening and the new state is `AMQP_MANAGEMENT_STATE_OPEN` the callback `on_cbs_open_complete` shall be called with `CBS_OPEN_OK` and the `on_cbs_open_complete_context` shall be passed as argument. ]*/
-TEST_FUNCTION(on_amqp_management_state_changed_transition_to_OPEN_when_CBS_is_OPENING_indicates_the_open_complete)
+/* Tests_SRS_CBS_01_106: [ If CBS is OPENING and `open_result` is `AMQP_MANAGEMENT_OPEN_OK` the callback `on_cbs_open_complete` shall be called with `CBS_OPEN_OK` and the `on_cbs_open_complete_context` shall be passed as argument. ]*/
+TEST_FUNCTION(on_amqp_management_open_complete_with_OK_when_CBS_is_OPENING_indicates_the_open_complete)
 {
     // arrange
     CBS_HANDLE cbs;
@@ -1516,7 +1584,7 @@ TEST_FUNCTION(on_amqp_management_state_changed_transition_to_OPEN_when_CBS_is_OP
     STRICT_EXPECTED_CALL(test_on_cbs_open_complete((void*)0x4242, CBS_OPEN_OK));
 
     // act
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_OPEN, AMQP_MANAGEMENT_STATE_OPENING);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
@@ -1525,8 +1593,9 @@ TEST_FUNCTION(on_amqp_management_state_changed_transition_to_OPEN_when_CBS_is_OP
     cbs_destroy(cbs);
 }
 
-/* Tests_SRS_CBS_01_073: [ If CBS is opening and the new state is not `AMQP_MANAGEMENT_STATE_OPEN` the callback `on_cbs_open_complete` shall be called with `CBS_OPEN_ERROR` and the `on_cbs_open_complete_context` shall be passed as argument. ]*/
-TEST_FUNCTION(on_amqp_management_state_changed_transition_to_ERROR_when_CBS_is_OPENING_indicates_the_open_complete)
+/* Tests_SRS_CBS_01_107: [ If CBS is OPENING and `open_result` is `AMQP_MANAGEMENT_OPEN_ERROR` the callback `on_cbs_open_complete` shall be called with `CBS_OPEN_ERROR` and the `on_cbs_open_complete_context` shall be passed as argument. ]*/
+/* Tests_SRS_CBS_01_113: [ When `on_amqp_management_open_complete` reports a failure, the underlying AMQP management shall be closed by calling `amqp_management_close`. ]*/
+TEST_FUNCTION(on_amqp_management_open_complete_with_ERROR_when_CBS_is_OPENING_indicates_the_open_complete)
 {
     // arrange
     CBS_HANDLE cbs;
@@ -1534,10 +1603,11 @@ TEST_FUNCTION(on_amqp_management_state_changed_transition_to_ERROR_when_CBS_is_O
     (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
     umock_c_reset_all_calls();
 
+    STRICT_EXPECTED_CALL(amqp_management_close(test_amqp_management_handle));
     STRICT_EXPECTED_CALL(test_on_cbs_open_complete((void*)0x4242, CBS_OPEN_ERROR));
 
     // act
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_ERROR, AMQP_MANAGEMENT_STATE_OPENING);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_ERROR);
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
@@ -1546,20 +1616,21 @@ TEST_FUNCTION(on_amqp_management_state_changed_transition_to_ERROR_when_CBS_is_O
     cbs_destroy(cbs);
 }
 
-/* Tests_SRS_CBS_01_074: [ If CBS is open and the new state is not `AMQP_MANAGEMENT_STATE_OPEN` the callback `on_cbs_error` shall be called and the `on_cbs_error_context` shall be passed as argument. ]*/
-TEST_FUNCTION(on_amqp_management_state_changed_transition_to_ERROR_when_CBS_is_OPEN_yields_an_error)
+/* Tests_SRS_CBS_01_108: [ If CBS is OPENING and `open_result` is `AMQP_MANAGEMENT_OPEN_CANCELLED` the callback `on_cbs_open_complete` shall be called with `CBS_OPEN_CANCELLED` and the `on_cbs_open_complete_context` shall be passed as argument. ]*/
+/* Tests_SRS_CBS_01_113: [ When `on_amqp_management_open_complete` reports a failure, the underlying AMQP management shall be closed by calling `amqp_management_close`. ]*/
+TEST_FUNCTION(on_amqp_management_open_complete_with_CANCELLED_when_CBS_is_OPENING_indicates_the_open_complete)
 {
     // arrange
     CBS_HANDLE cbs;
     cbs = cbs_create(test_session_handle);
     (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_OPEN, AMQP_MANAGEMENT_STATE_OPENING);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(test_on_cbs_error((void*)0x4243));
+    STRICT_EXPECTED_CALL(amqp_management_close(test_amqp_management_handle));
+    STRICT_EXPECTED_CALL(test_on_cbs_open_complete((void*)0x4242, CBS_OPEN_CANCELLED));
 
     // act
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_ERROR, AMQP_MANAGEMENT_STATE_OPEN);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_CANCELLED);
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
@@ -1568,20 +1639,109 @@ TEST_FUNCTION(on_amqp_management_state_changed_transition_to_ERROR_when_CBS_is_O
     cbs_destroy(cbs);
 }
 
-/* Tests_SRS_CBS_01_074: [ If CBS is open and the new state is not `AMQP_MANAGEMENT_STATE_OPEN` the callback `on_cbs_error` shall be called and the `on_cbs_error_context` shall be passed as argument. ]*/
-TEST_FUNCTION(on_amqp_management_state_changed_transition_to_OPENING_when_CBS_is_OPEN_yields_an_error)
+/* Tests_SRS_CBS_01_109: [ When `on_amqp_management_open_complete` is called when the CBS is OPEN, the callback `on_cbs_error` shall be called and the `on_cbs_error_context` shall be passed as argument. ]*/
+TEST_FUNCTION(on_amqp_management_open_complete_with_OK_when_already_OPEN_triggers_an_error)
 {
     // arrange
     CBS_HANDLE cbs;
     cbs = cbs_create(test_session_handle);
     (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_OPEN, AMQP_MANAGEMENT_STATE_OPENING);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(test_on_cbs_error((void*)0x4243));
 
     // act
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_OPENING, AMQP_MANAGEMENT_STATE_OPEN);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    cbs_destroy(cbs);
+}
+
+/* Tests_SRS_CBS_01_109: [ When `on_amqp_management_open_complete` is called when the CBS is OPEN, the callback `on_cbs_error` shall be called and the `on_cbs_error_context` shall be passed as argument. ]*/
+TEST_FUNCTION(on_amqp_management_open_complete_with_ERROR_when_already_OPEN_triggers_an_error)
+{
+    // arrange
+    CBS_HANDLE cbs;
+    cbs = cbs_create(test_session_handle);
+    (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(test_on_cbs_error((void*)0x4243));
+
+    // act
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_ERROR);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    cbs_destroy(cbs);
+}
+
+/* on_amqp_management_error */
+
+/* Tests_SRS_CBS_01_110: [ When `on_amqp_management_error` is called with NULL `context`, it shall do nothing. ]*/
+TEST_FUNCTION(on_amqp_management_error_with_NULL_context_does_nothing)
+{
+    // arrange
+    CBS_HANDLE cbs;
+    cbs = cbs_create(test_session_handle);
+    (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
+    umock_c_reset_all_calls();
+
+    // act
+    saved_on_amqp_management_error(NULL);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    cbs_destroy(cbs);
+}
+
+/* Tests_SRS_CBS_01_111: [ If CBS is OPENING the callback `on_cbs_open_complete` shall be called with `CBS_OPEN_ERROR` and the `on_cbs_open_complete_context` shall be passed as argument. ]*/
+/* Tests_SRS_CBS_01_114: [ Additionally the underlying AMQP management shall be closed by calling `amqp_management_close`. ]*/
+TEST_FUNCTION(on_amqp_management_error_when_OPENING_indicates_open_complete_with_error)
+{
+    // arrange
+    CBS_HANDLE cbs;
+    cbs = cbs_create(test_session_handle);
+    (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(amqp_management_close(test_amqp_management_handle));
+    STRICT_EXPECTED_CALL(test_on_cbs_open_complete((void*)0x4242, CBS_OPEN_ERROR));
+
+    // act
+    saved_on_amqp_management_error(saved_on_amqp_management_error_context);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    cbs_destroy(cbs);
+}
+
+/* Tests_SRS_CBS_01_112: [ If CBS is OPEN the callback `on_cbs_error` shall be called and the `on_cbs_error_context` shall be passed as argument. ]*/
+TEST_FUNCTION(on_amqp_management_error_when_OPEN_indicates_the_error_up)
+{
+    // arrange
+    CBS_HANDLE cbs;
+    cbs = cbs_create(test_session_handle);
+    (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(test_on_cbs_error((void*)0x4243));
+
+    // act
+    saved_on_amqp_management_error(saved_on_amqp_management_error_context);
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
@@ -1599,12 +1759,12 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_NULL_context_does_nothi
     CBS_HANDLE cbs;
     cbs = cbs_create(test_session_handle);
     (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_OPEN, AMQP_MANAGEMENT_STATE_OPENING);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
     (void)cbs_put_token_async(cbs, "some_type", "my_audience", "my_token", test_on_cbs_put_token_complete, (void*)0x4244);
     umock_c_reset_all_calls();
 
     // act
-    saved_on_operation_complete(NULL, OPERATION_RESULT_OK, 200, "blah");
+    saved_on_execute_operation_complete(NULL, AMQP_MANAGEMENT_EXECUTE_OPERATION_OK, 200, "blah");
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
@@ -1620,7 +1780,7 @@ TEST_FUNCTION(when_singlylinkedlist_item_get_value_fails_then_on_amqp_management
     CBS_HANDLE cbs;
     cbs = cbs_create(test_session_handle);
     (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_OPEN, AMQP_MANAGEMENT_STATE_OPENING);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
     (void)cbs_put_token_async(cbs, "some_type", "my_audience", "my_token", test_on_cbs_put_token_complete, (void*)0x4244);
     umock_c_reset_all_calls();
 
@@ -1628,7 +1788,7 @@ TEST_FUNCTION(when_singlylinkedlist_item_get_value_fails_then_on_amqp_management
         .SetReturn(NULL);
 
     // act
-    saved_on_operation_complete(saved_on_operation_complete_context, OPERATION_RESULT_OK, 200, "blah");
+    saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_OK, 200, "blah");
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
@@ -1637,7 +1797,7 @@ TEST_FUNCTION(when_singlylinkedlist_item_get_value_fails_then_on_amqp_management
     cbs_destroy(cbs);
 }
 
-/* Tests_SRS_CBS_01_092: [ When `on_amqp_management_operation_complete` is called with `OPERATION_RESULT_OK`, the associated cbs operation complete callback shall be called with `CBS_OPERATION_RESULT_OK` and passing the `on_cbs_put_token_complete_context` as the context argument. ]*/
+/* Tests_SRS_CBS_01_092: [ When `on_amqp_management_operation_complete` is called with `AMQP_MANAGEMENT_EXECUTE_OPERATION_OK`, the associated cbs operation complete callback shall be called with `CBS_OPERATION_RESULT_OK` and passing the `on_cbs_put_token_complete_context` as the context argument. ]*/
 /* Tests_SRS_CBS_01_095: [ `status_code` and `status_description` shall be passed as they are to the cbs operation complete callback. ]*/
 /* Tests_SRS_CBS_01_103: [ The `context` shall be used to obtain the pending operation information stored in the pending operations linked list by calling `singlylinkedlist_item_get_value`. ]*/
 /* Tests_SRS_CBS_01_102: [ The pending operation shall be removed from the pending operations list by calling `singlylinkedlist_remove`. ]*/
@@ -1652,7 +1812,7 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_OK_triggers_the_cbs_ope
     CBS_HANDLE cbs;
     cbs = cbs_create(test_session_handle);
     (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_OPEN, AMQP_MANAGEMENT_STATE_OPENING);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
     (void)cbs_put_token_async(cbs, "some_type", "my_audience", "my_token", test_on_cbs_put_token_complete, (void*)0x4244);
     umock_c_reset_all_calls();
 
@@ -1662,7 +1822,7 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_OK_triggers_the_cbs_ope
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
-    saved_on_operation_complete(saved_on_operation_complete_context, OPERATION_RESULT_OK, 200, "blah");
+    saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_OK, 200, "blah");
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
@@ -1671,7 +1831,7 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_OK_triggers_the_cbs_ope
     cbs_destroy(cbs);
 }
 
-/* Tests_SRS_CBS_01_093: [ When `on_amqp_management_operation_complete` is called with `OPERATION_RESULT_ERROR`, the associated cbs operation complete callback shall be called with `CBS_OPERATION_RESULT_CBS_ERROR` and passing the `on_cbs_put_token_complete_context` as the context argument. ]*/
+/* Tests_SRS_CBS_01_093: [ When `on_amqp_management_operation_complete` is called with `AMQP_MANAGEMENT_EXECUTE_OPERATION_ERROR`, the associated cbs operation complete callback shall be called with `CBS_OPERATION_RESULT_CBS_ERROR` and passing the `on_cbs_put_token_complete_context` as the context argument. ]*/
 /* Tests_SRS_CBS_01_095: [ `status_code` and `status_description` shall be passed as they are to the cbs operation complete callback. ]*/
 /* Tests_SRS_CBS_01_103: [ The `context` shall be used to obtain the pending operation information stored in the pending operations linked list by calling `singlylinkedlist_item_get_value`. ]*/
 /* Tests_SRS_CBS_01_102: [ The pending operation shall be removed from the pending operations list by calling `singlylinkedlist_remove`. ]*/
@@ -1682,7 +1842,7 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_ERROR_triggers_the_cbs_
     CBS_HANDLE cbs;
     cbs = cbs_create(test_session_handle);
     (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_OPEN, AMQP_MANAGEMENT_STATE_OPENING);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
     (void)cbs_put_token_async(cbs, "some_type", "my_audience", "my_token", test_on_cbs_put_token_complete, (void*)0x4244);
     umock_c_reset_all_calls();
 
@@ -1692,7 +1852,7 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_ERROR_triggers_the_cbs_
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
-    saved_on_operation_complete(saved_on_operation_complete_context, OPERATION_RESULT_ERROR, 401, "blah");
+    saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_ERROR, 401, "blah");
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
@@ -1701,7 +1861,7 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_ERROR_triggers_the_cbs_
     cbs_destroy(cbs);
 }
 
-/* Tests_SRS_CBS_01_094: [ When `on_amqp_management_operation_complete` is called with `OPERATION_RESULT_OPERATION_FAILED`, the associated cbs operation complete callback shall be called with `CBS_OPERATION_RESULT_OPERATION_FAILED` and passing the `on_cbs_put_token_complete_context` as the context argument. ]*/
+/* Tests_SRS_CBS_01_094: [ When `on_amqp_management_operation_complete` is called with `AMQP_MANAGEMENT_EXECUTE_OPERATION_FAILED_BAD_STATUS`, the associated cbs operation complete callback shall be called with `CBS_OPERATION_RESULT_OPERATION_FAILED` and passing the `on_cbs_put_token_complete_context` as the context argument. ]*/
 /* Tests_SRS_CBS_01_095: [ `status_code` and `status_description` shall be passed as they are to the cbs operation complete callback. ]*/
 /* Tests_SRS_CBS_01_103: [ The `context` shall be used to obtain the pending operation information stored in the pending operations linked list by calling `singlylinkedlist_item_get_value`. ]*/
 /* Tests_SRS_CBS_01_102: [ The pending operation shall be removed from the pending operations list by calling `singlylinkedlist_remove`. ]*/
@@ -1712,7 +1872,7 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_OPERATION_FAILED_trigge
     CBS_HANDLE cbs;
     cbs = cbs_create(test_session_handle);
     (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_OPEN, AMQP_MANAGEMENT_STATE_OPENING);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
     (void)cbs_put_token_async(cbs, "some_type", "my_audience", "my_token", test_on_cbs_put_token_complete, (void*)0x4244);
     umock_c_reset_all_calls();
 
@@ -1722,7 +1882,7 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_OPERATION_FAILED_trigge
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
-    saved_on_operation_complete(saved_on_operation_complete_context, OPERATION_RESULT_OPERATION_FAILED, 0, "blah");
+    saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_FAILED_BAD_STATUS, 0, "blah");
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
@@ -1731,7 +1891,7 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_OPERATION_FAILED_trigge
     cbs_destroy(cbs);
 }
 
-/* Tests_SRS_CBS_01_092: [ When `on_amqp_management_operation_complete` is called with `OPERATION_RESULT_OK`, the associated cbs operation complete callback shall be called with `CBS_OPERATION_RESULT_OK` and passing the `on_cbs_put_token_complete_context` as the context argument. ]*/
+/* Tests_SRS_CBS_01_092: [ When `on_amqp_management_operation_complete` is called with `AMQP_MANAGEMENT_EXECUTE_OPERATION_OK`, the associated cbs operation complete callback shall be called with `CBS_OPERATION_RESULT_OK` and passing the `on_cbs_put_token_complete_context` as the context argument. ]*/
 /* Tests_SRS_CBS_01_095: [ `status_code` and `status_description` shall be passed as they are to the cbs operation complete callback. ]*/
 /* Tests_SRS_CBS_01_103: [ The `context` shall be used to obtain the pending operation information stored in the pending operations linked list by calling `singlylinkedlist_item_get_value`. ]*/
 /* Tests_SRS_CBS_01_102: [ The pending operation shall be removed from the pending operations list by calling `singlylinkedlist_remove`. ]*/
@@ -1746,7 +1906,7 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_OK_for_delete_token_tri
     CBS_HANDLE cbs;
     cbs = cbs_create(test_session_handle);
     (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_OPEN, AMQP_MANAGEMENT_STATE_OPENING);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
     (void)cbs_delete_token_async(cbs, "some_type", "my_audience", test_on_cbs_delete_token_complete, (void*)0x4244);
     umock_c_reset_all_calls();
 
@@ -1756,7 +1916,7 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_OK_for_delete_token_tri
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
-    saved_on_operation_complete(saved_on_operation_complete_context, OPERATION_RESULT_OK, 200, "blah");
+    saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_OK, 200, "blah");
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
@@ -1765,7 +1925,7 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_OK_for_delete_token_tri
     cbs_destroy(cbs);
 }
 
-/* Tests_SRS_CBS_01_093: [ When `on_amqp_management_operation_complete` is called with `OPERATION_RESULT_ERROR`, the associated cbs operation complete callback shall be called with `CBS_OPERATION_RESULT_CBS_ERROR` and passing the `on_cbs_put_token_complete_context` as the context argument. ]*/
+/* Tests_SRS_CBS_01_093: [ When `on_amqp_management_operation_complete` is called with `AMQP_MANAGEMENT_EXECUTE_OPERATION_ERROR`, the associated cbs operation complete callback shall be called with `CBS_OPERATION_RESULT_CBS_ERROR` and passing the `on_cbs_put_token_complete_context` as the context argument. ]*/
 /* Tests_SRS_CBS_01_095: [ `status_code` and `status_description` shall be passed as they are to the cbs operation complete callback. ]*/
 /* Tests_SRS_CBS_01_103: [ The `context` shall be used to obtain the pending operation information stored in the pending operations linked list by calling `singlylinkedlist_item_get_value`. ]*/
 /* Tests_SRS_CBS_01_102: [ The pending operation shall be removed from the pending operations list by calling `singlylinkedlist_remove`. ]*/
@@ -1776,7 +1936,7 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_ERROR_for_delete_token_
     CBS_HANDLE cbs;
     cbs = cbs_create(test_session_handle);
     (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_OPEN, AMQP_MANAGEMENT_STATE_OPENING);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
     (void)cbs_delete_token_async(cbs, "some_type", "my_audience", test_on_cbs_delete_token_complete, (void*)0x4244);
     umock_c_reset_all_calls();
 
@@ -1786,7 +1946,7 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_ERROR_for_delete_token_
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
-    saved_on_operation_complete(saved_on_operation_complete_context, OPERATION_RESULT_ERROR, 401, "blah");
+    saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_ERROR, 401, "blah");
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
@@ -1795,7 +1955,7 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_ERROR_for_delete_token_
     cbs_destroy(cbs);
 }
 
-/* Tests_SRS_CBS_01_094: [ When `on_amqp_management_operation_complete` is called with `OPERATION_RESULT_OPERATION_FAILED`, the associated cbs operation complete callback shall be called with `CBS_OPERATION_RESULT_OPERATION_FAILED` and passing the `on_cbs_put_token_complete_context` as the context argument. ]*/
+/* Tests_SRS_CBS_01_094: [ When `on_amqp_management_operation_complete` is called with `AMQP_MANAGEMENT_EXECUTE_OPERATION_FAILED_BAD_STATUS`, the associated cbs operation complete callback shall be called with `CBS_OPERATION_RESULT_OPERATION_FAILED` and passing the `on_cbs_put_token_complete_context` as the context argument. ]*/
 /* Tests_SRS_CBS_01_095: [ `status_code` and `status_description` shall be passed as they are to the cbs operation complete callback. ]*/
 /* Tests_SRS_CBS_01_103: [ The `context` shall be used to obtain the pending operation information stored in the pending operations linked list by calling `singlylinkedlist_item_get_value`. ]*/
 /* Tests_SRS_CBS_01_102: [ The pending operation shall be removed from the pending operations list by calling `singlylinkedlist_remove`. ]*/
@@ -1806,7 +1966,7 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_OPERATION_FAILED_for_de
     CBS_HANDLE cbs;
     cbs = cbs_create(test_session_handle);
     (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
-    saved_on_amqp_management_state_changed(saved_on_amqp_management_state_changed_context, AMQP_MANAGEMENT_STATE_OPEN, AMQP_MANAGEMENT_STATE_OPENING);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
     (void)cbs_delete_token_async(cbs, "some_type", "my_audience", test_on_cbs_delete_token_complete, (void*)0x4244);
     umock_c_reset_all_calls();
 
@@ -1816,7 +1976,7 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_OPERATION_FAILED_for_de
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
-    saved_on_operation_complete(saved_on_operation_complete_context, OPERATION_RESULT_OPERATION_FAILED, 0, "blah");
+    saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_FAILED_BAD_STATUS, 0, "blah");
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());

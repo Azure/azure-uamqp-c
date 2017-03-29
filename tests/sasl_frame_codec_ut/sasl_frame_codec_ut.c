@@ -387,8 +387,7 @@ TEST_FUNCTION(sasl_frame_codec_create_with_valid_args_succeeds)
     SASL_FRAME_CODEC_HANDLE sasl_frame_codec;
 	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 	EXPECTED_CALL(amqpvalue_decoder_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-	STRICT_EXPECTED_CALL(frame_codec_subscribe(TEST_FRAME_CODEC_HANDLE, FRAME_TYPE_SASL, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(3).IgnoreArgument(4);
+	STRICT_EXPECTED_CALL(frame_codec_subscribe(TEST_FRAME_CODEC_HANDLE, FRAME_TYPE_SASL, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
 
 	// act
 	sasl_frame_codec = sasl_frame_codec_create(TEST_FRAME_CODEC_HANDLE, test_on_sasl_frame_received, test_on_sasl_frame_codec_error, TEST_CONTEXT);
@@ -410,8 +409,7 @@ TEST_FUNCTION(sasl_frame_codec_create_with_valid_args_and_NULL_context_succeeds)
     SASL_FRAME_CODEC_HANDLE sasl_frame_codec;
 	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 	EXPECTED_CALL(amqpvalue_decoder_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-	STRICT_EXPECTED_CALL(frame_codec_subscribe(TEST_FRAME_CODEC_HANDLE, FRAME_TYPE_SASL, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(3).IgnoreArgument(4);
+	STRICT_EXPECTED_CALL(frame_codec_subscribe(TEST_FRAME_CODEC_HANDLE, FRAME_TYPE_SASL, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
 
 	// act
 	sasl_frame_codec = sasl_frame_codec_create(TEST_FRAME_CODEC_HANDLE, test_on_sasl_frame_received, test_on_sasl_frame_codec_error, NULL);
@@ -471,7 +469,6 @@ TEST_FUNCTION(when_frame_codec_subscribe_fails_then_sasl_frame_codec_create_fail
 	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 	EXPECTED_CALL(amqpvalue_decoder_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
 	STRICT_EXPECTED_CALL(frame_codec_subscribe(TEST_FRAME_CODEC_HANDLE, FRAME_TYPE_SASL, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.IgnoreArgument(3).IgnoreArgument(4)
 		.SetReturn(1);
 
 	STRICT_EXPECTED_CALL(amqpvalue_decoder_destroy(TEST_DECODER_HANDLE));
@@ -599,8 +596,7 @@ TEST_FUNCTION(encoding_a_sasl_frame_succeeds)
     payload.length = test_encoded_bytes_size;
 
 	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE));
-	STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG))
-		.IgnoreArgument(2);
+	STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG));
 	STRICT_EXPECTED_CALL(amqpvalue_get_encoded_size(TEST_AMQP_VALUE, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &sasl_frame_value_size, sizeof(sasl_frame_value_size));
 	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
@@ -684,7 +680,6 @@ TEST_FUNCTION(when_amqpvalue_get_ulong_fails_then_sasl_frame_codec_encode_frame_
 
 	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE));
 	STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
 		.SetReturn(1);
 
 	// act
@@ -707,10 +702,8 @@ TEST_FUNCTION(when_amqpvalue_get_encoded_size_fails_then_sasl_frame_codec_encode
 	umock_c_reset_all_calls();
 
 	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE));
-	STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG))
-		.IgnoreArgument(2);
+	STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG));
 	STRICT_EXPECTED_CALL(amqpvalue_get_encoded_size(TEST_AMQP_VALUE, IGNORED_PTR_ARG))
-		.IgnoreArgument(2)
 		.SetReturn(1);
 
 	// act
@@ -734,8 +727,7 @@ TEST_FUNCTION(when_amqpvalue_encode_fails_then_sasl_frame_codec_encode_frame_fai
     umock_c_reset_all_calls();
 
 	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE));
-	STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG))
-		.IgnoreArgument(2);
+	STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG));
 	STRICT_EXPECTED_CALL(amqpvalue_get_encoded_size(TEST_AMQP_VALUE, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &sasl_frame_value_size, sizeof(sasl_frame_value_size));
 	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
@@ -768,8 +760,7 @@ TEST_FUNCTION(when_frame_codec_encode_frame_fails_then_sasl_frame_codec_encode_f
     payload.bytes = test_encoded_bytes;
     payload.length = test_encoded_bytes_size;
 	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE));
-	STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG))
-		.IgnoreArgument(2);
+	STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG));
 	STRICT_EXPECTED_CALL(amqpvalue_get_encoded_size(TEST_AMQP_VALUE, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &sasl_frame_value_size, sizeof(sasl_frame_value_size));
 	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
@@ -804,8 +795,7 @@ TEST_FUNCTION(when_allocating_memory_for_the_encoded_sasl_value_fails_then_sasl_
     payload.length = test_encoded_bytes_size;
 
 	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE));
-	STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG))
-		.IgnoreArgument(2);
+	STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG));
 	STRICT_EXPECTED_CALL(amqpvalue_get_encoded_size(TEST_AMQP_VALUE, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &sasl_frame_value_size, sizeof(sasl_frame_value_size));
 	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
@@ -851,8 +841,7 @@ TEST_FUNCTION(when_encoding_a_sasl_frame_value_that_makes_the_frame_be_the_max_s
 
 	sasl_frame_value_size = test_encoded_bytes_size;
 	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE));
-	STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG))
-		.IgnoreArgument(2);
+	STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG));
 	STRICT_EXPECTED_CALL(amqpvalue_get_encoded_size(TEST_AMQP_VALUE, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &sasl_frame_value_size, sizeof(sasl_frame_value_size));
 	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
@@ -890,8 +879,7 @@ TEST_FUNCTION(when_encoding_a_sasl_frame_value_that_makes_the_frame_exceed_the_a
 	test_encoded_bytes_size = sizeof(encoded_bytes);
 	sasl_frame_value_size = test_encoded_bytes_size;
 	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE));
-	STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG))
-		.IgnoreArgument(2);
+	STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG));
 	STRICT_EXPECTED_CALL(amqpvalue_get_encoded_size(TEST_AMQP_VALUE, IGNORED_PTR_ARG))
 		.CopyOutArgumentBuffer(2, &sasl_frame_value_size, sizeof(sasl_frame_value_size));
 

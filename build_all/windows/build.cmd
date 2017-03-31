@@ -131,15 +131,15 @@ if %MAKE_NUGET_PKG% == yes (
     
 ) else if %build-platform% == Win32 (
     echo ***Running CMAKE for Win32***   
-    cmake %build-root% -Drun_unittests:BOOL=ON 
+    cmake %build-root% -Drun_unittests:BOOL=ON -Drun_e2e_tests:BOOL=ON 
     if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
 ) else if %build-platform% == arm (
     echo ***Running CMAKE for ARM***
-    cmake %build-root% -Drun_unittests:BOOL=ON -G "Visual Studio 14 ARM" 
+    cmake %build-root% -Drun_unittests:BOOL=ON -Drun_e2e_tests:BOOL=ON -G "Visual Studio 14 ARM" 
     if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
 ) else (
     echo ***Running CMAKE for Win64***    
-    cmake %build-root% -Drun_unittests:BOOL=ON -G "Visual Studio 14 Win64" 
+    cmake %build-root% -Drun_unittests:BOOL=ON -Drun_e2e_tests:BOOL=ON -G "Visual Studio 14 Win64" 
     if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
 )
 

@@ -683,7 +683,8 @@ SESSION_HANDLE session_create_from_endpoint(CONNECTION_HANDLE connection, ENDPOI
 
 			result->next_outgoing_id = 0;
 
-			result->incoming_window = 1;
+            result->desired_incoming_window = 1;
+            result->incoming_window = 1;
 			result->outgoing_window = 1;
 			result->handle_max = 4294967295u;
 			result->remote_incoming_window = 0;

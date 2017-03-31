@@ -202,8 +202,13 @@ if(WIN32)
     set(socketlistener_c_files
         ./src/socket_listener_win32.c
     )
+elseif(LINUX)
+    set(socketlistener_c_files
+        ./src/socket_listener_berkeley.c
+    )
 else()
-    set(socketlistener_c_files)
+    set(socketlistener_c_files
+    )
 endif()
 
 add_library(uamqp

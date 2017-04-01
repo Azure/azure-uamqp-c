@@ -18,4 +18,5 @@ add_subdirectory(saslclientio_ut)
 
 if(${run_e2e_tests})
 	add_subdirectory(local_client_server_tcp_e2e)
+	add_subdirectory(iothub_e2e)
 endif()

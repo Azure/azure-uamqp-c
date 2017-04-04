@@ -26,6 +26,22 @@ static TEST_MUTEX_HANDLE g_dllByDll;
 
 #define TEST_TIMEOUT 30 // seconds
 
+static int generate_port_number(void)
+{
+    int port_number;
+    const char* comp_time = __TIME__;
+    int comp_secs = 10 * (comp_time[6] - '0') + (comp_time[7] - '0');
+    int comp_mins = 10 * (comp_time[3] - '0') + (comp_time[4] - '0');
+    int comp_hours = 10 * (comp_time[0] - '0') + (comp_time[1] - '0');
+
+    port_number = 5672 + (int)(5000 * (double)rand() / RAND_MAX) + comp_hours + comp_mins + comp_secs; // pseudo random number.
+
+    LogInfo("Generated port number: %d", port_number);
+
+    return port_number;
+}
+
+
 BEGIN_TEST_SUITE(local_client_server_tcp_e2e)
 
 TEST_SUITE_INITIALIZE(suite_init)
@@ -38,6 +54,8 @@ TEST_SUITE_INITIALIZE(suite_init)
 
     result = platform_init();
     ASSERT_ARE_EQUAL_WITH_MSG(int, 0, result, "platform_init failed");
+
+    srand((unsigned int)time(NULL));
 }
 
 TEST_SUITE_CLEANUP(suite_cleanup)
@@ -146,8 +164,9 @@ static void on_socket_accepted(void* context, XIO_HANDLE io)
 TEST_FUNCTION(client_and_server_connect_and_send_one_message_settled)
 {
     // arrange
+    int port_number = generate_port_number();
     SERVER_INSTANCE server_instance;
-    SOCKET_LISTENER_HANDLE socket_listener = socketlistener_create(5672);
+    SOCKET_LISTENER_HANDLE socket_listener = socketlistener_create(port_number);
     int result;
     XIO_HANDLE socket_io;
     CONNECTION_HANDLE client_connection;
@@ -173,7 +192,8 @@ TEST_FUNCTION(client_and_server_connect_and_send_one_message_settled)
     ASSERT_ARE_EQUAL_WITH_MSG(int, 0, result, "socketlistener_start failed");
 
     // start the client
-    SOCKETIO_CONFIG socketio_config = { "localhost", 5672, NULL };
+    SOCKETIO_CONFIG socketio_config = { "localhost", 0, NULL };
+    socketio_config.port = port_number;
     socket_io = xio_create(socketio_get_interface_description(), &socketio_config);
     ASSERT_IS_NOT_NULL_WITH_MSG(socket_io, "Could not create socket IO");
 
@@ -256,8 +276,9 @@ TEST_FUNCTION(client_and_server_connect_and_send_one_message_settled)
 TEST_FUNCTION(client_and_server_connect_and_send_one_message_unsettled)
 {
     // arrange
+    int port_number = generate_port_number();
     SERVER_INSTANCE server_instance;
-    SOCKET_LISTENER_HANDLE socket_listener = socketlistener_create(5672);
+    SOCKET_LISTENER_HANDLE socket_listener = socketlistener_create(port_number);
     int result;
     XIO_HANDLE socket_io;
     CONNECTION_HANDLE client_connection;
@@ -283,7 +304,8 @@ TEST_FUNCTION(client_and_server_connect_and_send_one_message_unsettled)
     ASSERT_ARE_EQUAL_WITH_MSG(int, 0, result, "socketlistener_start failed");
 
     // start the client
-    SOCKETIO_CONFIG socketio_config = { "localhost", 5672, NULL };
+    SOCKETIO_CONFIG socketio_config = { "localhost", 0, NULL };
+    socketio_config.port = port_number;
     socket_io = xio_create(socketio_get_interface_description(), &socketio_config);
     ASSERT_IS_NOT_NULL_WITH_MSG(socket_io, "Could not create socket IO");
 

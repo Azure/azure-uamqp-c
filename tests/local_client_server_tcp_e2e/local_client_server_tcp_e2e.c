@@ -26,15 +26,33 @@ static TEST_MUTEX_HANDLE g_dllByDll;
 
 #define TEST_TIMEOUT 30 // seconds
 
-static int generate_port_number(void)
+static int g_port_number;
+
+extern void set_port_number(const char* seed)
 {
-    int port_number;
+    if (seed == NULL)
+    {
+        g_port_number = 5672;
+    }
+    else
+    {
+        int hash = 0;
 
-    port_number = 5672 + (int)(5000 * (double)rand() / RAND_MAX); // pseudo random number.
+        // Walking through the string and hashing it to an integer.
+        while (*seed != '\0')
+        {
+            if (*seed >= '0')
+            {
+                hash += (int)(*seed - '0');
+            }
 
-    LogInfo("Generated port number: %d", port_number);
+            seed++;
+        }
 
-    return port_number;
+        g_port_number = 5672 + hash;
+    }
+
+    LogInfo("Server port number set to %d", g_port_number);
 }
 
 
@@ -50,8 +68,6 @@ TEST_SUITE_INITIALIZE(suite_init)
 
     result = platform_init();
     ASSERT_ARE_EQUAL_WITH_MSG(int, 0, result, "platform_init failed");
-
-    srand((unsigned int)time(NULL));
 }
 
 TEST_SUITE_CLEANUP(suite_cleanup)
@@ -160,9 +176,8 @@ static void on_socket_accepted(void* context, XIO_HANDLE io)
 TEST_FUNCTION(client_and_server_connect_and_send_one_message_settled)
 {
     // arrange
-    int port_number = generate_port_number();
     SERVER_INSTANCE server_instance;
-    SOCKET_LISTENER_HANDLE socket_listener = socketlistener_create(port_number);
+    SOCKET_LISTENER_HANDLE socket_listener = socketlistener_create(g_port_number);
     int result;
     XIO_HANDLE socket_io;
     CONNECTION_HANDLE client_connection;
@@ -189,7 +204,7 @@ TEST_FUNCTION(client_and_server_connect_and_send_one_message_settled)
 
     // start the client
     SOCKETIO_CONFIG socketio_config = { "localhost", 0, NULL };
-    socketio_config.port = port_number;
+    socketio_config.port = g_port_number;
     socket_io = xio_create(socketio_get_interface_description(), &socketio_config);
     ASSERT_IS_NOT_NULL_WITH_MSG(socket_io, "Could not create socket IO");
 
@@ -272,9 +287,8 @@ TEST_FUNCTION(client_and_server_connect_and_send_one_message_settled)
 TEST_FUNCTION(client_and_server_connect_and_send_one_message_unsettled)
 {
     // arrange
-    int port_number = generate_port_number();
     SERVER_INSTANCE server_instance;
-    SOCKET_LISTENER_HANDLE socket_listener = socketlistener_create(port_number);
+    SOCKET_LISTENER_HANDLE socket_listener = socketlistener_create(g_port_number);
     int result;
     XIO_HANDLE socket_io;
     CONNECTION_HANDLE client_connection;
@@ -301,7 +315,7 @@ TEST_FUNCTION(client_and_server_connect_and_send_one_message_unsettled)
 
     // start the client
     SOCKETIO_CONFIG socketio_config = { "localhost", 0, NULL };
-    socketio_config.port = port_number;
+    socketio_config.port = g_port_number;
     socket_io = xio_create(socketio_get_interface_description(), &socketio_config);
     ASSERT_IS_NOT_NULL_WITH_MSG(socket_io, "Could not create socket IO");
 

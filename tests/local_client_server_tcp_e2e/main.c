@@ -3,13 +3,8 @@
 
 #include "testrunnerswitcher.h"
 
-extern void set_port_number(const char* seed);
-
-int main(int argc, char** argv)
+int main(void)
 {
-    (void)argc;
-    set_port_number(argv[0]);
-
     size_t failedTestCount = 0;
     RUN_TEST_SUITE(local_client_server_tcp_e2e, failedTestCount);
     return failedTestCount;

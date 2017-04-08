@@ -2674,6 +2674,60 @@ static int encode_long(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, i
 	return result;
 }
 
+static int encode_float(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, float value)
+{
+    int result;
+
+    uint32_t value_as_uint32 = *((uint32_t*)(void*)&value);
+    /* Codes_SRS_AMQPVALUE_01_289: [\<encoding name="ieee-754" code="0x72" category="fixed" width="4" label="IEEE 754-2008 binary32"/>] */
+    if ((output_byte(encoder_output, context, 0x72) != 0) ||
+        (output_byte(encoder_output, context, (value_as_uint32 >> 24) & 0xFF) != 0) ||
+        (output_byte(encoder_output, context, (value_as_uint32 >> 16) & 0xFF) != 0) ||
+        (output_byte(encoder_output, context, (value_as_uint32 >> 8) & 0xFF) != 0) ||
+        (output_byte(encoder_output, context, (value_as_uint32) & 0xFF) != 0))
+    {
+        /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+        LogError("Failure encoding bytes for float");
+        result = __FAILURE__;
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+        result = 0;
+    }
+
+    return result;
+}
+
+static int encode_double(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, double value)
+{
+    int result;
+
+    uint64_t value_as_uint64 = *((uint64_t*)(void*)&value);
+    /* Codes_SRS_AMQPVALUE_01_290: [\<encoding name="ieee-754" code="0x82" category="fixed" width="8" label="IEEE 754-2008 binary64"/>] */
+    if ((output_byte(encoder_output, context, 0x82) != 0) ||
+        (output_byte(encoder_output, context, (value_as_uint64 >> 56) & 0xFF) != 0) ||
+        (output_byte(encoder_output, context, (value_as_uint64 >> 48) & 0xFF) != 0) ||
+        (output_byte(encoder_output, context, (value_as_uint64 >> 40) & 0xFF) != 0) ||
+        (output_byte(encoder_output, context, (value_as_uint64 >> 32) & 0xFF) != 0) ||
+        (output_byte(encoder_output, context, (value_as_uint64 >> 24) & 0xFF) != 0) ||
+        (output_byte(encoder_output, context, (value_as_uint64 >> 16) & 0xFF) != 0) ||
+        (output_byte(encoder_output, context, (value_as_uint64 >> 8) & 0xFF) != 0) ||
+        (output_byte(encoder_output, context, (value_as_uint64) & 0xFF) != 0))
+    {
+        /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+        LogError("Failure encoding bytes for double");
+        result = __FAILURE__;
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+        result = 0;
+    }
+
+    return result;
+}
+
 static int encode_timestamp(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, int64_t value)
 {
 	int result;
@@ -3180,6 +3234,14 @@ int amqpvalue_encode(AMQP_VALUE value, AMQPVALUE_ENCODER_OUTPUT encoder_output, 
 			result = encode_long(encoder_output, context, value_data->value.long_value);
 			break;
 
+        case AMQP_TYPE_FLOAT:
+            result = encode_float(encoder_output, context, value_data->value.float_value);
+            break;
+
+        case AMQP_TYPE_DOUBLE:
+            result = encode_double(encoder_output, context, value_data->value.double_value);
+            break;
+
 		case AMQP_TYPE_TIMESTAMP:
 			result = encode_timestamp(encoder_output, context, value_data->value.timestamp_value);
 			break;
@@ -3664,7 +3726,33 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 					result = 0;
 					break;
 				}
-				/* Codes_SRS_AMQPVALUE_01_369: [<encoding name="ms64" code="0x83" category="fixed" width="8" label="64-bit two's-complement integer representing milliseconds since the unix epoch"/>] */
+                /* Codes_SRS_AMQPVALUE_01_289: [\<encoding name="ieee-754" code="0x72" category="fixed" width="4" label="IEEE 754-2008 binary32"/>] */
+                case 0x72:
+                {
+                    /* Codes_SRS_AMQPVALUE_01_019: [1.6.11 float 32-bit floating point number (IEEE 754-2008 binary32).] */
+                    internal_decoder_data->decode_to_value->type = AMQP_TYPE_FLOAT;
+                    internal_decoder_data->decoder_state = DECODER_STATE_TYPE_DATA;
+                    internal_decoder_data->bytes_decoded = 0;
+                    *((uint32_t*)&internal_decoder_data->decode_to_value->value.float_value) = 0;
+
+                    /* Codes_SRS_AMQPVALUE_01_327: [If not enough bytes have accumulated to decode a value, the on_value_decoded shall not be called.] */
+                    result = 0;
+                    break;
+                }
+                /* Codes_SRS_AMQPVALUE_01_290: [\<encoding name="ieee-754" code="0x82" category="fixed" width="8" label="IEEE 754-2008 binary64"/>] */
+                case 0x82:
+                {
+                    /* Codes_SRS_AMQPVALUE_01_020: [1.6.12 double 64-bit floating point number (IEEE 754-2008 binary64).] */
+                    internal_decoder_data->decode_to_value->type = AMQP_TYPE_DOUBLE;
+                    internal_decoder_data->decoder_state = DECODER_STATE_TYPE_DATA;
+                    internal_decoder_data->bytes_decoded = 0;
+                    *((uint64_t*)&internal_decoder_data->decode_to_value->value.double_value) = 0;
+
+                    /* Codes_SRS_AMQPVALUE_01_327: [If not enough bytes have accumulated to decode a value, the on_value_decoded shall not be called.] */
+                    result = 0;
+                    break;
+                }
+                /* Codes_SRS_AMQPVALUE_01_369: [<encoding name="ms64" code="0x83" category="fixed" width="8" label="64-bit two's-complement integer representing milliseconds since the unix epoch"/>] */
 				case 0x83:
 				{
 					/* Codes_SRS_AMQPVALUE_01_368: [1.6.17 timestamp An absolute point in time.] */
@@ -4131,7 +4219,51 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 					result = 0;
 					break;
 				}
-				/* Codes_SRS_AMQPVALUE_01_369: [<encoding name="ms64" code="0x83" category="fixed" width="8" label="64-bit two's-complement integer representing milliseconds since the unix epoch"/>] */
+                /* Codes_SRS_AMQPVALUE_01_289: [\<encoding name="ieee-754" code="0x72" category="fixed" width="4" label="IEEE 754-2008 binary32"/>] */
+                case 0x72:
+                {
+                    *((uint32_t*)&internal_decoder_data->decode_to_value->value.float_value) += ((uint32_t)buffer[0]) << ((3 - internal_decoder_data->bytes_decoded) * 8);
+                    internal_decoder_data->bytes_decoded++;
+                    buffer++;
+                    size--;
+
+                    /* Codes_SRS_AMQPVALUE_01_327: [If not enough bytes have accumulated to decode a value, the on_value_decoded shall not be called.] */
+                    if (internal_decoder_data->bytes_decoded == 4)
+                    {
+                        internal_decoder_data->decoder_state = DECODER_STATE_CONSTRUCTOR;
+
+                        /* Codes_SRS_AMQPVALUE_01_323: [When enough bytes have been processed for a valid amqp value, the on_value_decoded passed in amqpvalue_decoder_create shall be called.] */
+                        /* Codes_SRS_AMQPVALUE_01_324: [The decoded amqp value shall be passed to on_value_decoded.] */
+                        /* Codes_SRS_AMQPVALUE_01_325: [Also the context stored in amqpvalue_decoder_create shall be passed to the on_value_decoded callback.] */
+                        internal_decoder_data->on_value_decoded(internal_decoder_data->on_value_decoded_context, internal_decoder_data->decode_to_value);
+                    }
+
+                    result = 0;
+                    break;
+                }
+                /* Codes_SRS_AMQPVALUE_01_290: [\<encoding name="ieee-754" code="0x82" category="fixed" width="8" label="IEEE 754-2008 binary64"/>]*/
+                case 0x82:
+                {
+                    *((uint64_t*)&internal_decoder_data->decode_to_value->value.double_value) += ((uint64_t)buffer[0]) << ((7 - internal_decoder_data->bytes_decoded) * 8);
+                    internal_decoder_data->bytes_decoded++;
+                    buffer++;
+                    size--;
+
+                    /* Codes_SRS_AMQPVALUE_01_327: [If not enough bytes have accumulated to decode a value, the on_value_decoded shall not be called.] */
+                    if (internal_decoder_data->bytes_decoded == 8)
+                    {
+                        internal_decoder_data->decoder_state = DECODER_STATE_CONSTRUCTOR;
+
+                        /* Codes_SRS_AMQPVALUE_01_323: [When enough bytes have been processed for a valid amqp value, the on_value_decoded passed in amqpvalue_decoder_create shall be called.] */
+                        /* Codes_SRS_AMQPVALUE_01_324: [The decoded amqp value shall be passed to on_value_decoded.] */
+                        /* Codes_SRS_AMQPVALUE_01_325: [Also the context stored in amqpvalue_decoder_create shall be passed to the on_value_decoded callback.] */
+                        internal_decoder_data->on_value_decoded(internal_decoder_data->on_value_decoded_context, internal_decoder_data->decode_to_value);
+                    }
+
+                    result = 0;
+                    break;
+                }
+                /* Codes_SRS_AMQPVALUE_01_369: [<encoding name="ms64" code="0x83" category="fixed" width="8" label="64-bit two's-complement integer representing milliseconds since the unix epoch"/>] */
 				case 0x83:
 				{
 					internal_decoder_data->decode_to_value->value.timestamp_value = (int64_t)((uint64_t)internal_decoder_data->decode_to_value->value.timestamp_value + (((uint64_t)buffer[0]) << ((7 - internal_decoder_data->bytes_decoded) * 8)));

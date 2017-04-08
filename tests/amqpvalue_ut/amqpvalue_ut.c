@@ -8466,6 +8466,62 @@ TEST_FUNCTION(when_encoder_output_fails_amqpvalue_encode_long_127_fails)
     test_amqpvalue_encode_failure(source);
 }
 
+/* Tests_SRS_AMQPVALUE_01_289: [\<encoding name="ieee-754" code="0x72" category="fixed" width="4" label="IEEE 754-2008 binary32"/>] */
+TEST_FUNCTION(amqpvalue_encode_float_succeeds)
+{
+    unsigned char expected_bytes[] = { 0x72, 0xBF, 0x80, 0x00, 0x00 };
+    float source_value = -1.0;
+    AMQP_VALUE source = amqpvalue_create_float(source_value);
+    stringify_bytes(expected_bytes, sizeof(expected_bytes), expected_stringified);
+    test_amqpvalue_encode(source, expected_stringified);
+}
+
+/* Tests_SRS_AMQPVALUE_01_289: [\<encoding name="ieee-754" code="0x72" category="fixed" width="4" label="IEEE 754-2008 binary32"/>] */
+TEST_FUNCTION(amqpvalue_encode_float_42_succeeds)
+{
+    unsigned char expected_bytes[] = { 0x72, 0x42, 0x28, 0x00, 0x00 };
+    float source_value = 42.0;
+    AMQP_VALUE source = amqpvalue_create_float(source_value);
+    stringify_bytes(expected_bytes, sizeof(expected_bytes), expected_stringified);
+    test_amqpvalue_encode(source, expected_stringified);
+}
+
+/* Tests_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+TEST_FUNCTION(when_encoder_output_fails_amqpvalue_encode_float_fails)
+{
+    float source_value = 42.0;
+    AMQP_VALUE source = amqpvalue_create_float(source_value);
+    test_amqpvalue_encode_failure(source);
+}
+
+/* Tests_SRS_AMQPVALUE_01_290: [\<encoding name="ieee-754" code="0x82" category="fixed" width="8" label="IEEE 754-2008 binary64"/>] */
+TEST_FUNCTION(amqpvalue_encode_double_succeeds)
+{
+    unsigned char expected_bytes[] = { 0x82, 0xBF, 0xF0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+    double source_value = -1.0;
+    AMQP_VALUE source = amqpvalue_create_double(source_value);
+    stringify_bytes(expected_bytes, sizeof(expected_bytes), expected_stringified);
+    test_amqpvalue_encode(source, expected_stringified);
+}
+
+/* Tests_SRS_AMQPVALUE_01_290: [\<encoding name="ieee-754" code="0x82" category="fixed" width="8" label="IEEE 754-2008 binary64"/>] */
+TEST_FUNCTION(amqpvalue_encode_double_42_succeeds)
+{
+    unsigned char expected_bytes[] = { 0x82, 0x40, 0x45, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+    double source_value = 42.0;
+    AMQP_VALUE source = amqpvalue_create_double(source_value);
+    stringify_bytes(expected_bytes, sizeof(expected_bytes), expected_stringified);
+    test_amqpvalue_encode(source, expected_stringified);
+}
+
+/* Tests_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+TEST_FUNCTION(when_encoder_output_fails_amqpvalue_encode_double_fails)
+{
+    double source_value = 42.0;
+    AMQP_VALUE source = amqpvalue_create_double(source_value);
+    test_amqpvalue_encode_failure(source);
+}
+
 /* Tests_SRS_AMQPVALUE_01_295: [<encoding name="ms64" code="0x83" category="fixed" width="8" label="64-bit two's-complement integer representing milliseconds since the unix epoch"/>] */
 TEST_FUNCTION(amqpvalue_encode_timestamp_minus9223372036854775808_succeeds)
 {
@@ -12422,6 +12478,154 @@ TEST_FUNCTION(amqpvalue_decode_long_0x55_value_127_not_enough_bytes_does_not_tri
     AMQPVALUE_DECODER_HANDLE amqpvalue_decoder = amqpvalue_decoder_create(value_decoded_callback, test_context);
     umock_c_reset_all_calls();
     unsigned char bytes[] = { 0x55 };
+
+    // act
+    int result = amqpvalue_decode_bytes(amqpvalue_decoder, bytes, sizeof(bytes));
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_decoder_destroy(amqpvalue_decoder);
+}
+
+/* Tests_SRS_AMQPVALUE_01_019: [1.6.11 float 32-bit floating point number (IEEE 754-2008 binary32).]*/
+/* Tests_SRS_AMQPVALUE_01_289: [\<encoding name="ieee-754" code="0x72" category="fixed" width="4" label="IEEE 754-2008 binary32"/>]*/
+TEST_FUNCTION(amqpvalue_decode_float_minus_1_0_succeeds)
+{
+    // arrange
+    AMQPVALUE_DECODER_HANDLE amqpvalue_decoder = amqpvalue_decoder_create(value_decoded_callback, test_context);
+    umock_c_reset_all_calls();
+    unsigned char bytes[] = { 0x72, 0xBF, 0x80, 0x00, 0x00 };
+
+    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG));
+
+    // act
+    int result = amqpvalue_decode_bytes(amqpvalue_decoder, bytes, sizeof(bytes));
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_EQUAL(int, (int)AMQP_TYPE_FLOAT, (int)amqpvalue_get_type(decoded_values[0]));
+    float actual_value = 0.0;
+    amqpvalue_get_float(decoded_values[0], &actual_value);
+    ASSERT_ARE_EQUAL(float, (float)-1.0, actual_value);
+
+    // cleanup
+    amqpvalue_decoder_destroy(amqpvalue_decoder);
+}
+
+/* Tests_SRS_AMQPVALUE_01_289: [\<encoding name="ieee-754" code="0x72" category="fixed" width="4" label="IEEE 754-2008 binary32"/>]*/
+TEST_FUNCTION(amqpvalue_decode_float_42_succeeds)
+{
+    // arrange
+    AMQPVALUE_DECODER_HANDLE amqpvalue_decoder = amqpvalue_decoder_create(value_decoded_callback, test_context);
+    umock_c_reset_all_calls();
+    unsigned char bytes[] = { 0x82, 0x40, 0x45, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+
+    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG));
+
+    // act
+    int result = amqpvalue_decode_bytes(amqpvalue_decoder, bytes, sizeof(bytes));
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_EQUAL(int, (int)AMQP_TYPE_DOUBLE, (int)amqpvalue_get_type(decoded_values[0]));
+    double actual_value = 0.0;
+    amqpvalue_get_double(decoded_values[0], &actual_value);
+    ASSERT_ARE_EQUAL(double, (double)42.0, actual_value);
+
+    // cleanup
+    amqpvalue_decoder_destroy(amqpvalue_decoder);
+}
+
+/* Tests_SRS_AMQPVALUE_01_327: [If not enough bytes have accumulated to decode a value, the value_decoded_callback shall not be called.] */
+TEST_FUNCTION(amqpvalue_decode_double_42_not_enough_bytes_does_not_trigger_callback)
+{
+    // arrange
+    AMQPVALUE_DECODER_HANDLE amqpvalue_decoder = amqpvalue_decoder_create(value_decoded_callback, test_context);
+    umock_c_reset_all_calls();
+    unsigned char bytes[] = { 0x82, 0x40, 0x45, 0x00, 0x00, 0x00, 0x00, 0x00 };
+
+    // act
+    int result = amqpvalue_decode_bytes(amqpvalue_decoder, bytes, sizeof(bytes));
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_decoder_destroy(amqpvalue_decoder);
+}
+
+/* Tests_SRS_AMQPVALUE_01_020: [1.6.12 double 64-bit floating point number (IEEE 754-2008 binary64).]*/
+/* Tests_SRS_AMQPVALUE_01_290: [\<encoding name="ieee-754" code="0x82" category="fixed" width="8" label="IEEE 754-2008 binary64"/>]*/
+TEST_FUNCTION(amqpvalue_decode_double_minus_1_0_succeeds)
+{
+    // arrange
+    AMQPVALUE_DECODER_HANDLE amqpvalue_decoder = amqpvalue_decoder_create(value_decoded_callback, test_context);
+    umock_c_reset_all_calls();
+    unsigned char bytes[] = { 0x82, 0xBF, 0xF0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+
+    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG));
+
+    // act
+    int result = amqpvalue_decode_bytes(amqpvalue_decoder, bytes, sizeof(bytes));
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_EQUAL(int, (int)AMQP_TYPE_DOUBLE, (int)amqpvalue_get_type(decoded_values[0]));
+    double actual_value = 0.0;
+    amqpvalue_get_double(decoded_values[0], &actual_value);
+    ASSERT_ARE_EQUAL(double, (double)-1.0, actual_value);
+
+    // cleanup
+    amqpvalue_decoder_destroy(amqpvalue_decoder);
+}
+
+/* Tests_SRS_AMQPVALUE_01_289: [\<encoding name="ieee-754" code="0x72" category="fixed" width="4" label="IEEE 754-2008 binary32"/>]*/
+TEST_FUNCTION(amqpvalue_decode_double_42_succeeds)
+{
+    // arrange
+    AMQPVALUE_DECODER_HANDLE amqpvalue_decoder = amqpvalue_decoder_create(value_decoded_callback, test_context);
+    umock_c_reset_all_calls();
+    unsigned char bytes[] = { 0x72, 0x42, 0x28, 0x00, 0x00 };
+
+    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG));
+
+    // act
+    int result = amqpvalue_decode_bytes(amqpvalue_decoder, bytes, sizeof(bytes));
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_EQUAL(int, (int)AMQP_TYPE_FLOAT, (int)amqpvalue_get_type(decoded_values[0]));
+    float actual_value = 0.0;
+    amqpvalue_get_float(decoded_values[0], &actual_value);
+    ASSERT_ARE_EQUAL(float, (float)42.0, actual_value);
+
+    // cleanup
+    amqpvalue_decoder_destroy(amqpvalue_decoder);
+}
+
+/* Tests_SRS_AMQPVALUE_01_327: [If not enough bytes have accumulated to decode a value, the value_decoded_callback shall not be called.] */
+TEST_FUNCTION(amqpvalue_decode_float_42_not_enough_bytes_does_not_trigger_callback)
+{
+    // arrange
+    AMQPVALUE_DECODER_HANDLE amqpvalue_decoder = amqpvalue_decoder_create(value_decoded_callback, test_context);
+    umock_c_reset_all_calls();
+    unsigned char bytes[] = { 0x72, 0x42, 0x28, 0x00 };
 
     // act
     int result = amqpvalue_decode_bytes(amqpvalue_decoder, bytes, sizeof(bytes));

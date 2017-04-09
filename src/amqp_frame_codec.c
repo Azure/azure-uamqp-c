@@ -148,14 +148,20 @@ AMQP_FRAME_CODEC_HANDLE amqp_frame_codec_create(FRAME_CODEC_HANDLE frame_codec, 
 		(empty_frame_received_callback == NULL) ||
 		(amqp_frame_codec_error_callback == NULL))
 	{
+        LogError("Bad arguments: frame_codec = %p, frame_received_callback = %p, empty_frame_received_callback = %p, amqp_frame_codec_error_callback = %p",
+            frame_codec, frame_received_callback, empty_frame_received_callback, amqp_frame_codec_error_callback);
 		result = NULL;
 	}
 	else
 	{
 		result = (AMQP_FRAME_CODEC_INSTANCE*)malloc(sizeof(AMQP_FRAME_CODEC_INSTANCE));
 		/* Codes_SRS_AMQP_FRAME_CODEC_01_020: [If allocating memory for the new amqp_frame_codec fails, then amqp_frame_codec_create shall fail and return NULL.] */
-		if (result != NULL)
-		{
+        if (result == NULL)
+        {
+            LogError("Could not allocate memory for AMQP frame codec");
+        }
+        else
+        {
 			result->frame_codec = frame_codec;
 			result->frame_received_callback = frame_received_callback;
 			result->empty_frame_received_callback = empty_frame_received_callback;
@@ -168,7 +174,8 @@ AMQP_FRAME_CODEC_HANDLE amqp_frame_codec_create(FRAME_CODEC_HANDLE frame_codec, 
 			if (result->decoder == NULL)
 			{
 				/* Codes_SRS_AMQP_FRAME_CODEC_01_019: [If creating the decoder fails, amqp_frame_codec_create shall fail and return NULL.] */
-				free(result);
+                LogError("Could not create AMQP decoder");
+                free(result);
 				result = NULL;
 			}
 			else
@@ -177,7 +184,8 @@ AMQP_FRAME_CODEC_HANDLE amqp_frame_codec_create(FRAME_CODEC_HANDLE frame_codec, 
 				if (frame_codec_subscribe(frame_codec, FRAME_TYPE_AMQP, frame_received, result) != 0)
 				{
 					/* Codes_SRS_AMQP_FRAME_CODEC_01_014: [If subscribing for AMQP frames fails, amqp_frame_codec_create shall fail and return NULL.] */
-					amqpvalue_decoder_destroy(result->decoder);
+                    LogError("Could not subscribe for received AMQP frames");
+                    amqpvalue_decoder_destroy(result->decoder);
 					free(result);
 					result = NULL;
 				}
@@ -190,8 +198,13 @@ AMQP_FRAME_CODEC_HANDLE amqp_frame_codec_create(FRAME_CODEC_HANDLE frame_codec, 
 
 void amqp_frame_codec_destroy(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec)
 {
-	if (amqp_frame_codec != NULL)
-	{
+    if (amqp_frame_codec == NULL)
+    {
+        /* Codes_SRS_AMQP_FRAME_CODEC_01_016: [If amqp_frame_codec is NULL, amqp_frame_codec_destroy shall do nothing.] */
+        LogError("NULL amqp_frame_codec");
+    }
+    else
+    {
 		/* Codes_SRS_AMQP_FRAME_CODEC_01_017: [amqp_frame_codec_destroy shall unsubscribe from receiving AMQP frames from the frame_codec that was passed to amqp_frame_codec_create.] */
 		(void)frame_codec_unsubscribe(amqp_frame_codec->frame_codec, FRAME_TYPE_AMQP);
 
@@ -212,7 +225,9 @@ int amqp_frame_codec_encode_frame(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec, uint
 		(performative == NULL) ||
 		(on_bytes_encoded == NULL))
 	{
-		result = __FAILURE__;
+        LogError("Bad arguments: amqp_frame_codec = %p, performative = %p, on_bytes_encoded = %p",
+            amqp_frame_codec, performative, on_bytes_encoded);
+        result = __FAILURE__;
 	}
 	else
 	{
@@ -220,34 +235,49 @@ int amqp_frame_codec_encode_frame(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec, uint
 		uint64_t performative_ulong;
 		size_t encoded_size;
 
-		if (((descriptor = amqpvalue_get_inplace_descriptor(performative)) == NULL) ||
-			(amqpvalue_get_ulong(descriptor, &performative_ulong) != 0) ||
-			/* Codes_SRS_AMQP_FRAME_CODEC_01_008: [The performative MUST be one of those defined in section 2.7 and is encoded as a described type in the AMQP type system.] */
-			(performative_ulong < AMQP_OPEN) ||
+        if ((descriptor = amqpvalue_get_inplace_descriptor(performative)) == NULL)
+        {
+            /* Codes_SRS_AMQP_FRAME_CODEC_01_029: [If any error occurs during encoding, amqp_frame_codec_encode_frame shall fail and return a non-zero value.] */
+            LogError("Getting the descriptor failed");
+            result = __FAILURE__;
+        }
+        else if (amqpvalue_get_ulong(descriptor, &performative_ulong) != 0)
+        {
+            /* Codes_SRS_AMQP_FRAME_CODEC_01_029: [If any error occurs during encoding, amqp_frame_codec_encode_frame shall fail and return a non-zero value.] */
+            LogError("Getting the descriptor ulong failed");
+            result = __FAILURE__;
+        }
+		/* Codes_SRS_AMQP_FRAME_CODEC_01_008: [The performative MUST be one of those defined in section 2.7 and is encoded as a described type in the AMQP type system.] */
+        else if ((performative_ulong < AMQP_OPEN) ||
 			(performative_ulong > AMQP_CLOSE))
 		{
 			/* Codes_SRS_AMQP_FRAME_CODEC_01_029: [If any error occurs during encoding, amqp_frame_codec_encode_frame shall fail and return a non-zero value.] */
-			result = __FAILURE__;
+            LogError("Bad arguments: amqp_frame_codec = %p, performative = %p, on_bytes_encoded = %p",
+                amqp_frame_codec, performative, on_bytes_encoded);
+            result = __FAILURE__;
 		}
 		/* Codes_SRS_AMQP_FRAME_CODEC_01_027: [The encoded size of the performative and its fields shall be obtained by calling amqpvalue_get_encoded_size.] */
 		else if (amqpvalue_get_encoded_size(performative, &encoded_size) != 0)
 		{
 			/* Codes_SRS_AMQP_FRAME_CODEC_01_029: [If any error occurs during encoding, amqp_frame_codec_encode_frame shall fail and return a non-zero value.] */
-			result = __FAILURE__;
+            LogError("Getting the encoded size failed");
+            result = __FAILURE__;
 		}
 		else
 		{
 			unsigned char* amqp_performative_bytes = (unsigned char*)malloc(encoded_size);
 			if (amqp_performative_bytes == NULL)
 			{
-				result = __FAILURE__;
+                LogError("Could not allocate performative bytes");
+                result = __FAILURE__;
 			}
 			else
 			{
 				PAYLOAD* new_payloads = (PAYLOAD*)malloc(sizeof(PAYLOAD) * (payload_count + 1));
 				if (new_payloads == NULL)
 				{
-					result = __FAILURE__;
+                    LogError("Could not allocate frame payloads");
+                    result = __FAILURE__;
 				}
 				else
 				{
@@ -263,7 +293,8 @@ int amqp_frame_codec_encode_frame(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec, uint
 
 					if (amqpvalue_encode(performative, encode_bytes, &new_payloads[0]) != 0)
 					{
-						result = __FAILURE__;
+                        LogError("amqpvalue_encode failed");
+                        result = __FAILURE__;
 					}
 					else
 					{
@@ -278,7 +309,8 @@ int amqp_frame_codec_encode_frame(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec, uint
 						if (frame_codec_encode_frame(amqp_frame_codec->frame_codec, FRAME_TYPE_AMQP, new_payloads, payload_count + 1, channel_bytes, sizeof(channel_bytes), on_bytes_encoded, callback_context) != 0)
 						{
 							/* Codes_SRS_AMQP_FRAME_CODEC_01_029: [If any error occurs during encoding, amqp_frame_codec_encode_frame shall fail and return a non-zero value.] */
-							result = __FAILURE__;
+                            LogError("frame_codec_encode_frame failed");
+                            result = __FAILURE__;
 						}
 						else
 						{
@@ -307,7 +339,8 @@ int amqp_frame_codec_encode_empty_frame(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec
 	/* Codes_SRS_AMQP_FRAME_CODEC_01_045: [If amqp_frame_codec is NULL, amqp_frame_codec_encode_empty_frame shall fail and return a non-zero value.] */
 	if (amqp_frame_codec == NULL)
 	{
-		result = __FAILURE__;
+        LogError("NULL amqp_frame_codec");
+        result = __FAILURE__;
 	}
 	else
 	{
@@ -320,7 +353,8 @@ int amqp_frame_codec_encode_empty_frame(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec
 		if (frame_codec_encode_frame(amqp_frame_codec->frame_codec, FRAME_TYPE_AMQP, NULL, 0, channel_bytes, sizeof(channel_bytes), on_bytes_encoded, callback_context) != 0)
 		{
 			/* Codes_SRS_AMQP_FRAME_CODEC_01_046: [If encoding fails in any way, amqp_frame_codec_encode_empty_frame shall fail and return a non-zero value.]  */
-			result = __FAILURE__;
+            LogError("frame_codec_encode_frame failed when encoding empty frame");
+            result = __FAILURE__;
 		}
 		else
 		{

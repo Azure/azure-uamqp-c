@@ -229,7 +229,10 @@ static int send_attach(LINK_INSTANCE* link, const char* name, handle handle, rol
         attach_set_role(attach, role);
         attach_set_source(attach, link->source);
         attach_set_target(attach, link->target);
-        attach_set_properties(attach, link->attach_properties);
+        if (link->attach_properties != NULL)
+        {
+            attach_set_properties(attach, link->attach_properties);
+        }
 
         if (role == role_sender)
         {

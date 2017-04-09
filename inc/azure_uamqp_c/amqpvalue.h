@@ -114,6 +114,7 @@ extern "C" {
 	MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_create_composite_with_ulong_descriptor, uint64_t, descriptor);
 	MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_get_list_item_in_place, AMQP_VALUE, value, size_t, index);
 	MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_get_composite_item_in_place, AMQP_VALUE, value, size_t, index);
+    MOCKABLE_FUNCTION(, int, amqpvalue_get_composite_item_count, AMQP_VALUE, value, uint32_t*, item_count);
 
 #ifdef __cplusplus
 }

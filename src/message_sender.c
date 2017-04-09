@@ -99,7 +99,16 @@ static void on_delivery_settled(void* context, delivery_number delivery_no, AMQP
 
     if (message_with_callback->on_message_send_complete != NULL)
     {
-        AMQP_VALUE descriptor = amqpvalue_get_inplace_descriptor(delivery_state);
+        AMQP_VALUE descriptor;
+        if (delivery_state != NULL)
+        {
+            descriptor = amqpvalue_get_inplace_descriptor(delivery_state);
+        }
+        else
+        {
+            descriptor = NULL;
+        }
+
         if ((descriptor == NULL) && (delivery_state != NULL))
         {
             LogError("Error getting descriptor for delivery state");
@@ -207,11 +216,15 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
 
         // application properties
         message_get_application_properties(message, &application_properties);
-        application_properties_value = amqpvalue_create_application_properties(application_properties);
         if (application_properties != NULL)
         {
+            application_properties_value = amqpvalue_create_application_properties(application_properties);
             amqpvalue_get_encoded_size(application_properties_value, &encoded_size);
             total_encoded_size += encoded_size;
+        }
+        else
+        {
+            application_properties_value = NULL;
         }
 
         result = SEND_ONE_MESSAGE_OK;
@@ -427,10 +440,22 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
             }
         }
 
-        amqpvalue_destroy(application_properties);
-        amqpvalue_destroy(application_properties_value);
-        amqpvalue_destroy(properties_amqp_value);
-        properties_destroy(properties);
+        if (application_properties != NULL)
+        {
+            amqpvalue_destroy(application_properties);
+        }
+        if (application_properties_value != NULL)
+        {
+            amqpvalue_destroy(application_properties_value);
+        }
+        if (properties_amqp_value != NULL)
+        {
+            amqpvalue_destroy(properties_amqp_value);
+        }
+        if (properties != NULL)
+        {
+            properties_destroy(properties);
+        }
     }
 
     return result;

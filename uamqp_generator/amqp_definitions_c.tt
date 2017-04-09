@@ -181,8 +181,15 @@ int amqpvalue_get_<#= type_name #>(AMQP_VALUE value, <#= type_name.ToUpper() #>_
 		}
 		else
 		{
-			do
-			{
+            uint32_t list_item_count;
+            if (amqpvalue_get_list_item_count(list_value, &list_item_count) != 0)
+            {
+                result = __FAILURE__;
+            }
+            else
+            {
+			    do
+			    {
 <#				int k = 0; #>
 <#				bool first_one = true; #>
 <#				foreach (field field in type.Items.Where(item => item is field)) #>
@@ -194,71 +201,86 @@ int amqpvalue_get_<#= type_name #>(AMQP_VALUE value, <#= type_name.ToUpper() #>_
 <#					if (first_one) #>
 <#					{ #>
 <#						first_one = false; #>
-				AMQP_VALUE item_value;
+    				AMQP_VALUE item_value;
 <#					} #>
-				/* <#= field.name #> */
-				item_value = amqpvalue_get_list_item(list_value, <#= k #>);
-				if (item_value == NULL)
-				{
+				    /* <#= field.name #> */
+				    if (list_item_count > <#= k #>)
+                    {
+                        item_value = amqpvalue_get_list_item(list_value, <#= k #>);
+				        if (item_value == NULL)
+				        {
 <# 					if (field.mandatory == "true") #>
 <# 					{ #>
-					{
-						<#= type_name #>_destroy(*<#= type_name.ToLower() #>_handle);
-						result = __FAILURE__;
-						break;
-					}
+					        {
+						        <#= type_name #>_destroy(*<#= type_name.ToLower() #>_handle);
+						        result = __FAILURE__;
+						        break;
+					        }
 <# 					} #>
 <# 					else #>
 <# 					{ #>
-					/* do nothing */
+					        /* do nothing */
 <# 					} #>
-				}
-				else
-				{
+				        }
+				        else
+				        {
 <# if (field.type != "*") #>
 <# { #>
-					<#= c_type #> <#= field_name #>;
+					        <#= c_type #> <#= field_name #>;
+						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
+						    {
+<# 					if (field.mandatory == "true") #>
+<# 					{ #>
+						        <#= type_name #>_destroy(*<#= type_name.ToLower() #>_handle);
+						        result = __FAILURE__;
+						        break;
+<# 					} #>
+<# 					else #>
+<# 					{ #>
+						        /* no error, field is not mandatory */
+<# 					} #>
+                            }
+                            else
+                            {
 <#		if (field.multiple != "true") #>
 <#		{ #>
-					if (amqpvalue_get_<#= field.type.ToLower().Replace('-', '_').Replace(':', '_') #>(item_value, &<#= field_name #>) != 0)
+					            if (amqpvalue_get_<#= field.type.ToLower().Replace('-', '_').Replace(':', '_') #>(item_value, &<#= field_name #>) != 0)
 <#		} #>
 <#		else #>
 <#		{ #>
-					AMQP_VALUE <#= field_name #>_array;
-					if ((amqpvalue_get_array(item_value, &<#= field_name #>_array) != 0) &&
-						(amqpvalue_get_<#= field.type.ToLower().Replace('-', '_').Replace(':', '_') #>(item_value, &<#= field_name #>) != 0))
+					            AMQP_VALUE <#= field_name #>_array;
+					            if ((amqpvalue_get_array(item_value, &<#= field_name #>_array) != 0) &&
+						            (amqpvalue_get_<#= field.type.ToLower().Replace('-', '_').Replace(':', '_') #>(item_value, &<#= field_name #>) != 0))
 <#		} #>
-					{
-<# 					if (field.mandatory == "true") #>
-<# 					{ #>
-						<#= type_name #>_destroy(*<#= type_name.ToLower() #>_handle);
-						result = __FAILURE__;
-						break;
-<# 					} #>
-<# 					else #>
-<# 					{ #>
-						if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
-						{
-							<#= type_name #>_destroy(*<#= type_name.ToLower() #>_handle);
-							result = __FAILURE__;
-							break;
-						}
-<# 					} #>
-					}
+					            {
+						            <#= type_name #>_destroy(*<#= type_name.ToLower() #>_handle);
+						            result = __FAILURE__;
+						            break;
+					            }
+                            }
 
 <# } #>
 <# else #>
 <# { #>
 <# } #>
-					amqpvalue_destroy(item_value);
-				}
+					        amqpvalue_destroy(item_value);
+				        }
+                    }
+<# 					if (field.mandatory == "true") #>
+<# 					{ #>
+                    else
+                    {
+                        result = __FAILURE__;
+                    }
+<# 					} #>
 <#					k++; #>
 <#				} #>
 
-				<#= type_name.ToLower() #>_instance->composite_value = amqpvalue_clone(value);
+				    <#= type_name.ToLower() #>_instance->composite_value = amqpvalue_clone(value);
 
-				result = 0;
-			} while (0);
+				    result = 0;
+			    } while (0);
+            }
 		}
 	}
 
@@ -282,53 +304,41 @@ int <#= type_name #>_get_<#= field_name #>(<#= type_name.ToUpper() #>_HANDLE <#=
 	}
 	else
 	{
+        uint32_t item_count;
 		<#= type_name.ToUpper() #>_INSTANCE* <#= type_name #>_instance = (<#= type_name.ToUpper() #>_INSTANCE*)<#= type_name #>;
-		AMQP_VALUE item_value = amqpvalue_get_composite_item_in_place(<#= type_name #>_instance->composite_value, <#= j #>);
-		if (item_value == NULL)
-		{
+        if (amqpvalue_get_composite_item_count(<#= type_name #>_instance->composite_value, &item_count) != 0)
+        {
+            result = __FAILURE__;
+        }
+        else
+        {
+            if (item_count <= <#= j #>)
+            {
 <#					    if (field.@default != null) #>
 <#					    { #>
 <#			                if ((field_type != null) && (field_type.@class == typeClass.restricted) && (field_type.Items != null)) #>
 <#					        { #>
-            *<#= field_name #>_value = <#= field_type.@name.Replace('-', '_').Replace(':', '_') #>_<#= field.@default.Replace('-', '_').Replace(':', '_') #>;
+                *<#= field_name #>_value = <#= field_type.@name.Replace('-', '_').Replace(':', '_') #>_<#= field.@default.Replace('-', '_').Replace(':', '_') #>;
 <#					        } #>
 <#					        else #>
 <#					        { #>
-			*<#= field_name #>_value = <#= field.@default #>;
+			    *<#= field_name #>_value = <#= field.@default #>;
 <#					        } #>
-            result = 0;
+                result = 0;
 <#					    } #>
 <#					    else #>
 <#					    { #>
-			result = __FAILURE__;
+			    result = __FAILURE__;
 <#					    } #>
-		}
-		else
-		{
-<#						if (field.type.Replace('-', '_').Replace(':', '_') == "*") #>
-<#						{ #>
-			*<#= field_name #>_value = item_value;
-			result = 0;
-<#						} #>
-<#						else #>
-<#						{ #>
-<#							if (field.multiple != "true") #>
-<#							{ #>
-			if (amqpvalue_get_<#= field.type.Replace('-', '_').Replace(':', '_') #>(item_value, <#= field_name #>_value) != 0)
-<#							} #>
-<#							else #>
-<#							{ #>
-			if (amqpvalue_get_array(item_value, <#= field_name #>_value) != 0)
-<#							} #>
-			{
+            }
+            else
+            {
+		        AMQP_VALUE item_value = amqpvalue_get_composite_item_in_place(<#= type_name #>_instance->composite_value, <#= j #>);
+		        if ((item_value == NULL) ||
+                    (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL))
+		        {
 <#					    if (field.@default != null) #>
 <#					    { #>
-                if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
-                {
-    			    result = __FAILURE__;
-                }
-                else
-                {
 <#			                if ((field_type != null) && (field_type.@class == typeClass.restricted) && (field_type.Items != null)) #>
 <#					        { #>
                     *<#= field_name #>_value = <#= field_type.@name.Replace('-', '_').Replace(':', '_') #>_<#= field.@default.Replace('-', '_').Replace(':', '_') #>;
@@ -338,18 +348,61 @@ int <#= type_name #>_get_<#= field_name #>(<#= type_name.ToUpper() #>_HANDLE <#=
 			        *<#= field_name #>_value = <#= field.@default #>;
 <#					        } #>
                     result = 0;
-                }
 <#					    } #>
 <#					    else #>
 <#					    { #>
-			    result = __FAILURE__;
+			        result = __FAILURE__;
 <#					    } #>
-			}
-			else
-			{
-				result = 0;
-			}
+		        }
+		        else
+		        {
+<#						if (field.type.Replace('-', '_').Replace(':', '_') == "*") #>
+<#						{ #>
+			        *<#= field_name #>_value = item_value;
+			        result = 0;
 <#						} #>
+<#						else #>
+<#						{ #>
+<#							if (field.multiple != "true") #>
+<#							{ #>
+			        if (amqpvalue_get_<#= field.type.Replace('-', '_').Replace(':', '_') #>(item_value, <#= field_name #>_value) != 0)
+<#							} #>
+<#							else #>
+<#							{ #>
+			        if (amqpvalue_get_array(item_value, <#= field_name #>_value) != 0)
+<#							} #>
+			        {
+<#					    if (field.@default != null) #>
+<#					    { #>
+                        if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
+                        {
+    			            result = __FAILURE__;
+                        }
+                        else
+                        {
+<#			                if ((field_type != null) && (field_type.@class == typeClass.restricted) && (field_type.Items != null)) #>
+<#					        { #>
+                            *<#= field_name #>_value = <#= field_type.@name.Replace('-', '_').Replace(':', '_') #>_<#= field.@default.Replace('-', '_').Replace(':', '_') #>;
+<#					        } #>
+<#					        else #>
+<#					        { #>
+			                *<#= field_name #>_value = <#= field.@default #>;
+<#					        } #>
+                            result = 0;
+                        }
+<#					    } #>
+<#					    else #>
+<#					    { #>
+			            result = __FAILURE__;
+<#					    } #>
+			        }
+			        else
+			        {
+				        result = 0;
+			        }
+<#						} #>
+                }
+            }
 		}
 	}
 
@@ -373,7 +426,15 @@ int <#= type_name #>_set_<#= field_name #>(<#= type_name.ToUpper() #>_HANDLE <#=
 <# } #>
 <# else #>
 <# { #>
-		AMQP_VALUE <#= field_name #>_amqp_value = amqpvalue_clone(<#= field_name #>_value);
+		AMQP_VALUE <#= field_name #>_amqp_value;
+        if (<#= field_name #>_value == NULL)
+        {
+            <#= field_name #>_amqp_value = NULL;
+        }
+        else
+        {
+            <#= field_name #>_amqp_value = amqpvalue_clone(<#= field_name #>_value);
+        }
 <# } #>
 		if (<#= field_name #>_amqp_value == NULL)
 		{

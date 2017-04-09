@@ -5,6 +5,7 @@
 #include <string.h>
 #include "azure_c_shared_utility/optimize_size.h"
 #include "azure_c_shared_utility/gballoc.h"
+#include "azure_c_shared_utility/xlogging.h"
 #include "azure_uamqp_c/sasl_plain.h"
 
 typedef struct SASL_PLAIN_INSTANCE_TAG
@@ -30,6 +31,7 @@ CONCRETE_SASL_MECHANISM_HANDLE saslplain_create(void* config)
 	if (config == NULL)
 	{
 		/* Codes_SRS_SASL_PLAIN_01_003: [If the config argument is NULL, then saslplain_create shall fail and return NULL.] */
+        LogError("NULL config");
 		result = NULL;
 	}
 	else
@@ -40,7 +42,9 @@ CONCRETE_SASL_MECHANISM_HANDLE saslplain_create(void* config)
 		if ((sasl_plain_config->authcid == NULL) ||
 			(sasl_plain_config->passwd == NULL))
 		{
-			result = NULL;
+            LogError("Bad configuration: authcid = %p, passwd = %p",
+                sasl_plain_config->authcid, sasl_plain_config->passwd);
+            result = NULL;
 		}
 		else
 		{
@@ -55,7 +59,9 @@ CONCRETE_SASL_MECHANISM_HANDLE saslplain_create(void* config)
 				/* Codes_SRS_SASL_PLAIN_01_022: [   passwd    = 1*SAFE ; MUST accept up to 255 octets] */
 				(passwd_length > 255) || (passwd_length == 0))
 			{
-				result = NULL;
+                LogError("Bad configuration: authcid length = %u, passwd length = %u",
+                    (unsigned int)authcid_length, (unsigned int)passwd_length);
+                result = NULL;
 			}
 			else
 			{
@@ -69,7 +75,8 @@ CONCRETE_SASL_MECHANISM_HANDLE saslplain_create(void* config)
 					if (result->init_bytes == NULL)
 					{
 						/* Codes_SRS_SASL_PLAIN_01_002: [If allocating the memory needed for the saslplain instance fails then saslplain_create shall return NULL.] */
-						free(result);
+                        LogError("Cannot allocate init bytes");
+                        free(result);
 						result = NULL;
 					}
 					else
@@ -102,8 +109,12 @@ CONCRETE_SASL_MECHANISM_HANDLE saslplain_create(void* config)
 
 void saslplain_destroy(CONCRETE_SASL_MECHANISM_HANDLE sasl_mechanism_concrete_handle)
 {
-	if (sasl_mechanism_concrete_handle != NULL)
-	{
+    if (sasl_mechanism_concrete_handle == NULL)
+    {
+        LogError("NULL sasl_mechanism_concrete_handle");
+    }
+    else
+    {
 		/* Codes_SRS_SASL_PLAIN_01_005: [saslplain_destroy shall free all resources associated with the SASL mechanism.] */
 		SASL_PLAIN_INSTANCE* sasl_plain_instance = (SASL_PLAIN_INSTANCE*)sasl_mechanism_concrete_handle;
 		if (sasl_plain_instance->init_bytes != NULL)
@@ -122,7 +133,9 @@ int saslplain_get_init_bytes(CONCRETE_SASL_MECHANISM_HANDLE sasl_mechanism_concr
 	if ((sasl_mechanism_concrete_handle == NULL) ||
 		(init_bytes == NULL))
 	{
-		result = __FAILURE__;
+        LogError("Bad arguments: sasl_mechanism_concrete_handle = %p, init_bytes = %p",
+            sasl_mechanism_concrete_handle, init_bytes);
+        result = __FAILURE__;
 	}
 	else
 	{
@@ -145,7 +158,8 @@ const char* saslplain_get_mechanism_name(CONCRETE_SASL_MECHANISM_HANDLE sasl_mec
 	if (sasl_mechanism == NULL)
 	{
 		/* Codes_SRS_SASL_PLAIN_01_011: [If the argument concrete_sasl_mechanism is NULL, saslplain_get_mechanism_name shall return NULL.] */
-		result = NULL;
+        LogError("NULL sasl_mechanism");
+        result = NULL;
 	}
 	else
 	{
@@ -166,7 +180,9 @@ int saslplain_challenge(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism, 
 	if ((concrete_sasl_mechanism == NULL) ||
 		(response_bytes == NULL))
 	{
-		result = __FAILURE__;
+        LogError("Bad arguments: concrete_sasl_mechanism = %p, response_bytes = %p",
+            concrete_sasl_mechanism, response_bytes);
+        result = __FAILURE__;
 	}
 	else
 	{

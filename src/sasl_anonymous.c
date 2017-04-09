@@ -26,11 +26,19 @@ static const SASL_MECHANISM_INTERFACE_DESCRIPTION saslanonymous_interface =
 /* Codes_SRS_SASL_ANONYMOUS_01_001: [saslanonymous_create shall return on success a non-NULL handle to a new SASL anonymous mechanism.] */
 CONCRETE_SASL_MECHANISM_HANDLE saslanonymous_create(void* config)
 {
+    CONCRETE_SASL_MECHANISM_HANDLE result;
+
 	/* Codes_SRS_SASL_ANONYMOUS_01_003: [Since this is the ANONYMOUS SASL mechanism, config shall be ignored.] */
 	(void)config;
 
-	/* Codes_SRS_SASL_ANONYMOUS_01_002: [If allocating the memory needed for the saslanonymous instance fails then saslanonymous_create shall return NULL.] */
-	return malloc(sizeof(SASL_ANONYMOUS_INSTANCE));
+    result = malloc(sizeof(SASL_ANONYMOUS_INSTANCE));
+    if (result == NULL)
+    {
+        /* Codes_SRS_SASL_ANONYMOUS_01_002: [If allocating the memory needed for the saslanonymous instance fails then saslanonymous_create shall return NULL.] */
+        LogError("Cannot allocate memory for SASL anonymous instance");
+    }
+
+    return result;
 }
 
 void saslanonymous_destroy(CONCRETE_SASL_MECHANISM_HANDLE sasl_mechanism_concrete_handle)
@@ -51,7 +59,9 @@ int saslanonymous_get_init_bytes(CONCRETE_SASL_MECHANISM_HANDLE sasl_mechanism_c
 	if ((sasl_mechanism_concrete_handle == NULL) ||
 		(init_bytes == NULL))
 	{
-		result = __FAILURE__;
+        LogError("Bad arguments: sasl_mechanism_concrete_handle = %p, init_bytes = %p",
+            sasl_mechanism_concrete_handle, init_bytes);
+        result = __FAILURE__;
 	}
 	else
 	{
@@ -74,7 +84,8 @@ const char* saslanonymous_get_mechanism_name(CONCRETE_SASL_MECHANISM_HANDLE sasl
 	/* Codes_SRS_SASL_ANONYMOUS_01_009: [If the argument concrete_sasl_mechanism is NULL, saslanonymous_get_mechanism_name shall return NULL.] */
 	if (sasl_mechanism == NULL)
 	{
-		result = NULL;
+        LogError("NULL sasl_mechanism");
+        result = NULL;
 	}
 	else
 	{
@@ -95,7 +106,9 @@ int saslanonymous_challenge(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechani
 	if ((concrete_sasl_mechanism == NULL) ||
 		(response_bytes == NULL))
 	{
-		result = __FAILURE__;
+        LogError("Bad arguments: concrete_sasl_mechanism = %p, response_bytes = %p",
+            concrete_sasl_mechanism, response_bytes);
+        result = __FAILURE__;
 	}
 	else
 	{

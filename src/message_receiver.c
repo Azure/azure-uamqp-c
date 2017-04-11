@@ -267,7 +267,7 @@ void messagereceiver_destroy(MESSAGE_RECEIVER_HANDLE message_receiver)
 	}
 }
 
-int messagereceiver_open(MESSAGE_RECEIVER_HANDLE message_receiver, ON_MESSAGE_RECEIVED on_message_received, const void* callback_context)
+int messagereceiver_open(MESSAGE_RECEIVER_HANDLE message_receiver, ON_MESSAGE_RECEIVED on_message_received, void* callback_context)
 {
 	int result;
 
@@ -432,4 +432,11 @@ int messagereceiver_send_message_disposition(MESSAGE_RECEIVER_HANDLE message_rec
     }
 
     return result;
+}
+
+void messagereceiver_set_trace(MESSAGE_RECEIVER_HANDLE message_receiver, bool trace_on)
+{
+    /* No tracing is yet implemented for message receiver */
+    (void)message_receiver;
+    (void)trace_on;
 }

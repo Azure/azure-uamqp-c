@@ -5,6 +5,7 @@ include_directories(.)
 
 add_subdirectory(amqp_frame_codec_ut)
 add_subdirectory(amqpvalue_ut)
+add_subdirectory(amqp_management_ut)
 add_subdirectory(cbs_ut)
 add_subdirectory(connection_ut)
 add_subdirectory(frame_codec_ut)

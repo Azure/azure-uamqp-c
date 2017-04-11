@@ -378,7 +378,7 @@ TEST_FUNCTION(cbs_destroy_frees_all_resources_including_the_pending_operations)
     STRICT_EXPECTED_CALL(amqp_management_destroy(test_amqp_management_handle));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinkedlist));
     STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(test_on_cbs_put_token_complete((void*)0x4244, CBS_OPERATION_RESULT_BECAUSE_DESTROY, 0, NULL));
+    STRICT_EXPECTED_CALL(test_on_cbs_put_token_complete((void*)0x4244, CBS_OPERATION_RESULT_INSTANCE_CLOSED, 0, NULL));
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinkedlist));
@@ -1866,7 +1866,7 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_ERROR_triggers_the_cbs_
 /* Tests_SRS_CBS_01_103: [ The `context` shall be used to obtain the pending operation information stored in the pending operations linked list by calling `singlylinkedlist_item_get_value`. ]*/
 /* Tests_SRS_CBS_01_102: [ The pending operation shall be removed from the pending operations list by calling `singlylinkedlist_remove`. ]*/
 /* Tests_SRS_CBS_01_096: [ The `context` for the operation shall also be freed. ]*/
-TEST_FUNCTION(on_amqp_management_operation_complete_with_OPERATION_FAILED_triggers_the_cbs_operation_complete_with_OPERATION_FAILED)
+TEST_FUNCTION(on_amqp_management_operation_complete_with_OPERATION_FAILED_BAD_STATUS_triggers_the_cbs_operation_complete_with_OPERATION_FAILED)
 {
     // arrange
     CBS_HANDLE cbs;
@@ -1883,6 +1883,36 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_OPERATION_FAILED_trigge
 
     // act
     saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_FAILED_BAD_STATUS, 0, "blah");
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    cbs_destroy(cbs);
+}
+
+/* Tests_SRS_CBS_01_115: [ When `on_amqp_management_execute_operation_complete` is called with `AMQP_MANAGEMENT_EXECUTE_OPERATION_INSTANCE_CLOSED`, the associated cbs operation complete callback shall be called with `CBS_OPERATION_RESULT_INSTANCE_CLOSED` and passing the `on_cbs_put_token_complete_context` as the context argument. ]*/
+/* Tests_SRS_CBS_01_095: [ `status_code` and `status_description` shall be passed as they are to the cbs operation complete callback. ]*/
+/* Tests_SRS_CBS_01_103: [ The `context` shall be used to obtain the pending operation information stored in the pending operations linked list by calling `singlylinkedlist_item_get_value`. ]*/
+/* Tests_SRS_CBS_01_102: [ The pending operation shall be removed from the pending operations list by calling `singlylinkedlist_remove`. ]*/
+/* Tests_SRS_CBS_01_096: [ The `context` for the operation shall also be freed. ]*/
+TEST_FUNCTION(on_amqp_management_operation_complete_with_INSTANCE_CLOSED_triggers_the_cbs_operation_complete_with_INSTANCE_CLOSED)
+{
+    // arrange
+    CBS_HANDLE cbs;
+    cbs = cbs_create(test_session_handle);
+    (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
+    (void)cbs_put_token_async(cbs, "some_type", "my_audience", "my_token", test_on_cbs_put_token_complete, (void*)0x4244);
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(test_on_cbs_put_token_complete((void*)0x4244, CBS_OPERATION_RESULT_INSTANCE_CLOSED, 0, "blah"));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+
+    // act
+    saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_INSTANCE_CLOSED, 0, "blah");
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
@@ -1960,7 +1990,7 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_ERROR_for_delete_token_
 /* Tests_SRS_CBS_01_103: [ The `context` shall be used to obtain the pending operation information stored in the pending operations linked list by calling `singlylinkedlist_item_get_value`. ]*/
 /* Tests_SRS_CBS_01_102: [ The pending operation shall be removed from the pending operations list by calling `singlylinkedlist_remove`. ]*/
 /* Tests_SRS_CBS_01_096: [ The `context` for the operation shall also be freed. ]*/
-TEST_FUNCTION(on_amqp_management_operation_complete_with_OPERATION_FAILED_for_delete_token_triggers_the_cbs_operation_complete_with_OPERATION_FAILED)
+TEST_FUNCTION(on_amqp_management_operation_complete_with_OPERATION_FAILED_BAD_STATUSfor_delete_token_triggers_the_cbs_operation_complete_with_OPERATION_FAILED)
 {
     // arrange
     CBS_HANDLE cbs;
@@ -1977,6 +2007,36 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_OPERATION_FAILED_for_de
 
     // act
     saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_FAILED_BAD_STATUS, 0, "blah");
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    cbs_destroy(cbs);
+}
+
+/* Tests_SRS_CBS_01_115: [ When `on_amqp_management_execute_operation_complete` is called with `AMQP_MANAGEMENT_EXECUTE_OPERATION_INSTANCE_CLOSED`, the associated cbs operation complete callback shall be called with `CBS_OPERATION_RESULT_INSTANCE_CLOSED` and passing the `on_cbs_put_token_complete_context` as the context argument. ]*/
+/* Tests_SRS_CBS_01_095: [ `status_code` and `status_description` shall be passed as they are to the cbs operation complete callback. ]*/
+/* Tests_SRS_CBS_01_103: [ The `context` shall be used to obtain the pending operation information stored in the pending operations linked list by calling `singlylinkedlist_item_get_value`. ]*/
+/* Tests_SRS_CBS_01_102: [ The pending operation shall be removed from the pending operations list by calling `singlylinkedlist_remove`. ]*/
+/* Tests_SRS_CBS_01_096: [ The `context` for the operation shall also be freed. ]*/
+TEST_FUNCTION(on_amqp_management_operation_complete_with_INSTANCE_CLOSED_for_delete_token_triggers_the_cbs_operation_complete_with_INSTANCE_CLOSED)
+{
+    // arrange
+    CBS_HANDLE cbs;
+    cbs = cbs_create(test_session_handle);
+    (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
+    (void)cbs_delete_token_async(cbs, "some_type", "my_audience", test_on_cbs_delete_token_complete, (void*)0x4244);
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(test_on_cbs_delete_token_complete((void*)0x4244, CBS_OPERATION_RESULT_INSTANCE_CLOSED, 0, "blah"));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+
+    // act
+    saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_INSTANCE_CLOSED, 0, "blah");
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());

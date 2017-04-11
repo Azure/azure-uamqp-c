@@ -208,17 +208,22 @@ static void on_amqp_management_execute_operation_complete(void* context, AMQP_MA
                 break;
 
             case AMQP_MANAGEMENT_EXECUTE_OPERATION_FAILED_BAD_STATUS:
-                /* Tests_SRS_CBS_01_094: [ When `on_amqp_management_execute_operation_complete` is called with `OPERATION_RESULT_OPERATION_FAILED`, the associated cbs operation complete callback shall be called with `CBS_OPERATION_RESULT_OPERATION_FAILED` and passing the `on_cbs_put_token_complete_context` as the context argument. ]*/
+                /* Tests_SRS_CBS_01_094: [ When `on_amqp_management_execute_operation_complete` is called with `AMQP_MANAGEMENT_EXECUTE_OPERATION_FAILED_BAD_STATUS`, the associated cbs operation complete callback shall be called with `CBS_OPERATION_RESULT_OPERATION_FAILED` and passing the `on_cbs_put_token_complete_context` as the context argument. ]*/
                 cbs_operation_result = CBS_OPERATION_RESULT_OPERATION_FAILED;
                 break;
 
+            case AMQP_MANAGEMENT_EXECUTE_OPERATION_INSTANCE_CLOSED:
+                /* Tests_SRS_CBS_01_115: [ When `on_amqp_management_execute_operation_complete` is called with `AMQP_MANAGEMENT_EXECUTE_OPERATION_INSTANCE_CLOSED`, the associated cbs operation complete callback shall be called with `CBS_OPERATION_RESULT_INSTANCE_CLOSED` and passing the `on_cbs_put_token_complete_context` as the context argument. ]*/
+                cbs_operation_result = CBS_OPERATION_RESULT_INSTANCE_CLOSED;
+                break;
+
             case AMQP_MANAGEMENT_EXECUTE_OPERATION_ERROR:
-                /* Tests_SRS_CBS_01_093: [ When `on_amqp_management_execute_operation_complete` is called with `OPERATION_RESULT_ERROR`, the associated cbs operation complete callback shall be called with `CBS_OPERATION_RESULT_CBS_ERROR` and passing the `on_cbs_put_token_complete_context` as the context argument. ]*/
+                /* Tests_SRS_CBS_01_093: [ When `on_amqp_management_execute_operation_complete` is called with `AMQP_MANAGEMENT_EXECUTE_OPERATION_ERROR`, the associated cbs operation complete callback shall be called with `CBS_OPERATION_RESULT_CBS_ERROR` and passing the `on_cbs_put_token_complete_context` as the context argument. ]*/
                 cbs_operation_result = CBS_OPERATION_RESULT_CBS_ERROR;
                 break;
 
             case AMQP_MANAGEMENT_EXECUTE_OPERATION_OK:
-                /* Codes_SRS_CBS_01_092: [ When `on_amqp_management_execute_operation_complete` is called with `OPERATION_RESULT_OK`, the associated cbs operation complete callback shall be called with `CBS_OPERATION_RESULT_OK` and passing the `on_cbs_put_token_complete_context` as the context argument. ]*/
+                /* Codes_SRS_CBS_01_092: [ When `on_amqp_management_execute_operation_complete` is called with `AMQP_MANAGEMENT_EXECUTE_OPERATION_OK`, the associated cbs operation complete callback shall be called with `CBS_OPERATION_RESULT_OK` and passing the `on_cbs_put_token_complete_context` as the context argument. ]*/
                 cbs_operation_result = CBS_OPERATION_RESULT_OK;
                 break;
             }
@@ -325,7 +330,7 @@ void cbs_destroy(CBS_HANDLE cbs)
             CBS_OPERATION* pending_operation = (CBS_OPERATION*)singlylinkedlist_item_get_value(first_pending_operation);
             if (pending_operation != NULL)
             {
-                pending_operation->on_cbs_operation_complete(pending_operation->on_cbs_operation_complete_context, CBS_OPERATION_RESULT_BECAUSE_DESTROY, 0, NULL);
+                pending_operation->on_cbs_operation_complete(pending_operation->on_cbs_operation_complete_context, CBS_OPERATION_RESULT_INSTANCE_CLOSED, 0, NULL);
                 free(pending_operation);
             }
 

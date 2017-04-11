@@ -11,7 +11,8 @@
 	{
 		CBS_OPERATION_RESULT_OK,
 		CBS_OPERATION_RESULT_CBS_ERROR,
-		AMQP_MANAGEMENT_EXECUTE_OPERATION_FAILED_BAD_STATUS
+        CBS_OPERATION_RESULT_OPERATION_FAILED,
+		CBS_OPERATION_RESULT_INSTANCE_CLOSED
 	} CBS_OPERATION_RESULT;
 
     typedef enum CBS_OPEN_COMPLETE_RESULT_TAG
@@ -174,9 +175,10 @@ void on_amqp_management_execute_operation_complete(void* context, OPERATION_RESU
 XX**SRS_CBS_01_091: [** When `on_amqp_management_execute_operation_complete` is called with a NULL context it shall do nothing. **]**
 XX**SRS_CBS_01_103: [** The `context` shall be used to obtain the pending operation information stored in the pending operations linked list by calling `singlylinkedlist_item_get_value`. **]**
 XX**SRS_CBS_01_104: [** If `singlylinkedlist_item_get_value` returns NULL, `on_amqp_management_execute_operation_complete` shall do nothing. **]**
-XX**SRS_CBS_01_092: [** When `on_amqp_management_execute_operation_complete` is called with `OPERATION_RESULT_OK`, the associated cbs operation complete callback shall be called with `CBS_OPERATION_RESULT_OK` and passing the `on_cbs_put_token_complete_context` as the context argument. **]**
-XX**SRS_CBS_01_093: [** When `on_amqp_management_execute_operation_complete` is called with `OPERATION_RESULT_ERROR`, the associated cbs operation complete callback shall be called with `CBS_OPERATION_RESULT_CBS_ERROR` and passing the `on_cbs_put_token_complete_context` as the context argument. **]**
-XX**SRS_CBS_01_094: [** When `on_amqp_management_execute_operation_complete` is called with `OPERATION_RESULT_OPERATION_FAILED`, the associated cbs operation complete callback shall be called with `AMQP_MANAGEMENT_EXECUTE_OPERATION_FAILED_BAD_STATUS` and passing the `on_cbs_put_token_complete_context` as the context argument. **]**
+XX**SRS_CBS_01_092: [** When `on_amqp_management_execute_operation_complete` is called with `AMQP_MANAGEMENT_EXECUTE_OPERATION_OK`, the associated cbs operation complete callback shall be called with `CBS_OPERATION_RESULT_OK` and passing the `on_cbs_put_token_complete_context` as the context argument. **]**
+XX**SRS_CBS_01_093: [** When `on_amqp_management_execute_operation_complete` is called with `AMQP_MANAGEMENT_EXECUTE_OPERATION_ERROR`, the associated cbs operation complete callback shall be called with `CBS_OPERATION_RESULT_CBS_ERROR` and passing the `on_cbs_put_token_complete_context` as the context argument. **]**
+XX**SRS_CBS_01_094: [** When `on_amqp_management_execute_operation_complete` is called with `AMQP_MANAGEMENT_EXECUTE_OPERATION_FAILED_BAD_STATUS`, the associated cbs operation complete callback shall be called with `CBS_OPERATION_RESULT_OPERATION_FAILED` and passing the `on_cbs_put_token_complete_context` as the context argument. **]**
+XX**SRS_CBS_01_115: [** When `on_amqp_management_execute_operation_complete` is called with `AMQP_MANAGEMENT_EXECUTE_OPERATION_INSTANCE_CLOSED`, the associated cbs operation complete callback shall be called with `CBS_OPERATION_RESULT_INSTANCE_CLOSED` and passing the `on_cbs_put_token_complete_context` as the context argument. **]**
 XX**SRS_CBS_01_095: [** `status_code` and `status_description` shall be passed as they are to the cbs operation complete callback. **]**
 XX**SRS_CBS_01_102: [** The pending operation shall be removed from the pending operations list by calling `singlylinkedlist_remove`. **]**
 XX**SRS_CBS_01_096: [** The `context` for the operation shall also be freed. **]**

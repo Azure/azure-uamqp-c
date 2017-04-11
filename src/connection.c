@@ -1481,7 +1481,7 @@ ENDPOINT_HANDLE connection_create_endpoint(CONNECTION_HANDLE connection)
             }
 
             /* Codes_SRS_CONNECTION_01_127: [On success, connection_create_endpoint shall return a non-NULL handle to the newly created endpoint.] */
-            result = malloc(sizeof(ENDPOINT_INSTANCE));
+            result = (ENDPOINT_INSTANCE*)malloc(sizeof(ENDPOINT_INSTANCE));
             /* Codes_SRS_CONNECTION_01_196: [If memory cannot be allocated for the new endpoint, connection_create_endpoint shall fail and return NULL.] */
             if (result != NULL)
             {

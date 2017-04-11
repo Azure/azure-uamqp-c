@@ -172,6 +172,8 @@ typedef enum DECODER_STATE_TAG
 	DECODER_STATE_ERROR
 } DECODER_STATE;
 
+typedef struct INTERNAL_DECODER_DATA_TAG* INTERNAL_DECODER_HANDLE;
+
 typedef struct INTERNAL_DECODER_DATA_TAG
 {
 	ON_VALUE_DECODED on_value_decoded;
@@ -180,7 +182,7 @@ typedef struct INTERNAL_DECODER_DATA_TAG
 	DECODER_STATE decoder_state;
 	uint8_t constructor_byte;
 	AMQP_VALUE_DATA* decode_to_value;
-	void* inner_decoder;
+    INTERNAL_DECODER_HANDLE inner_decoder;
 	DECODE_VALUE_STATE_UNION decode_value_state;
 } INTERNAL_DECODER_DATA;
 
@@ -1066,7 +1068,7 @@ AMQP_VALUE amqpvalue_create_string(const char* value)
         else
         {
 			result->type = AMQP_TYPE_STRING;
-			result->value.string_value.chars = malloc(length + 1);
+			result->value.string_value.chars = (char*)malloc(length + 1);
 			if (result->value.string_value.chars == NULL)
 			{
 				/* Codes_SRS_AMQPVALUE_01_136: [If allocating the AMQP_VALUE fails then amqpvalue_create_string shall return NULL.] */
@@ -2268,7 +2270,7 @@ AMQP_VALUE amqpvalue_clone(AMQP_VALUE value)
 		{
 			/* Codes_SRS_AMQPVALUE_01_258: [list] */
 			uint32_t i;
-			AMQP_VALUE_DATA* result_data = malloc(sizeof(AMQP_VALUE_DATA));
+			AMQP_VALUE_DATA* result_data = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
 			if (result_data == NULL)
 			{
 				/* Codes_SRS_AMQPVALUE_01_236: [If creating the cloned value fails, amqpvalue_clone shall return NULL.] */
@@ -2336,7 +2338,7 @@ AMQP_VALUE amqpvalue_clone(AMQP_VALUE value)
 		{
 			/* Codes_SRS_AMQPVALUE_01_259: [map] */
 			uint32_t i;
-			AMQP_VALUE_DATA* result_data = malloc(sizeof(AMQP_VALUE_DATA));
+			AMQP_VALUE_DATA* result_data = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
 			if (result_data == NULL)
 			{
 				/* Codes_SRS_AMQPVALUE_01_236: [If creating the cloned value fails, amqpvalue_clone shall return NULL.] */
@@ -2411,7 +2413,7 @@ AMQP_VALUE amqpvalue_clone(AMQP_VALUE value)
 		case AMQP_TYPE_ARRAY:
 		{
 			uint32_t i;
-			AMQP_VALUE_DATA* result_data = malloc(sizeof(AMQP_VALUE_DATA));
+			AMQP_VALUE_DATA* result_data = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
 			if (result_data == NULL)
 			{
                 LogError("Cannot allocate memory for cloned array");
@@ -2548,7 +2550,7 @@ static int output_bytes(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, 
 	{
 		/* Codes_SRS_AMQPVALUE_01_267: [amqpvalue_encode shall pass the encoded bytes to the encoder_output function.] */
 		/* Codes_SRS_AMQPVALUE_01_268: [On each call to the encoder_output function, amqpvalue_encode shall also pass the context argument.] */
-		result = encoder_output(context, bytes, length);
+		result = encoder_output(context, (const unsigned char*)bytes, length);
 	}
 	else
 	{
@@ -3488,7 +3490,7 @@ int amqpvalue_encode(AMQP_VALUE value, AMQPVALUE_ENCODER_OUTPUT encoder_output, 
 			break;
 
 		case AMQP_TYPE_BINARY:
-			result = encode_binary(encoder_output, context, value_data->value.binary_value.bytes, value_data->value.binary_value.length);
+			result = encode_binary(encoder_output, context, (const unsigned char*)value_data->value.binary_value.bytes, value_data->value.binary_value.length);
 			break;
 
 		case AMQP_TYPE_STRING:
@@ -3727,34 +3729,36 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
 					break;
 
 				case 0x00: /* descriptor */
-					internal_decoder_data->decode_to_value->type = AMQP_TYPE_DESCRIBED;
-					AMQP_VALUE_DATA* descriptor = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
-					if (descriptor == NULL)
-					{
-						internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
+                {
+                    internal_decoder_data->decode_to_value->type = AMQP_TYPE_DESCRIBED;
+                    AMQP_VALUE_DATA* descriptor = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+                    if (descriptor == NULL)
+                    {
+                        internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
                         LogError("Could not allocate memory for descriptor");
                         result = __FAILURE__;
-					}
-					else
-					{
-						descriptor->type = AMQP_TYPE_UNKNOWN;
-						internal_decoder_data->decode_to_value->value.described_value.descriptor = descriptor;
-						internal_decoder_data->inner_decoder = internal_decoder_create(inner_decoder_callback, internal_decoder_data, descriptor);
-						if (internal_decoder_data->inner_decoder == NULL)
-						{
-							internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
+                    }
+                    else
+                    {
+                        descriptor->type = AMQP_TYPE_UNKNOWN;
+                        internal_decoder_data->decode_to_value->value.described_value.descriptor = descriptor;
+                        internal_decoder_data->inner_decoder = internal_decoder_create(inner_decoder_callback, internal_decoder_data, descriptor);
+                        if (internal_decoder_data->inner_decoder == NULL)
+                        {
+                            internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
                             LogError("Could not create inner decoder for descriptor");
                             result = __FAILURE__;
-						}
-						else
-						{
-							internal_decoder_data->decoder_state = DECODER_STATE_TYPE_DATA;
-							internal_decoder_data->decode_value_state.described_value_state.described_value_state = DECODE_DESCRIBED_VALUE_STEP_DESCRIPTOR;
-							result = 0;
-						}
-					}
+                        }
+                        else
+                        {
+                            internal_decoder_data->decoder_state = DECODER_STATE_TYPE_DATA;
+                            internal_decoder_data->decode_value_state.described_value_state.described_value_state = DECODE_DESCRIBED_VALUE_STEP_DESCRIPTOR;
+                            result = 0;
+                        }
+                    }
 
-					break;
+                    break;
+                }
 
 				/* Codes_SRS_AMQPVALUE_01_329: [<encoding code="0x40" category="fixed" width="0" label="the null value"/>] */
 				case 0x40:

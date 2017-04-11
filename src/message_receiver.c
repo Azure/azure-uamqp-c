@@ -145,7 +145,7 @@ static void decode_message_value_callback(void* context, AMQP_VALUE decoded_valu
 			else
 			{
                 BINARY_DATA binary_data;
-                binary_data.bytes = data_value.bytes;
+                binary_data.bytes = (const unsigned char*)data_value.bytes;
                 binary_data.length = data_value.length;
 				if (message_add_body_amqp_data(decoded_message, binary_data) != 0)
 				{

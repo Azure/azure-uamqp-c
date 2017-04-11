@@ -85,7 +85,7 @@ FRAME_CODEC_HANDLE frame_codec_create(ON_FRAME_CODEC_ERROR on_frame_codec_error,
 	}
 	else
 	{
-		result = malloc(sizeof(FRAME_CODEC_INSTANCE));
+		result = (FRAME_CODEC_INSTANCE*)malloc(sizeof(FRAME_CODEC_INSTANCE));
 		/* Codes_SRS_FRAME_CODEC_01_022: [If allocating memory for the frame_codec instance fails, frame_codec_create shall return NULL.] */
         if (result == NULL)
         {

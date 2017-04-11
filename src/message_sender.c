@@ -311,7 +311,7 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
         {
             void* data_bytes = malloc(total_encoded_size);
             PAYLOAD payload;
-            payload.bytes = data_bytes;
+            payload.bytes = (const unsigned char*)data_bytes;
             payload.length = 0;
             result = SEND_ONE_MESSAGE_OK;
 
@@ -581,7 +581,7 @@ static void on_link_flow_on(void* context)
 
 MESSAGE_SENDER_HANDLE messagesender_create(LINK_HANDLE link, ON_MESSAGE_SENDER_STATE_CHANGED on_message_sender_state_changed, void* context)
 {
-    MESSAGE_SENDER_INSTANCE* result = malloc(sizeof(MESSAGE_SENDER_INSTANCE));
+    MESSAGE_SENDER_INSTANCE* result = (MESSAGE_SENDER_INSTANCE*)malloc(sizeof(MESSAGE_SENDER_INSTANCE));
     if (result != NULL)
     {
         result->messages = NULL;

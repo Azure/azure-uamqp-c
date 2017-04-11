@@ -597,7 +597,7 @@ static void on_send_complete(void* context, IO_SEND_RESULT send_result)
 
 LINK_HANDLE link_create(SESSION_HANDLE session, const char* name, role role, AMQP_VALUE source, AMQP_VALUE target)
 {
-	LINK_INSTANCE* result = malloc(sizeof(LINK_INSTANCE));
+	LINK_INSTANCE* result = (LINK_INSTANCE*)malloc(sizeof(LINK_INSTANCE));
 	if (result != NULL)
 	{
 		result->link_state = LINK_STATE_DETACHED;
@@ -627,7 +627,7 @@ LINK_HANDLE link_create(SESSION_HANDLE session, const char* name, role role, AMQ
 		}
 		else
 		{
-			result->name = malloc(strlen(name) + 1);
+			result->name = (char*)malloc(strlen(name) + 1);
 			if (result->name == NULL)
 			{
 				singlylinkedlist_destroy(result->pending_deliveries);
@@ -658,7 +658,7 @@ LINK_HANDLE link_create(SESSION_HANDLE session, const char* name, role role, AMQ
 
 LINK_HANDLE link_create_from_endpoint(SESSION_HANDLE session, LINK_ENDPOINT_HANDLE link_endpoint, const char* name, role role, AMQP_VALUE source, AMQP_VALUE target)
 {
-	LINK_INSTANCE* result = malloc(sizeof(LINK_INSTANCE));
+	LINK_INSTANCE* result = (LINK_INSTANCE*)malloc(sizeof(LINK_INSTANCE));
 	if (result != NULL)
 	{
 		result->link_state = LINK_STATE_DETACHED;
@@ -695,7 +695,7 @@ LINK_HANDLE link_create_from_endpoint(SESSION_HANDLE session, LINK_ENDPOINT_HAND
 		}
 		else
 		{
-			result->name = malloc(strlen(name) + 1);
+			result->name = (char*)malloc(strlen(name) + 1);
 			if (result->name == NULL)
 			{
 				singlylinkedlist_destroy(result->pending_deliveries);
@@ -1077,7 +1077,7 @@ LINK_TRANSFER_RESULT link_transfer(LINK_HANDLE link, message_format message_form
 					}
 					else
 					{
-						DELIVERY_INSTANCE* pending_delivery = malloc(sizeof(DELIVERY_INSTANCE));
+						DELIVERY_INSTANCE* pending_delivery = (DELIVERY_INSTANCE*)malloc(sizeof(DELIVERY_INSTANCE));
 						if (pending_delivery == NULL)
 						{
 							result = LINK_TRANSFER_ERROR;

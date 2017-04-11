@@ -1044,7 +1044,7 @@ int amqp_management_execute_operation_async(AMQP_MANAGEMENT_HANDLE amqp_manageme
                         }
                         else
                         {
-                            OPERATION_MESSAGE_INSTANCE* pending_operation_message = malloc(sizeof(OPERATION_MESSAGE_INSTANCE));
+                            OPERATION_MESSAGE_INSTANCE* pending_operation_message = (OPERATION_MESSAGE_INSTANCE*)malloc(sizeof(OPERATION_MESSAGE_INSTANCE));
                             if (pending_operation_message == NULL)
                             {
                                 result = __FAILURE__;

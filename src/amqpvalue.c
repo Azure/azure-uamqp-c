@@ -1655,7 +1655,6 @@ AMQP_VALUE amqpvalue_get_map_value(AMQP_VALUE map, AMQP_VALUE key)
 			{
 				if (amqpvalue_are_equal(value_data->value.map_value.pairs[i].key, key))
 				{
-                    LogError("Map comparing key values failed");
                     break;
 				}
 			}

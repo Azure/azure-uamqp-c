@@ -627,7 +627,8 @@ LINK_HANDLE link_create(SESSION_HANDLE session, const char* name, role role, AMQ
 		}
 		else
 		{
-			result->name = (char*)malloc(strlen(name) + 1);
+            size_t name_length = strlen(name);
+			result->name = (char*)malloc(name_length + 1);
 			if (result->name == NULL)
 			{
 				singlylinkedlist_destroy(result->pending_deliveries);
@@ -640,7 +641,7 @@ LINK_HANDLE link_create(SESSION_HANDLE session, const char* name, role role, AMQ
 				result->callback_context = NULL;
 				set_link_state(result, LINK_STATE_DETACHED);
 
-				(void)strcpy(result->name, name);
+				(void)memcpy(result->name, name, name_length + 1);
 				result->link_endpoint = session_create_link_endpoint(session, name);
 				if (result->link_endpoint == NULL)
 				{
@@ -695,7 +696,8 @@ LINK_HANDLE link_create_from_endpoint(SESSION_HANDLE session, LINK_ENDPOINT_HAND
 		}
 		else
 		{
-			result->name = (char*)malloc(strlen(name) + 1);
+            size_t name_length = strlen(name);
+			result->name = (char*)malloc(name_length + 1);
 			if (result->name == NULL)
 			{
 				singlylinkedlist_destroy(result->pending_deliveries);
@@ -704,7 +706,7 @@ LINK_HANDLE link_create_from_endpoint(SESSION_HANDLE session, LINK_ENDPOINT_HAND
 			}
 			else
 			{
-				(void)strcpy(result->name, name);
+				(void)memcpy(result->name, name, name_length + 1);
 				result->on_link_state_changed = NULL;
 				result->callback_context = NULL;
 				result->link_endpoint = link_endpoint;

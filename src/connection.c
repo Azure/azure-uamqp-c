@@ -957,7 +957,8 @@ CONNECTION_HANDLE connection_create2(XIO_HANDLE xio, const char* hostname, const
                 {
                     if (hostname != NULL)
                     {
-                        result->host_name = (char*)malloc(strlen(hostname) + 1);
+                        size_t hostname_length = strlen(hostname);
+                        result->host_name = (char*)malloc(hostname_length + 1);
                         if (result->host_name == NULL)
                         {
                             /* Codes_SRS_CONNECTION_01_081: [If allocating the memory for the connection fails then connection_create shall return NULL.] */
@@ -968,7 +969,7 @@ CONNECTION_HANDLE connection_create2(XIO_HANDLE xio, const char* hostname, const
                         }
                         else
                         {
-                            strcpy(result->host_name, hostname);
+                            (void)memcpy(result->host_name, hostname, hostname_length + 1);
                         }
                     }
                     else
@@ -978,7 +979,8 @@ CONNECTION_HANDLE connection_create2(XIO_HANDLE xio, const char* hostname, const
 
                     if (result != NULL)
                     {
-                        result->container_id = (char*)malloc(strlen(container_id) + 1);
+                        size_t container_id_length = strlen(container_id);
+                        result->container_id = (char*)malloc(container_id_length + 1);
                         if (result->container_id == NULL)
                         {
                             /* Codes_SRS_CONNECTION_01_081: [If allocating the memory for the connection fails then connection_create shall return NULL.] */
@@ -1002,7 +1004,7 @@ CONNECTION_HANDLE connection_create2(XIO_HANDLE xio, const char* hostname, const
                             }
                             else
                             {
-                                strcpy(result->container_id, container_id);
+                                (void)memcpy(result->container_id, container_id, container_id_length + 1);
 
                                 /* Codes_SRS_CONNECTION_01_173: [<field name="max-frame-size" type="uint" default="4294967295"/>] */
                                 result->max_frame_size = 4294967295u;

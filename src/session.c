@@ -972,6 +972,7 @@ LINK_ENDPOINT_HANDLE session_create_link_endpoint(SESSION_HANDLE session, const 
 			/* Codes_SRS_SESSION_01_046: [An unused handle shall be assigned to the link endpoint.] */
 			handle selected_handle = 0;
 			size_t i;
+            size_t name_length;
 
 			for (i = 0; i < session_instance->link_endpoint_count; i++)
 			{
@@ -989,7 +990,8 @@ LINK_ENDPOINT_HANDLE session_create_link_endpoint(SESSION_HANDLE session, const 
 			result->callback_context = NULL;
 			result->output_handle = selected_handle;
 			result->input_handle = 0xFFFFFFFF;
-			result->name = (char*)malloc(strlen(name) + 1);
+            name_length = strlen(name);
+			result->name = (char*)malloc(name_length + 1);
 			if (result->name == NULL)
 			{
 				/* Codes_SRS_SESSION_01_045: [If allocating memory for the link endpoint fails, session_create_link_endpoint shall fail and return NULL.] */
@@ -999,7 +1001,7 @@ LINK_ENDPOINT_HANDLE session_create_link_endpoint(SESSION_HANDLE session, const 
 			else
 			{
 				LINK_ENDPOINT_INSTANCE** new_link_endpoints;
-				strcpy(result->name, name);
+				(void)memcpy(result->name, name, name_length + 1);
 				result->session = session;
 
 				new_link_endpoints = (LINK_ENDPOINT_INSTANCE**)realloc(session_instance->link_endpoints, sizeof(LINK_ENDPOINT_INSTANCE*) * (session_instance->link_endpoint_count + 1));

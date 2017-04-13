@@ -1078,10 +1078,7 @@ AMQP_VALUE amqpvalue_create_string(const char* value)
 			}
 			else
 			{
-#if _MSC_VER
-#pragma warning(suppress: 6324) /* we use strcpy intentionally */
-#endif
-				(void)strcpy(result->value.string_value.chars, value);
+				(void)memcpy(result->value.string_value.chars, value, length + 1);
 			}
 		}
 	}

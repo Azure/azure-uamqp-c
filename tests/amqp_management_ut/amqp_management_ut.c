@@ -198,7 +198,7 @@ static void* saved_on_message_sender_state_changed_context;
 static ON_MESSAGE_RECEIVER_STATE_CHANGED saved_on_message_receiver_state_changed;
 static void* saved_on_message_receiver_state_changed_context;
 static ON_MESSAGE_RECEIVED saved_on_message_received;
-static void* saved_on_message_received_context;
+static const void* saved_on_message_received_context;
 
 MESSAGE_SENDER_HANDLE my_messagesender_create(LINK_HANDLE link, ON_MESSAGE_SENDER_STATE_CHANGED on_message_sender_state_changed, void* context)
 {
@@ -216,7 +216,7 @@ MESSAGE_RECEIVER_HANDLE my_messagereceiver_create(LINK_HANDLE link, ON_MESSAGE_R
     return test_message_receiver;
 }
 
-int my_messagereceiver_open(MESSAGE_RECEIVER_HANDLE message_receiver, ON_MESSAGE_RECEIVED on_message_received, void* callback_context)
+int my_messagereceiver_open(MESSAGE_RECEIVER_HANDLE message_receiver, ON_MESSAGE_RECEIVED on_message_received, const void* callback_context)
 {
     (void)message_receiver;
     saved_on_message_received = on_message_received;

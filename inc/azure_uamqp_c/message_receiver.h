@@ -32,7 +32,7 @@ extern "C" {
 
 	MOCKABLE_FUNCTION(, MESSAGE_RECEIVER_HANDLE, messagereceiver_create, LINK_HANDLE, link, ON_MESSAGE_RECEIVER_STATE_CHANGED, on_message_receiver_state_changed, void*, context);
 	MOCKABLE_FUNCTION(, void, messagereceiver_destroy, MESSAGE_RECEIVER_HANDLE, message_receiver);
-	MOCKABLE_FUNCTION(, int, messagereceiver_open, MESSAGE_RECEIVER_HANDLE, message_receiver, ON_MESSAGE_RECEIVED, on_message_received, void*, callback_context);
+	MOCKABLE_FUNCTION(, int, messagereceiver_open, MESSAGE_RECEIVER_HANDLE, message_receiver, ON_MESSAGE_RECEIVED, on_message_received, const void*, callback_context);
 	MOCKABLE_FUNCTION(, int, messagereceiver_close, MESSAGE_RECEIVER_HANDLE, message_receiver);
     MOCKABLE_FUNCTION(, int, messagereceiver_get_link_name, MESSAGE_RECEIVER_HANDLE, message_receiver, const char**, link_name);
     MOCKABLE_FUNCTION(, int, messagereceiver_get_received_message_id, MESSAGE_RECEIVER_HANDLE, message_receiver, delivery_number*, message_number);

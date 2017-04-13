@@ -4694,26 +4694,18 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
 							to_copy = size;
 						}
 
-						if (memcpy((unsigned char*)(internal_decoder_data->decode_to_value->value.binary_value.bytes) + (internal_decoder_data->bytes_decoded - 4), buffer, to_copy) == NULL)
-						{
-							internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-                            LogError("Could not copy memory");
-                            result = __FAILURE__;
-						}
-						else
-						{
-							buffer += to_copy;
-							size -= to_copy;
-							internal_decoder_data->bytes_decoded += to_copy;
+                        (void)memcpy((unsigned char*)(internal_decoder_data->decode_to_value->value.binary_value.bytes) + (internal_decoder_data->bytes_decoded - 4), buffer, to_copy);
+						buffer += to_copy;
+						size -= to_copy;
+						internal_decoder_data->bytes_decoded += to_copy;
 
-							if (internal_decoder_data->bytes_decoded == internal_decoder_data->decode_to_value->value.binary_value.length + 4)
-							{
-								internal_decoder_data->decoder_state = DECODER_STATE_CONSTRUCTOR;
-								internal_decoder_data->on_value_decoded(internal_decoder_data->on_value_decoded_context, internal_decoder_data->decode_to_value);
-							}
-
-							result = 0;
+						if (internal_decoder_data->bytes_decoded == internal_decoder_data->decode_to_value->value.binary_value.length + 4)
+						{
+							internal_decoder_data->decoder_state = DECODER_STATE_CONSTRUCTOR;
+							internal_decoder_data->on_value_decoded(internal_decoder_data->on_value_decoded_context, internal_decoder_data->decode_to_value);
 						}
+
+						result = 0;
 					}
 
 					break;
@@ -4759,31 +4751,23 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
 							to_copy = size;
 						}
 
-						if (memcpy(internal_decoder_data->decode_to_value->value.string_value.chars + (internal_decoder_data->bytes_decoded - 1), buffer, to_copy) == NULL)
+                        (void)memcpy(internal_decoder_data->decode_to_value->value.string_value.chars + (internal_decoder_data->bytes_decoded - 1), buffer, to_copy);
+						buffer += to_copy;
+						size -= to_copy;
+						internal_decoder_data->bytes_decoded += to_copy;
+
+						if (internal_decoder_data->bytes_decoded == internal_decoder_data->decode_value_state.string_value_state.length + 1)
 						{
-							internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-                            LogError("Could not copy memory");
-                            result = __FAILURE__;
+							internal_decoder_data->decode_to_value->value.string_value.chars[internal_decoder_data->decode_value_state.string_value_state.length] = 0;
+							internal_decoder_data->decoder_state = DECODER_STATE_CONSTRUCTOR;
+
+							/* Codes_SRS_AMQPVALUE_01_323: [When enough bytes have been processed for a valid amqp value, the on_value_decoded passed in amqpvalue_decoder_create shall be called.] */
+							/* Codes_SRS_AMQPVALUE_01_324: [The decoded amqp value shall be passed to on_value_decoded.] */
+							/* Codes_SRS_AMQPVALUE_01_325: [Also the context stored in amqpvalue_decoder_create shall be passed to the on_value_decoded callback.] */
+							internal_decoder_data->on_value_decoded(internal_decoder_data->on_value_decoded_context, internal_decoder_data->decode_to_value);
 						}
-						else
-						{
-							buffer += to_copy;
-							size -= to_copy;
-							internal_decoder_data->bytes_decoded += to_copy;
 
-							if (internal_decoder_data->bytes_decoded == internal_decoder_data->decode_value_state.string_value_state.length + 1)
-							{
-								internal_decoder_data->decode_to_value->value.string_value.chars[internal_decoder_data->decode_value_state.string_value_state.length] = 0;
-								internal_decoder_data->decoder_state = DECODER_STATE_CONSTRUCTOR;
-
-								/* Codes_SRS_AMQPVALUE_01_323: [When enough bytes have been processed for a valid amqp value, the on_value_decoded passed in amqpvalue_decoder_create shall be called.] */
-								/* Codes_SRS_AMQPVALUE_01_324: [The decoded amqp value shall be passed to on_value_decoded.] */
-								/* Codes_SRS_AMQPVALUE_01_325: [Also the context stored in amqpvalue_decoder_create shall be passed to the on_value_decoded callback.] */
-								internal_decoder_data->on_value_decoded(internal_decoder_data->on_value_decoded_context, internal_decoder_data->decode_to_value);
-							}
-
-							result = 0;
-						}
+						result = 0;
 					}
 					break;
 				}
@@ -4835,31 +4819,23 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
 							to_copy = size;
 						}
 
-						if (memcpy(internal_decoder_data->decode_to_value->value.string_value.chars + (internal_decoder_data->bytes_decoded - 4), buffer, to_copy) == NULL)
+                        (void)memcpy(internal_decoder_data->decode_to_value->value.string_value.chars + (internal_decoder_data->bytes_decoded - 4), buffer, to_copy);
+						buffer += to_copy;
+						size -= to_copy;
+						internal_decoder_data->bytes_decoded += to_copy;
+
+						if (internal_decoder_data->bytes_decoded == internal_decoder_data->decode_value_state.string_value_state.length + 4)
 						{
-							internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-                            LogError("Could not copy memory");
-                            result = __FAILURE__;
+							internal_decoder_data->decode_to_value->value.string_value.chars[internal_decoder_data->decode_value_state.string_value_state.length] = '\0';
+							internal_decoder_data->decoder_state = DECODER_STATE_CONSTRUCTOR;
+
+							/* Codes_SRS_AMQPVALUE_01_323: [When enough bytes have been processed for a valid amqp value, the on_value_decoded passed in amqpvalue_decoder_create shall be called.] */
+							/* Codes_SRS_AMQPVALUE_01_324: [The decoded amqp value shall be passed to on_value_decoded.] */
+							/* Codes_SRS_AMQPVALUE_01_325: [Also the context stored in amqpvalue_decoder_create shall be passed to the on_value_decoded callback.] */
+							internal_decoder_data->on_value_decoded(internal_decoder_data->on_value_decoded_context, internal_decoder_data->decode_to_value);
 						}
-						else
-						{
-							buffer += to_copy;
-							size -= to_copy;
-							internal_decoder_data->bytes_decoded += to_copy;
 
-							if (internal_decoder_data->bytes_decoded == internal_decoder_data->decode_value_state.string_value_state.length + 4)
-							{
-								internal_decoder_data->decode_to_value->value.string_value.chars[internal_decoder_data->decode_value_state.string_value_state.length] = '\0';
-								internal_decoder_data->decoder_state = DECODER_STATE_CONSTRUCTOR;
-
-								/* Codes_SRS_AMQPVALUE_01_323: [When enough bytes have been processed for a valid amqp value, the on_value_decoded passed in amqpvalue_decoder_create shall be called.] */
-								/* Codes_SRS_AMQPVALUE_01_324: [The decoded amqp value shall be passed to on_value_decoded.] */
-								/* Codes_SRS_AMQPVALUE_01_325: [Also the context stored in amqpvalue_decoder_create shall be passed to the on_value_decoded callback.] */
-								internal_decoder_data->on_value_decoded(internal_decoder_data->on_value_decoded_context, internal_decoder_data->decode_to_value);
-							}
-
-							result = 0;
-						}
+						result = 0;
 					}
 					break;
 				}
@@ -4904,31 +4880,23 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
 							to_copy = size;
 						}
 
-						if (memcpy(internal_decoder_data->decode_to_value->value.symbol_value.chars + (internal_decoder_data->bytes_decoded - 1), buffer, to_copy) == NULL)
+                        (void)memcpy(internal_decoder_data->decode_to_value->value.symbol_value.chars + (internal_decoder_data->bytes_decoded - 1), buffer, to_copy);
+						buffer += to_copy;
+						size -= to_copy;
+						internal_decoder_data->bytes_decoded += to_copy;
+
+						if (internal_decoder_data->bytes_decoded == internal_decoder_data->decode_value_state.symbol_value_state.length + 1)
 						{
-							internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-                            LogError("Could not copy memory");
-                            result = __FAILURE__;
+							internal_decoder_data->decode_to_value->value.symbol_value.chars[internal_decoder_data->decode_value_state.symbol_value_state.length] = 0;
+							internal_decoder_data->decoder_state = DECODER_STATE_CONSTRUCTOR;
+
+							/* Codes_SRS_AMQPVALUE_01_323: [When enough bytes have been processed for a valid amqp value, the on_value_decoded passed in amqpvalue_decoder_create shall be called.] */
+							/* Codes_SRS_AMQPVALUE_01_324: [The decoded amqp value shall be passed to on_value_decoded.] */
+							/* Codes_SRS_AMQPVALUE_01_325: [Also the context stored in amqpvalue_decoder_create shall be passed to the on_value_decoded callback.] */
+							internal_decoder_data->on_value_decoded(internal_decoder_data->on_value_decoded_context, internal_decoder_data->decode_to_value);
 						}
-						else
-						{
-							buffer += to_copy;
-							size -= to_copy;
-							internal_decoder_data->bytes_decoded += to_copy;
 
-							if (internal_decoder_data->bytes_decoded == internal_decoder_data->decode_value_state.symbol_value_state.length + 1)
-							{
-								internal_decoder_data->decode_to_value->value.symbol_value.chars[internal_decoder_data->decode_value_state.symbol_value_state.length] = 0;
-								internal_decoder_data->decoder_state = DECODER_STATE_CONSTRUCTOR;
-
-								/* Codes_SRS_AMQPVALUE_01_323: [When enough bytes have been processed for a valid amqp value, the on_value_decoded passed in amqpvalue_decoder_create shall be called.] */
-								/* Codes_SRS_AMQPVALUE_01_324: [The decoded amqp value shall be passed to on_value_decoded.] */
-								/* Codes_SRS_AMQPVALUE_01_325: [Also the context stored in amqpvalue_decoder_create shall be passed to the on_value_decoded callback.] */
-								internal_decoder_data->on_value_decoded(internal_decoder_data->on_value_decoded_context, internal_decoder_data->decode_to_value);
-							}
-
-							result = 0;
-						}
+						result = 0;
 					}
 					break;
 				}
@@ -4980,31 +4948,23 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
 							to_copy = size;
 						}
 
-						if (memcpy(internal_decoder_data->decode_to_value->value.symbol_value.chars + (internal_decoder_data->bytes_decoded - 4), buffer, to_copy) == NULL)
+                        (void)memcpy(internal_decoder_data->decode_to_value->value.symbol_value.chars + (internal_decoder_data->bytes_decoded - 4), buffer, to_copy);
+						buffer += to_copy;
+						size -= to_copy;
+						internal_decoder_data->bytes_decoded += to_copy;
+
+						if (internal_decoder_data->bytes_decoded == internal_decoder_data->decode_value_state.symbol_value_state.length + 4)
 						{
-							internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-                            LogError("Could not copy memory");
-                            result = __FAILURE__;
+							internal_decoder_data->decode_to_value->value.symbol_value.chars[internal_decoder_data->decode_value_state.symbol_value_state.length] = '\0';
+							internal_decoder_data->decoder_state = DECODER_STATE_CONSTRUCTOR;
+
+							/* Codes_SRS_AMQPVALUE_01_323: [When enough bytes have been processed for a valid amqp value, the on_value_decoded passed in amqpvalue_decoder_create shall be called.] */
+							/* Codes_SRS_AMQPVALUE_01_324: [The decoded amqp value shall be passed to on_value_decoded.] */
+							/* Codes_SRS_AMQPVALUE_01_325: [Also the context stored in amqpvalue_decoder_create shall be passed to the on_value_decoded callback.] */
+							internal_decoder_data->on_value_decoded(internal_decoder_data->on_value_decoded_context, internal_decoder_data->decode_to_value);
 						}
-						else
-						{
-							buffer += to_copy;
-							size -= to_copy;
-							internal_decoder_data->bytes_decoded += to_copy;
 
-							if (internal_decoder_data->bytes_decoded == internal_decoder_data->decode_value_state.symbol_value_state.length + 4)
-							{
-								internal_decoder_data->decode_to_value->value.symbol_value.chars[internal_decoder_data->decode_value_state.symbol_value_state.length] = '\0';
-								internal_decoder_data->decoder_state = DECODER_STATE_CONSTRUCTOR;
-
-								/* Codes_SRS_AMQPVALUE_01_323: [When enough bytes have been processed for a valid amqp value, the on_value_decoded passed in amqpvalue_decoder_create shall be called.] */
-								/* Codes_SRS_AMQPVALUE_01_324: [The decoded amqp value shall be passed to on_value_decoded.] */
-								/* Codes_SRS_AMQPVALUE_01_325: [Also the context stored in amqpvalue_decoder_create shall be passed to the on_value_decoded callback.] */
-								internal_decoder_data->on_value_decoded(internal_decoder_data->on_value_decoded_context, internal_decoder_data->decode_to_value);
-							}
-
-							result = 0;
-						}
+						result = 0;
 					}
 					break;
 				}

@@ -19,20 +19,27 @@ typedef struct LINK_INSTANCE_TAG* LINK_HANDLE;
 
 typedef enum LINK_STATE_TAG
 {
-	LINK_STATE_DETACHED,
-	LINK_STATE_HALF_ATTACHED,
-	LINK_STATE_ATTACHED,
-	LINK_STATE_ERROR
+    LINK_STATE_DETACHED,
+    LINK_STATE_HALF_ATTACHED,
+    LINK_STATE_ATTACHED,
+    LINK_STATE_ERROR
 } LINK_STATE;
 
 typedef enum LINK_TRANSFER_RESULT_TAG
 {
-	LINK_TRANSFER_OK,
-	LINK_TRANSFER_ERROR,
-	LINK_TRANSFER_BUSY
+    LINK_TRANSFER_OK,
+    LINK_TRANSFER_ERROR,
+    LINK_TRANSFER_BUSY
 } LINK_TRANSFER_RESULT;
 
-typedef void(*ON_DELIVERY_SETTLED)(void* context, delivery_number delivery_no, AMQP_VALUE delivery_state);
+typedef enum LINK_DELIVERY_SETTLE_REASON_TAG
+{
+    LINK_DELIVERY_SETTLE_REASON_DISPOSITION_RECEIVED,
+    LINK_DELIVERY_SETTLE_REASON_SETTLED,
+    LINK_DELIVERY_SETTLE_REASON_NOT_DELIVERED
+} LINK_DELIVERY_SETTLE_REASON;
+
+typedef void(*ON_DELIVERY_SETTLED)(void* context, delivery_number delivery_no, LINK_DELIVERY_SETTLE_REASON reason, AMQP_VALUE delivery_state);
 typedef AMQP_VALUE(*ON_TRANSFER_RECEIVED)(void* context, TRANSFER_HANDLE transfer, uint32_t payload_size, const unsigned char* payload_bytes);
 typedef void(*ON_LINK_STATE_CHANGED)(void* context, LINK_STATE new_link_state, LINK_STATE previous_link_state);
 typedef void(*ON_LINK_FLOW_ON)(void* context);

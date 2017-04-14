@@ -80,7 +80,7 @@ static void remove_all_pending_deliveries(LINK_INSTANCE* link, bool indicate_set
             {
                 if (indicate_settled && (delivery_instance->on_delivery_settled != NULL))
                 {
-                    delivery_instance->on_delivery_settled(delivery_instance->callback_context, delivery_instance->delivery_id, NULL);
+                    delivery_instance->on_delivery_settled(delivery_instance->callback_context, delivery_instance->delivery_id, LINK_DELIVERY_SETTLE_REASON_NOT_DELIVERED, NULL);
                 }
                 free(delivery_instance);
             }
@@ -474,7 +474,7 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                                 }
                                 else
                                 {
-                                    delivery_instance->on_delivery_settled(delivery_instance->callback_context, delivery_instance->delivery_id, delivery_state);
+                                    delivery_instance->on_delivery_settled(delivery_instance->callback_context, delivery_instance->delivery_id, LINK_DELIVERY_SETTLE_REASON_DISPOSITION_RECEIVED, delivery_state);
                                     free(delivery_instance);
                                     if (singlylinkedlist_remove(link_instance->pending_deliveries, pending_delivery) != 0)
                                     {
@@ -589,7 +589,7 @@ static void on_send_complete(void* context, IO_SEND_RESULT send_result)
     (void)send_result;
 	if (link_instance->snd_settle_mode == sender_settle_mode_settled)
 	{
-		delivery_instance->on_delivery_settled(delivery_instance->callback_context, delivery_instance->delivery_id, NULL);
+		delivery_instance->on_delivery_settled(delivery_instance->callback_context, delivery_instance->delivery_id, LINK_DELIVERY_SETTLE_REASON_SETTLED, NULL);
 		free(delivery_instance);
 		(void)singlylinkedlist_remove(link_instance->pending_deliveries, delivery_instance_list_item);
 	}

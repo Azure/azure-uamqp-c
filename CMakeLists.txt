@@ -219,10 +219,8 @@ add_library(uamqp
 
 target_link_libraries(uamqp aziotsharedutil)
 
-if (NOT ${ARCHITECTURE} STREQUAL "ARM")
-    if (NOT ${skip_samples})
-        add_subdirectory(samples)
-    endif()
+if (NOT ${skip_samples})
+    add_subdirectory(samples)
 endif()
     
 if (${run_unittests})

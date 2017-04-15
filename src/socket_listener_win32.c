@@ -9,6 +9,7 @@
 #include "windows.h"
 #include "azure_c_shared_utility/optimize_size.h"
 #include "azure_c_shared_utility/socketio.h"
+#include "azure_c_shared_utility/xlogging.h"
 
 typedef struct SOCKET_LISTENER_INSTANCE_TAG
 {
@@ -21,8 +22,12 @@ typedef struct SOCKET_LISTENER_INSTANCE_TAG
 SOCKET_LISTENER_HANDLE socketlistener_create(int port)
 {
 	SOCKET_LISTENER_INSTANCE* result = (SOCKET_LISTENER_INSTANCE*)malloc(sizeof(SOCKET_LISTENER_INSTANCE));
-	if (result != NULL)
-	{
+    if (result == NULL)
+    {
+        LogError("Cannot allocate memory for socket listener");
+    }
+    else
+    {
 		result->port = port;
 		result->on_socket_accepted = NULL;
 		result->callback_context = NULL;
@@ -44,66 +49,61 @@ int socketlistener_start(SOCKET_LISTENER_HANDLE socket_listener, ON_SOCKET_ACCEP
 {
 	int result;
 
-	if (socket_listener == NULL)
+	if ((socket_listener == NULL) ||
+        (on_socket_accepted == NULL))
 	{
-		result = __FAILURE__;
+        LogError("Bad arguments: socket_listener = %p, on_socket_accepted = %p",
+            socket_listener, on_socket_accepted);
+        result = __FAILURE__;
 	}
 	else
 	{
-		SOCKET_LISTENER_INSTANCE* socket_listener_instance = (SOCKET_LISTENER_INSTANCE*)socket_listener;
-
-		socket_listener_instance->socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-		if (socket_listener_instance->socket == INVALID_SOCKET)
+        socket_listener->socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+		if (socket_listener->socket == INVALID_SOCKET)
 		{
-			result = __FAILURE__;
+            LogError("Could not create socket");
+            result = __FAILURE__;
 		}
 		else
 		{
-			socket_listener_instance->on_socket_accepted = on_socket_accepted;
-			socket_listener_instance->callback_context = callback_context;
+            u_long iMode = 1;
+            struct sockaddr_in service;
 
-			ADDRINFO* addrInfo = NULL;
-			char portString[16];
-			ADDRINFO addrHint = { 0 };
+            socket_listener->on_socket_accepted = on_socket_accepted;
+            socket_listener->callback_context = callback_context;
 
-			addrHint.ai_family = AF_INET;
-			addrHint.ai_socktype = SOCK_STREAM;
-			addrHint.ai_protocol = 0;
-			sprintf(portString, "%u", socket_listener_instance->port);
-			if (getaddrinfo(NULL, portString, &addrHint, &addrInfo) != 0)
+            // The sockaddr_in structure specifies the address family,
+            // IP address, and port for the socket that is being bound.
+            service.sin_family = AF_INET;
+            service.sin_addr.s_addr = INADDR_ANY;
+            service.sin_port = htons((u_short)socket_listener->port);
+
+            if (bind(socket_listener->socket, (SOCKADDR *)&service, sizeof(service)) == SOCKET_ERROR)
+            {
+                LogError("Could not bind socket");
+                (void)closesocket(socket_listener->socket);
+                socket_listener->socket = INVALID_SOCKET;
+				result = __FAILURE__;
+			}
+			else if (ioctlsocket(socket_listener->socket, FIONBIO, &iMode) != 0)
 			{
-				(void)closesocket(socket_listener_instance->socket);
-				socket_listener_instance->socket = INVALID_SOCKET;
+                LogError("Could not set listening socket in non-blocking mode");
+                (void)closesocket(socket_listener->socket);
+				socket_listener->socket = INVALID_SOCKET;
 				result = __FAILURE__;
 			}
 			else
 			{
-				u_long iMode = 1;
-
-				if (bind(socket_listener_instance->socket, addrInfo->ai_addr, (int)addrInfo->ai_addrlen) == SOCKET_ERROR)
+				if (listen(socket_listener->socket, SOMAXCONN) == SOCKET_ERROR)
 				{
-					(void)closesocket(socket_listener_instance->socket);
-					socket_listener_instance->socket = INVALID_SOCKET;
-					result = __FAILURE__;
-				}
-				else if (ioctlsocket(socket_listener_instance->socket, FIONBIO, &iMode) != 0)
-				{
-					(void)closesocket(socket_listener_instance->socket);
-					socket_listener_instance->socket = INVALID_SOCKET;
+                    LogError("Could not start listening for connections");
+                    (void)closesocket(socket_listener->socket);
+					socket_listener->socket = INVALID_SOCKET;
 					result = __FAILURE__;
 				}
 				else
 				{
-					if (listen(socket_listener_instance->socket, SOMAXCONN) == SOCKET_ERROR)
-					{
-						(void)closesocket(socket_listener_instance->socket);
-						socket_listener_instance->socket = INVALID_SOCKET;
-						result = __FAILURE__;
-					}
-					else
-					{
-						result = 0;
-					}
+					result = 0;
 				}
 			}
 		}
@@ -118,17 +118,16 @@ int socketlistener_stop(SOCKET_LISTENER_HANDLE socket_listener)
 
 	if (socket_listener == NULL)
 	{
-		result = __FAILURE__;
+        LogError("NULL socket_listener");
+        result = __FAILURE__;
 	}
 	else
 	{
-		SOCKET_LISTENER_INSTANCE* socket_listener_instance = (SOCKET_LISTENER_INSTANCE*)socket_listener;
+		socket_listener->on_socket_accepted = NULL;
+		socket_listener->callback_context = NULL;
 
-		socket_listener_instance->on_socket_accepted = NULL;
-		socket_listener_instance->callback_context = NULL;
-
-		(void)closesocket(socket_listener_instance->socket);
-		socket_listener_instance->socket = INVALID_SOCKET;
+		(void)closesocket(socket_listener->socket);
+		socket_listener->socket = INVALID_SOCKET;
 
 		result = 0;
 	}
@@ -138,31 +137,28 @@ int socketlistener_stop(SOCKET_LISTENER_HANDLE socket_listener)
 
 void socketlistener_dowork(SOCKET_LISTENER_HANDLE socket_listener)
 {
-	if (socket_listener != NULL)
-	{
-		SOCKET_LISTENER_INSTANCE* socket_listener_instance = (SOCKET_LISTENER_INSTANCE*)socket_listener;
-		SOCKET accepted_socket = accept(socket_listener_instance->socket, NULL, NULL);
+    if (socket_listener == NULL)
+    {
+        LogError("NULL socket_listener");
+    }
+    else
+    {
+		SOCKET accepted_socket = accept(socket_listener->socket, NULL, NULL);
 		if (accepted_socket != INVALID_SOCKET)
 		{
-			if (socket_listener_instance->on_socket_accepted != NULL)
+			SOCKETIO_CONFIG socketio_config;
+            socketio_config.hostname = NULL;
+            socketio_config.port = socket_listener->port;
+            socketio_config.accepted_socket = &accepted_socket;
+            XIO_HANDLE io = xio_create(socketio_get_interface_description(), &socketio_config);
+			if (io == NULL)
 			{
-				SOCKETIO_CONFIG socketio_config;
-                socketio_config.hostname = NULL;
-                socketio_config.port = socket_listener_instance->port;
-                socketio_config.accepted_socket = &accepted_socket;
-                XIO_HANDLE io = xio_create(socketio_get_interface_description(), &socketio_config);
-				if (io == NULL)
-				{
-					(void)closesocket(accepted_socket);
-				}
-				else
-				{
-					socket_listener_instance->on_socket_accepted(socket_listener_instance->callback_context, io);
-				}
+                LogError("Could not create IO");
+                (void)closesocket(accepted_socket);
 			}
 			else
 			{
-				(void)closesocket(accepted_socket);
+				socket_listener->on_socket_accepted(socket_listener->callback_context, io);
 			}
 		}
 	}

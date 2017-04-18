@@ -57,7 +57,7 @@ static void on_umock_c_error(UMOCK_C_ERROR_CODE error_code)
     ASSERT_FAIL(temp_str);
 }
 
-const SASL_MECHANISM_INTERFACE_DESCRIPTION test_io_description =
+static const SASL_MECHANISM_INTERFACE_DESCRIPTION test_io_description =
 {
 	test_saslmechanism_create,
 	test_saslmechanism_destroy,
@@ -112,13 +112,13 @@ TEST_FUNCTION_CLEANUP(method_cleanup)
 
 /* saslmechanism_create */
 
-/* Tests_SRS_SASL_MECHANISM_01_001: [saslmechanism_create shall return on success a non-NULL handle to a new SASL mechanism interface.] */
-/* Tests_SRS_SASL_MECHANISM_01_002: [In order to instantiate the concrete SASL mechanism implementation the function concrete_sasl_mechanism_create from the sasl_mechanism_interface_description shall be called, passing the sasl_mechanism_create_parameters to it.] */
+/* Tests_SRS_SASL_MECHANISM_01_001: [`saslmechanism_create` shall return on success a non-NULL handle to a new SASL mechanism interface.] */
+/* Tests_SRS_SASL_MECHANISM_01_002: [In order to instantiate the concrete SASL mechanism implementation the function `concrete_sasl_mechanism_create` from the `sasl_mechanism_interface_description` shall be called, passing the `sasl_mechanism_create_parameters` to it.] */
 TEST_FUNCTION(saslmechanism_create_with_all_args_except_interface_description_NULL_succeeds)
 {
 	// arrange
     SASL_MECHANISM_HANDLE result;
-	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 	STRICT_EXPECTED_CALL(test_saslmechanism_create(NULL));
 
 	// act
@@ -132,13 +132,13 @@ TEST_FUNCTION(saslmechanism_create_with_all_args_except_interface_description_NU
 	saslmechanism_destroy(result);
 }
 
-/* Tests_SRS_SASL_MECHANISM_01_001: [saslmechanism_create shall return on success a non-NULL handle to a new SASL mechanism interface.] */
-/* Tests_SRS_SASL_MECHANISM_01_002: [In order to instantiate the concrete SASL mechanism implementation the function concrete_sasl_mechanism_create from the sasl_mechanism_interface_description shall be called, passing the sasl_mechanism_create_parameters to it.] */
+/* Tests_SRS_SASL_MECHANISM_01_001: [`saslmechanism_create` shall return on success a non-NULL handle to a new SASL mechanism interface.] */
+/* Tests_SRS_SASL_MECHANISM_01_002: [In order to instantiate the concrete SASL mechanism implementation the function `concrete_sasl_mechanism_create` from the `sasl_mechanism_interface_description` shall be called, passing the `sasl_mechanism_create_parameters` to it.] */
 TEST_FUNCTION(the_config_argument_is_passed_to_the_concrete_saslmechanism_create)
 {
 	// arrange
     SASL_MECHANISM_HANDLE result;
-	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 	STRICT_EXPECTED_CALL(test_saslmechanism_create((void*)0x4242));
 
 	// act
@@ -152,24 +152,25 @@ TEST_FUNCTION(the_config_argument_is_passed_to_the_concrete_saslmechanism_create
 	saslmechanism_destroy(result);
 }
 
-/* Tests_SRS_SASL_MECHANISM_01_003: [If the underlying concrete_sasl_mechanism_create call fails, saslmechanism_create shall return NULL.] */
+/* Tests_SRS_SASL_MECHANISM_01_003: [If the underlying `concrete_sasl_mechanism_create` call fails, `saslmechanism_create` shall return NULL.] */
 TEST_FUNCTION(when_concrete_create_fails_then_saslmechanism_create_fails)
 {
 	// arrange
     SASL_MECHANISM_HANDLE result;
-	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 	STRICT_EXPECTED_CALL(test_saslmechanism_create(NULL))
 		.SetReturn(NULL);
-	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+	STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
 	result = saslmechanism_create(&test_io_description, NULL);
 
 	// assert
 	ASSERT_IS_NULL(result);
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
-/* Tests_SRS_SASL_MECHANISM_01_004: [If the argument sasl_mechanism_interface_description is NULL, saslmechanism_create shall return NULL.] */
+/* Tests_SRS_SASL_MECHANISM_01_004: [If the argument `sasl_mechanism_interface_description` is NULL, `saslmechanism_create` shall return NULL.] */
 TEST_FUNCTION(when_the_interface_description_is_NULL_then_saslmechanism_create_fails)
 {
 	// arrange
@@ -179,9 +180,10 @@ TEST_FUNCTION(when_the_interface_description_is_NULL_then_saslmechanism_create_f
 
 	// assert
 	ASSERT_IS_NULL(result);
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
-/* Tests_SRS_SASL_MECHANISM_01_005: [If any sasl_mechanism_interface_description member is NULL, sasl_mechanism_create shall fail and return NULL.] */
+/* Tests_SRS_SASL_MECHANISM_01_005: [If any `sasl_mechanism_interface_description` member is NULL, `sasl_mechanism_create` shall fail and return NULL.] */
 TEST_FUNCTION(when_the_concrete_create_is_NULL_then_saslmechanism_create_fails)
 {
 	// arrange
@@ -198,9 +200,10 @@ TEST_FUNCTION(when_the_concrete_create_is_NULL_then_saslmechanism_create_fails)
 
 	// assert
 	ASSERT_IS_NULL(result);
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
-/* Tests_SRS_SASL_MECHANISM_01_005: [If any sasl_mechanism_interface_description member is NULL, sasl_mechanism_create shall fail and return NULL.] */
+/* Tests_SRS_SASL_MECHANISM_01_005: [If any `sasl_mechanism_interface_description` member is NULL, `sasl_mechanism_create` shall fail and return NULL.] */
 TEST_FUNCTION(when_the_concrete_destroy_is_NULL_then_saslmechanism_create_fails)
 {
 	// arrange
@@ -217,9 +220,10 @@ TEST_FUNCTION(when_the_concrete_destroy_is_NULL_then_saslmechanism_create_fails)
 
 	// assert
 	ASSERT_IS_NULL(result);
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
-/* Tests_SRS_SASL_MECHANISM_01_005: [If any sasl_mechanism_interface_description member is NULL, sasl_mechanism_create shall fail and return NULL.] */
+/* Tests_SRS_SASL_MECHANISM_01_005: [If any `sasl_mechanism_interface_description` member is NULL, `sasl_mechanism_create` shall fail and return NULL.] */
 TEST_FUNCTION(when_the_concrete_get_init_bytes_is_NULL_then_saslmechanism_create_fails)
 {
 	// arrange
@@ -236,9 +240,10 @@ TEST_FUNCTION(when_the_concrete_get_init_bytes_is_NULL_then_saslmechanism_create
 
 	// assert
 	ASSERT_IS_NULL(result);
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
-/* Tests_SRS_SASL_MECHANISM_01_005: [If any sasl_mechanism_interface_description member is NULL, sasl_mechanism_create shall fail and return NULL.] */
+/* Tests_SRS_SASL_MECHANISM_01_005: [If any `sasl_mechanism_interface_description` member is NULL, `sasl_mechanism_create` shall fail and return NULL.] */
 TEST_FUNCTION(when_the_concrete_get_mechanism_name_is_NULL_then_saslmechanism_create_fails)
 {
 	// arrange
@@ -255,14 +260,15 @@ TEST_FUNCTION(when_the_concrete_get_mechanism_name_is_NULL_then_saslmechanism_cr
 
 	// assert
 	ASSERT_IS_NULL(result);
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
-/* Tests_SRS_SASL_MECHANISM_01_006: [If allocating the memory needed for the SASL mechanism interface fails then saslmechanism_create shall fail and return NULL.] */
+/* Tests_SRS_SASL_MECHANISM_01_006: [If allocating the memory needed for the SASL mechanism interface fails then `saslmechanism_create` shall fail and return NULL.] */
 TEST_FUNCTION(when_allocating_memory_fails_then_saslmechanism_create_fails)
 {
 	// arrange
     SASL_MECHANISM_HANDLE result;
-	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+	STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
 		.SetReturn(NULL);
 
 	// act
@@ -270,12 +276,13 @@ TEST_FUNCTION(when_allocating_memory_fails_then_saslmechanism_create_fails)
 
 	// assert
 	ASSERT_IS_NULL(result);
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
 /* saslmechanism_destroy */
 
-/* Tests_SRS_SASL_MECHANISM_01_007: [saslmechanism_destroy shall free all resources associated with the SASL mechanism handle.] */
-/* Tests_SRS_SASL_MECHANISM_01_008: [saslmechanism_destroy shall also call the concrete_sasl_mechanism_destroy function that is member of the sasl_mechanism_interface_description argument passed to saslmechanism_create, while passing as argument to concrete_sasl_mechanism_destroy the result of the underlying concrete SASL mechanism handle.] */
+/* Tests_SRS_SASL_MECHANISM_01_007: [`saslmechanism_destroy` shall free all resources associated with the SASL mechanism handle.] */
+/* Tests_SRS_SASL_MECHANISM_01_008: [`saslmechanism_destroy` shall also call the `concrete_sasl_mechanism_destroy` function that is member of the `sasl_mechanism_interface_description` argument passed to `saslmechanism_create`, while passing as argument to `concrete_sasl_mechanism_destroy` the result of the underlying concrete SASL mechanism handle.] */
 TEST_FUNCTION(saslmechanism_destroy_frees_memory_and_calls_the_underlying_concrete_destroy)
 {
 	// arrange
@@ -283,16 +290,16 @@ TEST_FUNCTION(saslmechanism_destroy_frees_memory_and_calls_the_underlying_concre
 	umock_c_reset_all_calls();
 
 	STRICT_EXPECTED_CALL(test_saslmechanism_destroy(test_concrete_sasl_mechanism_handle));
-	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+	STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
 	saslmechanism_destroy(sasl_mechanism);
 
 	// assert
-	// uMock checks the calls
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
-/* Tests_SRS_SASL_MECHANISM_01_009: [If the argument sasl_mechanism is NULL, saslmechanism_destroy shall do nothing.] */
+/* Tests_SRS_SASL_MECHANISM_01_009: [If the argument `sasl_mechanism` is NULL, `saslmechanism_destroy` shall do nothing.] */
 TEST_FUNCTION(saslmechanism_destroy_with_NULL_argument_does_nothing)
 {
 	// arrange
@@ -301,13 +308,13 @@ TEST_FUNCTION(saslmechanism_destroy_with_NULL_argument_does_nothing)
 	saslmechanism_destroy(NULL);
 
 	// assert
-	// uMock checks the calls
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
 /* saslmechanism_get_init_bytes */
 
-/* Tests_SRS_SASL_MECHANISM_01_010: [saslmechanism_get_init_bytes shall call the specific concrete_sasl_mechanism_get_init_bytes function specified in saslmechanism_create, passing the init_bytes argument to it.] */
-/* Tests_SRS_SASL_MECHANISM_01_011: [On success, saslmechanism_get_init_bytes shall return 0.] */
+/* Tests_SRS_SASL_MECHANISM_01_010: [`saslmechanism_get_init_bytes` shall call the specific `concrete_sasl_mechanism_get_init_bytes` function specified in `saslmechanism_create`, passing the `init_bytes` argument to it.] */
+/* Tests_SRS_SASL_MECHANISM_01_011: [On success, `saslmechanism_get_init_bytes` shall return 0.] */
 TEST_FUNCTION(saslmechanism_get_init_bytes_calls_the_underlying_concrete_sasl_mechanism)
 {
 	// arrange
@@ -333,7 +340,7 @@ TEST_FUNCTION(saslmechanism_get_init_bytes_calls_the_underlying_concrete_sasl_me
 	saslmechanism_destroy(sasl_mechanism);
 }
 
-/* Tests_SRS_SASL_MECHANISM_01_012: [If the argument sasl_mechanism is NULL, saslmechanism_get_init_bytes shall fail and return a non-zero value.] */
+/* Tests_SRS_SASL_MECHANISM_01_012: [If the argument `sasl_mechanism` is NULL, `saslmechanism_get_init_bytes` shall fail and return a non-zero value.] */
 TEST_FUNCTION(saslmechanism_get_init_bytes_with_NULL_handle_fails)
 {
 	// arrange
@@ -344,9 +351,10 @@ TEST_FUNCTION(saslmechanism_get_init_bytes_with_NULL_handle_fails)
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
-/* Tests_SRS_SASL_MECHANISM_01_013: [If the underlying concrete_sasl_mechanism_get_init_bytes fails, saslmechanism_get_init_bytes shall fail and return a non-zero value.] */
+/* Tests_SRS_SASL_MECHANISM_01_013: [If the underlying `concrete_sasl_mechanism_get_init_bytes` fails, `saslmechanism_get_init_bytes` shall fail and return a non-zero value.] */
 TEST_FUNCTION(when_the_underlying_get_init_bytes_fails_then_saslmechanism_get_init_bytes_fails)
 {
 	// arrange
@@ -373,8 +381,8 @@ TEST_FUNCTION(when_the_underlying_get_init_bytes_fails_then_saslmechanism_get_in
 
 /* saslmechanism_get_mechanism_name */
 
-/* Tests_SRS_SASL_MECHANISM_01_014: [saslmechanism_get_mechanism_name shall call the specific concrete_sasl_mechanism_get_mechanism_name function specified in saslmechanism_create.] */
-/* Tests_SRS_SASL_MECHANISM_01_015: [On success, saslmechanism_get_mechanism_name shall return a pointer to a string with the mechanism name.] */
+/* Tests_SRS_SASL_MECHANISM_01_014: [`saslmechanism_get_mechanism_name` shall call the specific `concrete_sasl_mechanism_get_mechanism_name` function specified in `saslmechanism_create`.] */
+/* Tests_SRS_SASL_MECHANISM_01_015: [On success, `saslmechanism_get_mechanism_name` shall return a pointer to a string with the mechanism name.] */
 TEST_FUNCTION(saslmechanism_get_mechanism_name_calls_the_underlying_get_mechanism_name_and_succeeds)
 {
 	// arrange
@@ -395,8 +403,8 @@ TEST_FUNCTION(saslmechanism_get_mechanism_name_calls_the_underlying_get_mechanis
 	saslmechanism_destroy(sasl_mechanism);
 }
 
-/* Tests_SRS_SASL_MECHANISM_01_014: [saslmechanism_get_mechanism_name shall call the specific concrete_sasl_mechanism_get_mechanism_name function specified in saslmechanism_create.] */
-/* Tests_SRS_SASL_MECHANISM_01_015: [On success, saslmechanism_get_mechanism_name shall return a pointer to a string with the mechanism name.] */
+/* Tests_SRS_SASL_MECHANISM_01_014: [`saslmechanism_get_mechanism_name` shall call the specific `concrete_sasl_mechanism_get_mechanism_name` function specified in `saslmechanism_create`.] */
+/* Tests_SRS_SASL_MECHANISM_01_015: [On success, `saslmechanism_get_mechanism_name` shall return a pointer to a string with the mechanism name.] */
 TEST_FUNCTION(saslmechanism_get_mechanism_name_calls_the_underlying_get_mechanism_name_and_succeeds_another_mechanism_name)
 {
 	// arrange
@@ -418,7 +426,7 @@ TEST_FUNCTION(saslmechanism_get_mechanism_name_calls_the_underlying_get_mechanis
 	saslmechanism_destroy(sasl_mechanism);
 }
 
-/* Tests_SRS_SASL_MECHANISM_01_016: [If the argument sasl_mechanism is NULL, saslmechanism_get_mechanism_name shall fail and return a non-zero value.] */
+/* Tests_SRS_SASL_MECHANISM_01_016: [If the argument `sasl_mechanism` is NULL, `saslmechanism_get_mechanism_name` shall fail and return a non-zero value.] */
 TEST_FUNCTION(saslmechanism_get_mechanism_name_with_NULL_handle_fails)
 {
 	// arrange
@@ -428,9 +436,10 @@ TEST_FUNCTION(saslmechanism_get_mechanism_name_with_NULL_handle_fails)
 
 	// assert
 	ASSERT_IS_NULL(result);
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
-/* Tests_SRS_SASL_MECHANISM_01_017: [If the underlying concrete_sasl_mechanism_get_mechanism_name fails, saslmechanism_get_mechanism_name shall return NULL.] */
+/* Tests_SRS_SASL_MECHANISM_01_017: [If the underlying `concrete_sasl_mechanism_get_mechanism_name` fails, `saslmechanism_get_mechanism_name` shall return NULL.] */
 TEST_FUNCTION(when_the_underlying_mechanism_returns_NULL_saslmechanism_get_mechanism_name_fails)
 {
 	// arrange
@@ -454,8 +463,8 @@ TEST_FUNCTION(when_the_underlying_mechanism_returns_NULL_saslmechanism_get_mecha
 
 /* saslmechanism_challenge */
 
-/* Tests_SRS_SASL_MECHANISM_01_018: [saslmechanism_challenge shall call the specific concrete_sasl_mechanism_challenge function specified in saslmechanism_create, while passing the challenge_bytes and response_bytes arguments to it.] */
-/* Tests_SRS_SASL_MECHANISM_01_019: [On success, saslmechanism_challenge shall return 0.] */
+/* Tests_SRS_SASL_MECHANISM_01_018: [`saslmechanism_challenge` shall call the specific `concrete_sasl_mechanism_challenge` function specified in `saslmechanism_create`, while passing the `challenge_bytes` and `response_bytes` arguments to it.] */
+/* Tests_SRS_SASL_MECHANISM_01_019: [On success, `saslmechanism_challenge` shall return 0.] */
 TEST_FUNCTION(saslmechanism_challenge_calls_the_concrete_implementation_and_passes_the_proper_arguments)
 {
 	// arrange
@@ -478,7 +487,7 @@ TEST_FUNCTION(saslmechanism_challenge_calls_the_concrete_implementation_and_pass
 	saslmechanism_destroy(sasl_mechanism);
 }
 
-/* Tests_SRS_SASL_MECHANISM_01_020: [If the argument sasl_mechanism is NULL, saslmechanism_challenge shall fail and return a non-zero value.] */
+/* Tests_SRS_SASL_MECHANISM_01_020: [If the argument `sasl_mechanism` is NULL, `saslmechanism_challenge` shall fail and return a non-zero value.] */
 TEST_FUNCTION(saslmechanism_challenge_with_NULL_sasl_mechanism_fails)
 {
 	// arrange
@@ -490,9 +499,10 @@ TEST_FUNCTION(saslmechanism_challenge_with_NULL_sasl_mechanism_fails)
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
+	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
-/* Tests_SRS_SASL_MECHANISM_01_021: [If the underlying concrete_sasl_mechanism_challenge fails, saslmechanism_challenge shall fail and return a non-zero value.] */
+/* Tests_SRS_SASL_MECHANISM_01_021: [If the underlying `concrete_sasl_mechanism_challenge` fails, `saslmechanism_challenge` shall fail and return a non-zero value.] */
 TEST_FUNCTION(when_the_underlying_concrete_challenge_fails_then_saslmechanism_challenge_fails)
 {
 	// arrange

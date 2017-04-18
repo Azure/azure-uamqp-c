@@ -15,15 +15,15 @@ typedef struct SASL_MECHANISM_INSTANCE_TAG
 
 SASL_MECHANISM_HANDLE saslmechanism_create(const SASL_MECHANISM_INTERFACE_DESCRIPTION* sasl_mechanism_interface_description, void* sasl_mechanism_create_parameters)
 {
-	SASL_MECHANISM_INSTANCE* sasl_mechanism_instance;
+	SASL_MECHANISM_HANDLE result;
 
-	/* Codes_SRS_SASL_MECHANISM_01_004: [If the argument sasl_mechanism_interface_description is NULL, saslmechanism_create shall return NULL.] */
+	/* Codes_SRS_SASL_MECHANISM_01_004: [If the argument `sasl_mechanism_interface_description` is NULL, `saslmechanism_create` shall return NULL.] */
     if (sasl_mechanism_interface_description == NULL)
     {
         LogError("NULL sasl_mechanism_interface_description");
-        sasl_mechanism_instance = NULL;
+		result = NULL;
     }
-    /* Codes_SRS_SASL_MECHANISM_01_005: [If any sasl_mechanism_interface_description member is NULL, sasl_mechanism_create shall fail and return NULL.] */
+    /* Codes_SRS_SASL_MECHANISM_01_005: [If any `sasl_mechanism_interface_description` member is NULL, `sasl_mechanism_create` shall fail and return NULL.] */
     else if ((sasl_mechanism_interface_description->concrete_sasl_mechanism_create == NULL) ||
 		(sasl_mechanism_interface_description->concrete_sasl_mechanism_destroy == NULL) ||
 		(sasl_mechanism_interface_description->concrete_sasl_mechanism_get_init_bytes == NULL) ||
@@ -34,50 +34,50 @@ SASL_MECHANISM_HANDLE saslmechanism_create(const SASL_MECHANISM_INTERFACE_DESCRI
             sasl_mechanism_interface_description->concrete_sasl_mechanism_destroy,
             sasl_mechanism_interface_description->concrete_sasl_mechanism_get_init_bytes,
             sasl_mechanism_interface_description->concrete_sasl_mechanism_get_mechanism_name);
-        sasl_mechanism_instance = NULL;
+		result = NULL;
 	}
 	else
 	{
-		sasl_mechanism_instance = (SASL_MECHANISM_INSTANCE*)malloc(sizeof(SASL_MECHANISM_INSTANCE));
-        if (sasl_mechanism_instance == NULL)
+		result = (SASL_MECHANISM_HANDLE)malloc(sizeof(SASL_MECHANISM_INSTANCE));
+        if (result == NULL)
         {
-            LogError("Could not allocate memory for SASL mechanism");
+			/* Codes_SRS_SASL_MECHANISM_01_006: [If allocating the memory needed for the SASL mechanism interface fails then `saslmechanism_create` shall fail and return NULL.] */
+			LogError("Could not allocate memory for SASL mechanism");
         }
         else
         {
-			sasl_mechanism_instance->sasl_mechanism_interface_description = sasl_mechanism_interface_description;
+			result->sasl_mechanism_interface_description = sasl_mechanism_interface_description;
 
-			/* Codes_SRS_SASL_MECHANISM_01_002: [In order to instantiate the concrete SASL mechanism implementation the function concrete_sasl_mechanism_create from the sasl_mechanism_interface_description shall be called, passing the sasl_mechanism_create_parameters to it.] */
-			sasl_mechanism_instance->concrete_sasl_mechanism_handle = sasl_mechanism_instance->sasl_mechanism_interface_description->concrete_sasl_mechanism_create((void*)sasl_mechanism_create_parameters);
-			if (sasl_mechanism_instance->concrete_sasl_mechanism_handle == NULL)
+			/* Codes_SRS_SASL_MECHANISM_01_002: [In order to instantiate the concrete SASL mechanism implementation the function `concrete_sasl_mechanism_create` from the `sasl_mechanism_interface_description` shall be called, passing the `sasl_mechanism_create_parameters` to it.] */
+			result->concrete_sasl_mechanism_handle = result->sasl_mechanism_interface_description->concrete_sasl_mechanism_create((void*)sasl_mechanism_create_parameters);
+			if (result->concrete_sasl_mechanism_handle == NULL)
 			{
-				/* Codes_SRS_SASL_MECHANISM_01_003: [If the underlying concrete_sasl_mechanism_create call fails, saslmechanism_create shall return NULL.] */
+				/* Codes_SRS_SASL_MECHANISM_01_003: [If the underlying `concrete_sasl_mechanism_create` call fails, `saslmechanism_create` shall return NULL.] */
                 LogError("concrete_sasl_mechanism_create failed");
-                free(sasl_mechanism_instance);
-				sasl_mechanism_instance = NULL;
+                free(result);
+				result = NULL;
 			}
 		}
 	}
 
-	/* Codes_SRS_SASL_MECHANISM_01_001: [saslmechanism_create shall return on success a non-NULL handle to a new SASL mechanism interface.] */
-	return (SASL_MECHANISM_HANDLE)sasl_mechanism_instance;
+	/* Codes_SRS_SASL_MECHANISM_01_001: [`saslmechanism_create` shall return on success a non-NULL handle to a new SASL mechanism interface.] */
+	return result;
 }
 
 void saslmechanism_destroy(SASL_MECHANISM_HANDLE sasl_mechanism)
 {
     if (sasl_mechanism == NULL)
     {
-        LogError("NULL sasl_mechanism");
+		/* Codes_SRS_SASL_MECHANISM_01_009: [If the argument `sasl_mechanism` is NULL, `saslmechanism_destroy` shall do nothing.] */
+		LogError("NULL sasl_mechanism");
     }
     else
     {
-		SASL_MECHANISM_INSTANCE* sasl_mechanism_instance = (SASL_MECHANISM_INSTANCE*)sasl_mechanism;
+		/* Codes_SRS_SASL_MECHANISM_01_008: [`saslmechanism_destroy` shall also call the `concrete_sasl_mechanism_destroy` function that is member of the `sasl_mechanism_interface_description` argument passed to `saslmechanism_create`, while passing as argument to `concrete_sasl_mechanism_destroy` the result of the underlying concrete SASL mechanism handle.] */
+		sasl_mechanism->sasl_mechanism_interface_description->concrete_sasl_mechanism_destroy(sasl_mechanism->concrete_sasl_mechanism_handle);
 
-		/* Codes_SRS_SASL_MECHANISM_01_008: [saslmechanism_destroy shall also call the concrete_sasl_mechanism_destroy function that is member of the sasl_mechanism_interface_description argument passed to saslmechanism_create, while passing as argument to concrete_sasl_mechanism_destroy the result of the underlying concrete SASL mechanism handle.] */
-		sasl_mechanism_instance->sasl_mechanism_interface_description->concrete_sasl_mechanism_destroy(sasl_mechanism_instance->concrete_sasl_mechanism_handle);
-
-		/* Codes_SRS_SASL_MECHANISM_01_007: [saslmechanism_destroy shall free all resources associated with the SASL mechanism handle.] */
-		free(sasl_mechanism_instance);
+		/* Codes_SRS_SASL_MECHANISM_01_007: [`saslmechanism_destroy` shall free all resources associated with the SASL mechanism handle.] */
+		free(sasl_mechanism);
 	}
 }
 
@@ -85,7 +85,7 @@ int saslmechanism_get_init_bytes(SASL_MECHANISM_HANDLE sasl_mechanism, SASL_MECH
 {
 	int result;
 
-	/* Codes_SRS_SASL_MECHANISM_01_012: [If the argument sasl_mechanism is NULL, saslmechanism_get_init_bytes shall fail and return a non-zero value.] */
+	/* Codes_SRS_SASL_MECHANISM_01_012: [If the argument `sasl_mechanism` is NULL, `saslmechanism_get_init_bytes` shall fail and return a non-zero value.] */
 	if (sasl_mechanism == NULL)
 	{
         LogError("NULL sasl_mechanism");
@@ -93,18 +93,16 @@ int saslmechanism_get_init_bytes(SASL_MECHANISM_HANDLE sasl_mechanism, SASL_MECH
 	}
 	else
 	{
-		SASL_MECHANISM_INSTANCE* sasl_mechanism_instance = (SASL_MECHANISM_INSTANCE*)sasl_mechanism;
-
-		/* Codes_SRS_SASL_MECHANISM_01_010: [saslmechanism_get_init_bytes shall call the specific concrete_sasl_mechanism_get_init_bytes function specified in saslmechanism_create, passing the init_bytes argument to it.] */
-		if (sasl_mechanism_instance->sasl_mechanism_interface_description->concrete_sasl_mechanism_get_init_bytes(sasl_mechanism_instance->concrete_sasl_mechanism_handle, init_bytes) != 0)
+		/* Codes_SRS_SASL_MECHANISM_01_010: [`saslmechanism_get_init_bytes` shall call the specific `concrete_sasl_mechanism_get_init_bytes` function specified in `saslmechanism_create`, passing the `init_bytes` argument to it.] */
+		if (sasl_mechanism->sasl_mechanism_interface_description->concrete_sasl_mechanism_get_init_bytes(sasl_mechanism->concrete_sasl_mechanism_handle, init_bytes) != 0)
 		{
-			/* Codes_SRS_SASL_MECHANISM_01_013: [If the underlying concrete_sasl_mechanism_get_init_bytes fails, saslmechanism_get_init_bytes shall fail and return a non-zero value.] */
+			/* Codes_SRS_SASL_MECHANISM_01_013: [If the underlying `concrete_sasl_mechanism_get_init_bytes` fails, `saslmechanism_get_init_bytes` shall fail and return a non-zero value.] */
             LogError("concrete_sasl_mechanism_get_init_bytes failed");
             result = __FAILURE__;
 		}
 		else
 		{
-			/* Codes_SRS_SASL_MECHANISM_01_011: [On success, saslmechanism_get_init_bytes shall return 0.] */
+			/* Codes_SRS_SASL_MECHANISM_01_011: [On success, `saslmechanism_get_init_bytes` shall return 0.] */
 			result = 0;
 		}
 	}
@@ -116,7 +114,7 @@ const char* saslmechanism_get_mechanism_name(SASL_MECHANISM_HANDLE sasl_mechanis
 {
 	const char* result;
 
-	/* Codes_SRS_SASL_MECHANISM_01_016: [If the argument sasl_mechanism is NULL, saslmechanism_get_mechanism_name shall fail and return a non-zero value.] */
+	/* Codes_SRS_SASL_MECHANISM_01_016: [If the argument `sasl_mechanism` is NULL, `saslmechanism_get_mechanism_name` shall fail and return a non-zero value.] */
 	if (sasl_mechanism == NULL)
 	{
         LogError("NULL sasl_mechanism");
@@ -124,12 +122,10 @@ const char* saslmechanism_get_mechanism_name(SASL_MECHANISM_HANDLE sasl_mechanis
 	}
 	else
 	{
-		SASL_MECHANISM_INSTANCE* sasl_mechanism_instance = (SASL_MECHANISM_INSTANCE*)sasl_mechanism;
-
-		/* Codes_SRS_SASL_MECHANISM_01_014: [saslmechanism_get_mechanism_name shall call the specific concrete_sasl_mechanism_get_mechanism_name function specified in saslmechanism_create.] */
-		/* Codes_SRS_SASL_MECHANISM_01_015: [On success, saslmechanism_get_mechanism_name shall return a pointer to a string with the mechanism name.] */
-		/* Codes_SRS_SASL_MECHANISM_01_017: [If the underlying concrete_sasl_mechanism_get_mechanism_name fails, saslmechanism_get_mechanism_name shall return NULL.] */
-		result = sasl_mechanism_instance->sasl_mechanism_interface_description->concrete_sasl_mechanism_get_mechanism_name(sasl_mechanism_instance->concrete_sasl_mechanism_handle);
+		/* Codes_SRS_SASL_MECHANISM_01_014: [`saslmechanism_get_mechanism_name` shall call the specific `concrete_sasl_mechanism_get_mechanism_name` function specified in `saslmechanism_create`.] */
+		/* Codes_SRS_SASL_MECHANISM_01_015: [On success, `saslmechanism_get_mechanism_name` shall return a pointer to a string with the mechanism name.] */
+		/* Codes_SRS_SASL_MECHANISM_01_017: [If the underlying `concrete_sasl_mechanism_get_mechanism_name` fails, `saslmechanism_get_mechanism_name` shall return NULL.] */
+		result = sasl_mechanism->sasl_mechanism_interface_description->concrete_sasl_mechanism_get_mechanism_name(sasl_mechanism->concrete_sasl_mechanism_handle);
         if (result == NULL)
         {
             LogError("concrete_sasl_mechanism_get_mechanism_name failed");
@@ -143,7 +139,7 @@ int saslmechanism_challenge(SASL_MECHANISM_HANDLE sasl_mechanism, const SASL_MEC
 {
 	int result;
 
-	/* Codes_SRS_SASL_MECHANISM_01_020: [If the argument sasl_mechanism is NULL, saslmechanism_challenge shall fail and return a non-zero value.] */
+	/* Codes_SRS_SASL_MECHANISM_01_020: [If the argument `sasl_mechanism` is NULL, `saslmechanism_challenge` shall fail and return a non-zero value.] */
 	if (sasl_mechanism == NULL)
 	{
         LogError("NULL sasl_mechanism");
@@ -151,16 +147,16 @@ int saslmechanism_challenge(SASL_MECHANISM_HANDLE sasl_mechanism, const SASL_MEC
 	}
 	else
 	{
-		/* Codes_SRS_SASL_MECHANISM_01_018: [saslmechanism_challenge shall call the specific concrete_sasl_mechanism_challenge function specified in saslmechanism_create, while passing the challenge_bytes and response_bytes arguments to it.] */
+		/* Codes_SRS_SASL_MECHANISM_01_018: [`saslmechanism_challenge` shall call the specific `concrete_sasl_mechanism_challenge` function specified in `saslmechanism_create`, while passing the `challenge_bytes` and `response_bytes` arguments to it.] */
 		if (sasl_mechanism->sasl_mechanism_interface_description->concrete_sasl_mechanism_challenge(sasl_mechanism->concrete_sasl_mechanism_handle, challenge_bytes, response_bytes) != 0)
 		{
-			/* Codes_SRS_SASL_MECHANISM_01_021: [If the underlying concrete_sasl_mechanism_challenge fails, saslmechanism_challenge shall fail and return a non-zero value.] */
+			/* Codes_SRS_SASL_MECHANISM_01_021: [If the underlying `concrete_sasl_mechanism_challenge` fails, `saslmechanism_challenge` shall fail and return a non-zero value.] */
             LogError("concrete_sasl_mechanism_challenge failed");
             result = __FAILURE__;
 		}
 		else
 		{
-			/* Codes_SRS_SASL_MECHANISM_01_019: [On success, saslmechanism_challenge shall return 0.] */
+			/* Codes_SRS_SASL_MECHANISM_01_019: [On success, `saslmechanism_challenge` shall return 0.] */
 			result = 0;
 		}
 	}

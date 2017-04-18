@@ -71,7 +71,8 @@ int main(int argc, char** argv)
 {
 	int result;
 
-    (void)argc, argv;
+    (void)argc;
+	(void)argv;
 
 	if (platform_init() != 0)
 	{

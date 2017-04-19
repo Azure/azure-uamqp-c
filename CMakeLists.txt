@@ -9,13 +9,6 @@ set(UAMQP_VERSION 1.0.32)
 # Build with -fPIC always
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 
-if(NOT ${use_installed_dependencies})
-    add_subdirectory(deps/azure-c-testrunnerswitcher)
-    add_subdirectory(deps/azure-ctest)
-    add_subdirectory(deps/umock-c)
-    add_subdirectory(deps/azure-c-shared-utility)
-endif()
-
 #making a nice global variable to know if we are on linux or not.
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(LINUX TRUE)
@@ -53,6 +46,13 @@ option(compileOption_C "passes a string to the command line of the C compiler" O
 option(compileOption_CXX "passes a string to the command line of the C++ compiler" OFF)
 option(use_installed_dependencies "set use_installed_dependencies to ON to use installed packages instead of building dependencies from submodules" OFF)
 option(memory_trace "set memory_trace to ON if memory usage is to be used, set to OFF to not use it" OFF)
+
+if(NOT ${use_installed_dependencies})
+    add_subdirectory(deps/azure-c-testrunnerswitcher)
+    add_subdirectory(deps/azure-ctest)
+    add_subdirectory(deps/umock-c)
+    add_subdirectory(deps/azure-c-shared-utility)
+endif()
 
 if(${memory_trace})
     add_definitions(-DGB_MEASURE_MEMORY_FOR_THIS -DGB_DEBUG_ALLOC)

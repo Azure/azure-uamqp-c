@@ -9,6 +9,13 @@ set(UAMQP_VERSION 1.0.32)
 # Build with -fPIC always
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 
+if(NOT ${use_installed_dependencies})
+    add_subdirectory(deps/azure-c-testrunnerswitcher)
+    add_subdirectory(deps/azure-ctest)
+    add_subdirectory(deps/umock-c)
+    add_subdirectory(deps/azure-c-shared-utility)
+endif()
+
 #making a nice global variable to know if we are on linux or not.
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(LINUX TRUE)

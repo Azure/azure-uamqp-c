@@ -3,6 +3,4 @@
 
 if(${use_installed_dependencies})
     find_package(azure_c_shared_utility REQUIRED config)
-else()
-    add_subdirectory(c-utility)
 endif()

@@ -15,6 +15,7 @@
 #include "azure_uamqp_c/connection.h"
 #include "azure_uamqp_c/session.h"
 #include "azure_uamqp_c/link.h"
+#include "tls_server_io.h"
 
 static unsigned int sent_messages = 0;
 static const size_t msg_count = 1;
@@ -22,6 +23,9 @@ static CONNECTION_HANDLE connection;
 static SESSION_HANDLE session;
 static LINK_HANDLE link;
 static MESSAGE_RECEIVER_HANDLE message_receiver;
+static size_t count_received;
+static unsigned char* cert_buffer;
+static size_t cert_size;
 
 static void on_message_receiver_state_changed(const void* context, MESSAGE_RECEIVER_STATE new_state, MESSAGE_RECEIVER_STATE previous_state)
 {
@@ -33,7 +37,11 @@ static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE messag
 	(void)context;
 	(void)message;
 
-	printf("Message received.\r\n");
+    if ((count_received % 1000) == 0)
+    {
+        printf("Messages received : %u.\r\n", (unsigned int)count_received);
+    }
+    count_received++;
 
 	return messaging_delivery_accepted();
 }
@@ -60,11 +68,18 @@ static bool on_new_session_endpoint(void* context, ENDPOINT_HANDLE new_endpoint)
 static void on_socket_accepted(void* context, const IO_INTERFACE_DESCRIPTION* interface_description, void* io_parameters)
 {
 	HEADERDETECTIO_CONFIG header_detect_io_config;
+    TLS_SERVER_IO_CONFIG tls_server_io_config;
     XIO_HANDLE underlying_io;
 
     (void)context;
 
-    underlying_io = xio_create(interface_description, io_parameters);
+    tls_server_io_config.certificate = cert_buffer;
+    tls_server_io_config.certificate_size = cert_size;
+    tls_server_io_config.underlying_io_interface = interface_description;
+    tls_server_io_config.underlying_io_parameters = io_parameters;
+
+    underlying_io = xio_create(tls_server_io_get_interface_description(), &tls_server_io_config);
+
     header_detect_io_config.underlying_io = underlying_io;
 	XIO_HANDLE header_detect_io = xio_create(headerdetectio_get_interface_description(), &header_detect_io_config);
 	connection = connection_create(header_detect_io, NULL, "1", on_new_session_endpoint, NULL);
@@ -80,6 +95,7 @@ int main(int argc, char** argv)
 
 	if (platform_init() != 0)
 	{
+		(void)printf("Could not initialize platform\r\n");
 		result = -1;
 	}
 	else
@@ -88,47 +104,48 @@ int main(int argc, char** argv)
 
         gballoc_init();
 
-		SOCKET_LISTENER_HANDLE socket_listener = socketlistener_create(5672);
-		if (socketlistener_start(socket_listener, on_socket_accepted, NULL) != 0)
-		{
-			result = -1;
-		}
-		else
-		{
-			while (true)
-			{
-				size_t current_memory_used;
-				size_t maximum_memory_used;
-				socketlistener_dowork(socket_listener);
+        SOCKET_LISTENER_HANDLE socket_listener = socketlistener_create(5671);
+        if (socketlistener_start(socket_listener, on_socket_accepted, NULL) != 0)
+        {
+			(void)printf("Could not start socket listener\r\n");
+            result = -1;
+        }
+        else
+        {
+            while (true)
+            {
+                size_t current_memory_used;
+                size_t maximum_memory_used;
+                socketlistener_dowork(socket_listener);
 
-				current_memory_used = gballoc_getCurrentMemoryUsed();
-				maximum_memory_used = gballoc_getMaximumMemoryUsed();
+                current_memory_used = gballoc_getCurrentMemoryUsed();
+                maximum_memory_used = gballoc_getMaximumMemoryUsed();
 
-				if (current_memory_used != last_memory_used)
-				{
-					printf("Current memory usage:%lu (max:%lu)\r\n", (unsigned long)current_memory_used, (unsigned long)maximum_memory_used);
-					last_memory_used = current_memory_used;
-				}
+                if (current_memory_used != last_memory_used)
+                {
+                    (void)printf("Current memory usage:%lu (max:%lu)\r\n", (unsigned long)current_memory_used, (unsigned long)maximum_memory_used);
+                    last_memory_used = current_memory_used;
+                }
 
-				if (sent_messages == msg_count)
-				{
-					break;
-				}
+                if (sent_messages == msg_count)
+                {
+                    break;
+                }
 
-				if (connection != NULL)
-				{
-					connection_dowork(connection);
-				}
-			}
+                if (connection != NULL)
+                {
+                    connection_dowork(connection);
+                }
+            }
 
-			result = 0;
-		}
+            result = 0;
+        }
 
-		socketlistener_destroy(socket_listener);
-		platform_deinit();
+        socketlistener_destroy(socket_listener);
+        platform_deinit();
 
-		printf("Max memory usage:%lu\r\n", (unsigned long)gballoc_getCurrentMemoryUsed());
-		printf("Current memory usage:%lu\r\n", (unsigned long)gballoc_getMaximumMemoryUsed());
+        (void)printf("Max memory usage:%lu\r\n", (unsigned long)gballoc_getCurrentMemoryUsed());
+		(void)printf("Current memory usage:%lu\r\n", (unsigned long)gballoc_getMaximumMemoryUsed());
 
         gballoc_deinit();
     }

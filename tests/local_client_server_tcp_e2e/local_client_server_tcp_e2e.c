@@ -142,13 +142,15 @@ static bool on_new_session_endpoint(void* context, ENDPOINT_HANDLE new_endpoint)
     return true;
 }
 
-static void on_socket_accepted(void* context, XIO_HANDLE io)
+static void on_socket_accepted(void* context, const IO_INTERFACE_DESCRIPTION* interface_description, void* io_parameters)
 {
     HEADERDETECTIO_CONFIG header_detect_io_config;
     SERVER_INSTANCE* server = (SERVER_INSTANCE*)context;
+    XIO_HANDLE underlying_io;
     int result;
 
-    header_detect_io_config.underlying_io = io;
+    underlying_io = xio_create(interface_description, io_parameters);
+    header_detect_io_config.underlying_io = underlying_io;
     server->header_detect_io = xio_create(headerdetectio_get_interface_description(), &header_detect_io_config);
     ASSERT_IS_NOT_NULL_WITH_MSG(server->header_detect_io, "Could not create header detect IO");
     server->connection = connection_create(server->header_detect_io, NULL, "1", on_new_session_endpoint, server);

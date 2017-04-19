@@ -13,7 +13,7 @@ extern "C" {
 #include "azure_c_shared_utility/umock_c_prod.h"
 
 	typedef struct SOCKET_LISTENER_INSTANCE_TAG* SOCKET_LISTENER_HANDLE;
-	typedef void(*ON_SOCKET_ACCEPTED)(void* context, XIO_HANDLE socket_io);
+	typedef void(*ON_SOCKET_ACCEPTED)(void* context, const IO_INTERFACE_DESCRIPTION* interface_description, void* io_parameters);
 
 	MOCKABLE_FUNCTION(, SOCKET_LISTENER_HANDLE, socketlistener_create, int, port);
 	MOCKABLE_FUNCTION(, void, socketlistener_destroy, SOCKET_LISTENER_HANDLE, socket_listener);

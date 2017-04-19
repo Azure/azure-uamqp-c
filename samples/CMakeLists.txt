@@ -13,11 +13,11 @@ add_sample_directory(message_sender_sample)
 add_sample_directory(message_receiver_sample)
 add_sample_directory(mssbcbs_sample)
 add_sample_directory(eh_sender_with_sas_token_sample)
-
 add_sample_directory(local_client_sample)
 
 if(WIN32)
     add_sample_directory(local_server_sample)
+    add_sample_directory(local_server_tls_sample)
 endif()
 
 add_sample_directory(websockets_sample)

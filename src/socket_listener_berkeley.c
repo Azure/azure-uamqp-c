@@ -155,16 +155,7 @@ void socketlistener_dowork(SOCKET_LISTENER_HANDLE socket_listener)
                 socketio_config.hostname = NULL;
                 socketio_config.port = socket_listener_instance->port;
                 socketio_config.accepted_socket = &accepted_socket;
-                XIO_HANDLE io = xio_create(socketio_get_interface_description(), &socketio_config);
-				if (io == NULL)
-				{
-                    LogError("Failed creating socket IO");
-                    (void)close(accepted_socket);
-				}
-				else
-				{
-					socket_listener_instance->on_socket_accepted(socket_listener_instance->callback_context, io);
-				}
+				socket_listener_instance->on_socket_accepted(socket_listener_instance->callback_context, socketio_get_interface_description(), &socketio_config);
 			}
 			else
 			{

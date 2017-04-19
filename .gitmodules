@@ -1,3 +1,12 @@
-[submodule "azure-c-shared-utility"]
-	path = c-utility
-	url = https://github.com/Azure/azure-c-shared-utility.git
+[submodule "deps/azure-c-shared-utility"]
+	path = deps/azure-c-shared-utility
+	url = https://www.github.com/Azure/azure-c-shared-utility
+[submodule "deps/azure-ctest"]
+	path = deps/azure-ctest
+	url = https://www.github.com/Azure/azure-ctest
+[submodule "deps/umock-c"]
+	path = deps/umock-c
+	url = https://www.github.com/Azure/umock-c
+[submodule "deps/azure-c-testrunnerswitcher"]
+	path = deps/azure-c-testrunnerswitcher
+	url = https://www.github.com/Azure/azure-c-testrunnerswitcher

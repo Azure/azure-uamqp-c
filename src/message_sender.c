@@ -558,8 +558,8 @@ static void on_link_state_changed(void* context, LINK_STATE new_link_state, LINK
             (message_sender_instance->message_sender_state == MESSAGE_SENDER_STATE_CLOSING))
         {
             /* User initiated transition, we should be good */
-            indicate_all_messages_as_error(message_sender_instance);
             set_message_sender_state(message_sender_instance, MESSAGE_SENDER_STATE_IDLE);
+            indicate_all_messages_as_error(message_sender_instance);
         }
         else if (message_sender_instance->message_sender_state != MESSAGE_SENDER_STATE_IDLE)
         {

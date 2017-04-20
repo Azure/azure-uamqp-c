@@ -562,13 +562,13 @@ static void on_session_state_changed(void* context, SESSION_STATE new_session_st
 	}
 	else if (new_session_state == SESSION_STATE_DISCARDING)
 	{
-        remove_all_pending_deliveries(link_instance, true);
-		set_link_state(link_instance, LINK_STATE_DETACHED);
+                set_link_state(link_instance, LINK_STATE_DETACHED);
+                remove_all_pending_deliveries(link_instance, true);
 	}
 	else if (new_session_state == SESSION_STATE_ERROR)
 	{
-        remove_all_pending_deliveries(link_instance, true);
-		set_link_state(link_instance, LINK_STATE_ERROR);
+                set_link_state(link_instance, LINK_STATE_ERROR);
+                remove_all_pending_deliveries(link_instance, true);
 	}
 }
 

@@ -46,6 +46,7 @@ typedef struct LINK_INSTANCE_TAG
 	receiver_settle_mode rcv_settle_mode;
 	sequence_no initial_delivery_count;
 	uint64_t max_message_size;
+	uint64_t peer_max_message_size;
 	uint32_t link_credit;
 	uint32_t available;
     fields attach_properties;
@@ -269,6 +270,7 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
 	if (is_attach_type_by_descriptor(descriptor))
 	{
 		ATTACH_HANDLE attach_handle;
+
 		if (amqpvalue_get_attach(performative, &attach_handle) == 0)
 		{
 			if ((link_instance->role == role_receiver) &&
@@ -279,7 +281,13 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
 			}
 			else
 			{
-				if (link_instance->link_state == LINK_STATE_HALF_ATTACHED)
+				if (attach_get_max_message_size(attach_handle, &link_instance->peer_max_message_size) != 0)
+				{
+					LogError("Could not retrieve peer_max_message_size from attach frame");
+				}
+
+				if ((link_instance->link_state == LINK_STATE_DETACHED) ||
+					(link_instance->link_state == LINK_STATE_HALF_ATTACHED_ATTACH_SENT))
 				{
 					if (link_instance->role == role_receiver)
 					{
@@ -291,7 +299,14 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
 						link_instance->link_credit = 0;
 					}
 
-					set_link_state(link_instance, LINK_STATE_ATTACHED);
+					if (link_instance->link_state == LINK_STATE_DETACHED)
+					{
+						set_link_state(link_instance, LINK_STATE_HALF_ATTACHED_ATTACH_RECEIVED);
+					}
+					else
+					{
+						set_link_state(link_instance, LINK_STATE_ATTACHED);
+					}
 				}
 			}
 
@@ -518,7 +533,7 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
 
             /* Received a closing detach after we sent a non-closing detach. */
             else if (closed &&
-                (link_instance->link_state == LINK_STATE_HALF_ATTACHED) &&
+                ((link_instance->link_state == LINK_STATE_HALF_ATTACHED_ATTACH_SENT) || (link_instance->link_state == LINK_STATE_HALF_ATTACHED_ATTACH_RECEIVED)) &&
                 !link_instance->is_closed)
             {
 
@@ -556,7 +571,7 @@ static void on_session_state_changed(void* context, SESSION_STATE new_session_st
 		{
 			if (send_attach(link_instance, link_instance->name, 0, link_instance->role) == 0)
 			{
-				set_link_state(link_instance, LINK_STATE_HALF_ATTACHED);
+				set_link_state(link_instance, LINK_STATE_HALF_ATTACHED_ATTACH_SENT);
 			}
 		}
 	}
@@ -612,6 +627,7 @@ LINK_HANDLE link_create(SESSION_HANDLE session, const char* name, role role, AMQ
 		result->delivery_count = 0;
 		result->initial_delivery_count = 0;
 		result->max_message_size = 0;
+		result->peer_max_message_size = 0;
 		result->is_underlying_session_begun = false;
         result->is_closed = false;
         result->attach_properties = NULL;
@@ -671,6 +687,7 @@ LINK_HANDLE link_create_from_endpoint(SESSION_HANDLE session, LINK_ENDPOINT_HAND
 		result->delivery_count = 0;
 		result->initial_delivery_count = 0;
 		result->max_message_size = 0;
+		result->peer_max_message_size = 0;
 		result->is_underlying_session_begun = false;
         result->is_closed = false;
         result->attach_properties = NULL;
@@ -889,6 +906,32 @@ int link_get_max_message_size(LINK_HANDLE link, uint64_t* max_message_size)
 	return result;
 }
 
+int link_get_peer_max_message_size(LINK_HANDLE link, uint64_t* peer_max_message_size)
+{
+	int result;
+
+	if ((link == NULL) ||
+		(peer_max_message_size == NULL))
+	{
+		LogError("Bad arguments: link = %p, peer_max_message_size = %p",
+			link, peer_max_message_size);
+		result = __FAILURE__;
+	}
+	else if ((link->link_state != LINK_STATE_ATTACHED) &&
+		(link->link_state != LINK_STATE_HALF_ATTACHED_ATTACH_RECEIVED))
+	{
+		LogError("Attempting to read peer max message size before it was received");
+		result = __FAILURE__;
+	}
+	else
+	{
+		*peer_max_message_size = link->peer_max_message_size;
+		result = 0;
+	}
+
+	return result;
+}
+
 int link_set_attach_properties(LINK_HANDLE link, fields attach_properties)
 {
     int result;
@@ -973,8 +1016,8 @@ int link_detach(LINK_HANDLE link, bool close)
 	{
         switch (link->link_state)
         {
-
-        case LINK_STATE_HALF_ATTACHED:
+        case LINK_STATE_HALF_ATTACHED_ATTACH_SENT:
+		case LINK_STATE_HALF_ATTACHED_ATTACH_RECEIVED:
             /* Sending detach when remote is not yet attached */
             if (send_detach(link, close, NULL) != 0)
             {
@@ -995,7 +1038,7 @@ int link_detach(LINK_HANDLE link, bool close)
             }
             else
             {
-                set_link_state(link, LINK_STATE_HALF_ATTACHED);
+                set_link_state(link, LINK_STATE_HALF_ATTACHED_ATTACH_SENT);
                 result = 0;
             }
             break;

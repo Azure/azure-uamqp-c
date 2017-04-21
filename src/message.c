@@ -3,8 +3,10 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 #include "azure_c_shared_utility/optimize_size.h"
 #include "azure_c_shared_utility/gballoc.h"
+#include "azure_c_shared_utility/xlogging.h"
 #include "azure_uamqp_c/message.h"
 #include "azure_uamqp_c/amqpvalue.h"
 
@@ -30,45 +32,49 @@ typedef struct MESSAGE_INSTANCE_TAG
     uint32_t message_format;
 } MESSAGE_INSTANCE;
 
-static void free_all_body_data_items(MESSAGE_INSTANCE* message_instance)
+static void free_all_body_data_items(MESSAGE_HANDLE message)
 {
 	size_t i;
 
-	for (i = 0; i < message_instance->body_amqp_data_count; i++)
+	for (i = 0; i < message->body_amqp_data_count; i++)
 	{
-		if (message_instance->body_amqp_data_items[i].body_data_section_bytes != NULL)
+		if (message->body_amqp_data_items[i].body_data_section_bytes != NULL)
 		{
-			free(message_instance->body_amqp_data_items[i].body_data_section_bytes);
+			free(message->body_amqp_data_items[i].body_data_section_bytes);
 		}
 	}
 
-	free(message_instance->body_amqp_data_items);
-	message_instance->body_amqp_data_count = 0;
-	message_instance->body_amqp_data_items = NULL;
+	free(message->body_amqp_data_items);
+	message->body_amqp_data_count = 0;
+	message->body_amqp_data_items = NULL;
 }
 
-static void free_all_body_sequence_items(MESSAGE_INSTANCE* message_instance)
+static void free_all_body_sequence_items(MESSAGE_HANDLE message)
 {
 	size_t i;
 
-	for (i = 0; i < message_instance->body_amqp_sequence_count; i++)
+	for (i = 0; i < message->body_amqp_sequence_count; i++)
 	{
-		if (message_instance->body_amqp_sequence_items[i] != NULL)
+		if (message->body_amqp_sequence_items[i] != NULL)
 		{
-			amqpvalue_destroy(message_instance->body_amqp_sequence_items[i]);
+			amqpvalue_destroy(message->body_amqp_sequence_items[i]);
 		}
 	}
 
-	free(message_instance->body_amqp_sequence_items);
-	message_instance->body_amqp_sequence_count = 0;
-	message_instance->body_amqp_sequence_items = NULL;
+	free(message->body_amqp_sequence_items);
+	message->body_amqp_sequence_count = 0;
+	message->body_amqp_sequence_items = NULL;
 }
 
 MESSAGE_HANDLE message_create(void)
 {
-	MESSAGE_INSTANCE* result = (MESSAGE_INSTANCE*)malloc(sizeof(MESSAGE_INSTANCE));
+	MESSAGE_HANDLE result = (MESSAGE_HANDLE)malloc(sizeof(MESSAGE_INSTANCE));
 	/* Codes_SRS_MESSAGE_01_002: [If allocating memory for the message fails, message_create shall fail and return NULL.] */
-	if (result != NULL)
+	if (result == NULL)
+	{
+		LogError("Cannot allocate memory for message");
+	}
+	else
 	{
 		result->header = NULL;
 		result->delivery_annotations = NULL;
@@ -90,120 +96,131 @@ MESSAGE_HANDLE message_create(void)
 
 MESSAGE_HANDLE message_clone(MESSAGE_HANDLE source_message)
 {
-	MESSAGE_INSTANCE* result;
+	MESSAGE_HANDLE result;
 
 	/* Codes_SRS_MESSAGE_01_062: [If source_message is NULL, message_clone shall fail and return NULL.] */
 	if (source_message == NULL)
 	{
+		LogError("NULL source_message");
 		result = NULL;
 	}
 	else
 	{
-		MESSAGE_INSTANCE* source_message_instance = (MESSAGE_INSTANCE*)source_message;
-		result = (MESSAGE_INSTANCE*)message_create();
-
 		/* Codes_SRS_MESSAGE_01_003: [message_clone shall clone a message entirely and on success return a non-NULL handle to the cloned message.] */
-		/* Codes_SRS_MESSAGE_01_004: [If allocating memory for the new cloned message fails, message_clone shall fail and return NULL.] */
-		if (result != NULL)
+		result = (MESSAGE_HANDLE)message_create();
+		if (result == NULL)
 		{
-            result->message_format = source_message_instance->message_format;
+			/* Codes_SRS_MESSAGE_01_004: [If allocating memory for the new cloned message fails, message_clone shall fail and return NULL.] */
+			LogError("Cannot clone message");
+		}
+		else
+		{
+            result->message_format = source_message->message_format;
 
-			if (source_message_instance->header != NULL)
+			if (source_message->header != NULL)
 			{
 				/* Codes_SRS_MESSAGE_01_005: [If a header exists on the source message it shall be cloned by using header_clone.] */
-				result->header = header_clone(source_message_instance->header);
+				result->header = header_clone(source_message->header);
 				if (result->header == NULL)
 				{
+					LogError("Cannot clone message header");
 					message_destroy(result);
 					result = NULL;
 				}
 			}
 
-			if ((result != NULL) && (source_message_instance->delivery_annotations != NULL))
+			if ((result != NULL) && (source_message->delivery_annotations != NULL))
 			{
 				/* Codes_SRS_MESSAGE_01_006: [If delivery annotations exist on the source message they shall be cloned by using annotations_clone.] */
-				result->delivery_annotations = annotations_clone(source_message_instance->delivery_annotations);
+				result->delivery_annotations = annotations_clone(source_message->delivery_annotations);
 				if (result->delivery_annotations == NULL)
 				{
+					LogError("Cannot clone delivery annotations");
 					message_destroy(result);
 					result = NULL;
 				}
 			}
 
-			if ((result != NULL) && (source_message_instance->message_annotations != NULL))
+			if ((result != NULL) && (source_message->message_annotations != NULL))
 			{
 				/* Codes_SRS_MESSAGE_01_007: [If message annotations exist on the source message they shall be cloned by using annotations_clone.] */
-				result->message_annotations = annotations_clone(source_message_instance->message_annotations);
+				result->message_annotations = annotations_clone(source_message->message_annotations);
 				if (result->message_annotations == NULL)
 				{
+					LogError("Cannot clone message annotations");
 					message_destroy(result);
 					result = NULL;
 				}
 			}
 
-			if ((result != NULL) && (source_message_instance->properties != NULL))
+			if ((result != NULL) && (source_message->properties != NULL))
 			{
 				/* Codes_SRS_MESSAGE_01_008: [If message properties exist on the source message they shall be cloned by using properties_clone.] */
-				result->properties = properties_clone(source_message_instance->properties);
+				result->properties = properties_clone(source_message->properties);
 				if (result->properties == NULL)
 				{
+					LogError("Cannot clone message properties");
 					message_destroy(result);
 					result = NULL;
 				}
 			}
 
-			if ((result != NULL) && (source_message_instance->application_properties != NULL))
+			if ((result != NULL) && (source_message->application_properties != NULL))
 			{
 				/* Codes_SRS_MESSAGE_01_009: [If application properties exist on the source message they shall be cloned by using amqpvalue_clone.] */
-				result->application_properties = amqpvalue_clone(source_message_instance->application_properties);
+				result->application_properties = amqpvalue_clone(source_message->application_properties);
 				if (result->application_properties == NULL)
 				{
+					LogError("Cannot clone application annotations");
 					message_destroy(result);
 					result = NULL;
 				}
 			}
 
-			if ((result != NULL) && (source_message_instance->footer != NULL))
+			if ((result != NULL) && (source_message->footer != NULL))
 			{
 				/* Codes_SRS_MESSAGE_01_010: [If a footer exists on the source message it shall be cloned by using annotations_clone.] */
-				result->footer = amqpvalue_clone(source_message_instance->footer);
+				result->footer = amqpvalue_clone(source_message->footer);
 				if (result->footer == NULL)
 				{
+					LogError("Cannot clone message footer");
 					message_destroy(result);
 					result = NULL;
 				}
 			}
 
-			if ((result != NULL) && (source_message_instance->body_amqp_data_count > 0))
+			if ((result != NULL) && (source_message->body_amqp_data_count > 0))
 			{
 				size_t i;
 
-				result->body_amqp_data_items = (BODY_AMQP_DATA*)malloc(source_message_instance->body_amqp_data_count * sizeof(BODY_AMQP_DATA));
+				result->body_amqp_data_items = (BODY_AMQP_DATA*)malloc(source_message->body_amqp_data_count * sizeof(BODY_AMQP_DATA));
 				if (result->body_amqp_data_items == NULL)
 				{
+					LogError("Cannot allocate memory for body data sections");
 					message_destroy(result);
 					result = NULL;
 				}
 				else
 				{
-					for (i = 0; i < source_message_instance->body_amqp_data_count; i++)
+					for (i = 0; i < source_message->body_amqp_data_count; i++)
 					{
-						result->body_amqp_data_items[i].body_data_section_length = source_message_instance->body_amqp_data_items[i].body_data_section_length;
+						result->body_amqp_data_items[i].body_data_section_length = source_message->body_amqp_data_items[i].body_data_section_length;
 
 						/* Codes_SRS_MESSAGE_01_011: [If an AMQP data has been set as message body on the source message it shall be cloned by allocating memory for the binary payload.] */
-						result->body_amqp_data_items[i].body_data_section_bytes = (unsigned char*)malloc(source_message_instance->body_amqp_data_items[i].body_data_section_length);
+						result->body_amqp_data_items[i].body_data_section_bytes = (unsigned char*)malloc(source_message->body_amqp_data_items[i].body_data_section_length);
 						if (result->body_amqp_data_items[i].body_data_section_bytes == NULL)
 						{
+							LogError("Cannot allocate memory for body data section %u", (unsigned int)i);
 							break;
 						}
 						else
 						{
-							(void)memcpy(result->body_amqp_data_items[i].body_data_section_bytes, source_message_instance->body_amqp_data_items[i].body_data_section_bytes, result->body_amqp_data_items[i].body_data_section_length);
+							(void)memcpy(result->body_amqp_data_items[i].body_data_section_bytes, source_message->body_amqp_data_items[i].body_data_section_bytes, result->body_amqp_data_items[i].body_data_section_length);
 						}
 					}
 
 					result->body_amqp_data_count = i;
-					if (i < source_message_instance->body_amqp_data_count)
+					if (i < source_message->body_amqp_data_count)
 					{
 						message_destroy(result);
 						result = NULL;
@@ -211,30 +228,32 @@ MESSAGE_HANDLE message_clone(MESSAGE_HANDLE source_message)
 				}
 			}
 
-			if ((result != NULL) && (source_message_instance->body_amqp_sequence_count > 0))
+			if ((result != NULL) && (source_message->body_amqp_sequence_count > 0))
 			{
 				size_t i;
 
-				result->body_amqp_sequence_items = (AMQP_VALUE*)malloc(source_message_instance->body_amqp_sequence_count * sizeof(AMQP_VALUE));
+				result->body_amqp_sequence_items = (AMQP_VALUE*)malloc(source_message->body_amqp_sequence_count * sizeof(AMQP_VALUE));
 				if (result->body_amqp_sequence_items == NULL)
 				{
+					LogError("Cannot allocate memory for body AMQP sequences");
 					message_destroy(result);
 					result = NULL;
 				}
 				else
 				{
-					for (i = 0; i < source_message_instance->body_amqp_sequence_count; i++)
+					for (i = 0; i < source_message->body_amqp_sequence_count; i++)
 					{
 						/* Codes_SRS_MESSAGE_01_011: [If an AMQP data has been set as message body on the source message it shall be cloned by allocating memory for the binary payload.] */
-						result->body_amqp_sequence_items[i] = amqpvalue_clone(source_message_instance->body_amqp_sequence_items[i]);
+						result->body_amqp_sequence_items[i] = amqpvalue_clone(source_message->body_amqp_sequence_items[i]);
 						if (result->body_amqp_sequence_items[i] == NULL)
 						{
+							LogError("Cannot clone AMQP sequence %u", (unsigned int)i);
 							break;
 						}
 					}
 
 					result->body_amqp_sequence_count = i;
-					if (i < source_message_instance->body_amqp_sequence_count)
+					if (i < source_message->body_amqp_sequence_count)
 					{
 						message_destroy(result);
 						result = NULL;
@@ -242,11 +261,12 @@ MESSAGE_HANDLE message_clone(MESSAGE_HANDLE source_message)
 				}
 			}
 
-			if ((result != NULL) && (source_message_instance->body_amqp_value != NULL))
+			if ((result != NULL) && (source_message->body_amqp_value != NULL))
 			{
-				result->body_amqp_value = amqpvalue_clone(source_message_instance->body_amqp_value);
+				result->body_amqp_value = amqpvalue_clone(source_message->body_amqp_value);
 				if (result->body_amqp_value == NULL)
 				{
+					LogError("Cannot clone body AMQP value");
 					message_destroy(result);
 					result = NULL;
 				}
@@ -259,38 +279,40 @@ MESSAGE_HANDLE message_clone(MESSAGE_HANDLE source_message)
 
 void message_destroy(MESSAGE_HANDLE message)
 {
-	if (message != NULL)
+	if (message == NULL)
 	{
-		MESSAGE_INSTANCE* message_instance = (MESSAGE_INSTANCE*)message;
-
-		if (message_instance->header != NULL)
+		LogError("NULL message");
+	}
+	else
+	{
+		if (message->header != NULL)
 		{
-			header_destroy(message_instance->header);
+			header_destroy(message->header);
 		}
-		if (message_instance->properties != NULL)
+		if (message->properties != NULL)
 		{
-			properties_destroy(message_instance->properties);
+			properties_destroy(message->properties);
 		}
-		if (message_instance->application_properties != NULL)
+		if (message->application_properties != NULL)
 		{
-			application_properties_destroy(message_instance->application_properties);
+			application_properties_destroy(message->application_properties);
 		}
-		if (message_instance->footer != NULL)
+		if (message->footer != NULL)
 		{
-			annotations_destroy(message_instance->footer);
+			annotations_destroy(message->footer);
 		}
-		if (message_instance->body_amqp_value != NULL)
+		if (message->body_amqp_value != NULL)
 		{
-			amqpvalue_destroy(message_instance->body_amqp_value);
+			amqpvalue_destroy(message->body_amqp_value);
 		}
-        if (message_instance->message_annotations != NULL)
+        if (message->message_annotations != NULL)
         {
-            application_properties_destroy(message_instance->message_annotations);
+            application_properties_destroy(message->message_annotations);
         }
 
-		free_all_body_data_items(message_instance);
-		free_all_body_sequence_items(message_instance);
-		free(message_instance);
+		free_all_body_data_items(message);
+		free_all_body_sequence_items(message);
+		free(message);
 	}
 }
 
@@ -301,26 +323,28 @@ int message_set_header(MESSAGE_HANDLE message, HEADER_HANDLE header)
 	if ((message == NULL) ||
 		(header == NULL))
 	{
+		LogError("Bad arguments: message = %p, header = %p",
+			message, header);
 		result = __FAILURE__;
 	}
 	else
 	{
-		MESSAGE_INSTANCE* message_instance = (MESSAGE_INSTANCE*)message;
 		HEADER_HANDLE new_header;
 
 		new_header = header_clone(header);
 		if (new_header == NULL)
 		{
+			LogError("Cannot clone message header");
 			result = __FAILURE__;
 		}
 		else
 		{
-			if (message_instance->header != NULL)
+			if (message->header != NULL)
 			{
-				header_destroy(message_instance->header);
+				header_destroy(message->header);
 			}
 
-			message_instance->header = new_header;
+			message->header = new_header;
 			result = 0;
 		}
 	}
@@ -335,22 +359,23 @@ int message_get_header(MESSAGE_HANDLE message, HEADER_HANDLE* header)
 	if ((message == NULL) ||
 		(header == NULL))
 	{
+		LogError("Bad arguments: message = %p, header = %p",
+			message, header);
 		result = __FAILURE__;
 	}
 	else
 	{
-		MESSAGE_INSTANCE* message_instance = (MESSAGE_INSTANCE*)message;
-
-		if (message_instance->header == NULL)
+		if (message->header == NULL)
 		{
 			*header = NULL;
 			result = 0;
 		}
 		else
 		{
-			*header = header_clone(message_instance->header);
+			*header = header_clone(message->header);
 			if (*header == NULL)
 			{
+				LogError("Cannot clone message header");
 				result = __FAILURE__;
 			}
 			else
@@ -370,25 +395,28 @@ int message_set_delivery_annotations(MESSAGE_HANDLE message, annotations deliver
 	if ((message == NULL) ||
 		(delivery_annotations == NULL))
 	{
+		LogError("Bad arguments: message = %p, delivery_annotations = %p",
+			message, delivery_annotations);
 		result = __FAILURE__;
 	}
 	else
 	{
-		MESSAGE_INSTANCE* message_instance = (MESSAGE_INSTANCE*)message;
 		annotations new_delivery_annotations;
 
 		new_delivery_annotations = annotations_clone(delivery_annotations);
 		if (new_delivery_annotations == NULL)
 		{
+			LogError("Cannot clone delivery annotations");
 			result = __FAILURE__;
 		}
 		else
 		{
-			if (message_instance->delivery_annotations != NULL)
+			if (message->delivery_annotations != NULL)
 			{
-				annotations_destroy(message_instance->delivery_annotations);
+				annotations_destroy(message->delivery_annotations);
 			}
-			message_instance->delivery_annotations = new_delivery_annotations;
+
+			message->delivery_annotations = new_delivery_annotations;
 			result = 0;
 		}
 	}
@@ -403,22 +431,23 @@ int message_get_delivery_annotations(MESSAGE_HANDLE message, annotations* delive
 	if ((message == NULL) ||
 		(delivery_annotations == NULL))
 	{
+		LogError("Bad arguments: message = %p, delivery_annotations = %p",
+			message, delivery_annotations);
 		result = __FAILURE__;
 	}
 	else
 	{
-		MESSAGE_INSTANCE* message_instance = (MESSAGE_INSTANCE*)message;
-
-		if (message_instance->delivery_annotations == NULL)
+		if (message->delivery_annotations == NULL)
 		{
 			*delivery_annotations = NULL;
 			result = 0;
 		}
 		else
 		{
-			*delivery_annotations = annotations_clone(message_instance->delivery_annotations);
+			*delivery_annotations = annotations_clone(message->delivery_annotations);
 			if (*delivery_annotations == NULL)
 			{
+				LogError("Cannot clone delivery annotations");
 				result = __FAILURE__;
 			}
 			else
@@ -438,26 +467,28 @@ int message_set_message_annotations(MESSAGE_HANDLE message, annotations message_
 	if ((message == NULL) ||
 		(message_annotations == NULL))
 	{
+		LogError("Bad arguments: message = %p, message_annotations = %p",
+			message, message_annotations);
 		result = __FAILURE__;
 	}
 	else
 	{
-		MESSAGE_INSTANCE* message_instance = (MESSAGE_INSTANCE*)message;
 		annotations new_message_annotations;
 
 		new_message_annotations = annotations_clone(message_annotations);
 		if (new_message_annotations == NULL)
 		{
+			LogError("Cannot clone message annotations");
 			result = __FAILURE__;
 		}
 		else
 		{
-			if (message_instance->message_annotations != NULL)
+			if (message->message_annotations != NULL)
 			{
-				annotations_destroy(message_instance->message_annotations);
+				annotations_destroy(message->message_annotations);
 			}
 
-			message_instance->message_annotations = new_message_annotations;
+			message->message_annotations = new_message_annotations;
 			result = 0;
 		}
 	}
@@ -472,22 +503,23 @@ int message_get_message_annotations(MESSAGE_HANDLE message, annotations* message
 	if ((message == NULL) ||
 		(message_annotations == NULL))
 	{
+		LogError("Bad arguments: message = %p, message_annotations = %p",
+			message, message_annotations);
 		result = __FAILURE__;
 	}
 	else
 	{
-		MESSAGE_INSTANCE* message_instance = (MESSAGE_INSTANCE*)message;
-
-		if (message_instance->message_annotations == NULL)
+		if (message->message_annotations == NULL)
 		{
 			*message_annotations = NULL;
 			result = 0;
 		}
 		else
 		{
-			*message_annotations = annotations_clone(message_instance->message_annotations);
+			*message_annotations = annotations_clone(message->message_annotations);
 			if (*message_annotations == NULL)
 			{
+				LogError("Cannot clone message annotations");
 				result = __FAILURE__;
 			}
 			else
@@ -507,26 +539,28 @@ int message_set_properties(MESSAGE_HANDLE message, PROPERTIES_HANDLE properties)
 	if ((message == NULL) ||
 		(properties == NULL))
 	{
+		LogError("Bad arguments: message = %p, properties = %p",
+			message, properties);
 		result = __FAILURE__;
 	}
 	else
 	{
-		MESSAGE_INSTANCE* message_instance = (MESSAGE_INSTANCE*)message;
 		PROPERTIES_HANDLE new_properties;
 
 		new_properties = properties_clone(properties);
 		if (new_properties == NULL)
 		{
+			LogError("Cannot clone message properties");
 			result = __FAILURE__;
 		}
 		else
 		{
-			if (message_instance->properties != NULL)
+			if (message->properties != NULL)
 			{
-				properties_destroy(message_instance->properties);
+				properties_destroy(message->properties);
 			}
 
-			message_instance->properties = new_properties;
+			message->properties = new_properties;
 			result = 0;
 		}
 	}
@@ -541,22 +575,23 @@ int message_get_properties(MESSAGE_HANDLE message, PROPERTIES_HANDLE* properties
 	if ((message == NULL) ||
 		(properties == NULL))
 	{
+		LogError("Bad arguments: message = %p, properties = %p",
+			message, properties);
 		result = __FAILURE__;
 	}
 	else
 	{
-		MESSAGE_INSTANCE* message_instance = (MESSAGE_INSTANCE*)message;
-
-		if (message_instance->properties == NULL)
+		if (message->properties == NULL)
 		{
 			*properties = NULL;
 			result = 0;
 		}
 		else
 		{
-			*properties = properties_clone(message_instance->properties);
+			*properties = properties_clone(message->properties);
 			if (*properties == NULL)
 			{
+				LogError("Cannot clone message properties");
 				result = __FAILURE__;
 			}
 			else
@@ -576,26 +611,28 @@ int message_set_application_properties(MESSAGE_HANDLE message, AMQP_VALUE applic
 	if ((message == NULL) ||
 		(application_properties == NULL))
 	{
+		LogError("Bad arguments: message = %p, application_properties = %p",
+			message, application_properties);
 		result = __FAILURE__;
 	}
 	else
 	{
-		MESSAGE_INSTANCE* message_instance = (MESSAGE_INSTANCE*)message;
 		AMQP_VALUE new_application_properties;
 
 		new_application_properties = application_properties_clone(application_properties);
 		if (new_application_properties == NULL)
 		{
+			LogError("Cannot clone application properties");
 			result = __FAILURE__;
 		}
 		else
 		{
-			if (message_instance->application_properties != NULL)
+			if (message->application_properties != NULL)
 			{
-				amqpvalue_destroy(message_instance->application_properties);
+				amqpvalue_destroy(message->application_properties);
 			}
 
-			message_instance->application_properties = new_application_properties;
+			message->application_properties = new_application_properties;
 			result = 0;
 		}
 	}
@@ -610,22 +647,23 @@ int message_get_application_properties(MESSAGE_HANDLE message, AMQP_VALUE* appli
 	if ((message == NULL) ||
 		(application_properties == NULL))
 	{
+		LogError("Bad arguments: message = %p, application_properties = %p",
+			message, application_properties);
 		result = __FAILURE__;
 	}
 	else
 	{
-		MESSAGE_INSTANCE* message_instance = (MESSAGE_INSTANCE*)message;
-
-		if (message_instance->application_properties == NULL)
+		if (message->application_properties == NULL)
 		{
 			*application_properties = NULL;
 			result = 0;
 		}
 		else
 		{
-			*application_properties = application_properties_clone(message_instance->application_properties);
+			*application_properties = application_properties_clone(message->application_properties);
 			if (*application_properties == NULL)
 			{
+				LogError("Cannot clone application properties");
 				result = __FAILURE__;
 			}
 			else
@@ -645,26 +683,28 @@ int message_set_footer(MESSAGE_HANDLE message, annotations footer)
 	if ((message == NULL) ||
 		(footer == NULL))
 	{
+		LogError("Bad arguments: message = %p, footer = %p",
+			message, footer);
 		result = __FAILURE__;
 	}
 	else
 	{
-		MESSAGE_INSTANCE* message_instance = (MESSAGE_INSTANCE*)message;
 		AMQP_VALUE new_footer;
 
 		new_footer = annotations_clone(footer);
 		if (new_footer == NULL)
 		{
+			LogError("Cannot clone message footer");
 			result = __FAILURE__;
 		}
 		else
 		{
-			if (message_instance->footer != NULL)
+			if (message->footer != NULL)
 			{
-				annotations_destroy(message_instance->footer);
+				annotations_destroy(message->footer);
 			}
 
-			message_instance->footer = new_footer;
+			message->footer = new_footer;
 			result = 0;
 		}
 	}
@@ -679,22 +719,23 @@ int message_get_footer(MESSAGE_HANDLE message, annotations* footer)
 	if ((message == NULL) ||
 		(footer == NULL))
 	{
+		LogError("Bad arguments: message = %p, footer = %p",
+			message, footer);
 		result = __FAILURE__;
 	}
 	else
 	{
-		MESSAGE_INSTANCE* message_instance = (MESSAGE_INSTANCE*)message;
-
-		if (message_instance->footer == NULL)
+		if (message->footer == NULL)
 		{
 			*footer = NULL;
 			result = 0;
 		}
 		else
 		{
-			*footer = annotations_clone(message_instance->footer);
+			*footer = annotations_clone(message->footer);
 			if (*footer == NULL)
 			{
+				LogError("Cannot clone message footer");
 				result = __FAILURE__;
 			}
 			else
@@ -711,42 +752,45 @@ int message_add_body_amqp_data(MESSAGE_HANDLE message, BINARY_DATA binary_data)
 {
 	int result;
 
-	MESSAGE_INSTANCE* message_instance = (MESSAGE_INSTANCE*)message;
 	if ((message == NULL) ||
 		((binary_data.bytes == NULL) &&
 		 (binary_data.length != 0)))
 	{
+		LogError("Bad arguments: message = %p, bytes = %p, length = %u",
+			message, binary_data.bytes, (unsigned int)binary_data.length);
 		result = __FAILURE__;
 	}
 	else
 	{
-		BODY_AMQP_DATA* new_body_amqp_data_items = (BODY_AMQP_DATA*)realloc(message_instance->body_amqp_data_items, sizeof(BODY_AMQP_DATA) * (message_instance->body_amqp_data_count + 1));
+		BODY_AMQP_DATA* new_body_amqp_data_items = (BODY_AMQP_DATA*)realloc(message->body_amqp_data_items, sizeof(BODY_AMQP_DATA) * (message->body_amqp_data_count + 1));
 		if (new_body_amqp_data_items == NULL)
 		{
+			LogError("Cannot allocate memory for body AMQP data items");
 			result = __FAILURE__;
 		}
 		else
 		{
-			message_instance->body_amqp_data_items = new_body_amqp_data_items;
+			message->body_amqp_data_items = new_body_amqp_data_items;
 
-			message_instance->body_amqp_data_items[message_instance->body_amqp_data_count].body_data_section_bytes = (unsigned char*)malloc(binary_data.length);
-			if (message_instance->body_amqp_data_items[message_instance->body_amqp_data_count].body_data_section_bytes == NULL)
+			message->body_amqp_data_items[message->body_amqp_data_count].body_data_section_bytes = (unsigned char*)malloc(binary_data.length);
+			if (message->body_amqp_data_items[message->body_amqp_data_count].body_data_section_bytes == NULL)
 			{
+				LogError("Cannot allocate memory for body AMQP data to be added");
 				result = __FAILURE__;
 			}
 			else
 			{
-				message_instance->body_amqp_data_items[message_instance->body_amqp_data_count].body_data_section_length = binary_data.length;
-				(void)memcpy(message_instance->body_amqp_data_items[message_instance->body_amqp_data_count].body_data_section_bytes, binary_data.bytes, binary_data.length);
+				message->body_amqp_data_items[message->body_amqp_data_count].body_data_section_length = binary_data.length;
+				(void)memcpy(message->body_amqp_data_items[message->body_amqp_data_count].body_data_section_bytes, binary_data.bytes, binary_data.length);
 
-				if (message_instance->body_amqp_value != NULL)
+				if (message->body_amqp_value != NULL)
 				{
-					amqpvalue_destroy(message_instance->body_amqp_value);
-					message_instance->body_amqp_value = NULL;
+					amqpvalue_destroy(message->body_amqp_value);
+					message->body_amqp_value = NULL;
 				}
-				free_all_body_sequence_items(message_instance);
+				free_all_body_sequence_items(message);
 
-				message_instance->body_amqp_data_count++;
+				message->body_amqp_data_count++;
 				result = 0;
 			}
 		}
@@ -762,20 +806,22 @@ int message_get_body_amqp_data(MESSAGE_HANDLE message, size_t index, BINARY_DATA
 	if ((message == NULL) ||
 		(binary_data == NULL))
 	{
+		LogError("Bad arguments: message = %p, binary_data = %p",
+			message, binary_data);
 		result = __FAILURE__;
 	}
 	else
 	{
-		MESSAGE_INSTANCE* message_instance = (MESSAGE_INSTANCE*)message;
-
-		if (index >= message_instance->body_amqp_data_count)
+		if (index >= message->body_amqp_data_count)
 		{
+			LogError("Index too high for AMQP data (%u), number of AMQP data entries is %u",
+				index, message->body_amqp_data_count);
 			result = __FAILURE__;
 		}
 		else
 		{
-			binary_data->bytes = message_instance->body_amqp_data_items[index].body_data_section_bytes;
-			binary_data->length = message_instance->body_amqp_data_items[index].body_data_section_length;
+			binary_data->bytes = message->body_amqp_data_items[index].body_data_section_bytes;
+			binary_data->length = message->body_amqp_data_items[index].body_data_section_length;
 
 			result = 0;
 		}
@@ -788,15 +834,16 @@ int message_get_body_amqp_data_count(MESSAGE_HANDLE message, size_t* count)
 {
 	int result;
 
-	MESSAGE_INSTANCE* message_instance = (MESSAGE_INSTANCE*)message;
 	if ((message == NULL) ||
 		(count == NULL))
 	{
+		LogError("Bad arguments: message = %p, count = %p",
+			message, count);
 		result = __FAILURE__;
 	}
 	else
 	{
-		*count = message_instance->body_amqp_data_count;
+		*count = message->body_amqp_data_count;
 		result = 0;
 	}
 
@@ -808,39 +855,46 @@ int message_add_body_amqp_sequence(MESSAGE_HANDLE message, AMQP_VALUE sequence_l
 	int result;
 	size_t item_count;
 
-	MESSAGE_INSTANCE* message_instance = (MESSAGE_INSTANCE*)message;
 	if ((message == NULL) ||
-		(sequence_list == NULL) ||
-		(amqpvalue_get_list_item_count(sequence_list, (uint32_t*)&item_count) != 0))
+		(sequence_list == NULL))
 	{
+		LogError("Bad arguments: message = %p, sequence_list = %p",
+			message, sequence_list);
+		result = __FAILURE__;
+	}
+	else if (amqpvalue_get_list_item_count(sequence_list, (uint32_t*)&item_count) != 0)
+	{
+		LogError("Cannot retrieve message sequence list item count");
 		result = __FAILURE__;
 	}
 	else
 	{
-		AMQP_VALUE* new_body_amqp_sequence_items = (AMQP_VALUE*)realloc(message_instance->body_amqp_sequence_items, sizeof(AMQP_VALUE) * (message_instance->body_amqp_sequence_count + 1));
+		AMQP_VALUE* new_body_amqp_sequence_items = (AMQP_VALUE*)realloc(message->body_amqp_sequence_items, sizeof(AMQP_VALUE) * (message->body_amqp_sequence_count + 1));
 		if (new_body_amqp_sequence_items == NULL)
 		{
+			LogError("Cannot allocate enough memory for sequence items");
 			result = __FAILURE__;
 		}
 		else
 		{
-			message_instance->body_amqp_sequence_items = new_body_amqp_sequence_items;
+			message->body_amqp_sequence_items = new_body_amqp_sequence_items;
 
-			message_instance->body_amqp_sequence_items[message_instance->body_amqp_sequence_count] = amqpvalue_clone(sequence_list);
-			if (message_instance->body_amqp_sequence_items[message_instance->body_amqp_sequence_count] == NULL)
+			message->body_amqp_sequence_items[message->body_amqp_sequence_count] = amqpvalue_clone(sequence_list);
+			if (message->body_amqp_sequence_items[message->body_amqp_sequence_count] == NULL)
 			{
+				LogError("Cloning sequence failed");
 				result = __FAILURE__;
 			}
 			else
 			{
-				if (message_instance->body_amqp_value != NULL)
+				if (message->body_amqp_value != NULL)
 				{
-					amqpvalue_destroy(message_instance->body_amqp_value);
-					message_instance->body_amqp_value = NULL;
+					amqpvalue_destroy(message->body_amqp_value);
+					message->body_amqp_value = NULL;
 				}
-				free_all_body_data_items(message_instance);
+				free_all_body_data_items(message);
 
-				message_instance->body_amqp_sequence_count++;
+				message->body_amqp_sequence_count++;
 				result = 0;
 			}
 		}
@@ -856,21 +910,24 @@ int message_get_body_amqp_sequence(MESSAGE_HANDLE message, size_t index, AMQP_VA
 	if ((message == NULL) ||
 		(sequence_list == NULL))
 	{
+		LogError("Bad arguments: message = %p, sequence_list = %p",
+			message, sequence_list);
 		result = __FAILURE__;
 	}
 	else
 	{
-		MESSAGE_INSTANCE* message_instance = (MESSAGE_INSTANCE*)message;
-
-		if (index >= message_instance->body_amqp_sequence_count)
+		if (index >= message->body_amqp_sequence_count)
 		{
+			LogError("Index too high for AMQP sequence (%u), maximum is %u",
+				index, message->body_amqp_sequence_count);
 			result = __FAILURE__;
 		}
 		else
 		{
-			*sequence_list = amqpvalue_clone(message_instance->body_amqp_sequence_items[index]);
+			*sequence_list = amqpvalue_clone(message->body_amqp_sequence_items[index]);
 			if (*sequence_list == NULL)
 			{
+				LogError("Cannot clone AMQP sequence");
 				result = __FAILURE__;
 			}
 			else
@@ -887,15 +944,16 @@ int message_get_body_amqp_sequence_count(MESSAGE_HANDLE message, size_t* count)
 {
 	int result;
 
-	MESSAGE_INSTANCE* message_instance = (MESSAGE_INSTANCE*)message;
 	if ((message == NULL) ||
 		(count == NULL))
 	{
+		LogError("Bad arguments: message = %p, count = %p",
+			message, count);
 		result = __FAILURE__;
 	}
 	else
 	{
-		*count = message_instance->body_amqp_sequence_count;
+		*count = message->body_amqp_sequence_count;
 		result = 0;
 	}
 
@@ -906,19 +964,28 @@ int message_set_body_amqp_value(MESSAGE_HANDLE message, AMQP_VALUE body_amqp_val
 {
 	int result;
 
-	MESSAGE_INSTANCE* message_instance = (MESSAGE_INSTANCE*)message;
 	if ((message == NULL) ||
 		(body_amqp_value == NULL))
 	{
+		LogError("Bad arguments: message = %p, body_amqp_value = %p",
+			message, body_amqp_value);
 		result = __FAILURE__;
 	}
 	else
 	{
-		message_instance->body_amqp_value = amqpvalue_clone(body_amqp_value);
-
-		free_all_body_data_items(message_instance);
-		free_all_body_sequence_items(message_instance);
-		result = 0;
+		message->body_amqp_value = amqpvalue_clone(body_amqp_value);
+		if (message->body_amqp_value == NULL)
+		{
+			LogError("Cannot clone body AMQP value",
+				message, body_amqp_value);
+			result = __FAILURE__;
+		}
+		else
+		{
+			free_all_body_data_items(message);
+			free_all_body_sequence_items(message);
+			result = 0;
+		}
 	}
 
 	return result;
@@ -931,13 +998,13 @@ int message_get_inplace_body_amqp_value(MESSAGE_HANDLE message, AMQP_VALUE* body
 	if ((message == NULL) ||
 		(body_amqp_value == NULL))
 	{
+		LogError("Bad arguments: message = %p, body_amqp_value = %p",
+			message, body_amqp_value);
 		result = __FAILURE__;
 	}
 	else
 	{
-		MESSAGE_INSTANCE* message_instance = (MESSAGE_INSTANCE*)message;
-
-		*body_amqp_value = message_instance->body_amqp_value;
+		*body_amqp_value = message->body_amqp_value;
 
 		result = 0;
 	}
@@ -952,21 +1019,21 @@ int message_get_body_type(MESSAGE_HANDLE message, MESSAGE_BODY_TYPE* body_type)
 	if ((message == NULL) ||
 		(body_type == NULL))
 	{
+		LogError("Bad arguments: message = %p, body_type = %p",
+			message, body_type);
 		result = __FAILURE__;
 	}
 	else
 	{
-		MESSAGE_INSTANCE* message_instance = (MESSAGE_INSTANCE*)message;
-
-		if (message_instance->body_amqp_value != NULL)
+		if (message->body_amqp_value != NULL)
 		{
 			*body_type = MESSAGE_BODY_TYPE_VALUE;
 		}
-		else if (message_instance->body_amqp_data_count > 0)
+		else if (message->body_amqp_data_count > 0)
 		{
 			*body_type = MESSAGE_BODY_TYPE_DATA;
 		}
-		else if (message_instance->body_amqp_sequence_count > 0)
+		else if (message->body_amqp_sequence_count > 0)
 		{
 			*body_type = MESSAGE_BODY_TYPE_SEQUENCE;
 		}
@@ -987,12 +1054,12 @@ int message_set_message_format(MESSAGE_HANDLE message, uint32_t message_format)
 
     if (message == NULL)
     {
-        result = __FAILURE__;
+		LogError("NULL message");
+		result = __FAILURE__;
     }
     else
     {
-        MESSAGE_INSTANCE* message_instance = (MESSAGE_INSTANCE*)message;
-        message_instance->message_format = message_format;
+        message->message_format = message_format;
         result = 0;
     }
 
@@ -1006,12 +1073,13 @@ int message_get_message_format(MESSAGE_HANDLE message, uint32_t *message_format)
     if ((message == NULL) ||
         (message_format == NULL))
     {
-        result = __FAILURE__;
+		LogError("Bad arguments: message = %p, message_format = %p",
+			message, message_format);
+		result = __FAILURE__;
     }
     else
     {
-        MESSAGE_INSTANCE* message_instance = (MESSAGE_INSTANCE*)message;
-        *message_format = message_instance->message_format;
+        *message_format = message->message_format;
         result = 0;
     }
 

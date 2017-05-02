@@ -1,82 +1,99 @@
-#sasl_plain requirements
+# sasl_plain requirements
  
-##Overview
+## Overview
 
-sasl_plain is a module that implements the sasl mechanism PLAIN so that it can be used through the sasl_mechanism interface. The spec conforms to https://tools.ietf.org/html/rfc4616.
+`sasl_plain` is a module that implements the sasl mechanism PLAIN so that it can be used through the `sasl_mechanism` interface. The spec conforms to https://tools.ietf.org/html/rfc4616.
 
-##Exposed API
+## Exposed API
 
 ```C
 	typedef struct SASL_PLAIN_CONFIG_TAG
 	{
 		const char* authcid;
 		const char* passwd;
+        const char* authzid;
 	} SASL_PLAIN_CONFIG;
 
-	extern CONCRETE_SASL_MECHANISM_HANDLE saslplain_create(void* config);
-	extern void saslplain_destroy(CONCRETE_SASL_MECHANISM_HANDLE sasl_mechanism_concrete_handle);
-	extern int saslplain_get_init_bytes(CONCRETE_SASL_MECHANISM_HANDLE sasl_mechanism_concrete_handle, SASL_MECHANISM_BYTES* init_bytes);
-	extern const char* saslplain_get_mechanism_name(CONCRETE_SASL_MECHANISM_HANDLE sasl_mechanism);
-	extern int saslplain_challenge(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism, const SASL_MECHANISM_BYTES* challenge_bytes, SASL_MECHANISM_BYTES* response_bytes);
-	extern const SASL_MECHANISM_INTERFACE_DESCRIPTION* saslplain_get_interface(void);
+	MOCKABLE_FUNCTION(, const SASL_MECHANISM_INTERFACE_DESCRIPTION*, saslplain_get_interface);
 ```
 
-###saslplain_create
+### saslplain_create
 
 ```C
-extern CONCRETE_SASL_MECHANISM_HANDLE saslplain_create(void* config);
+CONCRETE_SASL_MECHANISM_HANDLE saslplain_create(void* config);
 ```
 
-**SRS_SASL_PLAIN_01_001: [**saslplain_create shall return on success a non-NULL handle to a new SASL plain mechanism.**]** 
-**SRS_SASL_PLAIN_01_002: [**If allocating the memory needed for the saslplain instance fails then saslplain_create shall return NULL.**]** 
-**SRS_SASL_PLAIN_01_003: [**If the config argument is NULL, then saslplain_create shall fail and return NULL.**]** 
-**SRS_SASL_PLAIN_01_004: [**If either the authcid or passwd member of the config structure is NULL, then saslplain_create shall fail and return NULL.**]** 
+`saslplain_create` is the implementation provided via `saslplain_get_interface` for the `concrete_sasl_mechanism_create` member.
 
-###saslplain_destroy
+**SRS_SASL_PLAIN_01_001: [**`saslplain_create` shall return on success a non-NULL handle to a new SASL plain mechanism.**]** 
+
+**SRS_SASL_PLAIN_01_002: [**If allocating the memory needed for the saslplain instance fails then `saslplain_create` shall return NULL.**]** 
+
+**SRS_SASL_PLAIN_01_003: [**If the `config` argument is NULL, then `saslplain_create` shall fail and return NULL.**]** 
+
+**SRS_SASL_PLAIN_01_004: [**If either the `authcid` or `passwd` member of the `config` structure is NULL, then `saslplain_create` shall fail and return NULL.**]** 
+
+**SRS_SASL_PLAIN_01_025: [** `authzid` shall be optional. **]**
+
+### saslplain_destroy
 
 ```C
-extern void saslplain_destroy(CONCRETE_SASL_MECHANISM_HANDLE sasl_mechanism_concrete_handle);
+void saslplain_destroy(CONCRETE_SASL_MECHANISM_HANDLE sasl_mechanism_concrete_handle);
 ```
 
-**SRS_SASL_PLAIN_01_005: [**saslplain_destroy shall free all resources associated with the SASL mechanism.**]** 
-**SRS_SASL_PLAIN_01_006: [**If the argument concrete_sasl_mechanism is NULL, saslplain_destroy shall do nothing.**]**
+`saslplain_destroy` is the implementation provided via `saslplain_get_interface` for the `concrete_sasl_mechanism_destroy` member.
 
-###saslplain_get_init_bytes
+**SRS_SASL_PLAIN_01_005: [**`saslplain_destroy` shall free all resources associated with the SASL mechanism.**]** 
+
+**SRS_SASL_PLAIN_01_006: [**If the argument `concrete_sasl_mechanism` is NULL, `saslplain_destroy` shall do nothing.**]**
+
+### saslplain_get_init_bytes
 
 ```C
-extern int saslplain_get_init_bytes(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism, INIT_BYTES* init_bytes);
+int saslplain_get_init_bytes(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism, INIT_BYTES* init_bytes);
 ```
 
-**SRS_SASL_PLAIN_01_007: [**saslplain_get_init_bytes shall construct the initial bytes per the RFC 4616.**]** 
-**SRS_SASL_PLAIN_01_008: [**On success saslplain_get_init_bytes shall return zero.**]** 
-**SRS_SASL_PLAIN_01_009: [**If any argument is NULL, saslplain_get_init_bytes shall return a non-zero value.**]**
+`saslplain_get_init_bytes` is the implementation provided via `saslplain_get_interface` for the `concrete_sasl_mechanism_get_init_bytes` member.
 
-###saslplain_get_mechanism_name
+**SRS_SASL_PLAIN_01_007: [**`saslplain_get_init_bytes` shall construct the initial bytes per the RFC 4616.**]** 
+
+**SRS_SASL_PLAIN_01_008: [**On success `saslplain_get_init_bytes` shall return zero.**]** 
+
+**SRS_SASL_PLAIN_01_009: [**If any argument is NULL, `saslplain_get_init_bytes` shall return a non-zero value.**]**
+
+### saslplain_get_mechanism_name
 
 ```C
-extern const char* saslplain_get_mechanism_name(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism);
+const char* saslplain_get_mechanism_name(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism);
 ```
 
-**SRS_SASL_PLAIN_01_010: [**saslplain_get_mechanism_name shall validate the argument concrete_sasl_mechanism and on success it shall return a pointer to the string "PLAIN".**]** 
-**SRS_SASL_PLAIN_01_011: [**If the argument concrete_sasl_mechanism is NULL, saslplain_get_mechanism_name shall return NULL.**]** 
+`saslplain_get_mechanism_name` is the implementation provided via `saslplain_get_interface` for the `concrete_sasl_mechanism_get_mechanism_name` member.
 
-###saslplain_challenge
+**SRS_SASL_PLAIN_01_010: [**`saslplain_get_mechanism_name` shall validate the argument `concrete_sasl_mechanism` and on success it shall return a pointer to the string "PLAIN".**]** 
+
+**SRS_SASL_PLAIN_01_011: [**If the argument `concrete_sasl_mechanism` is NULL, `saslplain_get_mechanism_name` shall return NULL.**]** 
+
+### saslplain_challenge
 
 ```C
-extern int saslplain_challenge(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism, const SASL_MECHANISM_BYTES* challenge_bytes, SASL_MECHANISM_BYTES* response_bytes);
+int saslplain_challenge(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism, const SASL_MECHANISM_BYTES* challenge_bytes, SASL_MECHANISM_BYTES* response_bytes);
 ```
 
-**SRS_SASL_PLAIN_01_012: [**saslplain_challenge shall set the response_bytes buffer to NULL and 0 size as the PLAIN SASL mechanism does not implement challenge/response.**]** 
-**SRS_SASL_PLAIN_01_013: [**On success, saslplain_challenge shall return 0.**]** 
-**SRS_SASL_PLAIN_01_014: [**If the concrete_sasl_mechanism or response_bytes argument is NULL then saslplain_challenge shall fail and return a non-zero value.**]** 
+`saslplain_challenge` is the implementation provided via `saslplain_get_interface` for the `concrete_sasl_mechanism_challenge` member.
 
-###saslplain_get_interface
+**SRS_SASL_PLAIN_01_012: [**`saslplain_challenge` shall set the `response_bytes` buffer to NULL and 0 size as the PLAIN SASL mechanism does not implement challenge/response.**]** 
+
+**SRS_SASL_PLAIN_01_013: [**On success, `saslplain_challenge` shall return 0.**]** 
+
+**SRS_SASL_PLAIN_01_014: [**If the `concrete_sasl_mechanism` or `response_bytes` argument is NULL then `saslplain_challenge` shall fail and return a non-zero value.**]** 
+
+### saslplain_get_interface
 
 ```C
-extern const SASL_MECHANISM_INTERFACE_DESCRIPTION* saslplain_get_interface(void);
+const SASL_MECHANISM_INTERFACE_DESCRIPTION* saslplain_get_interface(void);
 ```
 
-**SRS_SASL_PLAIN_01_015: [**saslplain_get_interface shall return a pointer to a SASL_MECHANISM_INTERFACE_DESCRIPTION  structure that contains pointers to the functions: saslplain_create, saslplain_destroy, saslplain_get_init_bytes, saslplain_get_mechanism_name, saslplain_challenge.**]** 
+**SRS_SASL_PLAIN_01_015: [**`saslplain_get_interface` shall return a pointer to a `SASL_MECHANISM_INTERFACE_DESCRIPTION` structure that contains pointers to the functions: `saslplain_create`, `saslplain_destroy`, `saslplain_get_init_bytes`, `saslplain_get_mechanism_name`, `saslplain_challenge`.**]** 
 
 ## RFC section
 

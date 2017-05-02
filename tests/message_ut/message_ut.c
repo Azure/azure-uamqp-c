@@ -102,14 +102,16 @@ TEST_FUNCTION_CLEANUP(test_cleanup)
 
 /* message_create */
 
-/* Tests_SRS_MESSAGE_01_001: [message_create shall create a new AMQP message instance and on success it shall return a non-NULL handle for the newly created message instance.] */
+/* Tests_SRS_MESSAGE_01_001: [`message_create` shall create a new AMQP message instance and on success it shall return a non-NULL handle for the newly created message instance.] */
 TEST_FUNCTION(message_create_succeeds)
 {
 	// arrange
-	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	MESSAGE_HANDLE message;
+
+	STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 
 	// act
-	MESSAGE_HANDLE message = message_create();
+	message = message_create();
 
 	// assert
 	ASSERT_IS_NOT_NULL(message);
@@ -119,20 +121,23 @@ TEST_FUNCTION(message_create_succeeds)
 	message_destroy(message);
 }
 
-/* Tests_SRS_MESSAGE_01_001: [message_create shall create a new AMQP message instance and on success it shall return a non-NULL handle for the newly created message instance.] */
+/* Tests_SRS_MESSAGE_01_001: [`message_create` shall create a new AMQP message instance and on success it shall return a non-NULL handle for the newly created message instance.] */
 TEST_FUNCTION(message_create_2_times_yields_2_different_message_instances)
 {
 	// arrange
-	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	MESSAGE_HANDLE message1;
+	MESSAGE_HANDLE message2;
+
+	STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+	STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 
 	// act
-	MESSAGE_HANDLE message1 = message_create();
-	MESSAGE_HANDLE message2 = message_create();
+	message1 = message_create();
+	message2 = message_create();
 
 	// assert
-	ASSERT_IS_NOT_NULL(message1);
-	ASSERT_IS_NOT_NULL(message2);
+	ASSERT_IS_NOT_NULL_WITH_MSG(message1, "Creating the first message failed");
+	ASSERT_IS_NOT_NULL_WITH_MSG(message2, "Creating the second message failed");
 	ASSERT_ARE_NOT_EQUAL(void_ptr, message1, message2);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
@@ -141,11 +146,11 @@ TEST_FUNCTION(message_create_2_times_yields_2_different_message_instances)
 	message_destroy(message2);
 }
 
-/* Tests_SRS_MESSAGE_01_002: [If allocating memory for the message fails, message_create shall fail and return NULL.] */
+/* Tests_SRS_MESSAGE_01_002: [If allocating memory for the message fails, `message_create` shall fail and return NULL.] */
 TEST_FUNCTION(when_allocating_memory_for_the_message_fails_then_message_create_fails)
 {
 	// arrange
-	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+	STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
 		.SetReturn(NULL);
 
 	// act
@@ -158,13 +163,13 @@ TEST_FUNCTION(when_allocating_memory_for_the_message_fails_then_message_create_f
 
 /* message_clone */
 
-/* Tests_SRS_MESSAGE_01_003: [message_clone shall clone a message entirely and on success return a non-NULL handle to the cloned message.] */
-/* Tests_SRS_MESSAGE_01_005: [If a header exists on the source message it shall be cloned by using header_clone.] */
-/* Tests_SRS_MESSAGE_01_006: [If delivery annotations exist on the source message they shall be cloned by using annotations_clone.] */
-/* Tests_SRS_MESSAGE_01_007: [If message annotations exist on the source message they shall be cloned by using annotations_clone.] */
-/* Tests_SRS_MESSAGE_01_008: [If message properties exist on the source message they shall be cloned by using properties_clone.] */
-/* Tests_SRS_MESSAGE_01_009: [If application properties exist on the source message they shall be cloned by using amqpvalue_clone.] */
-/* Tests_SRS_MESSAGE_01_010: [If a footer exists on the source message it shall be cloned by using annotations_clone.] */
+/* Tests_SRS_MESSAGE_01_003: [`message_clone` shall clone a message entirely and on success return a non-NULL handle to the cloned message.] */
+/* Tests_SRS_MESSAGE_01_005: [If a header exists on the source message it shall be cloned by using `header_clone`.] */
+/* Tests_SRS_MESSAGE_01_006: [If delivery annotations exist on the source message they shall be cloned by using `annotations_clone`.] */
+/* Tests_SRS_MESSAGE_01_007: [If message annotations exist on the source message they shall be cloned by using `annotations_clone`.] */
+/* Tests_SRS_MESSAGE_01_008: [If message properties exist on the source message they shall be cloned by using `properties_clone`.] */
+/* Tests_SRS_MESSAGE_01_009: [If application properties exist on the source message they shall be cloned by using `amqpvalue_clone`.] */
+/* Tests_SRS_MESSAGE_01_010: [If a footer exists on the source message it shall be cloned by using `annotations_clone`.] */
 /* Tests_SRS_MESSAGE_01_011: [If an AMQP data has been set as message body on the source message it shall be cloned by allocating memory for the binary payload.] */
 TEST_FUNCTION(message_clone_with_a_valid_argument_succeeds)
 {
@@ -215,7 +220,7 @@ TEST_FUNCTION(message_clone_with_a_valid_argument_succeeds)
 	message_destroy(message);*/
 }
 
-/* Tests_SRS_MESSAGE_01_062: [If source_message is NULL, message_clone shall fail and return NULL.] */
+/* Tests_SRS_MESSAGE_01_062: [If `source_message` is NULL, `message_clone` shall fail and return NULL.] */
 TEST_FUNCTION(message_clone_with_NULL_message_source_fails)
 {
 	// arrange
@@ -228,7 +233,7 @@ TEST_FUNCTION(message_clone_with_NULL_message_source_fails)
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
-/* Tests_SRS_MESSAGE_01_004: [If allocating memory for the new cloned message fails, message_clone shall fail and return NULL.] */
+/* Tests_SRS_MESSAGE_01_004: [If allocating memory for the new cloned message fails, `message_clone` shall fail and return NULL.] */
 TEST_FUNCTION(when_allocating_memory_fails_then_message_clone_fails)
 {
 	// arrange

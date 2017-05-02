@@ -69,9 +69,9 @@ static void free_all_body_sequence_items(MESSAGE_HANDLE message)
 MESSAGE_HANDLE message_create(void)
 {
 	MESSAGE_HANDLE result = (MESSAGE_HANDLE)malloc(sizeof(MESSAGE_INSTANCE));
-	/* Codes_SRS_MESSAGE_01_002: [If allocating memory for the message fails, message_create shall fail and return NULL.] */
 	if (result == NULL)
 	{
+		/* Codes_SRS_MESSAGE_01_002: [If allocating memory for the message fails, `message_create` shall fail and return NULL.] */
 		LogError("Cannot allocate memory for message");
 	}
 	else
@@ -90,7 +90,7 @@ MESSAGE_HANDLE message_create(void)
         result->message_format = 0;
 	}
 
-	/* Codes_SRS_MESSAGE_01_001: [message_create shall create a new AMQP message instance and on success it shall return a non-NULL handle for the newly created message instance.] */
+	/* Codes_SRS_MESSAGE_01_001: [`message_create` shall create a new AMQP message instance and on success it shall return a non-NULL handle for the newly created message instance.] */
 	return result;
 }
 
@@ -98,7 +98,7 @@ MESSAGE_HANDLE message_clone(MESSAGE_HANDLE source_message)
 {
 	MESSAGE_HANDLE result;
 
-	/* Codes_SRS_MESSAGE_01_062: [If source_message is NULL, message_clone shall fail and return NULL.] */
+	/* Codes_SRS_MESSAGE_01_062: [If `source_message` is NULL, `message_clone` shall fail and return NULL.] */
 	if (source_message == NULL)
 	{
 		LogError("NULL source_message");
@@ -106,11 +106,11 @@ MESSAGE_HANDLE message_clone(MESSAGE_HANDLE source_message)
 	}
 	else
 	{
-		/* Codes_SRS_MESSAGE_01_003: [message_clone shall clone a message entirely and on success return a non-NULL handle to the cloned message.] */
+		/* Codes_SRS_MESSAGE_01_003: [`message_clone` shall clone a message entirely and on success return a non-NULL handle to the cloned message.] */
 		result = (MESSAGE_HANDLE)message_create();
 		if (result == NULL)
 		{
-			/* Codes_SRS_MESSAGE_01_004: [If allocating memory for the new cloned message fails, message_clone shall fail and return NULL.] */
+			/* Codes_SRS_MESSAGE_01_004: [If allocating memory for the new cloned message fails, `message_clone` shall fail and return NULL.] */
 			LogError("Cannot clone message");
 		}
 		else
@@ -119,7 +119,7 @@ MESSAGE_HANDLE message_clone(MESSAGE_HANDLE source_message)
 
 			if (source_message->header != NULL)
 			{
-				/* Codes_SRS_MESSAGE_01_005: [If a header exists on the source message it shall be cloned by using header_clone.] */
+				/* Codes_SRS_MESSAGE_01_005: [If a header exists on the source message it shall be cloned by using `header_clone`.] */
 				result->header = header_clone(source_message->header);
 				if (result->header == NULL)
 				{
@@ -131,7 +131,7 @@ MESSAGE_HANDLE message_clone(MESSAGE_HANDLE source_message)
 
 			if ((result != NULL) && (source_message->delivery_annotations != NULL))
 			{
-				/* Codes_SRS_MESSAGE_01_006: [If delivery annotations exist on the source message they shall be cloned by using annotations_clone.] */
+				/* Codes_SRS_MESSAGE_01_006: [If delivery annotations exist on the source message they shall be cloned by using `annotations_clone`.] */
 				result->delivery_annotations = annotations_clone(source_message->delivery_annotations);
 				if (result->delivery_annotations == NULL)
 				{
@@ -143,7 +143,7 @@ MESSAGE_HANDLE message_clone(MESSAGE_HANDLE source_message)
 
 			if ((result != NULL) && (source_message->message_annotations != NULL))
 			{
-				/* Codes_SRS_MESSAGE_01_007: [If message annotations exist on the source message they shall be cloned by using annotations_clone.] */
+				/* Codes_SRS_MESSAGE_01_007: [If message annotations exist on the source message they shall be cloned by using `annotations_clone`.] */
 				result->message_annotations = annotations_clone(source_message->message_annotations);
 				if (result->message_annotations == NULL)
 				{
@@ -155,7 +155,7 @@ MESSAGE_HANDLE message_clone(MESSAGE_HANDLE source_message)
 
 			if ((result != NULL) && (source_message->properties != NULL))
 			{
-				/* Codes_SRS_MESSAGE_01_008: [If message properties exist on the source message they shall be cloned by using properties_clone.] */
+				/* Codes_SRS_MESSAGE_01_008: [If message properties exist on the source message they shall be cloned by using `properties_clone`.] */
 				result->properties = properties_clone(source_message->properties);
 				if (result->properties == NULL)
 				{
@@ -167,7 +167,7 @@ MESSAGE_HANDLE message_clone(MESSAGE_HANDLE source_message)
 
 			if ((result != NULL) && (source_message->application_properties != NULL))
 			{
-				/* Codes_SRS_MESSAGE_01_009: [If application properties exist on the source message they shall be cloned by using amqpvalue_clone.] */
+				/* Codes_SRS_MESSAGE_01_009: [If application properties exist on the source message they shall be cloned by using `amqpvalue_clone`.] */
 				result->application_properties = amqpvalue_clone(source_message->application_properties);
 				if (result->application_properties == NULL)
 				{
@@ -179,7 +179,7 @@ MESSAGE_HANDLE message_clone(MESSAGE_HANDLE source_message)
 
 			if ((result != NULL) && (source_message->footer != NULL))
 			{
-				/* Codes_SRS_MESSAGE_01_010: [If a footer exists on the source message it shall be cloned by using annotations_clone.] */
+				/* Codes_SRS_MESSAGE_01_010: [If a footer exists on the source message it shall be cloned by using `annotations_clone`.] */
 				result->footer = amqpvalue_clone(source_message->footer);
 				if (result->footer == NULL)
 				{
@@ -748,16 +748,16 @@ int message_get_footer(MESSAGE_HANDLE message, annotations* footer)
 	return result;
 }
 
-int message_add_body_amqp_data(MESSAGE_HANDLE message, BINARY_DATA binary_data)
+int message_add_body_amqp_data(MESSAGE_HANDLE message, BINARY_DATA amqp_data)
 {
 	int result;
 
 	if ((message == NULL) ||
-		((binary_data.bytes == NULL) &&
-		 (binary_data.length != 0)))
+		((amqp_data.bytes == NULL) &&
+		 (amqp_data.length != 0)))
 	{
 		LogError("Bad arguments: message = %p, bytes = %p, length = %u",
-			message, binary_data.bytes, (unsigned int)binary_data.length);
+			message, amqp_data.bytes, (unsigned int)amqp_data.length);
 		result = __FAILURE__;
 	}
 	else
@@ -772,7 +772,7 @@ int message_add_body_amqp_data(MESSAGE_HANDLE message, BINARY_DATA binary_data)
 		{
 			message->body_amqp_data_items = new_body_amqp_data_items;
 
-			message->body_amqp_data_items[message->body_amqp_data_count].body_data_section_bytes = (unsigned char*)malloc(binary_data.length);
+			message->body_amqp_data_items[message->body_amqp_data_count].body_data_section_bytes = (unsigned char*)malloc(amqp_data.length);
 			if (message->body_amqp_data_items[message->body_amqp_data_count].body_data_section_bytes == NULL)
 			{
 				LogError("Cannot allocate memory for body AMQP data to be added");
@@ -780,8 +780,8 @@ int message_add_body_amqp_data(MESSAGE_HANDLE message, BINARY_DATA binary_data)
 			}
 			else
 			{
-				message->body_amqp_data_items[message->body_amqp_data_count].body_data_section_length = binary_data.length;
-				(void)memcpy(message->body_amqp_data_items[message->body_amqp_data_count].body_data_section_bytes, binary_data.bytes, binary_data.length);
+				message->body_amqp_data_items[message->body_amqp_data_count].body_data_section_length = amqp_data.length;
+				(void)memcpy(message->body_amqp_data_items[message->body_amqp_data_count].body_data_section_bytes, amqp_data.bytes, amqp_data.length);
 
 				if (message->body_amqp_value != NULL)
 				{
@@ -799,7 +799,7 @@ int message_add_body_amqp_data(MESSAGE_HANDLE message, BINARY_DATA binary_data)
 	return result;
 }
 
-int message_get_body_amqp_data(MESSAGE_HANDLE message, size_t index, BINARY_DATA* binary_data)
+int message_get_body_amqp_data_in_place(MESSAGE_HANDLE message, size_t index, BINARY_DATA* binary_data)
 {
 	int result;
 
@@ -991,7 +991,7 @@ int message_set_body_amqp_value(MESSAGE_HANDLE message, AMQP_VALUE body_amqp_val
 	return result;
 }
 
-int message_get_inplace_body_amqp_value(MESSAGE_HANDLE message, AMQP_VALUE* body_amqp_value)
+int message_get_body_amqp_value_in_place(MESSAGE_HANDLE message, AMQP_VALUE* body_amqp_value)
 {
 	int result;
 

@@ -10,8 +10,10 @@
 #ifdef __cplusplus
 extern "C" {
 #include <cstddef>
+#include <cstdint>
 #else
 #include <stddef.h>
+#include <stdint.h>
 #endif /* __cplusplus */
 
 #include "azure_c_shared_utility/umock_c_prod.h"
@@ -46,16 +48,16 @@ extern "C" {
 	MOCKABLE_FUNCTION(, int, message_get_application_properties, MESSAGE_HANDLE, message, AMQP_VALUE*, application_properties);
 	MOCKABLE_FUNCTION(, int, message_set_footer, MESSAGE_HANDLE, message, annotations, footer);
 	MOCKABLE_FUNCTION(, int, message_get_footer, MESSAGE_HANDLE, message, annotations*, footer);
-	MOCKABLE_FUNCTION(, int, message_add_body_amqp_data, MESSAGE_HANDLE, message, BINARY_DATA, binary_data);
-	MOCKABLE_FUNCTION(, int, message_get_body_amqp_data, MESSAGE_HANDLE, message, size_t, index, BINARY_DATA*, binary_data);
+	MOCKABLE_FUNCTION(, int, message_add_body_amqp_data, MESSAGE_HANDLE, message, BINARY_DATA, amqp_data);
+	MOCKABLE_FUNCTION(, int, message_get_body_amqp_data_in_place, MESSAGE_HANDLE, message, size_t, index, BINARY_DATA*, amqp_data);
 	MOCKABLE_FUNCTION(, int, message_get_body_amqp_data_count, MESSAGE_HANDLE, message, size_t*, count);
 	MOCKABLE_FUNCTION(, int, message_set_body_amqp_value, MESSAGE_HANDLE, message, AMQP_VALUE, body_amqp_value);
-	MOCKABLE_FUNCTION(, int, message_get_inplace_body_amqp_value, MESSAGE_HANDLE, message, AMQP_VALUE*, body_amqp_value);
-	MOCKABLE_FUNCTION(, int, message_get_body_type, MESSAGE_HANDLE, message, MESSAGE_BODY_TYPE*, body_type);
-	MOCKABLE_FUNCTION(, int, message_add_body_amqp_sequence, MESSAGE_HANDLE, message, AMQP_VALUE, sequence_list);
-	MOCKABLE_FUNCTION(, int, message_get_body_amqp_sequence, MESSAGE_HANDLE, message, size_t, index, AMQP_VALUE*, sequence_list);
+	MOCKABLE_FUNCTION(, int, message_get_body_amqp_value_in_place, MESSAGE_HANDLE, message, AMQP_VALUE*, body_amqp_value);
+	MOCKABLE_FUNCTION(, int, message_add_body_amqp_sequence, MESSAGE_HANDLE, message, AMQP_VALUE, sequence);
+	MOCKABLE_FUNCTION(, int, message_get_body_amqp_sequence, MESSAGE_HANDLE, message, size_t, index, AMQP_VALUE*, sequence);
 	MOCKABLE_FUNCTION(, int, message_get_body_amqp_sequence_count, MESSAGE_HANDLE, message, size_t*, count);
-    MOCKABLE_FUNCTION(, int, message_set_message_format, MESSAGE_HANDLE, message, uint32_t, message_format);
+	MOCKABLE_FUNCTION(, int, message_get_body_type, MESSAGE_HANDLE, message, MESSAGE_BODY_TYPE*, body_type);
+	MOCKABLE_FUNCTION(, int, message_set_message_format, MESSAGE_HANDLE, message, uint32_t, message_format);
     MOCKABLE_FUNCTION(, int, message_get_message_format, MESSAGE_HANDLE, message, uint32_t*, message_format);
 
 #ifdef __cplusplus

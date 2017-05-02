@@ -105,7 +105,7 @@ static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE messag
     server = (SERVER_INSTANCE*)context;
     server->received_messages++;
 
-    result = message_get_body_amqp_data(message, 0, &binary_data);
+    result = message_get_body_amqp_data_in_place(message, 0, &binary_data);
     ASSERT_ARE_EQUAL_WITH_MSG(int, 0, result, "message receiver open failed");
 
     ASSERT_ARE_EQUAL_WITH_MSG(size_t, sizeof(expected_payload), binary_data.length, "received message length mismatch");

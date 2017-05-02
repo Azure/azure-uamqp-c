@@ -243,7 +243,7 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
             case MESSAGE_BODY_TYPE_VALUE:
             {
                 AMQP_VALUE message_body_amqp_value;
-                if (message_get_inplace_body_amqp_value(message, &message_body_amqp_value) != 0)
+                if (message_get_body_amqp_value_in_place(message, &message_body_amqp_value) != 0)
                 {
                     result = SEND_ONE_MESSAGE_ERROR;
                 }
@@ -277,7 +277,7 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
                 {
                     for (i = 0; i < body_data_count; i++)
                     {
-                        if (message_get_body_amqp_data(message, i, &binary_data) != 0)
+                        if (message_get_body_amqp_data_in_place(message, i, &binary_data) != 0)
                         {
                             result = SEND_ONE_MESSAGE_ERROR;
                         }
@@ -384,7 +384,7 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
 
                     for (i = 0; i < body_data_count; i++)
                     {
-                        if (message_get_body_amqp_data(message, i, &binary_data) != 0)
+                        if (message_get_body_amqp_data_in_place(message, i, &binary_data) != 0)
                         {
                             result = SEND_ONE_MESSAGE_ERROR;
                         }

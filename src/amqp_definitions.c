@@ -254,17 +254,19 @@ int amqpvalue_get_error(AMQP_VALUE value, ERROR_HANDLE* error_handle)
 				        }
 				        else
 				        {
-					        const char* condition;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
+						        amqpvalue_destroy(item_value);
 						        error_destroy(*error_handle);
 						        result = __FAILURE__;
 						        break;
                             }
                             else
                             {
+					            const char* condition;
 					            if (amqpvalue_get_symbol(item_value, &condition) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            error_destroy(*error_handle);
 						            result = __FAILURE__;
 						            break;
@@ -288,15 +290,16 @@ int amqpvalue_get_error(AMQP_VALUE value, ERROR_HANDLE* error_handle)
 				        }
 				        else
 				        {
-					        const char* description;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            const char* description;
 					            if (amqpvalue_get_string(item_value, &description) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            error_destroy(*error_handle);
 						            result = __FAILURE__;
 						            break;
@@ -316,15 +319,16 @@ int amqpvalue_get_error(AMQP_VALUE value, ERROR_HANDLE* error_handle)
 				        }
 				        else
 				        {
-					        fields info;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            fields info;
 					            if (amqpvalue_get_fields(item_value, &info) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            error_destroy(*error_handle);
 						            result = __FAILURE__;
 						            break;
@@ -773,17 +777,19 @@ int amqpvalue_get_open(AMQP_VALUE value, OPEN_HANDLE* open_handle)
 				        }
 				        else
 				        {
-					        const char* container_id;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
+						        amqpvalue_destroy(item_value);
 						        open_destroy(*open_handle);
 						        result = __FAILURE__;
 						        break;
                             }
                             else
                             {
+					            const char* container_id;
 					            if (amqpvalue_get_string(item_value, &container_id) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            open_destroy(*open_handle);
 						            result = __FAILURE__;
 						            break;
@@ -807,15 +813,16 @@ int amqpvalue_get_open(AMQP_VALUE value, OPEN_HANDLE* open_handle)
 				        }
 				        else
 				        {
-					        const char* hostname;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            const char* hostname;
 					            if (amqpvalue_get_string(item_value, &hostname) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            open_destroy(*open_handle);
 						            result = __FAILURE__;
 						            break;
@@ -835,15 +842,16 @@ int amqpvalue_get_open(AMQP_VALUE value, OPEN_HANDLE* open_handle)
 				        }
 				        else
 				        {
-					        uint32_t max_frame_size;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            uint32_t max_frame_size;
 					            if (amqpvalue_get_uint(item_value, &max_frame_size) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            open_destroy(*open_handle);
 						            result = __FAILURE__;
 						            break;
@@ -863,15 +871,16 @@ int amqpvalue_get_open(AMQP_VALUE value, OPEN_HANDLE* open_handle)
 				        }
 				        else
 				        {
-					        uint16_t channel_max;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            uint16_t channel_max;
 					            if (amqpvalue_get_ushort(item_value, &channel_max) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            open_destroy(*open_handle);
 						            result = __FAILURE__;
 						            break;
@@ -891,15 +900,16 @@ int amqpvalue_get_open(AMQP_VALUE value, OPEN_HANDLE* open_handle)
 				        }
 				        else
 				        {
-					        milliseconds idle_time_out;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            milliseconds idle_time_out;
 					            if (amqpvalue_get_milliseconds(item_value, &idle_time_out) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            open_destroy(*open_handle);
 						            result = __FAILURE__;
 						            break;
@@ -919,17 +929,18 @@ int amqpvalue_get_open(AMQP_VALUE value, OPEN_HANDLE* open_handle)
 				        }
 				        else
 				        {
-					        ietf_language_tag outgoing_locales;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            ietf_language_tag outgoing_locales = NULL;
 					            AMQP_VALUE outgoing_locales_array;
 					            if ((amqpvalue_get_array(item_value, &outgoing_locales_array) != 0) &&
 						            (amqpvalue_get_ietf_language_tag(item_value, &outgoing_locales) != 0))
 					            {
+						            amqpvalue_destroy(item_value);
 						            open_destroy(*open_handle);
 						            result = __FAILURE__;
 						            break;
@@ -949,17 +960,18 @@ int amqpvalue_get_open(AMQP_VALUE value, OPEN_HANDLE* open_handle)
 				        }
 				        else
 				        {
-					        ietf_language_tag incoming_locales;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            ietf_language_tag incoming_locales = NULL;
 					            AMQP_VALUE incoming_locales_array;
 					            if ((amqpvalue_get_array(item_value, &incoming_locales_array) != 0) &&
 						            (amqpvalue_get_ietf_language_tag(item_value, &incoming_locales) != 0))
 					            {
+						            amqpvalue_destroy(item_value);
 						            open_destroy(*open_handle);
 						            result = __FAILURE__;
 						            break;
@@ -979,17 +991,18 @@ int amqpvalue_get_open(AMQP_VALUE value, OPEN_HANDLE* open_handle)
 				        }
 				        else
 				        {
-					        const char* offered_capabilities;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            const char* offered_capabilities = NULL;
 					            AMQP_VALUE offered_capabilities_array;
 					            if ((amqpvalue_get_array(item_value, &offered_capabilities_array) != 0) &&
 						            (amqpvalue_get_symbol(item_value, &offered_capabilities) != 0))
 					            {
+						            amqpvalue_destroy(item_value);
 						            open_destroy(*open_handle);
 						            result = __FAILURE__;
 						            break;
@@ -1009,17 +1022,18 @@ int amqpvalue_get_open(AMQP_VALUE value, OPEN_HANDLE* open_handle)
 				        }
 				        else
 				        {
-					        const char* desired_capabilities;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            const char* desired_capabilities = NULL;
 					            AMQP_VALUE desired_capabilities_array;
 					            if ((amqpvalue_get_array(item_value, &desired_capabilities_array) != 0) &&
 						            (amqpvalue_get_symbol(item_value, &desired_capabilities) != 0))
 					            {
+						            amqpvalue_destroy(item_value);
 						            open_destroy(*open_handle);
 						            result = __FAILURE__;
 						            break;
@@ -1039,15 +1053,16 @@ int amqpvalue_get_open(AMQP_VALUE value, OPEN_HANDLE* open_handle)
 				        }
 				        else
 				        {
-					        fields properties;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            fields properties;
 					            if (amqpvalue_get_fields(item_value, &properties) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            open_destroy(*open_handle);
 						            result = __FAILURE__;
 						            break;
@@ -2104,15 +2119,16 @@ int amqpvalue_get_begin(AMQP_VALUE value, BEGIN_HANDLE* begin_handle)
 				        }
 				        else
 				        {
-					        uint16_t remote_channel;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            uint16_t remote_channel;
 					            if (amqpvalue_get_ushort(item_value, &remote_channel) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            begin_destroy(*begin_handle);
 						            result = __FAILURE__;
 						            break;
@@ -2136,17 +2152,19 @@ int amqpvalue_get_begin(AMQP_VALUE value, BEGIN_HANDLE* begin_handle)
 				        }
 				        else
 				        {
-					        transfer_number next_outgoing_id;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
+						        amqpvalue_destroy(item_value);
 						        begin_destroy(*begin_handle);
 						        result = __FAILURE__;
 						        break;
                             }
                             else
                             {
+					            transfer_number next_outgoing_id;
 					            if (amqpvalue_get_transfer_number(item_value, &next_outgoing_id) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            begin_destroy(*begin_handle);
 						            result = __FAILURE__;
 						            break;
@@ -2174,17 +2192,19 @@ int amqpvalue_get_begin(AMQP_VALUE value, BEGIN_HANDLE* begin_handle)
 				        }
 				        else
 				        {
-					        uint32_t incoming_window;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
+						        amqpvalue_destroy(item_value);
 						        begin_destroy(*begin_handle);
 						        result = __FAILURE__;
 						        break;
                             }
                             else
                             {
+					            uint32_t incoming_window;
 					            if (amqpvalue_get_uint(item_value, &incoming_window) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            begin_destroy(*begin_handle);
 						            result = __FAILURE__;
 						            break;
@@ -2212,17 +2232,19 @@ int amqpvalue_get_begin(AMQP_VALUE value, BEGIN_HANDLE* begin_handle)
 				        }
 				        else
 				        {
-					        uint32_t outgoing_window;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
+						        amqpvalue_destroy(item_value);
 						        begin_destroy(*begin_handle);
 						        result = __FAILURE__;
 						        break;
                             }
                             else
                             {
+					            uint32_t outgoing_window;
 					            if (amqpvalue_get_uint(item_value, &outgoing_window) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            begin_destroy(*begin_handle);
 						            result = __FAILURE__;
 						            break;
@@ -2246,15 +2268,16 @@ int amqpvalue_get_begin(AMQP_VALUE value, BEGIN_HANDLE* begin_handle)
 				        }
 				        else
 				        {
-					        handle handle_max;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            handle handle_max;
 					            if (amqpvalue_get_handle(item_value, &handle_max) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            begin_destroy(*begin_handle);
 						            result = __FAILURE__;
 						            break;
@@ -2274,17 +2297,18 @@ int amqpvalue_get_begin(AMQP_VALUE value, BEGIN_HANDLE* begin_handle)
 				        }
 				        else
 				        {
-					        const char* offered_capabilities;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            const char* offered_capabilities = NULL;
 					            AMQP_VALUE offered_capabilities_array;
 					            if ((amqpvalue_get_array(item_value, &offered_capabilities_array) != 0) &&
 						            (amqpvalue_get_symbol(item_value, &offered_capabilities) != 0))
 					            {
+						            amqpvalue_destroy(item_value);
 						            begin_destroy(*begin_handle);
 						            result = __FAILURE__;
 						            break;
@@ -2304,17 +2328,18 @@ int amqpvalue_get_begin(AMQP_VALUE value, BEGIN_HANDLE* begin_handle)
 				        }
 				        else
 				        {
-					        const char* desired_capabilities;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            const char* desired_capabilities = NULL;
 					            AMQP_VALUE desired_capabilities_array;
 					            if ((amqpvalue_get_array(item_value, &desired_capabilities_array) != 0) &&
 						            (amqpvalue_get_symbol(item_value, &desired_capabilities) != 0))
 					            {
+						            amqpvalue_destroy(item_value);
 						            begin_destroy(*begin_handle);
 						            result = __FAILURE__;
 						            break;
@@ -2334,15 +2359,16 @@ int amqpvalue_get_begin(AMQP_VALUE value, BEGIN_HANDLE* begin_handle)
 				        }
 				        else
 				        {
-					        fields properties;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            fields properties;
 					            if (amqpvalue_get_fields(item_value, &properties) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            begin_destroy(*begin_handle);
 						            result = __FAILURE__;
 						            break;
@@ -3213,17 +3239,19 @@ int amqpvalue_get_attach(AMQP_VALUE value, ATTACH_HANDLE* attach_handle)
 				        }
 				        else
 				        {
-					        const char* name;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
+						        amqpvalue_destroy(item_value);
 						        attach_destroy(*attach_handle);
 						        result = __FAILURE__;
 						        break;
                             }
                             else
                             {
+					            const char* name;
 					            if (amqpvalue_get_string(item_value, &name) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            attach_destroy(*attach_handle);
 						            result = __FAILURE__;
 						            break;
@@ -3251,17 +3279,19 @@ int amqpvalue_get_attach(AMQP_VALUE value, ATTACH_HANDLE* attach_handle)
 				        }
 				        else
 				        {
-					        handle handle;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
+						        amqpvalue_destroy(item_value);
 						        attach_destroy(*attach_handle);
 						        result = __FAILURE__;
 						        break;
                             }
                             else
                             {
+					            handle handle;
 					            if (amqpvalue_get_handle(item_value, &handle) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            attach_destroy(*attach_handle);
 						            result = __FAILURE__;
 						            break;
@@ -3289,17 +3319,19 @@ int amqpvalue_get_attach(AMQP_VALUE value, ATTACH_HANDLE* attach_handle)
 				        }
 				        else
 				        {
-					        role role;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
+						        amqpvalue_destroy(item_value);
 						        attach_destroy(*attach_handle);
 						        result = __FAILURE__;
 						        break;
                             }
                             else
                             {
+					            role role;
 					            if (amqpvalue_get_role(item_value, &role) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            attach_destroy(*attach_handle);
 						            result = __FAILURE__;
 						            break;
@@ -3323,15 +3355,16 @@ int amqpvalue_get_attach(AMQP_VALUE value, ATTACH_HANDLE* attach_handle)
 				        }
 				        else
 				        {
-					        sender_settle_mode snd_settle_mode;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            sender_settle_mode snd_settle_mode;
 					            if (amqpvalue_get_sender_settle_mode(item_value, &snd_settle_mode) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            attach_destroy(*attach_handle);
 						            result = __FAILURE__;
 						            break;
@@ -3351,15 +3384,16 @@ int amqpvalue_get_attach(AMQP_VALUE value, ATTACH_HANDLE* attach_handle)
 				        }
 				        else
 				        {
-					        receiver_settle_mode rcv_settle_mode;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            receiver_settle_mode rcv_settle_mode;
 					            if (amqpvalue_get_receiver_settle_mode(item_value, &rcv_settle_mode) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            attach_destroy(*attach_handle);
 						            result = __FAILURE__;
 						            break;
@@ -3405,15 +3439,16 @@ int amqpvalue_get_attach(AMQP_VALUE value, ATTACH_HANDLE* attach_handle)
 				        }
 				        else
 				        {
-					        AMQP_VALUE unsettled;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            AMQP_VALUE unsettled;
 					            if (amqpvalue_get_map(item_value, &unsettled) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            attach_destroy(*attach_handle);
 						            result = __FAILURE__;
 						            break;
@@ -3433,15 +3468,16 @@ int amqpvalue_get_attach(AMQP_VALUE value, ATTACH_HANDLE* attach_handle)
 				        }
 				        else
 				        {
-					        bool incomplete_unsettled;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            bool incomplete_unsettled;
 					            if (amqpvalue_get_boolean(item_value, &incomplete_unsettled) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            attach_destroy(*attach_handle);
 						            result = __FAILURE__;
 						            break;
@@ -3461,15 +3497,16 @@ int amqpvalue_get_attach(AMQP_VALUE value, ATTACH_HANDLE* attach_handle)
 				        }
 				        else
 				        {
-					        sequence_no initial_delivery_count;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            sequence_no initial_delivery_count;
 					            if (amqpvalue_get_sequence_no(item_value, &initial_delivery_count) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            attach_destroy(*attach_handle);
 						            result = __FAILURE__;
 						            break;
@@ -3489,15 +3526,16 @@ int amqpvalue_get_attach(AMQP_VALUE value, ATTACH_HANDLE* attach_handle)
 				        }
 				        else
 				        {
-					        uint64_t max_message_size;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            uint64_t max_message_size;
 					            if (amqpvalue_get_ulong(item_value, &max_message_size) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            attach_destroy(*attach_handle);
 						            result = __FAILURE__;
 						            break;
@@ -3517,17 +3555,18 @@ int amqpvalue_get_attach(AMQP_VALUE value, ATTACH_HANDLE* attach_handle)
 				        }
 				        else
 				        {
-					        const char* offered_capabilities;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            const char* offered_capabilities = NULL;
 					            AMQP_VALUE offered_capabilities_array;
 					            if ((amqpvalue_get_array(item_value, &offered_capabilities_array) != 0) &&
 						            (amqpvalue_get_symbol(item_value, &offered_capabilities) != 0))
 					            {
+						            amqpvalue_destroy(item_value);
 						            attach_destroy(*attach_handle);
 						            result = __FAILURE__;
 						            break;
@@ -3547,17 +3586,18 @@ int amqpvalue_get_attach(AMQP_VALUE value, ATTACH_HANDLE* attach_handle)
 				        }
 				        else
 				        {
-					        const char* desired_capabilities;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            const char* desired_capabilities = NULL;
 					            AMQP_VALUE desired_capabilities_array;
 					            if ((amqpvalue_get_array(item_value, &desired_capabilities_array) != 0) &&
 						            (amqpvalue_get_symbol(item_value, &desired_capabilities) != 0))
 					            {
+						            amqpvalue_destroy(item_value);
 						            attach_destroy(*attach_handle);
 						            result = __FAILURE__;
 						            break;
@@ -3577,15 +3617,16 @@ int amqpvalue_get_attach(AMQP_VALUE value, ATTACH_HANDLE* attach_handle)
 				        }
 				        else
 				        {
-					        fields properties;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            fields properties;
 					            if (amqpvalue_get_fields(item_value, &properties) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            attach_destroy(*attach_handle);
 						            result = __FAILURE__;
 						            break;
@@ -4976,15 +5017,16 @@ int amqpvalue_get_flow(AMQP_VALUE value, FLOW_HANDLE* flow_handle)
 				        }
 				        else
 				        {
-					        transfer_number next_incoming_id;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            transfer_number next_incoming_id;
 					            if (amqpvalue_get_transfer_number(item_value, &next_incoming_id) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            flow_destroy(*flow_handle);
 						            result = __FAILURE__;
 						            break;
@@ -5008,17 +5050,19 @@ int amqpvalue_get_flow(AMQP_VALUE value, FLOW_HANDLE* flow_handle)
 				        }
 				        else
 				        {
-					        uint32_t incoming_window;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
+						        amqpvalue_destroy(item_value);
 						        flow_destroy(*flow_handle);
 						        result = __FAILURE__;
 						        break;
                             }
                             else
                             {
+					            uint32_t incoming_window;
 					            if (amqpvalue_get_uint(item_value, &incoming_window) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            flow_destroy(*flow_handle);
 						            result = __FAILURE__;
 						            break;
@@ -5046,17 +5090,19 @@ int amqpvalue_get_flow(AMQP_VALUE value, FLOW_HANDLE* flow_handle)
 				        }
 				        else
 				        {
-					        transfer_number next_outgoing_id;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
+						        amqpvalue_destroy(item_value);
 						        flow_destroy(*flow_handle);
 						        result = __FAILURE__;
 						        break;
                             }
                             else
                             {
+					            transfer_number next_outgoing_id;
 					            if (amqpvalue_get_transfer_number(item_value, &next_outgoing_id) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            flow_destroy(*flow_handle);
 						            result = __FAILURE__;
 						            break;
@@ -5084,17 +5130,19 @@ int amqpvalue_get_flow(AMQP_VALUE value, FLOW_HANDLE* flow_handle)
 				        }
 				        else
 				        {
-					        uint32_t outgoing_window;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
+						        amqpvalue_destroy(item_value);
 						        flow_destroy(*flow_handle);
 						        result = __FAILURE__;
 						        break;
                             }
                             else
                             {
+					            uint32_t outgoing_window;
 					            if (amqpvalue_get_uint(item_value, &outgoing_window) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            flow_destroy(*flow_handle);
 						            result = __FAILURE__;
 						            break;
@@ -5118,15 +5166,16 @@ int amqpvalue_get_flow(AMQP_VALUE value, FLOW_HANDLE* flow_handle)
 				        }
 				        else
 				        {
-					        handle handle;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            handle handle;
 					            if (amqpvalue_get_handle(item_value, &handle) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            flow_destroy(*flow_handle);
 						            result = __FAILURE__;
 						            break;
@@ -5146,15 +5195,16 @@ int amqpvalue_get_flow(AMQP_VALUE value, FLOW_HANDLE* flow_handle)
 				        }
 				        else
 				        {
-					        sequence_no delivery_count;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            sequence_no delivery_count;
 					            if (amqpvalue_get_sequence_no(item_value, &delivery_count) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            flow_destroy(*flow_handle);
 						            result = __FAILURE__;
 						            break;
@@ -5174,15 +5224,16 @@ int amqpvalue_get_flow(AMQP_VALUE value, FLOW_HANDLE* flow_handle)
 				        }
 				        else
 				        {
-					        uint32_t link_credit;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            uint32_t link_credit;
 					            if (amqpvalue_get_uint(item_value, &link_credit) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            flow_destroy(*flow_handle);
 						            result = __FAILURE__;
 						            break;
@@ -5202,15 +5253,16 @@ int amqpvalue_get_flow(AMQP_VALUE value, FLOW_HANDLE* flow_handle)
 				        }
 				        else
 				        {
-					        uint32_t available;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            uint32_t available;
 					            if (amqpvalue_get_uint(item_value, &available) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            flow_destroy(*flow_handle);
 						            result = __FAILURE__;
 						            break;
@@ -5230,15 +5282,16 @@ int amqpvalue_get_flow(AMQP_VALUE value, FLOW_HANDLE* flow_handle)
 				        }
 				        else
 				        {
-					        bool drain;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            bool drain;
 					            if (amqpvalue_get_boolean(item_value, &drain) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            flow_destroy(*flow_handle);
 						            result = __FAILURE__;
 						            break;
@@ -5258,15 +5311,16 @@ int amqpvalue_get_flow(AMQP_VALUE value, FLOW_HANDLE* flow_handle)
 				        }
 				        else
 				        {
-					        bool echo;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            bool echo;
 					            if (amqpvalue_get_boolean(item_value, &echo) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            flow_destroy(*flow_handle);
 						            result = __FAILURE__;
 						            break;
@@ -5286,15 +5340,16 @@ int amqpvalue_get_flow(AMQP_VALUE value, FLOW_HANDLE* flow_handle)
 				        }
 				        else
 				        {
-					        fields properties;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            fields properties;
 					            if (amqpvalue_get_fields(item_value, &properties) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            flow_destroy(*flow_handle);
 						            result = __FAILURE__;
 						            break;
@@ -6391,17 +6446,19 @@ int amqpvalue_get_transfer(AMQP_VALUE value, TRANSFER_HANDLE* transfer_handle)
 				        }
 				        else
 				        {
-					        handle handle;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
+						        amqpvalue_destroy(item_value);
 						        transfer_destroy(*transfer_handle);
 						        result = __FAILURE__;
 						        break;
                             }
                             else
                             {
+					            handle handle;
 					            if (amqpvalue_get_handle(item_value, &handle) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            transfer_destroy(*transfer_handle);
 						            result = __FAILURE__;
 						            break;
@@ -6425,15 +6482,16 @@ int amqpvalue_get_transfer(AMQP_VALUE value, TRANSFER_HANDLE* transfer_handle)
 				        }
 				        else
 				        {
-					        delivery_number delivery_id;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            delivery_number delivery_id;
 					            if (amqpvalue_get_delivery_number(item_value, &delivery_id) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            transfer_destroy(*transfer_handle);
 						            result = __FAILURE__;
 						            break;
@@ -6453,15 +6511,16 @@ int amqpvalue_get_transfer(AMQP_VALUE value, TRANSFER_HANDLE* transfer_handle)
 				        }
 				        else
 				        {
-					        delivery_tag delivery_tag;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            delivery_tag delivery_tag;
 					            if (amqpvalue_get_delivery_tag(item_value, &delivery_tag) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            transfer_destroy(*transfer_handle);
 						            result = __FAILURE__;
 						            break;
@@ -6481,15 +6540,16 @@ int amqpvalue_get_transfer(AMQP_VALUE value, TRANSFER_HANDLE* transfer_handle)
 				        }
 				        else
 				        {
-					        message_format message_format;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            message_format message_format;
 					            if (amqpvalue_get_message_format(item_value, &message_format) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            transfer_destroy(*transfer_handle);
 						            result = __FAILURE__;
 						            break;
@@ -6509,15 +6569,16 @@ int amqpvalue_get_transfer(AMQP_VALUE value, TRANSFER_HANDLE* transfer_handle)
 				        }
 				        else
 				        {
-					        bool settled;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            bool settled;
 					            if (amqpvalue_get_boolean(item_value, &settled) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            transfer_destroy(*transfer_handle);
 						            result = __FAILURE__;
 						            break;
@@ -6537,15 +6598,16 @@ int amqpvalue_get_transfer(AMQP_VALUE value, TRANSFER_HANDLE* transfer_handle)
 				        }
 				        else
 				        {
-					        bool more;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            bool more;
 					            if (amqpvalue_get_boolean(item_value, &more) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            transfer_destroy(*transfer_handle);
 						            result = __FAILURE__;
 						            break;
@@ -6565,15 +6627,16 @@ int amqpvalue_get_transfer(AMQP_VALUE value, TRANSFER_HANDLE* transfer_handle)
 				        }
 				        else
 				        {
-					        receiver_settle_mode rcv_settle_mode;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            receiver_settle_mode rcv_settle_mode;
 					            if (amqpvalue_get_receiver_settle_mode(item_value, &rcv_settle_mode) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            transfer_destroy(*transfer_handle);
 						            result = __FAILURE__;
 						            break;
@@ -6606,15 +6669,16 @@ int amqpvalue_get_transfer(AMQP_VALUE value, TRANSFER_HANDLE* transfer_handle)
 				        }
 				        else
 				        {
-					        bool resume;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            bool resume;
 					            if (amqpvalue_get_boolean(item_value, &resume) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            transfer_destroy(*transfer_handle);
 						            result = __FAILURE__;
 						            break;
@@ -6634,15 +6698,16 @@ int amqpvalue_get_transfer(AMQP_VALUE value, TRANSFER_HANDLE* transfer_handle)
 				        }
 				        else
 				        {
-					        bool aborted;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            bool aborted;
 					            if (amqpvalue_get_boolean(item_value, &aborted) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            transfer_destroy(*transfer_handle);
 						            result = __FAILURE__;
 						            break;
@@ -6662,15 +6727,16 @@ int amqpvalue_get_transfer(AMQP_VALUE value, TRANSFER_HANDLE* transfer_handle)
 				        }
 				        else
 				        {
-					        bool batchable;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            bool batchable;
 					            if (amqpvalue_get_boolean(item_value, &batchable) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            transfer_destroy(*transfer_handle);
 						            result = __FAILURE__;
 						            break;
@@ -7796,17 +7862,19 @@ int amqpvalue_get_disposition(AMQP_VALUE value, DISPOSITION_HANDLE* disposition_
 				        }
 				        else
 				        {
-					        role role;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
+						        amqpvalue_destroy(item_value);
 						        disposition_destroy(*disposition_handle);
 						        result = __FAILURE__;
 						        break;
                             }
                             else
                             {
+					            role role;
 					            if (amqpvalue_get_role(item_value, &role) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            disposition_destroy(*disposition_handle);
 						            result = __FAILURE__;
 						            break;
@@ -7834,17 +7902,19 @@ int amqpvalue_get_disposition(AMQP_VALUE value, DISPOSITION_HANDLE* disposition_
 				        }
 				        else
 				        {
-					        delivery_number first;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
+						        amqpvalue_destroy(item_value);
 						        disposition_destroy(*disposition_handle);
 						        result = __FAILURE__;
 						        break;
                             }
                             else
                             {
+					            delivery_number first;
 					            if (amqpvalue_get_delivery_number(item_value, &first) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            disposition_destroy(*disposition_handle);
 						            result = __FAILURE__;
 						            break;
@@ -7868,15 +7938,16 @@ int amqpvalue_get_disposition(AMQP_VALUE value, DISPOSITION_HANDLE* disposition_
 				        }
 				        else
 				        {
-					        delivery_number last;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            delivery_number last;
 					            if (amqpvalue_get_delivery_number(item_value, &last) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            disposition_destroy(*disposition_handle);
 						            result = __FAILURE__;
 						            break;
@@ -7896,15 +7967,16 @@ int amqpvalue_get_disposition(AMQP_VALUE value, DISPOSITION_HANDLE* disposition_
 				        }
 				        else
 				        {
-					        bool settled;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            bool settled;
 					            if (amqpvalue_get_boolean(item_value, &settled) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            disposition_destroy(*disposition_handle);
 						            result = __FAILURE__;
 						            break;
@@ -7937,15 +8009,16 @@ int amqpvalue_get_disposition(AMQP_VALUE value, DISPOSITION_HANDLE* disposition_
 				        }
 				        else
 				        {
-					        bool batchable;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            bool batchable;
 					            if (amqpvalue_get_boolean(item_value, &batchable) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            disposition_destroy(*disposition_handle);
 						            result = __FAILURE__;
 						            break;
@@ -8634,17 +8707,19 @@ int amqpvalue_get_detach(AMQP_VALUE value, DETACH_HANDLE* detach_handle)
 				        }
 				        else
 				        {
-					        handle handle;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
+						        amqpvalue_destroy(item_value);
 						        detach_destroy(*detach_handle);
 						        result = __FAILURE__;
 						        break;
                             }
                             else
                             {
+					            handle handle;
 					            if (amqpvalue_get_handle(item_value, &handle) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            detach_destroy(*detach_handle);
 						            result = __FAILURE__;
 						            break;
@@ -8668,15 +8743,16 @@ int amqpvalue_get_detach(AMQP_VALUE value, DETACH_HANDLE* detach_handle)
 				        }
 				        else
 				        {
-					        bool closed;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            bool closed;
 					            if (amqpvalue_get_boolean(item_value, &closed) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            detach_destroy(*detach_handle);
 						            result = __FAILURE__;
 						            break;
@@ -8696,19 +8772,24 @@ int amqpvalue_get_detach(AMQP_VALUE value, DETACH_HANDLE* detach_handle)
 				        }
 				        else
 				        {
-					        ERROR_HANDLE error;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            ERROR_HANDLE error;
 					            if (amqpvalue_get_error(item_value, &error) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            detach_destroy(*detach_handle);
 						            result = __FAILURE__;
 						            break;
 					            }
+                                else
+                                {
+						            error_destroy(error);
+                                }
                             }
 
 					        amqpvalue_destroy(item_value);
@@ -9118,19 +9199,24 @@ int amqpvalue_get_end(AMQP_VALUE value, END_HANDLE* end_handle)
 				        }
 				        else
 				        {
-					        ERROR_HANDLE error;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            ERROR_HANDLE error;
 					            if (amqpvalue_get_error(item_value, &error) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            end_destroy(*end_handle);
 						            result = __FAILURE__;
 						            break;
 					            }
+                                else
+                                {
+						            error_destroy(error);
+                                }
                             }
 
 					        amqpvalue_destroy(item_value);
@@ -9366,19 +9452,24 @@ int amqpvalue_get_close(AMQP_VALUE value, CLOSE_HANDLE* close_handle)
 				        }
 				        else
 				        {
-					        ERROR_HANDLE error;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            ERROR_HANDLE error;
 					            if (amqpvalue_get_error(item_value, &error) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            close_destroy(*close_handle);
 						            result = __FAILURE__;
 						            break;
 					            }
+                                else
+                                {
+						            error_destroy(error);
+                                }
                             }
 
 					        amqpvalue_destroy(item_value);
@@ -9638,19 +9729,21 @@ int amqpvalue_get_sasl_mechanisms(AMQP_VALUE value, SASL_MECHANISMS_HANDLE* sasl
 				        }
 				        else
 				        {
-					        const char* sasl_server_mechanisms;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
+						        amqpvalue_destroy(item_value);
 						        sasl_mechanisms_destroy(*sasl_mechanisms_handle);
 						        result = __FAILURE__;
 						        break;
                             }
                             else
                             {
+					            const char* sasl_server_mechanisms = NULL;
 					            AMQP_VALUE sasl_server_mechanisms_array;
 					            if ((amqpvalue_get_array(item_value, &sasl_server_mechanisms_array) != 0) &&
 						            (amqpvalue_get_symbol(item_value, &sasl_server_mechanisms) != 0))
 					            {
+						            amqpvalue_destroy(item_value);
 						            sasl_mechanisms_destroy(*sasl_mechanisms_handle);
 						            result = __FAILURE__;
 						            break;
@@ -9919,17 +10012,19 @@ int amqpvalue_get_sasl_init(AMQP_VALUE value, SASL_INIT_HANDLE* sasl_init_handle
 				        }
 				        else
 				        {
-					        const char* mechanism;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
+						        amqpvalue_destroy(item_value);
 						        sasl_init_destroy(*sasl_init_handle);
 						        result = __FAILURE__;
 						        break;
                             }
                             else
                             {
+					            const char* mechanism;
 					            if (amqpvalue_get_symbol(item_value, &mechanism) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            sasl_init_destroy(*sasl_init_handle);
 						            result = __FAILURE__;
 						            break;
@@ -9953,15 +10048,16 @@ int amqpvalue_get_sasl_init(AMQP_VALUE value, SASL_INIT_HANDLE* sasl_init_handle
 				        }
 				        else
 				        {
-					        amqp_binary initial_response;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            amqp_binary initial_response;
 					            if (amqpvalue_get_binary(item_value, &initial_response) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            sasl_init_destroy(*sasl_init_handle);
 						            result = __FAILURE__;
 						            break;
@@ -9981,15 +10077,16 @@ int amqpvalue_get_sasl_init(AMQP_VALUE value, SASL_INIT_HANDLE* sasl_init_handle
 				        }
 				        else
 				        {
-					        const char* hostname;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            const char* hostname;
 					            if (amqpvalue_get_string(item_value, &hostname) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            sasl_init_destroy(*sasl_init_handle);
 						            result = __FAILURE__;
 						            break;
@@ -10410,17 +10507,19 @@ int amqpvalue_get_sasl_challenge(AMQP_VALUE value, SASL_CHALLENGE_HANDLE* sasl_c
 				        }
 				        else
 				        {
-					        amqp_binary challenge;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
+						        amqpvalue_destroy(item_value);
 						        sasl_challenge_destroy(*sasl_challenge_handle);
 						        result = __FAILURE__;
 						        break;
                             }
                             else
                             {
+					            amqp_binary challenge;
 					            if (amqpvalue_get_binary(item_value, &challenge) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            sasl_challenge_destroy(*sasl_challenge_handle);
 						            result = __FAILURE__;
 						            break;
@@ -10681,17 +10780,19 @@ int amqpvalue_get_sasl_response(AMQP_VALUE value, SASL_RESPONSE_HANDLE* sasl_res
 				        }
 				        else
 				        {
-					        amqp_binary response;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
+						        amqpvalue_destroy(item_value);
 						        sasl_response_destroy(*sasl_response_handle);
 						        result = __FAILURE__;
 						        break;
                             }
                             else
                             {
+					            amqp_binary response;
 					            if (amqpvalue_get_binary(item_value, &response) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            sasl_response_destroy(*sasl_response_handle);
 						            result = __FAILURE__;
 						            break;
@@ -10952,17 +11053,19 @@ int amqpvalue_get_sasl_outcome(AMQP_VALUE value, SASL_OUTCOME_HANDLE* sasl_outco
 				        }
 				        else
 				        {
-					        sasl_code code;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
+						        amqpvalue_destroy(item_value);
 						        sasl_outcome_destroy(*sasl_outcome_handle);
 						        result = __FAILURE__;
 						        break;
                             }
                             else
                             {
+					            sasl_code code;
 					            if (amqpvalue_get_sasl_code(item_value, &code) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            sasl_outcome_destroy(*sasl_outcome_handle);
 						            result = __FAILURE__;
 						            break;
@@ -10986,15 +11089,16 @@ int amqpvalue_get_sasl_outcome(AMQP_VALUE value, SASL_OUTCOME_HANDLE* sasl_outco
 				        }
 				        else
 				        {
-					        amqp_binary additional_data;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            amqp_binary additional_data;
 					            if (amqpvalue_get_binary(item_value, &additional_data) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            sasl_outcome_destroy(*sasl_outcome_handle);
 						            result = __FAILURE__;
 						            break;
@@ -11357,15 +11461,16 @@ int amqpvalue_get_source(AMQP_VALUE value, SOURCE_HANDLE* source_handle)
 				        }
 				        else
 				        {
-					        terminus_durability durable;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            terminus_durability durable;
 					            if (amqpvalue_get_terminus_durability(item_value, &durable) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            source_destroy(*source_handle);
 						            result = __FAILURE__;
 						            break;
@@ -11385,15 +11490,16 @@ int amqpvalue_get_source(AMQP_VALUE value, SOURCE_HANDLE* source_handle)
 				        }
 				        else
 				        {
-					        terminus_expiry_policy expiry_policy;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            terminus_expiry_policy expiry_policy;
 					            if (amqpvalue_get_terminus_expiry_policy(item_value, &expiry_policy) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            source_destroy(*source_handle);
 						            result = __FAILURE__;
 						            break;
@@ -11413,15 +11519,16 @@ int amqpvalue_get_source(AMQP_VALUE value, SOURCE_HANDLE* source_handle)
 				        }
 				        else
 				        {
-					        seconds timeout;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            seconds timeout;
 					            if (amqpvalue_get_seconds(item_value, &timeout) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            source_destroy(*source_handle);
 						            result = __FAILURE__;
 						            break;
@@ -11441,15 +11548,16 @@ int amqpvalue_get_source(AMQP_VALUE value, SOURCE_HANDLE* source_handle)
 				        }
 				        else
 				        {
-					        bool dynamic;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            bool dynamic;
 					            if (amqpvalue_get_boolean(item_value, &dynamic) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            source_destroy(*source_handle);
 						            result = __FAILURE__;
 						            break;
@@ -11469,15 +11577,16 @@ int amqpvalue_get_source(AMQP_VALUE value, SOURCE_HANDLE* source_handle)
 				        }
 				        else
 				        {
-					        node_properties dynamic_node_properties;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            node_properties dynamic_node_properties;
 					            if (amqpvalue_get_node_properties(item_value, &dynamic_node_properties) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            source_destroy(*source_handle);
 						            result = __FAILURE__;
 						            break;
@@ -11497,15 +11606,16 @@ int amqpvalue_get_source(AMQP_VALUE value, SOURCE_HANDLE* source_handle)
 				        }
 				        else
 				        {
-					        const char* distribution_mode;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            const char* distribution_mode;
 					            if (amqpvalue_get_symbol(item_value, &distribution_mode) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            source_destroy(*source_handle);
 						            result = __FAILURE__;
 						            break;
@@ -11525,15 +11635,16 @@ int amqpvalue_get_source(AMQP_VALUE value, SOURCE_HANDLE* source_handle)
 				        }
 				        else
 				        {
-					        filter_set filter;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            filter_set filter;
 					            if (amqpvalue_get_filter_set(item_value, &filter) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            source_destroy(*source_handle);
 						            result = __FAILURE__;
 						            break;
@@ -11566,17 +11677,18 @@ int amqpvalue_get_source(AMQP_VALUE value, SOURCE_HANDLE* source_handle)
 				        }
 				        else
 				        {
-					        const char* outcomes;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            const char* outcomes = NULL;
 					            AMQP_VALUE outcomes_array;
 					            if ((amqpvalue_get_array(item_value, &outcomes_array) != 0) &&
 						            (amqpvalue_get_symbol(item_value, &outcomes) != 0))
 					            {
+						            amqpvalue_destroy(item_value);
 						            source_destroy(*source_handle);
 						            result = __FAILURE__;
 						            break;
@@ -11596,17 +11708,18 @@ int amqpvalue_get_source(AMQP_VALUE value, SOURCE_HANDLE* source_handle)
 				        }
 				        else
 				        {
-					        const char* capabilities;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            const char* capabilities = NULL;
 					            AMQP_VALUE capabilities_array;
 					            if ((amqpvalue_get_array(item_value, &capabilities_array) != 0) &&
 						            (amqpvalue_get_symbol(item_value, &capabilities) != 0))
 					            {
+						            amqpvalue_destroy(item_value);
 						            source_destroy(*source_handle);
 						            result = __FAILURE__;
 						            break;
@@ -12739,15 +12852,16 @@ int amqpvalue_get_target(AMQP_VALUE value, TARGET_HANDLE* target_handle)
 				        }
 				        else
 				        {
-					        terminus_durability durable;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            terminus_durability durable;
 					            if (amqpvalue_get_terminus_durability(item_value, &durable) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            target_destroy(*target_handle);
 						            result = __FAILURE__;
 						            break;
@@ -12767,15 +12881,16 @@ int amqpvalue_get_target(AMQP_VALUE value, TARGET_HANDLE* target_handle)
 				        }
 				        else
 				        {
-					        terminus_expiry_policy expiry_policy;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            terminus_expiry_policy expiry_policy;
 					            if (amqpvalue_get_terminus_expiry_policy(item_value, &expiry_policy) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            target_destroy(*target_handle);
 						            result = __FAILURE__;
 						            break;
@@ -12795,15 +12910,16 @@ int amqpvalue_get_target(AMQP_VALUE value, TARGET_HANDLE* target_handle)
 				        }
 				        else
 				        {
-					        seconds timeout;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            seconds timeout;
 					            if (amqpvalue_get_seconds(item_value, &timeout) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            target_destroy(*target_handle);
 						            result = __FAILURE__;
 						            break;
@@ -12823,15 +12939,16 @@ int amqpvalue_get_target(AMQP_VALUE value, TARGET_HANDLE* target_handle)
 				        }
 				        else
 				        {
-					        bool dynamic;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            bool dynamic;
 					            if (amqpvalue_get_boolean(item_value, &dynamic) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            target_destroy(*target_handle);
 						            result = __FAILURE__;
 						            break;
@@ -12851,15 +12968,16 @@ int amqpvalue_get_target(AMQP_VALUE value, TARGET_HANDLE* target_handle)
 				        }
 				        else
 				        {
-					        node_properties dynamic_node_properties;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            node_properties dynamic_node_properties;
 					            if (amqpvalue_get_node_properties(item_value, &dynamic_node_properties) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            target_destroy(*target_handle);
 						            result = __FAILURE__;
 						            break;
@@ -12879,17 +12997,18 @@ int amqpvalue_get_target(AMQP_VALUE value, TARGET_HANDLE* target_handle)
 				        }
 				        else
 				        {
-					        const char* capabilities;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            const char* capabilities = NULL;
 					            AMQP_VALUE capabilities_array;
 					            if ((amqpvalue_get_array(item_value, &capabilities_array) != 0) &&
 						            (amqpvalue_get_symbol(item_value, &capabilities) != 0))
 					            {
+						            amqpvalue_destroy(item_value);
 						            target_destroy(*target_handle);
 						            result = __FAILURE__;
 						            break;
@@ -13713,15 +13832,16 @@ int amqpvalue_get_header(AMQP_VALUE value, HEADER_HANDLE* header_handle)
 				        }
 				        else
 				        {
-					        bool durable;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            bool durable;
 					            if (amqpvalue_get_boolean(item_value, &durable) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            header_destroy(*header_handle);
 						            result = __FAILURE__;
 						            break;
@@ -13741,15 +13861,16 @@ int amqpvalue_get_header(AMQP_VALUE value, HEADER_HANDLE* header_handle)
 				        }
 				        else
 				        {
-					        uint8_t priority;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            uint8_t priority;
 					            if (amqpvalue_get_ubyte(item_value, &priority) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            header_destroy(*header_handle);
 						            result = __FAILURE__;
 						            break;
@@ -13769,15 +13890,16 @@ int amqpvalue_get_header(AMQP_VALUE value, HEADER_HANDLE* header_handle)
 				        }
 				        else
 				        {
-					        milliseconds ttl;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            milliseconds ttl;
 					            if (amqpvalue_get_milliseconds(item_value, &ttl) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            header_destroy(*header_handle);
 						            result = __FAILURE__;
 						            break;
@@ -13797,15 +13919,16 @@ int amqpvalue_get_header(AMQP_VALUE value, HEADER_HANDLE* header_handle)
 				        }
 				        else
 				        {
-					        bool first_acquirer;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            bool first_acquirer;
 					            if (amqpvalue_get_boolean(item_value, &first_acquirer) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            header_destroy(*header_handle);
 						            result = __FAILURE__;
 						            break;
@@ -13825,15 +13948,16 @@ int amqpvalue_get_header(AMQP_VALUE value, HEADER_HANDLE* header_handle)
 				        }
 				        else
 				        {
-					        uint32_t delivery_count;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            uint32_t delivery_count;
 					            if (amqpvalue_get_uint(item_value, &delivery_count) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            header_destroy(*header_handle);
 						            result = __FAILURE__;
 						            break;
@@ -14790,15 +14914,16 @@ int amqpvalue_get_properties(AMQP_VALUE value, PROPERTIES_HANDLE* properties_han
 				        }
 				        else
 				        {
-					        amqp_binary user_id;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            amqp_binary user_id;
 					            if (amqpvalue_get_binary(item_value, &user_id) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            properties_destroy(*properties_handle);
 						            result = __FAILURE__;
 						            break;
@@ -14831,15 +14956,16 @@ int amqpvalue_get_properties(AMQP_VALUE value, PROPERTIES_HANDLE* properties_han
 				        }
 				        else
 				        {
-					        const char* subject;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            const char* subject;
 					            if (amqpvalue_get_string(item_value, &subject) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            properties_destroy(*properties_handle);
 						            result = __FAILURE__;
 						            break;
@@ -14885,15 +15011,16 @@ int amqpvalue_get_properties(AMQP_VALUE value, PROPERTIES_HANDLE* properties_han
 				        }
 				        else
 				        {
-					        const char* content_type;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            const char* content_type;
 					            if (amqpvalue_get_symbol(item_value, &content_type) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            properties_destroy(*properties_handle);
 						            result = __FAILURE__;
 						            break;
@@ -14913,15 +15040,16 @@ int amqpvalue_get_properties(AMQP_VALUE value, PROPERTIES_HANDLE* properties_han
 				        }
 				        else
 				        {
-					        const char* content_encoding;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            const char* content_encoding;
 					            if (amqpvalue_get_symbol(item_value, &content_encoding) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            properties_destroy(*properties_handle);
 						            result = __FAILURE__;
 						            break;
@@ -14941,15 +15069,16 @@ int amqpvalue_get_properties(AMQP_VALUE value, PROPERTIES_HANDLE* properties_han
 				        }
 				        else
 				        {
-					        timestamp absolute_expiry_time;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            timestamp absolute_expiry_time;
 					            if (amqpvalue_get_timestamp(item_value, &absolute_expiry_time) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            properties_destroy(*properties_handle);
 						            result = __FAILURE__;
 						            break;
@@ -14969,15 +15098,16 @@ int amqpvalue_get_properties(AMQP_VALUE value, PROPERTIES_HANDLE* properties_han
 				        }
 				        else
 				        {
-					        timestamp creation_time;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            timestamp creation_time;
 					            if (amqpvalue_get_timestamp(item_value, &creation_time) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            properties_destroy(*properties_handle);
 						            result = __FAILURE__;
 						            break;
@@ -14997,15 +15127,16 @@ int amqpvalue_get_properties(AMQP_VALUE value, PROPERTIES_HANDLE* properties_han
 				        }
 				        else
 				        {
-					        const char* group_id;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            const char* group_id;
 					            if (amqpvalue_get_string(item_value, &group_id) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            properties_destroy(*properties_handle);
 						            result = __FAILURE__;
 						            break;
@@ -15025,15 +15156,16 @@ int amqpvalue_get_properties(AMQP_VALUE value, PROPERTIES_HANDLE* properties_han
 				        }
 				        else
 				        {
-					        sequence_no group_sequence;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            sequence_no group_sequence;
 					            if (amqpvalue_get_sequence_no(item_value, &group_sequence) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            properties_destroy(*properties_handle);
 						            result = __FAILURE__;
 						            break;
@@ -15053,15 +15185,16 @@ int amqpvalue_get_properties(AMQP_VALUE value, PROPERTIES_HANDLE* properties_han
 				        }
 				        else
 				        {
-					        const char* reply_to_group_id;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            const char* reply_to_group_id;
 					            if (amqpvalue_get_string(item_value, &reply_to_group_id) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            properties_destroy(*properties_handle);
 						            result = __FAILURE__;
 						            break;
@@ -16317,17 +16450,19 @@ int amqpvalue_get_received(AMQP_VALUE value, RECEIVED_HANDLE* received_handle)
 				        }
 				        else
 				        {
-					        uint32_t section_number;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
+						        amqpvalue_destroy(item_value);
 						        received_destroy(*received_handle);
 						        result = __FAILURE__;
 						        break;
                             }
                             else
                             {
+					            uint32_t section_number;
 					            if (amqpvalue_get_uint(item_value, &section_number) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            received_destroy(*received_handle);
 						            result = __FAILURE__;
 						            break;
@@ -16355,17 +16490,19 @@ int amqpvalue_get_received(AMQP_VALUE value, RECEIVED_HANDLE* received_handle)
 				        }
 				        else
 				        {
-					        uint64_t section_offset;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
+						        amqpvalue_destroy(item_value);
 						        received_destroy(*received_handle);
 						        result = __FAILURE__;
 						        break;
                             }
                             else
                             {
+					            uint64_t section_offset;
 					            if (amqpvalue_get_ulong(item_value, &section_offset) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            received_destroy(*received_handle);
 						            result = __FAILURE__;
 						            break;
@@ -16828,19 +16965,24 @@ int amqpvalue_get_rejected(AMQP_VALUE value, REJECTED_HANDLE* rejected_handle)
 				        }
 				        else
 				        {
-					        ERROR_HANDLE error;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            ERROR_HANDLE error;
 					            if (amqpvalue_get_error(item_value, &error) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            rejected_destroy(*rejected_handle);
 						            result = __FAILURE__;
 						            break;
 					            }
+                                else
+                                {
+						            error_destroy(error);
+                                }
                             }
 
 					        amqpvalue_destroy(item_value);
@@ -17213,15 +17355,16 @@ int amqpvalue_get_modified(AMQP_VALUE value, MODIFIED_HANDLE* modified_handle)
 				        }
 				        else
 				        {
-					        bool delivery_failed;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            bool delivery_failed;
 					            if (amqpvalue_get_boolean(item_value, &delivery_failed) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            modified_destroy(*modified_handle);
 						            result = __FAILURE__;
 						            break;
@@ -17241,15 +17384,16 @@ int amqpvalue_get_modified(AMQP_VALUE value, MODIFIED_HANDLE* modified_handle)
 				        }
 				        else
 				        {
-					        bool undeliverable_here;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            bool undeliverable_here;
 					            if (amqpvalue_get_boolean(item_value, &undeliverable_here) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            modified_destroy(*modified_handle);
 						            result = __FAILURE__;
 						            break;
@@ -17269,15 +17413,16 @@ int amqpvalue_get_modified(AMQP_VALUE value, MODIFIED_HANDLE* modified_handle)
 				        }
 				        else
 				        {
-					        fields message_annotations;
 						    if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)
 						    {
 						        /* no error, field is not mandatory */
                             }
                             else
                             {
+					            fields message_annotations;
 					            if (amqpvalue_get_fields(item_value, &message_annotations) != 0)
 					            {
+						            amqpvalue_destroy(item_value);
 						            modified_destroy(*modified_handle);
 						            result = __FAILURE__;
 						            break;

@@ -592,6 +592,7 @@ static void on_frame_received(void* context, AMQP_VALUE performative, uint32_t p
 		}
 		else
 		{
+            end_destroy(end_handle);
 			if ((session_instance->session_state != SESSION_STATE_END_RCVD) &&
 				(session_instance->session_state != SESSION_STATE_DISCARDING))
 			{

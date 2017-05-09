@@ -105,16 +105,24 @@ int main(int argc, char** argv)
         STRING_HANDLE encoded_resource_uri;
         STRING_HANDLE sas_token;
         BUFFER_HANDLE buffer;
+        TLSIO_CONFIG tls_io_config = { EH_HOST, 5671 };
+		const IO_INTERFACE_DESCRIPTION* tlsio_interface;
+		SASLCLIENTIO_CONFIG sasl_io_config;
+		time_t currentTime;
+		size_t expiry_time;
+		CBS_HANDLE cbs;
+		AMQP_VALUE source;
+		AMQP_VALUE target;
+		unsigned char hello[] = { 'H', 'e', 'l', 'l', 'o' };
+		BINARY_DATA binary_data;
 
         gballoc_init();
 
 		/* create the TLS IO */
-        TLSIO_CONFIG tls_io_config = { EH_HOST, 5671 };
-		const IO_INTERFACE_DESCRIPTION* tlsio_interface = platform_get_default_tlsio();
+		tlsio_interface = platform_get_default_tlsio();
 		tls_io = xio_create(tlsio_interface, &tls_io_config);
 
 		/* create the SASL client IO using the TLS IO */
-		SASLCLIENTIO_CONFIG sasl_io_config;
         sasl_io_config.underlying_io = tls_io;
         sasl_io_config.sasl_mechanism = sasl_mechanism_handle;
 		sasl_io = xio_create(saslclientio_get_interface_description(), &sasl_io_config);
@@ -136,12 +144,12 @@ int main(int argc, char** argv)
         encoded_resource_uri = URL_EncodeString(STRING_c_str(resource_uri));
 
         /* Make a token that expires in one hour */
-        time_t currentTime = time(NULL);
-        size_t expiry_time = (size_t)(difftime(currentTime, 0) + 3600);
+        currentTime = time(NULL);
+        expiry_time = (size_t)(difftime(currentTime, 0) + 3600);
 
         sas_token = SASToken_Create(sas_key_value, encoded_resource_uri, sas_key_name, expiry_time);
 
-		CBS_HANDLE cbs = cbs_create(session);
+		cbs = cbs_create(session);
 		if (cbs_open_async(cbs, on_cbs_open_complete, cbs, on_cbs_error, cbs) == 0)
 		{
 			(void)cbs_put_token_async(cbs, "servicebus.windows.net:sastoken", "sb://" EH_HOST "/" EH_NAME "/publishers/" EH_PUBLISHER, STRING_c_str(sas_token), on_cbs_put_token_complete, cbs);
@@ -169,8 +177,8 @@ int main(int argc, char** argv)
         STRING_delete(resource_uri);
         STRING_delete(encoded_resource_uri);
 
-		AMQP_VALUE source = messaging_create_source("ingress");
-		AMQP_VALUE target = messaging_create_target("amqps://" EH_HOST "/" EH_NAME);
+		source = messaging_create_source("ingress");
+		target = messaging_create_target("amqps://" EH_HOST "/" EH_NAME);
 		link = link_create(session, "sender-link", role_sender, source, target);
 		link_set_snd_settle_mode(link, sender_settle_mode_settled);
 		(void)link_set_max_message_size(link, 65536);
@@ -179,9 +187,8 @@ int main(int argc, char** argv)
 		amqpvalue_destroy(target);
 
 		message = message_create();
-		unsigned char hello[] = { 'H', 'e', 'l', 'l', 'o' };
-		BINARY_DATA binary_data;
-        binary_data.bytes = hello;
+
+		binary_data.bytes = hello;
         binary_data.length = sizeof(hello);
 		message_add_body_amqp_data(message, binary_data);
 
@@ -190,6 +197,7 @@ int main(int argc, char** argv)
 		if (messagesender_open(message_sender) == 0)
 		{
 			uint32_t i;
+			bool keep_running = true;
 
 #if _WIN32
 			unsigned long startTime = (unsigned long)GetTickCount64();
@@ -202,7 +210,7 @@ int main(int argc, char** argv)
 
 			message_destroy(message);
 
-			while (true)
+			while (keep_running)
 			{
 				size_t current_memory_used;
 				size_t maximum_memory_used;
@@ -224,9 +232,11 @@ int main(int argc, char** argv)
 			}
 
 #if _WIN32
-			unsigned long endTime = (unsigned long)GetTickCount64();
+			{
+				unsigned long endTime = (unsigned long)GetTickCount64();
 
-			(void)printf("Send %zu messages in %lu ms: %.02f msgs/sec\r\n", msg_count, (endTime - startTime), (float)msg_count / ((float)(endTime - startTime) / 1000));
+				(void)printf("Send %zu messages in %lu ms: %.02f msgs/sec\r\n", msg_count, (endTime - startTime), (float)msg_count / ((float)(endTime - startTime) / 1000));
+			}
 #endif
 		}
 

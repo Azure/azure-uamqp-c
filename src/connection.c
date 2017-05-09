@@ -195,9 +195,10 @@ static void log_incoming_frame(AMQP_VALUE performative)
 	}
 	else
 	{
+		char* performative_as_string;
         LOG(AZ_LOG_TRACE, 0, "<- ");
         LOG(AZ_LOG_TRACE, 0, (char*)get_frame_type_as_string(descriptor));
-        char* performative_as_string = NULL;
+        performative_as_string = NULL;
         LOG(AZ_LOG_TRACE, LOG_LINE, (performative_as_string = amqpvalue_to_string(performative)));
         if (performative_as_string != NULL)
         {
@@ -219,9 +220,10 @@ static void log_outgoing_frame(AMQP_VALUE performative)
 	}
 	else
 	{
+		char* performative_as_string;
 		LOG(AZ_LOG_TRACE, 0, "-> ");
         LOG(AZ_LOG_TRACE, 0, (char*)get_frame_type_as_string(descriptor));
-        char* performative_as_string = NULL;
+        performative_as_string = NULL;
         LOG(AZ_LOG_TRACE, LOG_LINE, (performative_as_string = amqpvalue_to_string(performative)));
         if (performative_as_string != NULL)
         {
@@ -1784,9 +1786,10 @@ void connection_destroy_endpoint(ENDPOINT_HANDLE endpoint)
         /* Codes_SRS_CONNECTION_01_131: [Any incoming channel number associated with the endpoint shall be released.] */
 		if ((i < connection->endpoint_count) && (i > 0))
 		{
+			ENDPOINT_HANDLE* new_endpoints;
 			(void)memmove(connection->endpoints + i, connection->endpoints + i + 1, sizeof(ENDPOINT_HANDLE) * (connection->endpoint_count - i - 1));
 
-			ENDPOINT_HANDLE* new_endpoints = (ENDPOINT_HANDLE*)realloc(connection->endpoints, (connection->endpoint_count - 1) * sizeof(ENDPOINT_HANDLE));
+			new_endpoints = (ENDPOINT_HANDLE*)realloc(connection->endpoints, (connection->endpoint_count - 1) * sizeof(ENDPOINT_HANDLE));
 			if (new_endpoints != NULL)
 			{
 				connection->endpoints = new_endpoints;

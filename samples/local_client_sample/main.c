@@ -44,15 +44,19 @@ int main(int argc, char** argv)
 		LINK_HANDLE link;
 		MESSAGE_SENDER_HANDLE message_sender;
 		MESSAGE_HANDLE message;
+		AMQP_VALUE source;
+		AMQP_VALUE target;
+		unsigned char hello[] = { 'H', 'e', 'l', 'l', 'o' };
+		BINARY_DATA binary_data;
 
 		size_t last_memory_used = 0;
+
+		XIO_HANDLE socket_io;
+		SOCKETIO_CONFIG socketio_config = { "localhost", 5672, NULL };
 
         gballoc_init();
 
 		/* create socket IO */
-		XIO_HANDLE socket_io;
-
-		SOCKETIO_CONFIG socketio_config = { "localhost", 5672, NULL };
 		socket_io = xio_create(socketio_get_interface_description(), &socketio_config);
 
 		/* create the connection, session and link */
@@ -61,8 +65,8 @@ int main(int argc, char** argv)
 		session_set_incoming_window(session, 2147483647);
 		session_set_outgoing_window(session, 65536);
 
-		AMQP_VALUE source = messaging_create_source("ingress");
-		AMQP_VALUE target = messaging_create_target("localhost/ingress");
+		source = messaging_create_source("ingress");
+		target = messaging_create_target("localhost/ingress");
 		link = link_create(session, "sender-link", role_sender, source, target);
 		link_set_snd_settle_mode(link, sender_settle_mode_settled);
 		(void)link_set_max_message_size(link, 65536);
@@ -71,8 +75,7 @@ int main(int argc, char** argv)
 		amqpvalue_destroy(target);
 
 		message = message_create();
-		unsigned char hello[] = { 'H', 'e', 'l', 'l', 'o' };
-		BINARY_DATA binary_data;
+
         binary_data.bytes = hello;
         binary_data.length = sizeof(hello);
 		message_add_body_amqp_data(message, binary_data);
@@ -82,6 +85,7 @@ int main(int argc, char** argv)
 		if (messagesender_open(message_sender) == 0)
 		{
 			uint32_t i;
+			bool keep_running = true;
 
 #if _WIN32
 			unsigned long startTime = (unsigned long)GetTickCount64();
@@ -94,7 +98,7 @@ int main(int argc, char** argv)
 
 			message_destroy(message);
 
-			while (true)
+			while (keep_running)
 			{
 				size_t current_memory_used;
 				size_t maximum_memory_used;
@@ -116,9 +120,11 @@ int main(int argc, char** argv)
 			}
 
 #if _WIN32
-			unsigned long endTime = (unsigned long)GetTickCount64();
+			{
+				unsigned long endTime = (unsigned long)GetTickCount64();
 
-			(void)printf("Send %zu messages in %lu ms: %.02f msgs/sec\r\n", msg_count, (endTime - startTime), (float)msg_count / ((float)(endTime - startTime) / 1000));
+				(void)printf("Send %zu messages in %lu ms: %.02f msgs/sec\r\n", msg_count, (endTime - startTime), (float)msg_count / ((float)(endTime - startTime) / 1000));
+			}
 #endif
 		}
 

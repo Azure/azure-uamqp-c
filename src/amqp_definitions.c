@@ -11,6 +11,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#pragma warning (disable : 4127)
+
 /* role */
 
 AMQP_VALUE amqpvalue_create_role(role value)

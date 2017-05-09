@@ -276,9 +276,10 @@ static void log_incoming_frame(AMQP_VALUE performative)
         AMQP_VALUE descriptor = amqpvalue_get_inplace_descriptor(performative);
         if (descriptor != NULL)
         {
+			char* performative_as_string;
             LOG(AZ_LOG_TRACE, 0, "<- ");
             LOG(AZ_LOG_TRACE, 0, (char*)get_frame_type_as_string(descriptor));
-            char* performative_as_string = NULL;
+            performative_as_string = NULL;
             LOG(AZ_LOG_TRACE, LOG_LINE, (performative_as_string = amqpvalue_to_string(performative)));
             if (performative_as_string != NULL)
             {
@@ -299,9 +300,10 @@ static void log_outgoing_frame(AMQP_VALUE performative)
         AMQP_VALUE descriptor = amqpvalue_get_inplace_descriptor(performative);
         if (descriptor != NULL)
         {
+			char* performative_as_string;
             LOG(AZ_LOG_TRACE, 0, "-> ");
             LOG(AZ_LOG_TRACE, 0, (char*)get_frame_type_as_string(descriptor));
-            char* performative_as_string = NULL;
+            performative_as_string = NULL;
             LOG(AZ_LOG_TRACE, LOG_LINE, (performative_as_string = amqpvalue_to_string(performative)));
             if (performative_as_string != NULL)
             {
@@ -467,9 +469,9 @@ static void on_underlying_io_bytes_received(void* context, const unsigned char* 
 
 static void on_bytes_encoded(void* context, const unsigned char* bytes, size_t length, bool encode_complete)
 {
-    (void)encode_complete;
-
     SASL_CLIENT_IO_INSTANCE* sasl_client_io_instance = (SASL_CLIENT_IO_INSTANCE*)context;
+
+    (void)encode_complete;
 
     /* Codes_SRS_SASLCLIENTIO_01_120: [When SASL client IO is notified by sasl_frame_codec of bytes that have been encoded via the on_bytes_encoded callback and SASL client IO is in the state OPENING, SASL client IO shall send these bytes by using xio_send.] */
     if (xio_send(sasl_client_io_instance->underlying_io, bytes, length, NULL, NULL) != 0)

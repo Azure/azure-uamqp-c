@@ -56,23 +56,29 @@ int main(int argc, char** argv)
 		LINK_HANDLE link;
 		MESSAGE_SENDER_HANDLE message_sender;
 		MESSAGE_HANDLE message;
+		SASL_PLAIN_CONFIG sasl_plain_config = { EH_KEY_NAME, EH_KEY, NULL };
+        TLSIO_CONFIG tls_io_config = { EH_HOST, 5671 };
+		const IO_INTERFACE_DESCRIPTION* tlsio_interface;
+		SASLCLIENTIO_CONFIG sasl_io_config;
+		AMQP_VALUE source;
+		AMQP_VALUE target;
 
 		size_t last_memory_used = 0;
+		SASL_MECHANISM_HANDLE sasl_mechanism_handle;
+		XIO_HANDLE tls_io;
+		unsigned char hello[] = { 'H', 'e', 'l', 'l', 'o' };
+		BINARY_DATA binary_data;
 
         gballoc_init();
 
 		/* create SASL PLAIN handler */
-		SASL_PLAIN_CONFIG sasl_plain_config = { EH_KEY_NAME, EH_KEY, NULL };
-		SASL_MECHANISM_HANDLE sasl_mechanism_handle = saslmechanism_create(saslplain_get_interface(), &sasl_plain_config);
-		XIO_HANDLE tls_io;
+		sasl_mechanism_handle = saslmechanism_create(saslplain_get_interface(), &sasl_plain_config);
 
 		/* create the TLS IO */
-        TLSIO_CONFIG tls_io_config = { EH_HOST, 5671 };
-		const IO_INTERFACE_DESCRIPTION* tlsio_interface = platform_get_default_tlsio();
+		tlsio_interface = platform_get_default_tlsio();
 		tls_io = xio_create(tlsio_interface, &tls_io_config);
 
 		/* create the SASL client IO using the TLS IO */
-		SASLCLIENTIO_CONFIG sasl_io_config;
         sasl_io_config.underlying_io = tls_io;
         sasl_io_config.sasl_mechanism = sasl_mechanism_handle;
 		sasl_io = xio_create(saslclientio_get_interface_description(), &sasl_io_config);
@@ -83,8 +89,8 @@ int main(int argc, char** argv)
 		session_set_incoming_window(session, 2147483647);
 		session_set_outgoing_window(session, 65536);
 
-		AMQP_VALUE source = messaging_create_source("ingress");
-		AMQP_VALUE target = messaging_create_target("amqps://" EH_HOST "/" EH_NAME);
+		source = messaging_create_source("ingress");
+		target = messaging_create_target("amqps://" EH_HOST "/" EH_NAME);
 		link = link_create(session, "sender-link", role_sender, source, target);
 		link_set_snd_settle_mode(link, sender_settle_mode_unsettled);
 		(void)link_set_max_message_size(link, 65536);
@@ -93,9 +99,8 @@ int main(int argc, char** argv)
 		amqpvalue_destroy(target);
 
 		message = message_create();
-		unsigned char hello[] = { 'H', 'e', 'l', 'l', 'o' };
-		BINARY_DATA binary_data;
-        binary_data.bytes = hello;
+
+		binary_data.bytes = hello;
         binary_data.length = sizeof(hello);
 		message_add_body_amqp_data(message, binary_data);
 
@@ -104,6 +109,7 @@ int main(int argc, char** argv)
 		if (messagesender_open(message_sender) == 0)
 		{
 			uint32_t i;
+			bool keep_running = true;
 
 #if _WIN32
 			unsigned long startTime = (unsigned long)GetTickCount64();
@@ -116,7 +122,7 @@ int main(int argc, char** argv)
 
 			message_destroy(message);
 
-			while (true)
+			while (keep_running)
 			{
 				size_t current_memory_used;
 				size_t maximum_memory_used;
@@ -138,9 +144,11 @@ int main(int argc, char** argv)
 			}
 
 #if _WIN32
-			unsigned long endTime = (unsigned long)GetTickCount64();
+			{
+				unsigned long endTime = (unsigned long)GetTickCount64();
 
-			(void)printf("Send %zu messages in %lu ms: %.02f msgs/sec\r\n", msg_count, (endTime - startTime), (float)msg_count / ((float)(endTime - startTime) / 1000));
+				(void)printf("Send %zu messages in %lu ms: %.02f msgs/sec\r\n", msg_count, (endTime - startTime), (float)msg_count / ((float)(endTime - startTime) / 1000));
+			}
 #endif
 		}
         else

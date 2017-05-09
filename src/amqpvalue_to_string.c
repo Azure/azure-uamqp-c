@@ -27,6 +27,8 @@ static int string_concat(char** string, const char* to_concat)
 	}
 	else
 	{
+		char* new_string;
+
 		size_t length = strlen(to_concat) + 1;
 		size_t src_length;
 
@@ -41,7 +43,7 @@ static int string_concat(char** string, const char* to_concat)
 
 		length += src_length;
 
-		char* new_string = (char*)realloc(*string, length);
+		new_string = (char*)realloc(*string, length);
 		if (new_string == NULL)
 		{
 			result = __FAILURE__;

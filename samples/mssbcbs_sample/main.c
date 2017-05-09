@@ -78,22 +78,31 @@ int main(int argc, char** argv)
 		LINK_HANDLE link;
 		MESSAGE_SENDER_HANDLE message_sender;
 		MESSAGE_HANDLE message;
-
+		SASL_MECHANISM_HANDLE sasl_mechanism_handle;
 		size_t last_memory_used = 0;
+		XIO_HANDLE tls_io;
+        TLSIO_CONFIG tls_io_config = { IOT_HUB_HOST, 5671 };
+		const IO_INTERFACE_DESCRIPTION* tlsio_interface;
+		SASLCLIENTIO_CONFIG sasl_io_config;
+		CBS_HANDLE cbs;
+		AMQP_VALUE source;
+		AMQP_VALUE target;
+		unsigned char hello[] = { 'H', 'e', 'l', 'l', 'o' };
+		BINARY_DATA binary_data;
+		fields attach_properties;
+		AMQP_VALUE test_attach_property_key;
+		AMQP_VALUE test_attach_property_value;
 
         gballoc_init();
 
 		/* create SASL MSSBCBS handler */
-		SASL_MECHANISM_HANDLE sasl_mechanism_handle = saslmechanism_create(saslmssbcbs_get_interface(), NULL);
-		XIO_HANDLE tls_io;
+		sasl_mechanism_handle = saslmechanism_create(saslmssbcbs_get_interface(), NULL);
 
 		/* create the TLS IO */
-        TLSIO_CONFIG tls_io_config = { IOT_HUB_HOST, 5671 };
-		const IO_INTERFACE_DESCRIPTION* tlsio_interface = platform_get_default_tlsio();
+		tlsio_interface = platform_get_default_tlsio();
 		tls_io = xio_create(tlsio_interface, &tls_io_config);
 
 		/* create the SASL client IO using the TLS IO */
-		SASLCLIENTIO_CONFIG sasl_io_config;
         sasl_io_config.underlying_io = tls_io;
         sasl_io_config.sasl_mechanism = sasl_mechanism_handle;
 		sasl_io = xio_create(saslclientio_get_interface_description(), &sasl_io_config);
@@ -104,7 +113,7 @@ int main(int argc, char** argv)
 		session_set_incoming_window(session, 2147483647);
 		session_set_outgoing_window(session, 2);
 
-		CBS_HANDLE cbs = cbs_create(session);
+		cbs = cbs_create(session);
 		if (cbs_open_async(cbs, on_cbs_open_complete, cbs, on_cbs_error, cbs) == 0)
 		{
 			(void)cbs_put_token_async(cbs, "servicebus.windows.net:sastoken", IOT_HUB_HOST "/devices/" IOT_HUB_DEVICE_NAME, IOT_HUB_DEVICE_SAS_TOKEN, on_cbs_operation_complete, cbs);
@@ -126,8 +135,8 @@ int main(int argc, char** argv)
 			}
 		}
 
-		AMQP_VALUE source = messaging_create_source("ingress");
-		AMQP_VALUE target = messaging_create_target("amqps://" IOT_HUB_HOST "/devices/" IOT_HUB_DEVICE_NAME "/messages/events");
+		source = messaging_create_source("ingress");
+		target = messaging_create_target("amqps://" IOT_HUB_HOST "/devices/" IOT_HUB_DEVICE_NAME "/messages/events");
 		link = link_create(session, "sender-link", role_sender, source, target);
 		(void)link_set_max_message_size(link, 65536);
 
@@ -135,15 +144,14 @@ int main(int argc, char** argv)
 		amqpvalue_destroy(target);
 
 		message = message_create();
-		unsigned char hello[] = { 'H', 'e', 'l', 'l', 'o' };
-		BINARY_DATA binary_data;
-        binary_data.bytes = hello;
+
+		binary_data.bytes = hello;
         binary_data.length = sizeof(hello);
 		message_add_body_amqp_data(message, binary_data);
 
-        fields attach_properties = amqpvalue_create_map();
-        AMQP_VALUE test_attach_property_key = amqpvalue_create_string("test_attach_property_key");
-        AMQP_VALUE test_attach_property_value = amqpvalue_create_string("a_test_property");
+        attach_properties = amqpvalue_create_map();
+        test_attach_property_key = amqpvalue_create_string("test_attach_property_key");
+        test_attach_property_value = amqpvalue_create_string("a_test_property");
         (void)amqpvalue_set_map_value(attach_properties, test_attach_property_key, test_attach_property_value);
 
         link_set_attach_properties(link, attach_properties);
@@ -157,6 +165,7 @@ int main(int argc, char** argv)
 		if (messagesender_open(message_sender) == 0)
 		{
 			uint32_t i;
+			bool keep_running = true;
 
 			for (i = 0; i < msg_count; i++)
 			{
@@ -165,7 +174,7 @@ int main(int argc, char** argv)
 
 			message_destroy(message);
 
-			while (true)
+			while (keep_running)
 			{
 				size_t current_memory_used;
 				size_t maximum_memory_used;

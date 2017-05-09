@@ -88,6 +88,8 @@ int main(int argc, char** argv)
 		LINK_HANDLE link;
 		MESSAGE_SENDER_HANDLE message_sender;
 		MESSAGE_HANDLE message;
+		SASLCLIENTIO_CONFIG sasl_io_config;
+		STRING_HANDLE keyname_string;
 
 		size_t last_memory_used = 0;
 
@@ -96,6 +98,15 @@ int main(int argc, char** argv)
 		XIO_HANDLE ws_io;
         WSIO_CONFIG ws_io_config;
         TLSIO_CONFIG tls_io_config;
+		const IO_INTERFACE_DESCRIPTION* tlsio_interface;
+		STRING_HANDLE key_string;
+		STRING_HANDLE scope_string;
+		STRING_HANDLE sas_token;
+		CBS_HANDLE cbs;
+		AMQP_VALUE source;
+		AMQP_VALUE target;
+		unsigned char hello[5] = { 'h', 'e', 'l', 'l', 'o' };
+		BINARY_DATA binary_data;
 
         gballoc_init();
 
@@ -112,14 +123,13 @@ int main(int argc, char** argv)
         ws_io_config.underlying_io_interface = platform_get_default_tlsio();
         ws_io_config.underlying_io_parameters = &tls_io_config;
 
-		const IO_INTERFACE_DESCRIPTION* tlsio_interface = wsio_get_interface_description();
+		tlsio_interface = wsio_get_interface_description();
 		ws_io = xio_create(tlsio_interface, &ws_io_config);
 
         /* the websockets library uses OpenSSL and on Windows the certs need to be pushed down */
         (void)xio_setoption(ws_io, "TrustedCerts", iothub_certs);
 
 		/* create the SASL IO using the WS IO */
-		SASLCLIENTIO_CONFIG sasl_io_config;
 		sasl_io_config.underlying_io = ws_io;
 		sasl_io_config.sasl_mechanism = sasl_mechanism_handle;
 
@@ -132,19 +142,19 @@ int main(int argc, char** argv)
 		session_set_incoming_window(session, 2147483647);
 		session_set_outgoing_window(session, 65536);
 
-        STRING_HANDLE key_string = STRING_new();
+        key_string = STRING_new();
         STRING_concat(key_string, IOT_HUB_DEVICE_KEY);
-        STRING_HANDLE scope_string = STRING_new();
+        scope_string = STRING_new();
         STRING_concat(scope_string, IOT_HUB_HOST "/devices/" IOT_HUB_DEVICE_NAME);
-        STRING_HANDLE keyname_string = STRING_new();
+        keyname_string = STRING_new();
 
-        STRING_HANDLE sas_token = SASToken_Create(key_string, scope_string, keyname_string, (size_t)time(NULL) + 3600);
+        sas_token = SASToken_Create(key_string, scope_string, keyname_string, (size_t)time(NULL) + 3600);
 
         STRING_delete(key_string);
         STRING_delete(scope_string);
         STRING_delete(keyname_string);
 
-		CBS_HANDLE cbs = cbs_create(session);
+		cbs = cbs_create(session);
 		if (cbs_open_async(cbs, on_cbs_open_complete, cbs, on_cbs_error, cbs) == 0)
 		{
 			(void)cbs_put_token_async(cbs, "servicebus.windows.net:sastoken", IOT_HUB_HOST "/devices/" IOT_HUB_DEVICE_NAME, STRING_c_str(sas_token), on_cbs_put_token_complete, cbs);
@@ -166,8 +176,8 @@ int main(int argc, char** argv)
 			}
 		}
 
-		AMQP_VALUE source = messaging_create_source("ingress");
-		AMQP_VALUE target = messaging_create_target("amqps://" IOT_HUB_HOST "/devices/" IOT_HUB_DEVICE_NAME "/messages/events");
+		source = messaging_create_source("ingress");
+		target = messaging_create_target("amqps://" IOT_HUB_HOST "/devices/" IOT_HUB_DEVICE_NAME "/messages/events");
 		link = link_create(session, "sender-link", role_sender, source, target);
 		(void)link_set_max_message_size(link, 65536);
 
@@ -175,8 +185,7 @@ int main(int argc, char** argv)
 		amqpvalue_destroy(target);
 
 		message = message_create();
-		unsigned char hello[5] = { 'h', 'e', 'l', 'l', 'o' };
-		BINARY_DATA binary_data;
+
 		binary_data.bytes = hello;
 		binary_data.length = sizeof(hello);
 		message_add_body_amqp_data(message, binary_data);
@@ -186,6 +195,7 @@ int main(int argc, char** argv)
 		if (messagesender_open(message_sender) == 0)
 		{
 			uint32_t i;
+			bool keep_running = true;
 
 			for (i = 0; i < msg_count; i++)
 			{
@@ -194,7 +204,7 @@ int main(int argc, char** argv)
 
 			message_destroy(message);
 
-			while (true)
+			while (keep_running)
 			{
 				size_t current_memory_used;
 				size_t maximum_memory_used;

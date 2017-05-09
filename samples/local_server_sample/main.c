@@ -61,12 +61,13 @@ static void on_socket_accepted(void* context, const IO_INTERFACE_DESCRIPTION* in
 {
 	HEADERDETECTIO_CONFIG header_detect_io_config;
     XIO_HANDLE underlying_io;
+	XIO_HANDLE header_detect_io;
 
     (void)context;
 
     underlying_io = xio_create(interface_description, io_parameters);
     header_detect_io_config.underlying_io = underlying_io;
-	XIO_HANDLE header_detect_io = xio_create(headerdetectio_get_interface_description(), &header_detect_io_config);
+	header_detect_io = xio_create(headerdetectio_get_interface_description(), &header_detect_io_config);
 	connection = connection_create(header_detect_io, NULL, "1", on_new_session_endpoint, NULL);
 	connection_listen(connection);
 }
@@ -85,17 +86,19 @@ int main(int argc, char** argv)
 	else
 	{
 		size_t last_memory_used = 0;
+		SOCKET_LISTENER_HANDLE socket_listener;
 
         gballoc_init();
 
-		SOCKET_LISTENER_HANDLE socket_listener = socketlistener_create(5672);
+		socket_listener = socketlistener_create(5672);
 		if (socketlistener_start(socket_listener, on_socket_accepted, NULL) != 0)
 		{
 			result = -1;
 		}
 		else
 		{
-			while (true)
+			bool keep_running = true;
+			while (keep_running)
 			{
 				size_t current_memory_used;
 				size_t maximum_memory_used;

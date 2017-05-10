@@ -19,6 +19,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif()
 
 include (CTest)
+include(CheckIncludeFiles)
 
 if(MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
@@ -146,6 +147,13 @@ macro(compileAsC11)
     set (CMAKE_CXX_STANDARD 11)
   endif()
 endmacro(compileAsC11)
+
+CHECK_INCLUDE_FILES(stdint.h HAVE_STDINT_H)
+CHECK_INCLUDE_FILES(stdbool.h HAVE_STDBOOL_H)
+
+if ((NOT HAVE_STDINT_H) OR (NOT HAVE_STDBOOL_H))
+    include_directories(${SHARED_UTIL_INC_FOLDER}/azure_c_shared_utility/windowsce)
+endif()
 
 include_directories(${CMAKE_CURRENT_LIST_DIR}/inc ${SHARED_UTIL_INC_FOLDER})
 

@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-#ifndef ANQPVALUE_H
-#define ANQPVALUE_H
+#ifndef AMQPVALUE_H
+#define AMQPVALUE_H
 
 #include "azure_uamqp_c/amqp_types.h"
 
@@ -120,4 +120,4 @@ extern "C" {
 }
 #endif /* __cplusplus */
 
-#endif /* ANQPVALUE_H */
+#endif /* AMQPVALUE_H */

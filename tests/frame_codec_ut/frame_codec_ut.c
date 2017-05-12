@@ -252,11 +252,12 @@ TEST_FUNCTION_CLEANUP(method_cleanup)
 TEST_FUNCTION(frame_codec_create_with_valid_args_succeeds)
 {
 	// arrange
+	FRAME_CODEC_HANDLE frame_codec;
 	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 	STRICT_EXPECTED_CALL(singlylinkedlist_create());
 
 	// act
-	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 
 	// assert
 	ASSERT_IS_NOT_NULL(frame_codec);
@@ -283,11 +284,12 @@ TEST_FUNCTION(frame_codec_create_with_NULL_on_error_decode_fails)
 TEST_FUNCTION(frame_codec_create_with_NULL_frame_codec_decode_error_calback_context_succeeds)
 {
 	// arrange
+	FRAME_CODEC_HANDLE frame_codec;
 	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 	STRICT_EXPECTED_CALL(singlylinkedlist_create());
 
 	// act
-	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, NULL);
+	frame_codec = frame_codec_create(test_frame_codec_decode_error, NULL);
 
 	// assert
 	ASSERT_IS_NOT_NULL(frame_codec);
@@ -301,11 +303,12 @@ TEST_FUNCTION(frame_codec_create_with_NULL_frame_codec_decode_error_calback_cont
 TEST_FUNCTION(when_allocating_memory_for_the_frame_codec_fails_frame_code_create_fails)
 {
 	// arrange
+	FRAME_CODEC_HANDLE frame_codec;
 	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
 		.SetReturn(NULL);
 
 	// act
-	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 
 	// assert
 	ASSERT_IS_NULL(frame_codec);
@@ -316,6 +319,7 @@ TEST_FUNCTION(when_allocating_memory_for_the_frame_codec_fails_frame_code_create
 TEST_FUNCTION(sending_a_frame_with_more_than_512_bytes_of_total_frame_size_fails_immediately_after_create)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
     unsigned char bytes[505] = { 0 };
     PAYLOAD payload;
@@ -324,7 +328,7 @@ TEST_FUNCTION(sending_a_frame_with_more_than_512_bytes_of_total_frame_size_fails
     umock_c_reset_all_calls();
 
 	// act
-	int result = frame_codec_encode_frame(frame_codec, 0, &payload, 1, NULL, 0, NULL, NULL);
+	result = frame_codec_encode_frame(frame_codec, 0, &payload, 1, NULL, 0, NULL, NULL);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -341,8 +345,10 @@ TEST_FUNCTION(sending_a_frame_with_more_than_512_bytes_of_total_frame_size_fails
 TEST_FUNCTION(a_frame_of_exactly_max_frame_size_immediately_after_create_can_be_sent)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
     unsigned char bytes[504] = { 0 };
+	unsigned char expected_bytes[512] = { 0x00, 0x00, 0x02, 0x00, 0x02, 0x00, 0x00, 0x00 };
     PAYLOAD payload;
     payload.bytes = bytes;
     payload.length = sizeof(bytes);
@@ -353,10 +359,9 @@ TEST_FUNCTION(a_frame_of_exactly_max_frame_size_immediately_after_create_can_be_
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
    
 	// act
-	int result = frame_codec_encode_frame(frame_codec, 0, &payload, 1, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
+	result = frame_codec_encode_frame(frame_codec, 0, &payload, 1, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
 
 	// assert
-	unsigned char expected_bytes[512] = { 0x00, 0x00, 0x02, 0x00, 0x02, 0x00, 0x00, 0x00 };
 	stringify_bytes(sent_io_bytes, sent_io_byte_count, actual_stringified_io);
 	stringify_bytes(expected_bytes, sizeof(expected_bytes), expected_stringified_io);
 	ASSERT_ARE_EQUAL(char_ptr, expected_stringified_io, actual_stringified_io);
@@ -373,15 +378,16 @@ TEST_FUNCTION(a_frame_of_exactly_max_frame_size_immediately_after_create_can_be_
 TEST_FUNCTION(receiving_a_frame_with_more_than_512_bytes_of_total_frame_size_immediately_after_create_fails)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	unsigned char frame[] = { 0x00, 0x00, 0x02, 0x01 };
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	umock_c_reset_all_calls();
-	unsigned char frame[] = { 0x00, 0x00, 0x02, 0x01 };
 
 	STRICT_EXPECTED_CALL(test_frame_codec_decode_error(TEST_ERROR_CONTEXT));
 
 	// act
-	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
+	result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -397,10 +403,11 @@ TEST_FUNCTION(receiving_a_frame_with_more_than_512_bytes_of_total_frame_size_imm
 TEST_FUNCTION(receiving_a_frame_with_exactly_512_bytes_of_total_frame_size_immediately_after_create_succeeds)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	unsigned char frame[512] = { 0x00, 0x00, 0x02, 0x00, 0x02, 0x00 };
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	umock_c_reset_all_calls();
-	unsigned char frame[512] = { 0x00, 0x00, 0x02, 0x00, 0x02, 0x00 };
 	(void)memset(frame + 6, 0, 506);
 
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
@@ -414,7 +421,7 @@ TEST_FUNCTION(receiving_a_frame_with_exactly_512_bytes_of_total_frame_size_immed
 	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
+	result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -485,11 +492,12 @@ TEST_FUNCTION(frame_codec_destroy_while_receiving_type_specific_data_frees_the_t
 TEST_FUNCTION(frame_codec_set_max_frame_size_with_8_succeeds)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	umock_c_reset_all_calls();
 
 	// act
-	int result = frame_codec_set_max_frame_size(frame_codec, 8);
+	result = frame_codec_set_max_frame_size(frame_codec, 8);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -504,12 +512,13 @@ TEST_FUNCTION(frame_codec_set_max_frame_size_with_8_succeeds)
 TEST_FUNCTION(when_a_frame_bigger_than_max_frame_size_is_sent_frame_codec_encode_frame_fails)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_set_max_frame_size(frame_codec, 1024);
 	umock_c_reset_all_calls();
 
 	// act
-	int result = frame_codec_encode_frame(frame_codec, 0, 1017, NULL, 0, NULL, NULL);
+	result = frame_codec_encode_frame(frame_codec, 0, 1017, NULL, 0, NULL, NULL);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -523,6 +532,7 @@ TEST_FUNCTION(when_a_frame_bigger_than_max_frame_size_is_sent_frame_codec_encode
 TEST_FUNCTION(a_frame_of_exactly_max_frame_size_can_be_sent)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_set_max_frame_size(frame_codec, 1024);
 	umock_c_reset_all_calls();
@@ -533,7 +543,7 @@ TEST_FUNCTION(a_frame_of_exactly_max_frame_size_can_be_sent)
 		.IgnoreAllCalls();
 
 	// act
-	int result = frame_codec_encode_frame(frame_codec, 0, 1016, NULL, 0, NULL, NULL);
+	result = frame_codec_encode_frame(frame_codec, 0, 1016, NULL, 0, NULL, NULL);
 
 	// assert
 	stringify_bytes(sent_io_bytes, sent_io_byte_count, actual_stringified_io);
@@ -551,16 +561,17 @@ TEST_FUNCTION(a_frame_of_exactly_max_frame_size_can_be_sent)
 TEST_FUNCTION(receiving_a_frame_with_more_than_max_frame_size_bytes_of_total_frame_size_fails)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	unsigned char frame[] = { 0x00, 0x00, 0x04, 0x01 };
 	(void)frame_codec_set_max_frame_size(frame_codec, 1024);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	umock_c_reset_all_calls();
-	unsigned char frame[] = { 0x00, 0x00, 0x04, 0x01 };
 
 	STRICT_EXPECTED_CALL(test_frame_codec_decode_error(TEST_ERROR_CONTEXT));
 
 	// act
-	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
+	result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -575,11 +586,12 @@ TEST_FUNCTION(receiving_a_frame_with_more_than_max_frame_size_bytes_of_total_fra
 TEST_FUNCTION(receiving_a_frame_with_exactly_max_frame_size_bytes_of_total_frame_size_fails_succeeds)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	unsigned char frame[1024] = { 0x00, 0x00, 0x04, 0x00, 0x02, 0x00 };
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	(void)frame_codec_set_max_frame_size(frame_codec, 1024);
 	umock_c_reset_all_calls();
-	unsigned char frame[1024] = { 0x00, 0x00, 0x04, 0x00, 0x02, 0x00 };
 	(void)memset(frame + 6, 0, 1016);
 
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
@@ -593,7 +605,7 @@ TEST_FUNCTION(receiving_a_frame_with_exactly_max_frame_size_bytes_of_total_frame
 	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
+	result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -622,11 +634,12 @@ TEST_FUNCTION(when_frame_codec_is_NULL_frame_codec_set_max_frame_size_fails)
 TEST_FUNCTION(when_frame_codec_is_too_small_then_frame_codec_set_max_frame_size_fails)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	umock_c_reset_all_calls();
 
 	// act
-	int result = frame_codec_set_max_frame_size(frame_codec, 7);
+	result = frame_codec_set_max_frame_size(frame_codec, 7);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -640,16 +653,17 @@ TEST_FUNCTION(when_frame_codec_is_too_small_then_frame_codec_set_max_frame_size_
 TEST_FUNCTION(attempting_to_set_a_max_frame_size_lower_than_the_size_of_the_currently_being_received_frame_fails)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	(void)frame_codec_set_max_frame_size(frame_codec, 1024);
 	unsigned char frame[1024] = { 0x00, 0x00, 0x04, 0x00, 0x02, 0x00 };
+	(void)frame_codec_set_max_frame_size(frame_codec, 1024);
 	(void)memset(frame + 6, 0, 1016);
 
 	(void)frame_codec_receive_bytes(frame_codec, frame, 4);
 	umock_c_reset_all_calls();
 
 	// act
-	int result = frame_codec_set_max_frame_size(frame_codec, 8);
+	result = frame_codec_set_max_frame_size(frame_codec, 8);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -663,6 +677,7 @@ TEST_FUNCTION(attempting_to_set_a_max_frame_size_lower_than_the_size_of_the_curr
 TEST_FUNCTION(setting_the_max_frame_size_on_a_codec_with_a_decode_error_fails)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x07 };
 
@@ -670,7 +685,7 @@ TEST_FUNCTION(setting_the_max_frame_size_on_a_codec_with_a_decode_error_fails)
 	umock_c_reset_all_calls();
 
 	// act
-	int result = frame_codec_set_max_frame_size(frame_codec, 1024);
+	result = frame_codec_set_max_frame_size(frame_codec, 1024);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -685,6 +700,7 @@ TEST_FUNCTION(setting_the_max_frame_size_on_a_codec_with_a_decode_error_fails)
 TEST_FUNCTION(setting_the_max_frame_size_on_a_codec_with_an_encode_error_fails)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	unsigned char bytes[] = { 0x42, 0x43 };
 	(void)frame_codec_encode_frame(frame_codec, 0x42, sizeof(bytes), NULL, 0, NULL, NULL);
@@ -697,7 +713,7 @@ TEST_FUNCTION(setting_the_max_frame_size_on_a_codec_with_an_encode_error_fails)
 	(void)frame_codec_encode_frame_bytes(frame_codec, bytes, sizeof(bytes));
 
 	// act
-	int result = frame_codec_set_max_frame_size(frame_codec, 1024);
+	result = frame_codec_set_max_frame_size(frame_codec, 1024);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -713,6 +729,7 @@ TEST_FUNCTION(setting_the_max_frame_size_on_a_codec_with_an_encode_error_fails)
 TEST_FUNCTION(setting_a_new_max_frame_while_the_frame_size_is_being_received_makes_the_new_frame_size_be_in_effect)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x09, 0x02, 0x00, 0x00, 0x00, 0x00 };
 
@@ -724,7 +741,7 @@ TEST_FUNCTION(setting_a_new_max_frame_while_the_frame_size_is_being_received_mak
 	STRICT_EXPECTED_CALL(test_frame_codec_decode_error(TEST_ERROR_CONTEXT));
 
 	// act
-	int result = frame_codec_receive_bytes(frame_codec, frame + 3, sizeof(frame) - 3);
+	result = frame_codec_receive_bytes(frame_codec, frame + 3, sizeof(frame) - 3);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -756,10 +773,11 @@ TEST_FUNCTION(setting_a_new_max_frame_while_the_frame_size_is_being_received_mak
 TEST_FUNCTION(frame_codec_receive_bytes_decodes_one_empty_frame)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x00, 0x00 };
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	umock_c_reset_all_calls();
-	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x00, 0x00 };
 
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
@@ -771,7 +789,7 @@ TEST_FUNCTION(frame_codec_receive_bytes_decodes_one_empty_frame)
 	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
+	result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -787,10 +805,11 @@ TEST_FUNCTION(frame_codec_receive_bytes_decodes_one_empty_frame)
 TEST_FUNCTION(frame_codec_receive_bytes_with_not_enough_bytes_for_a_frame_does_not_trigger_callback)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x00 };
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	umock_c_reset_all_calls();
-	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x00 };
 
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
@@ -799,7 +818,7 @@ TEST_FUNCTION(frame_codec_receive_bytes_with_not_enough_bytes_for_a_frame_does_n
 	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 
 	// act
-	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
+	result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -828,12 +847,13 @@ TEST_FUNCTION(frame_codec_receive_bytes_with_NULL_frame_codec_handle_fails)
 TEST_FUNCTION(frame_codec_receive_bytes_with_NULL_buffer_fails)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	umock_c_reset_all_calls();
 
 	// act
-	int result = frame_codec_receive_bytes(frame_codec, NULL, 1);
+	result = frame_codec_receive_bytes(frame_codec, NULL, 1);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -848,13 +868,14 @@ TEST_FUNCTION(frame_codec_receive_bytes_with_NULL_buffer_fails)
 TEST_FUNCTION(frame_codec_receive_bytes_with_zero_size_fails)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x00, 0x00 };
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	umock_c_reset_all_calls();
 
 	// act
-	int result = frame_codec_receive_bytes(frame_codec, frame, 0);
+	result = frame_codec_receive_bytes(frame_codec, frame, 0);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -871,10 +892,11 @@ TEST_FUNCTION(frame_codec_receive_bytes_with_zero_size_fails)
 TEST_FUNCTION(when_frame_codec_receive_1_byte_in_one_call_and_the_rest_of_the_frame_in_another_call_yields_succesfull_decode)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x00, 0x00 };
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	umock_c_reset_all_calls();
-	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x00, 0x00 };
 
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
@@ -888,7 +910,7 @@ TEST_FUNCTION(when_frame_codec_receive_1_byte_in_one_call_and_the_rest_of_the_fr
 	(void)frame_codec_receive_bytes(frame_codec, frame, 1);
 
 	// act
-	int result = frame_codec_receive_bytes(frame_codec, frame + 1, sizeof(frame) - 1);
+	result = frame_codec_receive_bytes(frame_codec, frame + 1, sizeof(frame) - 1);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -903,11 +925,12 @@ TEST_FUNCTION(when_frame_codec_receive_1_byte_in_one_call_and_the_rest_of_the_fr
 TEST_FUNCTION(when_frame_codec_receive_the_frame_bytes_in_1_byte_per_call_a_succesfull_decode_happens)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
-	umock_c_reset_all_calls();
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x00, 0x00 };
 	size_t i;
+	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
+	umock_c_reset_all_calls();
 
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
@@ -924,7 +947,7 @@ TEST_FUNCTION(when_frame_codec_receive_the_frame_bytes_in_1_byte_per_call_a_succ
 	}
 
 	// act
-	int result = frame_codec_receive_bytes(frame_codec, &frame[sizeof(frame) - 1], 1);
+	result = frame_codec_receive_bytes(frame_codec, &frame[sizeof(frame) - 1], 1);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -939,10 +962,11 @@ TEST_FUNCTION(when_frame_codec_receive_the_frame_bytes_in_1_byte_per_call_a_succ
 TEST_FUNCTION(a_frame_codec_receive_bytes_call_with_bad_args_before_any_real_frame_bytes_does_not_affect_decoding)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x00, 0x00 };
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	umock_c_reset_all_calls();
-	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x00, 0x00 };
 
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
@@ -956,7 +980,7 @@ TEST_FUNCTION(a_frame_codec_receive_bytes_call_with_bad_args_before_any_real_fra
 	(void)frame_codec_receive_bytes(frame_codec, NULL, 1);
 
 	// act
-	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
+	result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -971,10 +995,11 @@ TEST_FUNCTION(a_frame_codec_receive_bytes_call_with_bad_args_before_any_real_fra
 TEST_FUNCTION(a_frame_codec_receive_bytes_call_with_bad_args_in_the_middle_of_the_frame_does_not_affect_decoding)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x00, 0x00 };
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	umock_c_reset_all_calls();
-	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x00, 0x00 };
 
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
@@ -989,7 +1014,7 @@ TEST_FUNCTION(a_frame_codec_receive_bytes_call_with_bad_args_in_the_middle_of_th
 	(void)frame_codec_receive_bytes(frame_codec, NULL, 1);
 
 	// act
-	int result = frame_codec_receive_bytes(frame_codec, frame + 1, sizeof(frame) - 1);
+	result = frame_codec_receive_bytes(frame_codec, frame + 1, sizeof(frame) - 1);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -1004,11 +1029,12 @@ TEST_FUNCTION(a_frame_codec_receive_bytes_call_with_bad_args_in_the_middle_of_th
 TEST_FUNCTION(frame_codec_receive_bytes_decodes_2_empty_frames)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
-	umock_c_reset_all_calls();
 	unsigned char frame1[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x01, 0x02 };
 	unsigned char frame2[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x03, 0x04 };
+	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
+	umock_c_reset_all_calls();
 
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame1[5], 1);
@@ -1030,7 +1056,7 @@ TEST_FUNCTION(frame_codec_receive_bytes_decodes_2_empty_frames)
 	(void)frame_codec_receive_bytes(frame_codec, frame1, sizeof(frame1));
 
 	// act
-	int result = frame_codec_receive_bytes(frame_codec, frame2, sizeof(frame2));
+	result = frame_codec_receive_bytes(frame_codec, frame2, sizeof(frame2));
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -1045,11 +1071,12 @@ TEST_FUNCTION(frame_codec_receive_bytes_decodes_2_empty_frames)
 TEST_FUNCTION(a_call_to_frame_codec_receive_bytes_with_bad_args_between_2_frames_does_not_affect_decoding)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
-	umock_c_reset_all_calls();
 	unsigned char frame1[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x01, 0x02 };
 	unsigned char frame2[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x03, 0x04 };
+	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
+	umock_c_reset_all_calls();
 
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame1[5], 1);
@@ -1072,7 +1099,7 @@ TEST_FUNCTION(a_call_to_frame_codec_receive_bytes_with_bad_args_between_2_frames
 	(void)frame_codec_receive_bytes(frame_codec, NULL, 1);
 
 	// act
-	int result = frame_codec_receive_bytes(frame_codec, frame2, sizeof(frame2));
+	result = frame_codec_receive_bytes(frame_codec, frame2, sizeof(frame2));
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -1087,10 +1114,11 @@ TEST_FUNCTION(a_call_to_frame_codec_receive_bytes_with_bad_args_between_2_frames
 TEST_FUNCTION(when_getting_the_list_item_value_fails_no_callback_is_invoked)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x01, 0x02 };
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	umock_c_reset_all_calls();
-	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x01, 0x02 };
 
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
@@ -1098,7 +1126,7 @@ TEST_FUNCTION(when_getting_the_list_item_value_fails_no_callback_is_invoked)
 		.SetReturn(NULL);
 
 	// act
-	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
+	result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -1114,15 +1142,16 @@ TEST_FUNCTION(when_getting_the_list_item_value_fails_no_callback_is_invoked)
 TEST_FUNCTION(when_frame_size_is_bad_frame_codec_receive_bytes_fails)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x07, 0x02, 0x00, 0x01, 0x02 };
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	umock_c_reset_all_calls();
-	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x07, 0x02, 0x00, 0x01, 0x02 };
 
 	STRICT_EXPECTED_CALL(test_frame_codec_decode_error(TEST_ERROR_CONTEXT));
 
 	// act
-	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
+	result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -1138,15 +1167,16 @@ TEST_FUNCTION(when_frame_size_is_bad_frame_codec_receive_bytes_fails)
 TEST_FUNCTION(when_frame_size_has_a_bad_doff_frame_codec_receive_bytes_fails)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x01, 0x00, 0x01, 0x02 };
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	umock_c_reset_all_calls();
-	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x01, 0x00, 0x01, 0x02 };
 
 	STRICT_EXPECTED_CALL(test_frame_codec_decode_error(TEST_ERROR_CONTEXT));
 
 	// act
-	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
+	result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -1161,16 +1191,17 @@ TEST_FUNCTION(when_frame_size_has_a_bad_doff_frame_codec_receive_bytes_fails)
 TEST_FUNCTION(after_a_frame_decode_error_occurs_due_to_frame_size_a_subsequent_decode_fails)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	unsigned char bad_frame[] = { 0x00, 0x00, 0x00, 0x07, 0x02, 0x00, 0x01, 0x02 };
 	unsigned char good_frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x01, 0x02 };
+	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 
 	(void)frame_codec_receive_bytes(frame_codec, bad_frame, sizeof(bad_frame));
 	umock_c_reset_all_calls();
 
 	// act
-	int result = frame_codec_receive_bytes(frame_codec, good_frame, sizeof(good_frame));
+	result = frame_codec_receive_bytes(frame_codec, good_frame, sizeof(good_frame));
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -1185,16 +1216,17 @@ TEST_FUNCTION(after_a_frame_decode_error_occurs_due_to_frame_size_a_subsequent_d
 TEST_FUNCTION(after_a_frame_decode_error_occurs_due_to_bad_doff_size_a_subsequent_decode_fails)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	unsigned char bad_frame[] = { 0x00, 0x00, 0x00, 0x08, 0x01, 0x00, 0x01, 0x02 };
 	unsigned char good_frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x01, 0x02 };
+	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 
 	(void)frame_codec_receive_bytes(frame_codec, bad_frame, sizeof(bad_frame));
 	umock_c_reset_all_calls();
 
 	// act
-	int result = frame_codec_receive_bytes(frame_codec, good_frame, sizeof(good_frame));
+	result = frame_codec_receive_bytes(frame_codec, good_frame, sizeof(good_frame));
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -1212,10 +1244,11 @@ TEST_FUNCTION(after_a_frame_decode_error_occurs_due_to_bad_doff_size_a_subsequen
 TEST_FUNCTION(receiving_a_frame_with_1_byte_frame_body_succeeds)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x09, 0x02, 0x00, 0x01, 0x02, 0x42 };
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	umock_c_reset_all_calls();
-	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x09, 0x02, 0x00, 0x01, 0x02, 0x42 };
 
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
@@ -1228,7 +1261,7 @@ TEST_FUNCTION(receiving_a_frame_with_1_byte_frame_body_succeeds)
 	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
+	result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -1244,10 +1277,11 @@ TEST_FUNCTION(receiving_a_frame_with_1_byte_frame_body_succeeds)
 TEST_FUNCTION(when_allocating_type_specific_data_fails_frame_codec_receive_bytes_fails)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x09, 0x02, 0x00, 0x01, 0x02, 0x42 };
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	umock_c_reset_all_calls();
-	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x09, 0x02, 0x00, 0x01, 0x02, 0x42 };
 
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
@@ -1259,7 +1293,7 @@ TEST_FUNCTION(when_allocating_type_specific_data_fails_frame_codec_receive_bytes
 	STRICT_EXPECTED_CALL(test_frame_codec_decode_error(TEST_ERROR_CONTEXT));
 
 	// act
-	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
+	result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -1275,10 +1309,11 @@ TEST_FUNCTION(when_allocating_type_specific_data_fails_frame_codec_receive_bytes
 TEST_FUNCTION(when_allocating_type_specific_data_fails_a_subsequent_decode_Call_fails)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x09, 0x02, 0x00, 0x01, 0x02, 0x42 };
 	frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	umock_c_reset_all_calls();
-	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x09, 0x02, 0x00, 0x01, 0x02, 0x42 };
 
 	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
 		.SetReturn(NULL);
@@ -1287,7 +1322,7 @@ TEST_FUNCTION(when_allocating_type_specific_data_fails_a_subsequent_decode_Call_
 	umock_c_reset_all_calls();
 
 	// act
-	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
+	result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -1302,9 +1337,10 @@ TEST_FUNCTION(when_allocating_type_specific_data_fails_a_subsequent_decode_Call_
 TEST_FUNCTION(a_frame_with_2_bytes_received_together_with_the_header_passes_the_bytes_in_one_call)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x0A, 0x02, 0x00, 0x01, 0x02, 0x42, 0x43 };
+	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	umock_c_reset_all_calls();
 
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
@@ -1318,7 +1354,7 @@ TEST_FUNCTION(a_frame_with_2_bytes_received_together_with_the_header_passes_the_
 	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
+	result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -1333,10 +1369,11 @@ TEST_FUNCTION(a_frame_with_2_bytes_received_together_with_the_header_passes_the_
 TEST_FUNCTION(two_empty_frames_received_in_the_same_call_yields_2_callbacks)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x01, 0x02,
 		0x00, 0x00, 0x00, 0x08, 0x02, 0x00, 0x03, 0x04 };
+	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	umock_c_reset_all_calls();
 
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
@@ -1357,7 +1394,7 @@ TEST_FUNCTION(two_empty_frames_received_in_the_same_call_yields_2_callbacks)
 	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
+	result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -1372,10 +1409,11 @@ TEST_FUNCTION(two_empty_frames_received_in_the_same_call_yields_2_callbacks)
 TEST_FUNCTION(two_frames_with_1_byte_each_received_in_the_same_call_yields_2_callbacks)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x09, 0x02, 0x00, 0x01, 0x02, 0x42,
 		0x00, 0x00, 0x00, 0x09, 0x02, 0x00, 0x03, 0x04, 0x43 };
+	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	umock_c_reset_all_calls();
 
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
@@ -1398,7 +1436,7 @@ TEST_FUNCTION(two_frames_with_1_byte_each_received_in_the_same_call_yields_2_cal
 	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
+	result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -1416,17 +1454,18 @@ TEST_FUNCTION(two_frames_with_1_byte_each_received_in_the_same_call_yields_2_cal
 TEST_FUNCTION(frame_codec_subscribe_with_valid_args_succeeds)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	uint8_t frame_type = 0;
 	umock_c_reset_all_calls();
 
-	uint8_t frame_type = 0;
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame_type, 1);
 	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 	STRICT_EXPECTED_CALL(singlylinkedlist_add(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
 
 	// act
-	int result = frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
+	result = frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -1442,10 +1481,11 @@ TEST_FUNCTION(frame_codec_subscribe_with_valid_args_succeeds)
 TEST_FUNCTION(when_list_find_returns_NULL_a_new_subscription_is_created)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	uint8_t frame_type = 0;
 	umock_c_reset_all_calls();
 
-	uint8_t frame_type = 0;
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame_type, 1)
 		.SetReturn(NULL);
@@ -1453,7 +1493,7 @@ TEST_FUNCTION(when_list_find_returns_NULL_a_new_subscription_is_created)
 	STRICT_EXPECTED_CALL(singlylinkedlist_add(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
 
 	// act
-	int result = frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
+	result = frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -1468,11 +1508,12 @@ TEST_FUNCTION(when_list_find_returns_NULL_a_new_subscription_is_created)
 TEST_FUNCTION(when_list_item_get_value_returns_NULL_subscribe_fails)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	uint8_t frame_type = 0;
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	umock_c_reset_all_calls();
 
-	uint8_t frame_type = 0;
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame_type, 1);
 	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
@@ -1480,7 +1521,7 @@ TEST_FUNCTION(when_list_item_get_value_returns_NULL_subscribe_fails)
 		.SetReturn(NULL);
 
 	// act
-	int result = frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
+	result = frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -1507,11 +1548,12 @@ TEST_FUNCTION(when_frame_codec_is_NULL_frame_codec_subscribe_fails)
 TEST_FUNCTION(when_on_frame_received_is_NULL_frame_codec_subscribe_fails)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	umock_c_reset_all_calls();
 
 	// act
-	int result = frame_codec_subscribe(frame_codec, 0, NULL, frame_codec);
+	result = frame_codec_subscribe(frame_codec, 0, NULL, frame_codec);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -1525,17 +1567,18 @@ TEST_FUNCTION(when_on_frame_received_is_NULL_frame_codec_subscribe_fails)
 TEST_FUNCTION(when_a_frame_type_that_has_no_subscribers_is_received_no_callback_is_called)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x01, 0x00, 0x00 };
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	umock_c_reset_all_calls();
-	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x01, 0x00, 0x00 };
 
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
 	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
 
 	// act
-	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
+	result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -1550,15 +1593,16 @@ TEST_FUNCTION(when_a_frame_type_that_has_no_subscribers_is_received_no_callback_
 TEST_FUNCTION(when_no_subscribe_is_done_no_callback_is_called)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	umock_c_reset_all_calls();
 	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x08, 0x02, 0x01, 0x00, 0x00 };
+	umock_c_reset_all_calls();
 
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
 
 	// act
-	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
+	result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -1572,10 +1616,11 @@ TEST_FUNCTION(when_no_subscribe_is_done_no_callback_is_called)
 TEST_FUNCTION(when_2_subscriptions_exist_and_first_one_matches_the_callback_is_invoked)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x0A, 0x02, 0x00, 0x01, 0x02, 0x42, 0x43 };
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	(void)frame_codec_subscribe(frame_codec, 1, on_frame_received_2, frame_codec);
-	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x0A, 0x02, 0x00, 0x01, 0x02, 0x42, 0x43 };
 	umock_c_reset_all_calls();
 
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
@@ -1589,7 +1634,7 @@ TEST_FUNCTION(when_2_subscriptions_exist_and_first_one_matches_the_callback_is_i
 	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
+	result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -1605,10 +1650,11 @@ TEST_FUNCTION(when_2_subscriptions_exist_and_first_one_matches_the_callback_is_i
 TEST_FUNCTION(when_2_subscriptions_exist_and_second_one_matches_the_callback_is_invoked)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x0A, 0x02, 0x01, 0x01, 0x02, 0x42, 0x43 };
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	(void)frame_codec_subscribe(frame_codec, 1, on_frame_received_2, frame_codec);
-	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x0A, 0x02, 0x01, 0x01, 0x02, 0x42, 0x43 };
 	umock_c_reset_all_calls();
 
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
@@ -1623,7 +1669,7 @@ TEST_FUNCTION(when_2_subscriptions_exist_and_second_one_matches_the_callback_is_
 	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
+	result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -1639,18 +1685,19 @@ TEST_FUNCTION(when_2_subscriptions_exist_and_second_one_matches_the_callback_is_
 TEST_FUNCTION(when_frame_codec_subscribe_is_called_twice_for_the_same_frame_type_it_succeeds)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	uint8_t frame_type = 0;
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	umock_c_reset_all_calls();
 
-	uint8_t frame_type = 0;
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame_type, 1);
 	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
 	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
 
 	// act
-	int result = frame_codec_subscribe(frame_codec, 0, on_frame_received_2, frame_codec);
+	result = frame_codec_subscribe(frame_codec, 0, on_frame_received_2, frame_codec);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -1665,12 +1712,12 @@ TEST_FUNCTION(when_frame_codec_subscribe_is_called_twice_for_the_same_frame_type
 TEST_FUNCTION(the_callbacks_for_the_2nd_frame_codec_subscribe_for_the_same_frame_type_remain_in_effect)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x0A, 0x02, 0x00, 0x01, 0x02, 0x42, 0x43 };
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_2, frame_codec);
 	umock_c_reset_all_calls();
-
-	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x0A, 0x02, 0x00, 0x01, 0x02, 0x42, 0x43 };
 
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
@@ -1683,7 +1730,7 @@ TEST_FUNCTION(the_callbacks_for_the_2nd_frame_codec_subscribe_for_the_same_frame
 	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
+	result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -1698,17 +1745,18 @@ TEST_FUNCTION(the_callbacks_for_the_2nd_frame_codec_subscribe_for_the_same_frame
 TEST_FUNCTION(when_allocating_memory_for_the_subscription_fails_frame_codec_subscribe_fails)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	uint8_t frame_type = 0;
 	umock_c_reset_all_calls();
 
-	uint8_t frame_type = 0;
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame_type, 1);
 	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
 		.SetReturn(NULL);
 
 	// act
-	int result = frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
+	result = frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -1722,10 +1770,11 @@ TEST_FUNCTION(when_allocating_memory_for_the_subscription_fails_frame_codec_subs
 TEST_FUNCTION(when_adding_the_subscription_fails_then_frame_codec_subscribe_fails)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	uint8_t frame_type = 0;
 	umock_c_reset_all_calls();
 
-	uint8_t frame_type = 0;
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame_type, 1);
 	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
@@ -1734,7 +1783,7 @@ TEST_FUNCTION(when_adding_the_subscription_fails_then_frame_codec_subscribe_fail
 	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-	int result = frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
+	result = frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -1750,11 +1799,12 @@ TEST_FUNCTION(when_adding_the_subscription_fails_then_frame_codec_subscribe_fail
 TEST_FUNCTION(removing_an_existing_subscription_succeeds)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	uint8_t frame_type = 0;
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	umock_c_reset_all_calls();
 
-	uint8_t frame_type = 0;
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame_type, 1);
     STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
@@ -1763,7 +1813,7 @@ TEST_FUNCTION(removing_an_existing_subscription_succeeds)
     STRICT_EXPECTED_CALL(singlylinkedlist_remove(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
 
 	// act
-	int result = frame_codec_unsubscribe(frame_codec, 0);
+	result = frame_codec_unsubscribe(frame_codec, 0);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -1777,17 +1827,18 @@ TEST_FUNCTION(removing_an_existing_subscription_succeeds)
 TEST_FUNCTION(removing_an_existing_subscription_does_not_trigger_callback_when_a_frame_of_that_type_is_received)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x0A, 0x02, 0x00, 0x01, 0x02, 0x42, 0x43 };
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	(void)frame_codec_unsubscribe(frame_codec, 0);
-	unsigned char frame[] = { 0x00, 0x00, 0x00, 0x0A, 0x02, 0x00, 0x01, 0x02, 0x42, 0x43 };
 	umock_c_reset_all_calls();
 
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame[5], 1);
 
 	// act
-	int result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
+	result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -1814,15 +1865,16 @@ TEST_FUNCTION(frame_codec_unsubscribe_with_NULL_frame_codec_handle_fails)
 TEST_FUNCTION(frame_codec_unsubscribe_with_no_subscribe_call_has_been_made_fails)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	uint8_t frame_type = 0;
 	umock_c_reset_all_calls();
 
-	uint8_t frame_type = 0;
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame_type, 1);
 
 	// act
-	int result = frame_codec_unsubscribe(frame_codec, 0);
+	result = frame_codec_unsubscribe(frame_codec, 0);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -1836,16 +1888,17 @@ TEST_FUNCTION(frame_codec_unsubscribe_with_no_subscribe_call_has_been_made_fails
 TEST_FUNCTION(when_list_remove_matching_item_fails_then_frame_codec_unsubscribe_fails)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	uint8_t frame_type = 0;
 	umock_c_reset_all_calls();
 
-	uint8_t frame_type = 0;
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame_type, 1)
 		.SetReturn(NULL);
 
 	// act
-	int result = frame_codec_unsubscribe(frame_codec, 0);
+	result = frame_codec_unsubscribe(frame_codec, 0);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -1859,12 +1912,13 @@ TEST_FUNCTION(when_list_remove_matching_item_fails_then_frame_codec_unsubscribe_
 TEST_FUNCTION(unsubscribe_one_of_2_subscriptions_succeeds)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	uint8_t frame_type = 0;
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	(void)frame_codec_subscribe(frame_codec, 1, on_frame_received_2, frame_codec);
 	umock_c_reset_all_calls();
 
-	uint8_t frame_type = 0;
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame_type, 1);
 	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
@@ -1873,7 +1927,7 @@ TEST_FUNCTION(unsubscribe_one_of_2_subscriptions_succeeds)
 	STRICT_EXPECTED_CALL(singlylinkedlist_remove(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
 
 	// act
-	int result = frame_codec_unsubscribe(frame_codec, 0);
+	result = frame_codec_unsubscribe(frame_codec, 0);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -1888,12 +1942,13 @@ TEST_FUNCTION(unsubscribe_one_of_2_subscriptions_succeeds)
 TEST_FUNCTION(unsubscribe_2nd_out_of_2_subscriptions_succeeds)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	uint8_t frame_type = 1;
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	(void)frame_codec_subscribe(frame_codec, 1, on_frame_received_2, frame_codec);
 	umock_c_reset_all_calls();
 
-	uint8_t frame_type = 1;
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame_type, 1);
 	EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
@@ -1903,7 +1958,7 @@ TEST_FUNCTION(unsubscribe_2nd_out_of_2_subscriptions_succeeds)
 	STRICT_EXPECTED_CALL(singlylinkedlist_remove(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
 
 	// act
-	int result = frame_codec_unsubscribe(frame_codec, 1);
+	result = frame_codec_unsubscribe(frame_codec, 1);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -1918,19 +1973,20 @@ TEST_FUNCTION(unsubscribe_2nd_out_of_2_subscriptions_succeeds)
 TEST_FUNCTION(subscribe_unsubscribe_subscribe_succeeds)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	uint8_t frame_type = 0;
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	(void)frame_codec_unsubscribe(frame_codec, 0);
 	umock_c_reset_all_calls();
 
-	uint8_t frame_type = 0;
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame_type, 1);
 	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 	STRICT_EXPECTED_CALL(singlylinkedlist_add(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
 
 	// act
-	int result = frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
+	result = frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -1942,21 +1998,21 @@ TEST_FUNCTION(subscribe_unsubscribe_subscribe_succeeds)
 }
 
 /* Tests_SRS_FRAME_CODEC_01_038: [frame_codec_unsubscribe removes a previous subscription for frames of type type and on success it shall return 0.] */
-
 TEST_FUNCTION(subscribe_unsubscribe_unsubscribe_fails)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
+	uint8_t frame_type = 0;
 	(void)frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
 	(void)frame_codec_unsubscribe(frame_codec, 0);
 	umock_c_reset_all_calls();
 
-	uint8_t frame_type = 0;
 	STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
 		.ValidateArgumentBuffer(3, &frame_type, 1);
 
 	// act
-	int result = frame_codec_unsubscribe(frame_codec, 0);
+	result = frame_codec_unsubscribe(frame_codec, 0);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -2017,6 +2073,7 @@ TEST_FUNCTION(frame_type_sasl_is_one)
 TEST_FUNCTION(frame_codec_encode_frame_with_a_zero_frame_body_length_succeeds)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	umock_c_reset_all_calls();
 
@@ -2025,7 +2082,7 @@ TEST_FUNCTION(frame_codec_encode_frame_with_a_zero_frame_body_length_succeeds)
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-	int result = frame_codec_encode_frame(frame_codec, 0, NULL, 0, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
+	result = frame_codec_encode_frame(frame_codec, 0, NULL, 0, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
 
 	// assert
 	stringify_bytes(sent_io_bytes, sent_io_byte_count, actual_stringified_io);
@@ -2054,11 +2111,12 @@ TEST_FUNCTION(when_frame_codec_is_NULL_frame_codec_encode_frame_fails)
 TEST_FUNCTION(when_on_bytes_encoded_is_NULL_frame_codec_encode_frame_fails)
 {
     // arrange
+	int result;
     FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
     umock_c_reset_all_calls();
 
     // act
-    int result = frame_codec_encode_frame(frame_codec, 0, NULL, 0, NULL, 0, NULL, (void*)0x4242);
+    result = frame_codec_encode_frame(frame_codec, 0, NULL, 0, NULL, 0, NULL, (void*)0x4242);
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
@@ -2072,11 +2130,12 @@ TEST_FUNCTION(when_on_bytes_encoded_is_NULL_frame_codec_encode_frame_fails)
 TEST_FUNCTION(when_type_specific_size_is_positive_and_type_specific_bytes_is_NULL_frame_codec_encode_frame_fails)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	umock_c_reset_all_calls();
 
 	// act
-    int result = frame_codec_encode_frame(frame_codec, 0, NULL, 0, NULL, 1, test_on_bytes_encoded, (void*)0x4242);
+    result = frame_codec_encode_frame(frame_codec, 0, NULL, 0, NULL, 1, test_on_bytes_encoded, (void*)0x4242);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -2093,13 +2152,14 @@ TEST_FUNCTION(when_type_specific_size_is_positive_and_type_specific_bytes_is_NUL
 TEST_FUNCTION(when_type_specific_size_is_too_big_then_frame_codec_encode_frame_fails)
 {
 	// arrange
+	int result;
 	unsigned char expected_frame[1020] = { 0x00, 0x00, 0x00, 0x0A, 0xFF, 0x00, 0x00, 0x00 };
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_set_max_frame_size(frame_codec, 4096);
 	umock_c_reset_all_calls();
 
 	// act
-    int result = frame_codec_encode_frame(frame_codec, 0, NULL, 0, &expected_frame[6], 1015, test_on_bytes_encoded, (void*)0x4242);
+    result = frame_codec_encode_frame(frame_codec, 0, NULL, 0, &expected_frame[6], 1015, test_on_bytes_encoded, (void*)0x4242);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -2120,6 +2180,7 @@ TEST_FUNCTION(when_type_specific_size_is_too_big_then_frame_codec_encode_frame_f
 TEST_FUNCTION(when_type_specific_size_is_max_allowed_then_frame_codec_encode_frame_succeeds)
 {
 	// arrange
+	int result;
 	unsigned char expected_frame[1020] = { 0x00, 0x00, 0x03, 0xFC, 0xFF, 0x00, 0x00, 0x00 };
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	(void)frame_codec_set_max_frame_size(frame_codec, 4096);
@@ -2130,7 +2191,7 @@ TEST_FUNCTION(when_type_specific_size_is_max_allowed_then_frame_codec_encode_fra
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-    int result = frame_codec_encode_frame(frame_codec, 0, NULL, 0, &expected_frame[6], 1014, test_on_bytes_encoded, (void*)0x4242);
+    result = frame_codec_encode_frame(frame_codec, 0, NULL, 0, &expected_frame[6], 1014, test_on_bytes_encoded, (void*)0x4242);
 
 	// assert
 	memset(expected_frame + 6, 0, 1020 - 6);
@@ -2152,6 +2213,7 @@ TEST_FUNCTION(when_type_specific_size_is_max_allowed_then_frame_codec_encode_fra
 TEST_FUNCTION(one_byte_of_padding_is_added_to_type_specific_data_to_make_the_frame_header)
 {
 	// arrange
+	int result;
 	unsigned char expected_frame[] = { 0x00, 0x00, 0x00, 0x8, 0x02, 0x00, 0x42, 0x00 };
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	umock_c_reset_all_calls();
@@ -2161,7 +2223,7 @@ TEST_FUNCTION(one_byte_of_padding_is_added_to_type_specific_data_to_make_the_fra
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-    int result = frame_codec_encode_frame(frame_codec, 0, NULL, 0, &expected_frame[6], 1, test_on_bytes_encoded, (void*)0x4242);
+    result = frame_codec_encode_frame(frame_codec, 0, NULL, 0, &expected_frame[6], 1, test_on_bytes_encoded, (void*)0x4242);
 
 	// assert
 	stringify_bytes(expected_frame, sizeof(expected_frame), expected_stringified_io);
@@ -2182,6 +2244,7 @@ TEST_FUNCTION(one_byte_of_padding_is_added_to_type_specific_data_to_make_the_fra
 TEST_FUNCTION(no_bytes_of_padding_are_added_to_type_specific_data_when_enough_bytes_are_there)
 {
 	// arrange
+	int result;
 	unsigned char expected_frame[] = { 0x00, 0x00, 0x00, 0x8, 0x02, 0x00, 0x42, 0x00 };
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	umock_c_reset_all_calls();
@@ -2191,7 +2254,7 @@ TEST_FUNCTION(no_bytes_of_padding_are_added_to_type_specific_data_when_enough_by
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-    int result = frame_codec_encode_frame(frame_codec, 0, NULL, 0, &expected_frame[6], 2, test_on_bytes_encoded, (void*)0x4242);
+    result = frame_codec_encode_frame(frame_codec, 0, NULL, 0, &expected_frame[6], 2, test_on_bytes_encoded, (void*)0x4242);
 
 	// assert
 	stringify_bytes(expected_frame, sizeof(expected_frame), expected_stringified_io);
@@ -2208,6 +2271,7 @@ TEST_FUNCTION(no_bytes_of_padding_are_added_to_type_specific_data_when_enough_by
 TEST_FUNCTION(the_type_is_placed_in_the_underlying_frame)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	umock_c_reset_all_calls();
 
@@ -2216,7 +2280,7 @@ TEST_FUNCTION(the_type_is_placed_in_the_underlying_frame)
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-    int result = frame_codec_encode_frame(frame_codec, 0x42, NULL, 0, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
+    result = frame_codec_encode_frame(frame_codec, 0x42, NULL, 0, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
 
 	// assert
 	stringify_bytes(sent_io_bytes, sent_io_byte_count, actual_stringified_io);
@@ -2234,10 +2298,11 @@ TEST_FUNCTION(the_type_is_placed_in_the_underlying_frame)
 TEST_FUNCTION(frame_codec_encode_frame_bytes_with_1_encoded_byte_succeeds)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
-	umock_c_reset_all_calls();
-	uint8_t byte = 0x42;
     PAYLOAD payloads[1];
+	uint8_t byte = 0x42;
+	umock_c_reset_all_calls();
     payloads[0].bytes = &byte;
     payloads[0].length = 1;
 
@@ -2246,7 +2311,7 @@ TEST_FUNCTION(frame_codec_encode_frame_bytes_with_1_encoded_byte_succeeds)
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-    int result = frame_codec_encode_frame(frame_codec, 0x42, payloads, 1, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
+    result = frame_codec_encode_frame(frame_codec, 0x42, payloads, 1, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -2263,11 +2328,12 @@ TEST_FUNCTION(frame_codec_encode_frame_bytes_with_1_encoded_byte_succeeds)
 TEST_FUNCTION(frame_codec_encode_frame_bytes_with_2_bytes_succeeds)
 {
 	// arrange
+	int result;
 	unsigned char bytes[] = { 0x42, 0x43 };
     PAYLOAD payloads[1];
+    FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
     payloads[0].bytes = bytes;
     payloads[0].length = sizeof(bytes);
-    FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
@@ -2275,7 +2341,7 @@ TEST_FUNCTION(frame_codec_encode_frame_bytes_with_2_bytes_succeeds)
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-    int result = frame_codec_encode_frame(frame_codec, 0x42, payloads, 1, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
+    result = frame_codec_encode_frame(frame_codec, 0x42, payloads, 1, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -2289,6 +2355,7 @@ TEST_FUNCTION(frame_codec_encode_frame_bytes_with_2_bytes_succeeds)
 TEST_FUNCTION(frame_codec_encode_frame_bytes_with_NULL_bytes_fails)
 {
 	// arrange
+	int result;
 	FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
     PAYLOAD payloads[1];
     payloads[0].bytes = NULL;
@@ -2296,7 +2363,7 @@ TEST_FUNCTION(frame_codec_encode_frame_bytes_with_NULL_bytes_fails)
 	umock_c_reset_all_calls();
 
 	// act
-    int result = frame_codec_encode_frame(frame_codec, 0x42, payloads, 1, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
+    result = frame_codec_encode_frame(frame_codec, 0x42, payloads, 1, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -2310,15 +2377,16 @@ TEST_FUNCTION(frame_codec_encode_frame_bytes_with_NULL_bytes_fails)
 TEST_FUNCTION(frame_codec_encode_frame_bytes_with_zero_length_fails)
 {
 	// arrange
+	int result;
 	unsigned char bytes[] = { 0x42, 0x43 };
     PAYLOAD payloads[1];
+    FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
     payloads[0].bytes = bytes;
     payloads[0].length = 0;
-    FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	umock_c_reset_all_calls();
 
 	// act
-    int result = frame_codec_encode_frame(frame_codec, 0x42, payloads, 1, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
+    result = frame_codec_encode_frame(frame_codec, 0x42, payloads, 1, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -2333,13 +2401,14 @@ TEST_FUNCTION(frame_codec_encode_frame_bytes_with_zero_length_fails)
 TEST_FUNCTION(sending_only_1_byte_out_of_2_frame_body_bytes_succeeds)
 {
 	// arrange
+	int result;
 	unsigned char bytes[] = { 0x42, 0x43 };
     PAYLOAD payloads[2];
+    FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
     payloads[0].bytes = bytes;
     payloads[0].length = 1;
     payloads[1].bytes = bytes + 1;
     payloads[1].length = 1;
-    FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
 	umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
@@ -2347,7 +2416,7 @@ TEST_FUNCTION(sending_only_1_byte_out_of_2_frame_body_bytes_succeeds)
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-    int result = frame_codec_encode_frame(frame_codec, 0x42, payloads, 2, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
+    result = frame_codec_encode_frame(frame_codec, 0x42, payloads, 2, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -2364,11 +2433,12 @@ TEST_FUNCTION(sending_only_1_byte_out_of_2_frame_body_bytes_succeeds)
 TEST_FUNCTION(a_send_after_send_succeeds)
 {
 	// arrange
+	int result;
 	unsigned char bytes[] = { 0x42, 0x43 };
     PAYLOAD payloads[1];
+    FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
     payloads[0].bytes = bytes;
     payloads[0].length = 2;
-    FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
     (void)frame_codec_encode_frame(frame_codec, 0x42, payloads, 1, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
     umock_c_reset_all_calls();
 
@@ -2377,7 +2447,7 @@ TEST_FUNCTION(a_send_after_send_succeeds)
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-    int result = frame_codec_encode_frame(frame_codec, 0x42, payloads, 1, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
+    result = frame_codec_encode_frame(frame_codec, 0x42, payloads, 1, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
 
 	// assert
 	stringify_bytes(sent_io_bytes, sent_io_byte_count, actual_stringified_io);
@@ -2393,6 +2463,7 @@ TEST_FUNCTION(a_send_after_send_succeeds)
 TEST_FUNCTION(when_allocating_memory_for_the_encoded_frame_fails_frame_codec_encode_frame_fails)
 {
     // arrange
+	int result;
     FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
     umock_c_reset_all_calls();
 
@@ -2400,7 +2471,7 @@ TEST_FUNCTION(when_allocating_memory_for_the_encoded_frame_fails_frame_codec_enc
         .SetReturn(NULL);
 
     // act
-    int result = frame_codec_encode_frame(frame_codec, 0, NULL, 0, NULL, 0, test_on_bytes_encoded, NULL);
+    result = frame_codec_encode_frame(frame_codec, 0, NULL, 0, NULL, 0, test_on_bytes_encoded, NULL);
 
     // assert
     ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -2414,11 +2485,12 @@ TEST_FUNCTION(when_allocating_memory_for_the_encoded_frame_fails_frame_codec_enc
 TEST_FUNCTION(frame_codec_encode_frame_with_NULL_payloads_and_non_zero_payload_count_fails)
 {
     // arrange
+	int result;
     FRAME_CODEC_HANDLE frame_codec = frame_codec_create(test_frame_codec_decode_error, TEST_ERROR_CONTEXT);
     umock_c_reset_all_calls();
 
     // act
-    int result = frame_codec_encode_frame(frame_codec, 0, NULL, 1, NULL, 0, test_on_bytes_encoded, NULL);
+    result = frame_codec_encode_frame(frame_codec, 0, NULL, 1, NULL, 0, test_on_bytes_encoded, NULL);
 
     // assert
     ASSERT_ARE_NOT_EQUAL(int, 0, result);

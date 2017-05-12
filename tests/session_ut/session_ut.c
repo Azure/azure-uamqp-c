@@ -161,11 +161,12 @@ TEST_FUNCTION_CLEANUP(method_cleanup)
 TEST_FUNCTION(session_create_with_valid_args_succeeds)
 {
 	// arrange
+	SESSION_HANDLE session;
 	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 	STRICT_EXPECTED_CALL(connection_create_endpoint(TEST_CONNECTION_HANDLE));
 
 	// act
-	SESSION_HANDLE session = session_create(TEST_CONNECTION_HANDLE, NULL, NULL);
+	session = session_create(TEST_CONNECTION_HANDLE, NULL, NULL);
 
 	// assert
 	ASSERT_IS_NOT_NULL(session);
@@ -180,14 +181,16 @@ TEST_FUNCTION(session_create_with_valid_args_succeeds)
 TEST_FUNCTION(session_create_twice_on_the_same_connection_works)
 {
 	// arrange
+	SESSION_HANDLE session1;
+	SESSION_HANDLE session2;
 	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 	STRICT_EXPECTED_CALL(connection_create_endpoint(TEST_CONNECTION_HANDLE));
 	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 	STRICT_EXPECTED_CALL(connection_create_endpoint(TEST_CONNECTION_HANDLE));
 
 	// act
-	SESSION_HANDLE session1 = session_create(TEST_CONNECTION_HANDLE, NULL, NULL);
-	SESSION_HANDLE session2 = session_create(TEST_CONNECTION_HANDLE, NULL, NULL);
+	session1 = session_create(TEST_CONNECTION_HANDLE, NULL, NULL);
+	session2 = session_create(TEST_CONNECTION_HANDLE, NULL, NULL);
 
 	// assert
 	ASSERT_IS_NOT_NULL(session1);
@@ -217,12 +220,12 @@ TEST_FUNCTION(session_create_with_NULL_connection_fails)
 TEST_FUNCTION(when_allocating_memory_for_the_session_fails_session_create_fails)
 {
 	// arrange
-
+	SESSION_HANDLE session;
 	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
 		.SetReturn(NULL);
 
 	// act
-	SESSION_HANDLE session = session_create(TEST_CONNECTION_HANDLE, NULL, NULL);
+	session = session_create(TEST_CONNECTION_HANDLE, NULL, NULL);
 
 	// assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
@@ -233,13 +236,14 @@ TEST_FUNCTION(when_allocating_memory_for_the_session_fails_session_create_fails)
 TEST_FUNCTION(when_connection_create_endpoint_fails_session_create_fails)
 {
 	// arrange
+	SESSION_HANDLE session;
 	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 	STRICT_EXPECTED_CALL(connection_create_endpoint(TEST_CONNECTION_HANDLE))
 		.SetReturn(NULL);
 	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-	SESSION_HANDLE session = session_create(TEST_CONNECTION_HANDLE, NULL, NULL);
+	session = session_create(TEST_CONNECTION_HANDLE, NULL, NULL);
 
 	// assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
@@ -285,6 +289,7 @@ TEST_FUNCTION(session_destroy_with_NULL_session_does_nothing)
 TEST_FUNCTION(session_create_link_endpoint_creates_a_link_endpoint)
 {
 	// arrange
+	LINK_ENDPOINT_HANDLE link_endpoint;
 	SESSION_HANDLE session = session_create(TEST_CONNECTION_HANDLE, NULL, NULL);
 	umock_c_reset_all_calls();
 
@@ -293,7 +298,7 @@ TEST_FUNCTION(session_create_link_endpoint_creates_a_link_endpoint)
 	EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
 
 	// act
-	LINK_ENDPOINT_HANDLE link_endpoint = session_create_link_endpoint(session, "1");
+	link_endpoint = session_create_link_endpoint(session, "1");
 
 	// assert
 	ASSERT_IS_NOT_NULL(link_endpoint);
@@ -321,11 +326,12 @@ TEST_FUNCTION(session_create_with_NULL_session_fails)
 TEST_FUNCTION(session_create_with_NULL_name_fails)
 {
 	// arrange
+	LINK_ENDPOINT_HANDLE link_endpoint;
 	SESSION_HANDLE session = session_create(TEST_CONNECTION_HANDLE, NULL, NULL);
 	umock_c_reset_all_calls();
 
 	// act
-	LINK_ENDPOINT_HANDLE link_endpoint = session_create_link_endpoint(session, NULL);
+	link_endpoint = session_create_link_endpoint(session, NULL);
 
 	// assert
 	ASSERT_IS_NULL(link_endpoint);
@@ -339,6 +345,7 @@ TEST_FUNCTION(session_create_with_NULL_name_fails)
 TEST_FUNCTION(when_allocating_memory_for_the_link_endpoint_fails_then_session_create_link_endpoint_fails)
 {
 	// arrange
+	LINK_ENDPOINT_HANDLE link_endpoint;
 	SESSION_HANDLE session = session_create(TEST_CONNECTION_HANDLE, NULL, NULL);
 	umock_c_reset_all_calls();
 
@@ -346,7 +353,7 @@ TEST_FUNCTION(when_allocating_memory_for_the_link_endpoint_fails_then_session_cr
 		.SetReturn(NULL);
 
 	// act
-	LINK_ENDPOINT_HANDLE link_endpoint = session_create_link_endpoint(session, "1");
+	link_endpoint = session_create_link_endpoint(session, "1");
 
 	// assert
 	ASSERT_IS_NULL(link_endpoint);
@@ -360,6 +367,7 @@ TEST_FUNCTION(when_allocating_memory_for_the_link_endpoint_fails_then_session_cr
 TEST_FUNCTION(when_allocating_the_link_name_fails_then_session_create_link_endpoint_fails)
 {
 	// arrange
+	LINK_ENDPOINT_HANDLE link_endpoint;
 	SESSION_HANDLE session = session_create(TEST_CONNECTION_HANDLE, NULL, NULL);
 	umock_c_reset_all_calls();
 
@@ -369,7 +377,7 @@ TEST_FUNCTION(when_allocating_the_link_name_fails_then_session_create_link_endpo
 	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-	LINK_ENDPOINT_HANDLE link_endpoint = session_create_link_endpoint(session, "1");
+	link_endpoint = session_create_link_endpoint(session, "1");
 
 	// assert
 	ASSERT_IS_NULL(link_endpoint);
@@ -383,6 +391,7 @@ TEST_FUNCTION(when_allocating_the_link_name_fails_then_session_create_link_endpo
 TEST_FUNCTION(when_reallocating_the_endpoint_array_for_the_link_endpoint_fails_then_session_create_link_endpoint_fails)
 {
 	// arrange
+	LINK_ENDPOINT_HANDLE link_endpoint;
 	SESSION_HANDLE session = session_create(TEST_CONNECTION_HANDLE, NULL, NULL);
 	umock_c_reset_all_calls();
 
@@ -394,7 +403,7 @@ TEST_FUNCTION(when_reallocating_the_endpoint_array_for_the_link_endpoint_fails_t
     EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
 	// act
-	LINK_ENDPOINT_HANDLE link_endpoint = session_create_link_endpoint(session, "1");
+	link_endpoint = session_create_link_endpoint(session, "1");
 
 	// assert
 	ASSERT_IS_NULL(link_endpoint);
@@ -474,6 +483,8 @@ TEST_FUNCTION(session_destroy_link_endpoint_when_2_endpoints_are_there_frees_the
 TEST_FUNCTION(session_transfer_sends_the_frame_to_the_connection)
 {
 	// arrange
+	int result;
+	delivery_number delivery_id;
 	SESSION_HANDLE session = session_create(TEST_CONNECTION_HANDLE);
 	LINK_ENDPOINT_HANDLE link_endpoint = session_create_link_endpoint(session, "1", test_frame_received_callback, test_on_session_state_changed, test_on_flow_on, NULL);
 	saved_connection_state_changed_callback(saved_callback_context, CONNECTION_STATE_OPENED, CONNECTION_STATE_OPEN_SENT);
@@ -481,7 +492,6 @@ TEST_FUNCTION(session_transfer_sends_the_frame_to_the_connection)
 	STRICT_EXPECTED_CALL(definition_mocks, is_begin_type_by_descriptor(TEST_DESCRIPTOR_AMQP_VALUE));
 	saved_frame_received_callback(saved_callback_context, TEST_BEGIN_PERFORMATIVE, 0, NULL);
 	umock_c_reset_all_calls();
-	definition_umock_c_reset_all_calls();
 
 	STRICT_EXPECTED_CALL(definition_mocks, transfer_set_delivery_id(test_transfer_handle, 0));
 	STRICT_EXPECTED_CALL(definition_mocks, amqpvalue_create_transfer(test_transfer_handle));
@@ -491,8 +501,7 @@ TEST_FUNCTION(session_transfer_sends_the_frame_to_the_connection)
 	STRICT_EXPECTED_CALL(amqpvalue_destroy(test_transfer_amqp_value));
 
 	// act
-	delivery_number delivery_id;
-	int result = session_send_transfer(link_endpoint, test_transfer_handle, NULL, 0, &delivery_id, test_on_send_complete, (void*)0x4242);
+	result = session_send_transfer(link_endpoint, test_transfer_handle, NULL, 0, &delivery_id, test_on_send_complete, (void*)0x4242);
 
 	// assert
 	ASSERT_ARE_EQUAL(int, 0, result);
@@ -508,13 +517,14 @@ TEST_FUNCTION(session_transfer_sends_the_frame_to_the_connection)
 TEST_FUNCTION(session_transfer_with_NULL_transfer_fails)
 {
 	// arrange
+	int result;
+	delivery_number delivery_id;
 	SESSION_HANDLE session = session_create(TEST_CONNECTION_HANDLE, NULL, NULL);
 	LINK_ENDPOINT_HANDLE link_endpoint = session_create_link_endpoint(session, "1");
 	umock_c_reset_all_calls();
 
 	// act
-	delivery_number delivery_id;
-	int result = session_send_transfer(link_endpoint, NULL, NULL, 0, &delivery_id, test_on_send_complete, (void*)0x4242);
+	result = session_send_transfer(link_endpoint, NULL, NULL, 0, &delivery_id, test_on_send_complete, (void*)0x4242);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -543,6 +553,8 @@ TEST_FUNCTION(session_transfer_with_NULL_link_endpoint_fails)
 TEST_FUNCTION(when_transfer_set_delivery_id_fails_then_session_transfer_fails)
 {
 	// arrange
+	int result;
+	delivery_number delivery_id;
 	SESSION_HANDLE session = session_create(TEST_CONNECTION_HANDLE);
 	LINK_ENDPOINT_HANDLE link_endpoint = session_create_link_endpoint(session, "1", test_frame_received_callback, test_on_session_state_changed, test_on_flow_on, NULL);
 	saved_connection_state_changed_callback(saved_callback_context, CONNECTION_STATE_OPENED, CONNECTION_STATE_OPEN_SENT);
@@ -550,14 +562,12 @@ TEST_FUNCTION(when_transfer_set_delivery_id_fails_then_session_transfer_fails)
 	STRICT_EXPECTED_CALL(definition_mocks, is_begin_type_by_descriptor(TEST_DESCRIPTOR_AMQP_VALUE));
 	saved_frame_received_callback(saved_callback_context, TEST_BEGIN_PERFORMATIVE, 0, NULL);
 	umock_c_reset_all_calls();
-	definition_umock_c_reset_all_calls();
 
 	STRICT_EXPECTED_CALL(definition_mocks, transfer_set_delivery_id(test_transfer_handle, 0))
 		.SetReturn(1);
 
 	// act
-	delivery_number delivery_id;
-	int result = session_send_transfer(link_endpoint, test_transfer_handle, NULL, 0, &delivery_id, test_on_send_complete, (void*)0x4242);
+	result = session_send_transfer(link_endpoint, test_transfer_handle, NULL, 0, &delivery_id, test_on_send_complete, (void*)0x4242);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -572,6 +582,8 @@ TEST_FUNCTION(when_transfer_set_delivery_id_fails_then_session_transfer_fails)
 TEST_FUNCTION(when_amqpvalue_create_transfer_fails_then_session_transfer_fails)
 {
 	// arrange
+	int result;
+	delivery_number delivery_id;
 	SESSION_HANDLE session = session_create(TEST_CONNECTION_HANDLE);
 	LINK_ENDPOINT_HANDLE link_endpoint = session_create_link_endpoint(session, "1", test_frame_received_callback, test_on_session_state_changed, test_on_flow_on, NULL);
 	saved_connection_state_changed_callback(saved_callback_context, CONNECTION_STATE_OPENED, CONNECTION_STATE_OPEN_SENT);
@@ -579,7 +591,6 @@ TEST_FUNCTION(when_amqpvalue_create_transfer_fails_then_session_transfer_fails)
 	STRICT_EXPECTED_CALL(definition_mocks, is_begin_type_by_descriptor(TEST_DESCRIPTOR_AMQP_VALUE));
 	saved_frame_received_callback(saved_callback_context, TEST_BEGIN_PERFORMATIVE, 0, NULL);
 	umock_c_reset_all_calls();
-	definition_umock_c_reset_all_calls();
 
 	STRICT_EXPECTED_CALL(definition_mocks, transfer_set_delivery_id(test_transfer_handle, 0));
 	STRICT_EXPECTED_CALL(connection_get_remote_max_frame_size(TEST_CONNECTION_HANDLE, IGNORED_PTR_ARG))
@@ -588,8 +599,7 @@ TEST_FUNCTION(when_amqpvalue_create_transfer_fails_then_session_transfer_fails)
 		.SetReturn(NULL);
 
 	// act
-	delivery_number delivery_id;
-	int result = session_send_transfer(link_endpoint, test_transfer_handle, NULL, 0, &delivery_id, test_on_send_complete, (void*)0x4242);
+	result = session_send_transfer(link_endpoint, test_transfer_handle, NULL, 0, &delivery_id, test_on_send_complete, (void*)0x4242);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -604,6 +614,8 @@ TEST_FUNCTION(when_amqpvalue_create_transfer_fails_then_session_transfer_fails)
 TEST_FUNCTION(when_connection_encode_frame_fails_then_session_transfer_fails)
 {
 	// arrange
+	int result;
+	delivery_number delivery_id;
 	SESSION_HANDLE session = session_create(TEST_CONNECTION_HANDLE);
 	LINK_ENDPOINT_HANDLE link_endpoint = session_create_link_endpoint(session, "1", test_frame_received_callback, test_on_session_state_changed, test_on_flow_on, NULL);
 	saved_connection_state_changed_callback(saved_callback_context, CONNECTION_STATE_OPENED, CONNECTION_STATE_OPEN_SENT);
@@ -611,7 +623,6 @@ TEST_FUNCTION(when_connection_encode_frame_fails_then_session_transfer_fails)
 	STRICT_EXPECTED_CALL(definition_mocks, is_begin_type_by_descriptor(TEST_DESCRIPTOR_AMQP_VALUE));
 	saved_frame_received_callback(saved_callback_context, TEST_BEGIN_PERFORMATIVE, 0, NULL);
 	umock_c_reset_all_calls();
-	definition_umock_c_reset_all_calls();
 
 	STRICT_EXPECTED_CALL(definition_mocks, transfer_set_delivery_id(test_transfer_handle, 0));
 	STRICT_EXPECTED_CALL(connection_get_remote_max_frame_size(TEST_CONNECTION_HANDLE, IGNORED_PTR_ARG))
@@ -622,8 +633,7 @@ TEST_FUNCTION(when_connection_encode_frame_fails_then_session_transfer_fails)
 	STRICT_EXPECTED_CALL(amqpvalue_destroy(test_transfer_amqp_value));
 
 	// act
-	delivery_number delivery_id;
-	int result = session_send_transfer(link_endpoint, test_transfer_handle, NULL, 0, &delivery_id, test_on_send_complete, (void*)0x4242);
+	result = session_send_transfer(link_endpoint, test_transfer_handle, NULL, 0, &delivery_id, test_on_send_complete, (void*)0x4242);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -639,13 +649,14 @@ TEST_FUNCTION(when_connection_encode_frame_fails_then_session_transfer_fails)
 TEST_FUNCTION(when_session_is_not_MAPPED_the_transfer_fails)
 {
 	// arrange
+	int result;
+	delivery_number delivery_id;
 	SESSION_HANDLE session = session_create(TEST_CONNECTION_HANDLE, NULL, NULL);
 	LINK_ENDPOINT_HANDLE link_endpoint = session_create_link_endpoint(session, "1");
 	umock_c_reset_all_calls();
 
 	// act
-	delivery_number delivery_id;
-	int result = session_send_transfer(link_endpoint, test_transfer_handle, NULL, 0, &delivery_id, test_on_send_complete, (void*)0x4242);
+	result = session_send_transfer(link_endpoint, test_transfer_handle, NULL, 0, &delivery_id, test_on_send_complete, (void*)0x4242);
 
 	// assert
 	ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -713,7 +724,6 @@ TEST_FUNCTION(connection_state_changed_callback_and_from_OPENED_to_OPENED_does_n
 	SESSION_HANDLE session = session_create(TEST_CONNECTION_HANDLE, NULL, NULL);
 	LINK_ENDPOINT_HANDLE link_endpoint = session_create_link_endpoint(session, "1", test_frame_received_callback, test_on_session_state_changed, test_on_flow_on, NULL);
 	umock_c_reset_all_calls();
-	definition_umock_c_reset_all_calls();
 
 	// act
 	saved_connection_state_changed_callback(saved_callback_context, CONNECTION_STATE_OPENED, CONNECTION_STATE_OPENED);
@@ -725,9 +735,7 @@ TEST_FUNCTION(connection_state_changed_callback_and_from_OPENED_to_OPENED_does_n
 	session_destroy_link_endpoint(link_endpoint);
 	session_destroy(session);
 }
-#endif
 
-#if 0
 /* Tests_SRS_SESSION_01_060: [If the previous connection state is not OPENED and the new connection state is OPENED, the BEGIN frame shall be sent out and the state shall be switched to BEGIN_SENT.] */
 TEST_FUNCTION(connection_state_changed_callback_to_OPENED_twice_only_triggers_sending_the_BEGIN_frame_once)
 {
@@ -736,7 +744,6 @@ TEST_FUNCTION(connection_state_changed_callback_to_OPENED_twice_only_triggers_se
 	LINK_ENDPOINT_HANDLE link_endpoint = session_create_link_endpoint(session, "1", test_frame_received_callback, test_on_session_state_changed, test_on_flow_on, NULL);
 	saved_connection_state_changed_callback(saved_callback_context, CONNECTION_STATE_OPENED, CONNECTION_STATE_OPEN_SENT);
 	umock_c_reset_all_calls();
-	definition_umock_c_reset_all_calls();
 
 	// act
 	saved_connection_state_changed_callback(saved_callback_context, CONNECTION_STATE_OPENED, CONNECTION_STATE_OPEN_SENT);
@@ -756,7 +763,6 @@ TEST_FUNCTION(connection_state_changed_callback_to_different_than_OPENED_when_in
 	SESSION_HANDLE session = session_create(TEST_CONNECTION_HANDLE, NULL, NULL);
 	LINK_ENDPOINT_HANDLE link_endpoint = session_create_link_endpoint(session, "1", test_frame_received_callback, test_on_session_state_changed, test_on_flow_on, NULL);
 	umock_c_reset_all_calls();
-	definition_umock_c_reset_all_calls();
 
 	STRICT_EXPECTED_CALL(test_on_session_state_changed(NULL, SESSION_STATE_DISCARDING, SESSION_STATE_UNMAPPED));
 
@@ -779,7 +785,6 @@ TEST_FUNCTION(connection_state_changed_callback_to_different_than_OPENED_when_in
 	LINK_ENDPOINT_HANDLE link_endpoint = session_create_link_endpoint(session, "1", test_frame_received_callback, test_on_session_state_changed, test_on_flow_on, NULL);
 	saved_connection_state_changed_callback(saved_callback_context, CONNECTION_STATE_OPENED, CONNECTION_STATE_OPEN_SENT);
 	umock_c_reset_all_calls();
-	definition_umock_c_reset_all_calls();
 
 	STRICT_EXPECTED_CALL(test_on_session_state_changed(NULL, SESSION_STATE_DISCARDING, SESSION_STATE_BEGIN_SENT));
 
@@ -805,7 +810,6 @@ TEST_FUNCTION(connection_state_changed_callback_to_different_than_OPENED_when_in
 	STRICT_EXPECTED_CALL(definition_mocks, is_begin_type_by_descriptor(TEST_DESCRIPTOR_AMQP_VALUE));
 	saved_frame_received_callback(saved_callback_context, TEST_BEGIN_PERFORMATIVE, 0, NULL);
 	umock_c_reset_all_calls();
-	definition_umock_c_reset_all_calls();
 
 	STRICT_EXPECTED_CALL(test_on_session_state_changed(NULL, SESSION_STATE_DISCARDING, SESSION_STATE_MAPPED));
 
@@ -830,6 +834,8 @@ TEST_FUNCTION(connection_state_changed_callback_to_different_than_OPENED_when_in
 TEST_FUNCTION(when_2_transfers_happen_on_2_different_endpoints_2_different_delivery_ids_are_assigned)
 {
 	// arrange
+	delivery_number delivery_id0;
+	delivery_number delivery_id1;
 	SESSION_HANDLE session = session_create(TEST_CONNECTION_HANDLE);
 	LINK_ENDPOINT_HANDLE link_endpoint0 = session_create_link_endpoint(session, "1", test_frame_received_callback, test_on_session_state_changed, test_on_flow_on, NULL);
 	LINK_ENDPOINT_HANDLE link_endpoint1 = session_create_link_endpoint(session, "2", test_frame_received_callback, test_on_session_state_changed, test_on_flow_on, NULL);
@@ -838,7 +844,6 @@ TEST_FUNCTION(when_2_transfers_happen_on_2_different_endpoints_2_different_deliv
 	STRICT_EXPECTED_CALL(definition_mocks, is_begin_type_by_descriptor(TEST_DESCRIPTOR_AMQP_VALUE));
 	saved_frame_received_callback(saved_callback_context, TEST_BEGIN_PERFORMATIVE, 0, NULL);
 	umock_c_reset_all_calls();
-	definition_umock_c_reset_all_calls();
 
 	STRICT_EXPECTED_CALL(definition_mocks, transfer_set_delivery_id(test_transfer_handle, 0));
 	STRICT_EXPECTED_CALL(definition_mocks, amqpvalue_create_transfer(test_transfer_handle));
@@ -855,9 +860,7 @@ TEST_FUNCTION(when_2_transfers_happen_on_2_different_endpoints_2_different_deliv
 	STRICT_EXPECTED_CALL(amqpvalue_destroy(test_transfer_amqp_value));
 
 	// act
-	delivery_number delivery_id0;
 	(void)session_send_transfer(link_endpoint0, test_transfer_handle, NULL, 0, &delivery_id0, test_on_send_complete, (void*)0x4242);
-	delivery_number delivery_id1;
 	(void)session_send_transfer(link_endpoint0, test_transfer_handle, NULL, 0, &delivery_id1, test_on_send_complete, (void*)0x4242);
 
 	// assert
@@ -875,6 +878,7 @@ TEST_FUNCTION(when_2_transfers_happen_on_2_different_endpoints_2_different_deliv
 TEST_FUNCTION(when_if_sending_the_frame_to_the_connection_fails_the_next_outgoing_id_is_not_incremented)
 {
 	// arrange
+	delivery_number delivery_id;
 	SESSION_HANDLE session = session_create(TEST_CONNECTION_HANDLE);
 	LINK_ENDPOINT_HANDLE link_endpoint0 = session_create_link_endpoint(session, "1", test_frame_received_callback, test_on_session_state_changed, test_on_flow_on, NULL);
 	LINK_ENDPOINT_HANDLE link_endpoint1 = session_create_link_endpoint(session, "2", test_frame_received_callback, test_on_session_state_changed, test_on_flow_on, NULL);
@@ -883,7 +887,6 @@ TEST_FUNCTION(when_if_sending_the_frame_to_the_connection_fails_the_next_outgoin
 	STRICT_EXPECTED_CALL(definition_mocks, is_begin_type_by_descriptor(TEST_DESCRIPTOR_AMQP_VALUE));
 	saved_frame_received_callback(saved_callback_context, TEST_BEGIN_PERFORMATIVE, 0, NULL);
 	umock_c_reset_all_calls();
-	definition_umock_c_reset_all_calls();
 
 	STRICT_EXPECTED_CALL(definition_mocks, transfer_set_delivery_id(test_transfer_handle, 0));
 	STRICT_EXPECTED_CALL(connection_get_remote_max_frame_size(TEST_CONNECTION_HANDLE, IGNORED_PTR_ARG))
@@ -901,7 +904,6 @@ TEST_FUNCTION(when_if_sending_the_frame_to_the_connection_fails_the_next_outgoin
 	STRICT_EXPECTED_CALL(amqpvalue_destroy(test_transfer_amqp_value));
 
 	// act
-	delivery_number delivery_id;
 	(void)session_send_transfer(link_endpoint0, test_transfer_handle, NULL, 0, &delivery_id, test_on_send_complete, (void*)0x4242);
 	(void)session_send_transfer(link_endpoint0, test_transfer_handle, NULL, 0, &delivery_id, test_on_send_complete, (void*)0x4242);
 

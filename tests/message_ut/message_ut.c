@@ -150,11 +150,12 @@ TEST_FUNCTION(message_create_2_times_yields_2_different_message_instances)
 TEST_FUNCTION(when_allocating_memory_for_the_message_fails_then_message_create_fails)
 {
 	// arrange
+	MESSAGE_HANDLE message;
 	STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
 		.SetReturn(NULL);
 
 	// act
-	MESSAGE_HANDLE message = message_create();
+	message = message_create();
 
 	// assert
 	ASSERT_IS_NULL(message);
@@ -174,8 +175,10 @@ TEST_FUNCTION(when_allocating_memory_for_the_message_fails_then_message_create_f
 TEST_FUNCTION(message_clone_with_a_valid_argument_succeeds)
 {
 	// arrange
-/*	MESSAGE_HANDLE source_message = message_create();
+/*	MESSAGE_HANDLE message;
+	MESSAGE_HANDLE source_message = message_create();
 	unsigned char data_section[2] = { 0x42, 0x43 };
+	BINARY_DATA binary_data = { data_section, sizeof(data_section) };
 
 	(void)message_set_header(source_message, custom_message_header);
 	STRICT_EXPECTED_CALL(annotations_clone(custom_delivery_annotations))
@@ -193,10 +196,8 @@ TEST_FUNCTION(message_clone_with_a_valid_argument_succeeds)
 	STRICT_EXPECTED_CALL(annotations_clone(custom_footer))
 		.SetReturn(cloned_footer);
 	(void)message_set_footer(source_message, custom_footer);
-	BINARY_DATA binary_data = { data_section, sizeof(data_section) };
 	(void)message_add_body_amqp_data(source_message, binary_data);
-	mocks.ResetAllCalls();
-	definition_mocks.ResetAllCalls();
+	umock_c_reset_all_call();
 
 	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 	STRICT_EXPECTED_CALL(header_clone(test_header_handle));
@@ -209,7 +210,7 @@ TEST_FUNCTION(message_clone_with_a_valid_argument_succeeds)
 	STRICT_EXPECTED_CALL(gballoc_malloc(sizeof(data_section)));
 
 	// act
-	MESSAGE_HANDLE message = message_clone(source_message);
+	message = message_clone(source_message);
 
 	// assert
 	ASSERT_IS_NOT_NULL(message);
@@ -237,6 +238,7 @@ TEST_FUNCTION(message_clone_with_NULL_message_source_fails)
 TEST_FUNCTION(when_allocating_memory_fails_then_message_clone_fails)
 {
 	// arrange
+	MESSAGE_HANDLE message;
 	MESSAGE_HANDLE source_message = message_create();
 	(void)message_set_header(source_message, custom_message_header);
     umock_c_reset_all_calls();
@@ -245,7 +247,7 @@ TEST_FUNCTION(when_allocating_memory_fails_then_message_clone_fails)
 		.SetReturn(NULL);
 
 	// act
-	MESSAGE_HANDLE message = message_clone(source_message);
+	message = message_clone(source_message);
 
 	// assert
 	ASSERT_IS_NULL(message);

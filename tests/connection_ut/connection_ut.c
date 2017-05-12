@@ -139,8 +139,8 @@ static int my_xio_open(XIO_HANDLE io, ON_IO_OPEN_COMPLETE on_io_open_complete, v
 
 static int my_frame_codec_receive_bytes(FRAME_CODEC_HANDLE frame_codec, const unsigned char* buffer, size_t size)
 {
-    (void)frame_codec;
     unsigned char* new_frame_codec_bytes = (unsigned char*)my_gballoc_realloc(frame_codec_bytes, frame_codec_byte_count + size);
+    (void)frame_codec;
     if (new_frame_codec_bytes != NULL)
     {
         frame_codec_bytes = new_frame_codec_bytes;
@@ -183,8 +183,8 @@ static LIST_ITEM_HANDLE my_singlylinkedlist_add(SINGLYLINKEDLIST_HANDLE list, co
 static LIST_ITEM_HANDLE my_singlylinkedlist_find(SINGLYLINKEDLIST_HANDLE handle, LIST_MATCH_FUNCTION match_function, const void* match_context)
 {
     size_t i;
-    (void)handle;
     const void* found_item = NULL;
+    (void)handle;
     for (i = 0; i < list_item_count; i++)
     {
         if (match_function((LIST_ITEM_HANDLE)list_items[i], match_context))
@@ -3376,6 +3376,7 @@ static void TEST_on_io_error(void* context)
 TEST_FUNCTION(connection_create2_with_valid_args_succeeds)
 {
     // arrange
+	CONNECTION_HANDLE connection;
     EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     EXPECTED_CALL(frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
     EXPECTED_CALL(amqp_frame_codec_create(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
@@ -3386,7 +3387,7 @@ TEST_FUNCTION(connection_create2_with_valid_args_succeeds)
     STRICT_EXPECTED_CALL(tickcounter_get_current_ms(test_tick_counter, IGNORED_PTR_ARG));
 
     // act
-    CONNECTION_HANDLE connection = connection_create2(TEST_IO_HANDLE, "testhost", test_container_id, NULL, NULL, NULL, TEST_IO_HANDLE, TEST_on_io_error, TEST_CONTEXT);
+    connection = connection_create2(TEST_IO_HANDLE, "testhost", test_container_id, NULL, NULL, NULL, TEST_IO_HANDLE, TEST_on_io_error, TEST_CONTEXT);
 
     // assert
     ASSERT_IS_NOT_NULL(connection);
@@ -3414,10 +3415,11 @@ TEST_FUNCTION(connection_set_trace_succeeds)
 {
     // arrange
     CONNECTION_HANDLE connection = connection_create2(TEST_IO_HANDLE, "testhost", test_container_id, NULL, NULL, NULL, TEST_IO_HANDLE, TEST_on_io_error, TEST_CONTEXT);
+	bool traceOn;
     umock_c_reset_all_calls();
 
     // act
-    bool traceOn = false;
+    traceOn = false;
     connection_set_trace(connection, traceOn);
 
     // assert

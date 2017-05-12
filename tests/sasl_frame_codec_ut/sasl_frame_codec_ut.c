@@ -1087,8 +1087,8 @@ TEST_FUNCTION(when_some_extra_type_specific_bytes_are_passed_to_the_sasl_codec_t
 	// arrange
 	SASL_FRAME_CODEC_HANDLE sasl_frame_codec = sasl_frame_codec_create(TEST_FRAME_CODEC_HANDLE, test_on_sasl_frame_received, test_on_sasl_frame_codec_error, NULL);
     size_t i;
-	umock_c_reset_all_calls();
 	unsigned char test_extra_bytes[2] = { 0x42, 0x43 };
+	umock_c_reset_all_calls();
 
     for (i = 0; i < sizeof(test_sasl_frame_value); i++)
     {
@@ -1115,8 +1115,8 @@ TEST_FUNCTION(when_type_specific_byte_count_is_more_than_2_the_sasl_frame_codec_
 	// arrange
 	SASL_FRAME_CODEC_HANDLE sasl_frame_codec = sasl_frame_codec_create(TEST_FRAME_CODEC_HANDLE, test_on_sasl_frame_received, test_on_sasl_frame_codec_error, NULL);
     size_t i;
-	umock_c_reset_all_calls();
 	unsigned char test_extra_bytes[4] = { 0x42, 0x43 };
+	umock_c_reset_all_calls();
 
     for (i = 0; i < sizeof(test_sasl_frame_value); i++)
     {

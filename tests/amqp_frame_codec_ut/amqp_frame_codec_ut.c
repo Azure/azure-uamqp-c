@@ -643,7 +643,8 @@ TEST_FUNCTION(amqp_frame_codec_destroy_with_NULL_handle_does_nothing)
 TEST_FUNCTION(encoding_a_frame_succeeds)
 {
     // arrange
-    AMQP_FRAME_CODEC_HANDLE amqp_frame_codec = amqp_frame_codec_create(TEST_FRAME_CODEC_HANDLE, amqp_frame_received_callback_1, amqp_empty_frame_received_callback_1, test_amqp_frame_codec_error, TEST_CONTEXT);
+    int result;
+	AMQP_FRAME_CODEC_HANDLE amqp_frame_codec = amqp_frame_codec_create(TEST_FRAME_CODEC_HANDLE, amqp_frame_received_callback_1, amqp_empty_frame_received_callback_1, test_amqp_frame_codec_error, TEST_CONTEXT);
     size_t performative_size = 2;
     uint16_t channel = 0;
     unsigned char channel_bytes[] = { 0, 0 };
@@ -664,7 +665,7 @@ TEST_FUNCTION(encoding_a_frame_succeeds)
     EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
-    int result = amqp_frame_codec_encode_frame(amqp_frame_codec, channel, TEST_AMQP_VALUE, &test_user_payload, 1, test_on_bytes_encoded, (void*)0x4242);
+    result = amqp_frame_codec_encode_frame(amqp_frame_codec, channel, TEST_AMQP_VALUE, &test_user_payload, 1, test_on_bytes_encoded, (void*)0x4242);
 
     // assert
     ASSERT_ARE_EQUAL(int, 0, result);
@@ -682,6 +683,7 @@ TEST_FUNCTION(encoding_a_frame_succeeds)
 TEST_FUNCTION(using_channel_no_0x4243_passes_the_channel_number_as_type_specific_bytes)
 {
     // arrange
+	int result;
     AMQP_FRAME_CODEC_HANDLE amqp_frame_codec = amqp_frame_codec_create(TEST_FRAME_CODEC_HANDLE, amqp_frame_received_callback_1, amqp_empty_frame_received_callback_1, test_amqp_frame_codec_error, TEST_CONTEXT);
     size_t performative_size = 2;
     uint16_t channel = 0x4243;
@@ -702,7 +704,7 @@ TEST_FUNCTION(using_channel_no_0x4243_passes_the_channel_number_as_type_specific
     EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
-    int result = amqp_frame_codec_encode_frame(amqp_frame_codec, channel, TEST_AMQP_VALUE, &test_user_payload, 1, test_on_bytes_encoded, (void*)0x4242);
+    result = amqp_frame_codec_encode_frame(amqp_frame_codec, channel, TEST_AMQP_VALUE, &test_user_payload, 1, test_on_bytes_encoded, (void*)0x4242);
 
     // assert
     ASSERT_ARE_EQUAL(int, 0, result);
@@ -716,6 +718,7 @@ TEST_FUNCTION(using_channel_no_0x4243_passes_the_channel_number_as_type_specific
 TEST_FUNCTION(encoding_a_frame_with_no_payloads_send_down_to_frame_codec_just_the_paylod_for_the_encoded_performative)
 {
     // arrange
+	int result;
     AMQP_FRAME_CODEC_HANDLE amqp_frame_codec = amqp_frame_codec_create(TEST_FRAME_CODEC_HANDLE, amqp_frame_received_callback_1, amqp_empty_frame_received_callback_1, test_amqp_frame_codec_error, TEST_CONTEXT);
     size_t performative_size = 2;
     uint16_t channel = 0x4243;
@@ -737,7 +740,7 @@ TEST_FUNCTION(encoding_a_frame_with_no_payloads_send_down_to_frame_codec_just_th
     EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
-    int result = amqp_frame_codec_encode_frame(amqp_frame_codec, channel, TEST_AMQP_VALUE, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
+    result = amqp_frame_codec_encode_frame(amqp_frame_codec, channel, TEST_AMQP_VALUE, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
 
     // assert
     ASSERT_ARE_EQUAL(int, 0, result);

@@ -1053,13 +1053,14 @@ TEST_FUNCTION(when_any_underlying_call_fails_cbs_put_token_async_fails)
     count = umock_c_negative_tests_call_count();
     for (index = 0; index < count; index++)
     {
-        if ((index == 7) ||
+        char tmp_msg[128];
+
+		if ((index == 7) ||
             (index == 8))
         {
             continue;
         }
 
-        char tmp_msg[128];
         (void)sprintf(tmp_msg, "Failure in test %u/%u", (unsigned int)(index + 1), (unsigned int)count);
 
         umock_c_negative_tests_reset();
@@ -1379,13 +1380,14 @@ TEST_FUNCTION(when_any_underlying_call_fails_cbs_delete_token_async_fails)
     count = umock_c_negative_tests_call_count();
     for (index = 0; index < count; index++)
     {
-        if ((index == 5) ||
+        char tmp_msg[128];
+
+		if ((index == 5) ||
             (index == 6))
         {
             continue;
         }
 
-        char tmp_msg[128];
         (void)sprintf(tmp_msg, "Failure in test %u/%u", (unsigned int)(index + 1), (unsigned int)count);
 
         umock_c_negative_tests_reset();

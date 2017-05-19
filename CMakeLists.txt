@@ -4,7 +4,7 @@
 cmake_minimum_required(VERSION 2.8.11)
 project(uamqp)
 
-set(UAMQP_VERSION 1.0.34)
+set(UAMQP_VERSION 1.0.35)
 
 # Build with -fPIC always
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)

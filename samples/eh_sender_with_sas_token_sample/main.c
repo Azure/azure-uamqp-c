@@ -15,6 +15,7 @@
 #include "azure_c_shared_utility/urlencode.h"
 #include "azure_c_shared_utility/sastoken.h"
 #include "azure_c_shared_utility/tlsio.h"
+#include "azure_c_shared_utility/tickcounter.h"
 #include "azure_uamqp_c/message_sender.h"
 #include "azure_uamqp_c/message.h"
 #include "azure_uamqp_c/messaging.h"
@@ -198,46 +199,55 @@ int main(int argc, char** argv)
 		{
 			uint32_t i;
 			bool keep_running = true;
+			tickcounter_ms_t start_time;
+			TICK_COUNTER_HANDLE tick_counter = tickcounter_create();
 
-#if _WIN32
-			unsigned long startTime = (unsigned long)GetTickCount64();
-#endif
-
-			for (i = 0; i < msg_count; i++)
+			if (tickcounter_get_current_ms(tick_counter, &start_time) != 0)
 			{
-				(void)messagesender_send(message_sender, message, on_message_send_complete, message);
+				(void)printf("Error getting start time\r\n");
 			}
-
-			message_destroy(message);
-
-			while (keep_running)
+			else
 			{
-				size_t current_memory_used;
-				size_t maximum_memory_used;
-				connection_dowork(connection);
-
-				current_memory_used = gballoc_getCurrentMemoryUsed();
-				maximum_memory_used = gballoc_getMaximumMemoryUsed();
-
-				if (current_memory_used != last_memory_used)
+				for (i = 0; i < msg_count; i++)
 				{
-                    (void)printf("Current memory usage:%lu (max:%lu)\r\n", (unsigned long)current_memory_used, (unsigned long)maximum_memory_used);
-					last_memory_used = current_memory_used;
+					(void)messagesender_send(message_sender, message, on_message_send_complete, message);
 				}
 
-				if (sent_messages == msg_count)
+				message_destroy(message);
+
+				while (keep_running)
 				{
-					break;
+					size_t current_memory_used;
+					size_t maximum_memory_used;
+					connection_dowork(connection);
+
+					current_memory_used = gballoc_getCurrentMemoryUsed();
+					maximum_memory_used = gballoc_getMaximumMemoryUsed();
+
+					if (current_memory_used != last_memory_used)
+					{
+						(void)printf("Current memory usage:%lu (max:%lu)\r\n", (unsigned long)current_memory_used, (unsigned long)maximum_memory_used);
+						last_memory_used = current_memory_used;
+					}
+
+					if (sent_messages == msg_count)
+					{
+						break;
+					}
+				}
+
+				{
+					tickcounter_ms_t end_time;
+					if (tickcounter_get_current_ms(tick_counter, &end_time) != 0)
+					{
+						(void)printf("Error getting end time\r\n");
+					}
+					else
+					{
+						(void)printf("Send %u messages in %lu ms: %.02f msgs/sec\r\n", (unsigned int)msg_count, (unsigned long)(end_time - start_time), (float)msg_count / ((float)(end_time - start_time) / 1000));
+					}
 				}
 			}
-
-#if _WIN32
-			{
-				unsigned long endTime = (unsigned long)GetTickCount64();
-
-				(void)printf("Send %zu messages in %lu ms: %.02f msgs/sec\r\n", msg_count, (endTime - startTime), (float)msg_count / ((float)(endTime - startTime) / 1000));
-			}
-#endif
 		}
 
 		messagesender_destroy(message_sender);

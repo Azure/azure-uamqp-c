@@ -13,9 +13,4 @@ set(${theseTestsName}_c_files
 set(${theseTestsName}_h_files
 )
 
-build_c_test_artifacts(${theseTestsName} ON "tests/uamqp_tests")
-
-target_link_libraries(${theseTestsName}_exe uamqp)
-if(WIN32)
-target_link_libraries(${theseTestsName}_dll uamqp)
-endif()
+build_c_test_artifacts(${theseTestsName} ON "tests/uamqp_tests" ADDITIONAL_LIBS uamqp)

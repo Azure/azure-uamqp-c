@@ -5,8 +5,6 @@ compileAsC99()
 
 add_executable(local_client_sample
 	main.c)
-	
-#TODO: link to whatever else the platform has (now for windows it is just ws2_32)
 
 include_directories(.)
 if(WIN32)
@@ -14,11 +12,13 @@ if(WIN32)
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 	add_definitions(-DGB_MEASURE_MEMORY_FOR_THIS -DGB_DEBUG_ALLOC)
 
+if(WINCE)
 	target_link_libraries(local_client_sample
-		uamqp
-		aziotsharedutil
-		ws2_32
-		secur32)
+		uamqp aziotsharedutil secur32)
+else()
+	target_link_libraries(local_client_sample
+		uamqp aziotsharedutil ws2_32 secur32)
+endif()
 
 	if(${use_openssl})
 		target_link_libraries(local_client_sample

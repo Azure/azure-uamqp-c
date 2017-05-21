@@ -15,10 +15,14 @@ if(WIN32)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
     add_definitions(-DGB_MEASURE_MEMORY_FOR_THIS -DGB_DEBUG_ALLOC)
 
-    target_link_libraries(websockets_sample
-        uamqp
-        ws2_32
-        aziotsharedutil)
+if(WINCE)
+	target_link_libraries(websockets_sample
+		uamqp aziotsharedutil secur32)
+else()
+	target_link_libraries(websockets_sample
+		uamqp aziotsharedutil ws2_32 secur32)
+endif()
+
 else()
     target_link_libraries(websockets_sample	uamqp aziotsharedutil)
 endif()

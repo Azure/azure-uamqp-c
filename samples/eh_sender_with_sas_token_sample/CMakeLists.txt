@@ -16,11 +16,13 @@ if(WIN32)
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 	add_definitions(-DGB_MEASURE_MEMORY_FOR_THIS -DGB_DEBUG_ALLOC)
 
+if(WINCE)
 	target_link_libraries(eh_sender_with_sas_token_sample
-		uamqp
-		aziotsharedutil
-		ws2_32
-		secur32)
+		uamqp aziotsharedutil secur32)
+else()
+	target_link_libraries(eh_sender_with_sas_token_sample
+		uamqp aziotsharedutil ws2_32 secur32)
+endif()
 
 	if(${use_openssl})
 		target_link_libraries(eh_sender_with_sas_token_sample

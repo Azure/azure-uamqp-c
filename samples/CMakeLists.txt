@@ -17,7 +17,9 @@ add_sample_directory(local_client_sample)
 
 if(WIN32)
     add_sample_directory(local_server_sample)
+if(NOT WINCE)
     add_sample_directory(local_server_tls_sample)
+endif()
 endif()
 
 add_sample_directory(websockets_sample)

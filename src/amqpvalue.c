@@ -10,6 +10,7 @@
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_uamqp_c/amqp_types.h"
 #include "azure_uamqp_c/amqpvalue.h"
+#include "azure_c_shared_utility/refcount.h"
 
 /* Requirements satisfied by the current implementation without any code:
 Codes_SRS_AMQPVALUE_01_270: [<encoding code="0x56" category="fixed" width="1" label="boolean with the octet 0x00 being false and octet 0x01 being true"/>]
@@ -164,6 +165,8 @@ typedef struct AMQP_VALUE_DATA_TAG
 	AMQP_VALUE_UNION value;
 } AMQP_VALUE_DATA;
 
+DEFINE_REFCOUNT_TYPE(AMQP_VALUE_DATA);
+
 typedef enum DECODER_STATE_TAG
 {
 	DECODER_STATE_CONSTRUCTOR,
@@ -184,6 +187,7 @@ typedef struct INTERNAL_DECODER_DATA_TAG
 	AMQP_VALUE_DATA* decode_to_value;
     INTERNAL_DECODER_HANDLE inner_decoder;
 	DECODE_VALUE_STATE_UNION decode_value_state;
+	bool is_internal;
 } INTERNAL_DECODER_DATA;
 
 typedef struct AMQPVALUE_DECODER_HANDLE_DATA_TAG
@@ -195,7 +199,7 @@ typedef struct AMQPVALUE_DECODER_HANDLE_DATA_TAG
 /* Codes_SRS_AMQPVALUE_01_003: [1.6.1 null Indicates an empty value.] */
 AMQP_VALUE amqpvalue_create_null(void)
 {
-	AMQP_VALUE_DATA* result = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+	AMQP_VALUE result = REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
     if (result == NULL)
     {
         /* Codes_SRS_AMQPVALUE_01_002: [If allocating the AMQP_VALUE fails then amqpvalue_create_null shall return NULL.] */
@@ -213,7 +217,7 @@ AMQP_VALUE amqpvalue_create_null(void)
 /* Codes_SRS_AMQPVALUE_01_004: [1.6.2 boolean Represents a true or false value.] */
 AMQP_VALUE amqpvalue_create_boolean(bool value)
 {
-	AMQP_VALUE_DATA* result = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+	AMQP_VALUE result = REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
     if (result == NULL)
     {
         /* Codes_SRS_AMQPVALUE_01_007: [If allocating the AMQP_VALUE fails then amqpvalue_create_boolean shall return NULL.] */
@@ -266,7 +270,7 @@ int amqpvalue_get_boolean(AMQP_VALUE value, bool* bool_value)
 /* Codes_SRS_AMQPVALUE_01_005: [1.6.3 ubyte Integer in the range 0 to 28 - 1 inclusive.] */
 AMQP_VALUE amqpvalue_create_ubyte(unsigned char value)
 {
-	AMQP_VALUE_DATA* result = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+	AMQP_VALUE result = REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
 	if (result != NULL)
 	{
 		/* Codes_SRS_AMQPVALUE_01_032: [amqpvalue_create_ubyte shall return a handle to an AMQP_VALUE that stores a unsigned char value.] */
@@ -314,7 +318,7 @@ int amqpvalue_get_ubyte(AMQP_VALUE value, unsigned char* ubyte_value)
 /* Codes_SRS_AMQPVALUE_01_012: [1.6.4 ushort Integer in the range 0 to 216 - 1 inclusive.] */
 AMQP_VALUE amqpvalue_create_ushort(uint16_t value)
 {
-	AMQP_VALUE_DATA* result = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+	AMQP_VALUE result = REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
     if (result == NULL)
     {
         /* Codes_SRS_AMQPVALUE_01_039: [If allocating the AMQP_VALUE fails then amqpvalue_create_ushort shall return NULL.] */
@@ -367,7 +371,7 @@ int amqpvalue_get_ushort(AMQP_VALUE value, uint16_t* ushort_value)
 /* Codes_SRS_AMQPVALUE_01_013: [1.6.5 uint Integer in the range 0 to 232 - 1 inclusive.] */
 AMQP_VALUE amqpvalue_create_uint(uint32_t value)
 {
-	AMQP_VALUE_DATA* result = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+	AMQP_VALUE result = REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
     if (result == NULL)
     {
         /* Codes_SRS_AMQPVALUE_01_045: [If allocating the AMQP_VALUE fails then amqpvalue_create_uint shall return NULL.] */
@@ -420,7 +424,7 @@ int amqpvalue_get_uint(AMQP_VALUE value, uint32_t* uint_value)
 /* Codes_SRS_AMQPVALUE_01_014: [1.6.6 ulong Integer in the range 0 to 264 - 1 inclusive.] */
 AMQP_VALUE amqpvalue_create_ulong(uint64_t value)
 {
-	AMQP_VALUE_DATA* result = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+	AMQP_VALUE result = REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
     if (result == NULL)
     {
         /* Codes_SRS_AMQPVALUE_01_050: [If allocating the AMQP_VALUE fails then amqpvalue_create_ulong shall return NULL.] */
@@ -473,7 +477,7 @@ int amqpvalue_get_ulong(AMQP_VALUE value, uint64_t* ulong_value)
 /* Codes_SRS_AMQPVALUE_01_015: [1.6.7 byte Integer in the range -(27) to 27 - 1 inclusive.] */
 AMQP_VALUE amqpvalue_create_byte(char value)
 {
-	AMQP_VALUE_DATA* result = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+	AMQP_VALUE result = REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
     if (result == NULL)
     {
         /* Codes_SRS_AMQPVALUE_01_056: [If allocating the AMQP_VALUE fails then amqpvalue_create_byte shall return NULL.] */
@@ -526,7 +530,7 @@ int amqpvalue_get_byte(AMQP_VALUE value, char* byte_value)
 /* Codes_SRS_AMQPVALUE_01_016: [1.6.8 short Integer in the range -(215) to 215 - 1 inclusive.] */
 AMQP_VALUE amqpvalue_create_short(int16_t value)
 {
-	AMQP_VALUE_DATA* result = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+	AMQP_VALUE result = REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
     if (result == NULL)
     {
         /* Codes_SRS_AMQPVALUE_01_062: [If allocating the AMQP_VALUE fails then amqpvalue_create_short shall return NULL.] */
@@ -578,7 +582,7 @@ int amqpvalue_get_short(AMQP_VALUE value, int16_t* short_value)
 /* Codes_SRS_AMQPVALUE_01_017: [1.6.9 int Integer in the range -(231) to 231 - 1 inclusive.] */
 AMQP_VALUE amqpvalue_create_int(int32_t value)
 {
-	AMQP_VALUE_DATA* result = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+	AMQP_VALUE result = REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
     if (result == NULL)
     {
         /* Codes_SRS_AMQPVALUE_01_068: [If allocating the AMQP_VALUE fails then amqpvalue_create_int shall return NULL.] */
@@ -631,7 +635,7 @@ int amqpvalue_get_int(AMQP_VALUE value, int32_t* int_value)
 /* Codes_SRS_AMQPVALUE_01_018: [1.6.10 long Integer in the range -(263) to 263 - 1 inclusive.] */
 AMQP_VALUE amqpvalue_create_long(int64_t value)
 {
-	AMQP_VALUE_DATA* result = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+	AMQP_VALUE result = REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
     if (result == NULL)
     {
         /* Codes_SRS_AMQPVALUE_01_074: [If allocating the AMQP_VALUE fails then amqpvalue_create_long shall return NULL.] */
@@ -684,7 +688,7 @@ int amqpvalue_get_long(AMQP_VALUE value, int64_t* long_value)
 /* Codes_SRS_AMQPVALUE_01_019: [1.6.11 float 32-bit floating point number (IEEE 754-2008 binary32).]  */
 AMQP_VALUE amqpvalue_create_float(float value)
 {
-	AMQP_VALUE_DATA* result = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+	AMQP_VALUE result = REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
     if (result == NULL)
     {
         /* Codes_SRS_AMQPVALUE_01_081: [If allocating the AMQP_VALUE fails then amqpvalue_create_float shall return NULL.] */
@@ -737,7 +741,7 @@ int amqpvalue_get_float(AMQP_VALUE value, float* float_value)
 /* Codes_SRS_AMQPVALUE_01_020: [1.6.12 double 64-bit floating point number (IEEE 754-2008 binary64).] */
 AMQP_VALUE amqpvalue_create_double(double value)
 {
-	AMQP_VALUE_DATA* result = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+	AMQP_VALUE result = REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
     if (result == NULL)
     {
         /* Codes_SRS_AMQPVALUE_01_087: [If allocating the AMQP_VALUE fails then amqpvalue_create_double shall return NULL.] */
@@ -790,7 +794,7 @@ int amqpvalue_get_double(AMQP_VALUE value, double* double_value)
 /* Codes_SRS_AMQPVALUE_01_024: [1.6.16 char A single Unicode character.] */
 AMQP_VALUE amqpvalue_create_char(uint32_t value)
 {
-	AMQP_VALUE_DATA* result;
+	AMQP_VALUE result;
 
 	/* Codes_SRS_AMQPVALUE_01_098: [If the code point value is outside of the allowed range [0, 0x10FFFF] then amqpvalue_create_char shall return NULL.] */
 	if (value > 0x10FFFF)
@@ -800,7 +804,7 @@ AMQP_VALUE amqpvalue_create_char(uint32_t value)
 	}
 	else
 	{
-		result = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+		result = REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
         if (result == NULL)
         {
             /* Codes_SRS_AMQPVALUE_01_093: [If allocating the AMQP_VALUE fails then amqpvalue_create_char shall return NULL.] */
@@ -854,7 +858,7 @@ int amqpvalue_get_char(AMQP_VALUE value, uint32_t* char_value)
 /* Codes_SRS_AMQPVALUE_01_025: [1.6.17 timestamp An absolute point in time.] */
 AMQP_VALUE amqpvalue_create_timestamp(int64_t value)
 {
-	AMQP_VALUE_DATA* result = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+	AMQP_VALUE result = REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
     if (result == NULL)
     {
         /* Codes_SRS_AMQPVALUE_01_108: [If allocating the AMQP_VALUE fails then amqpvalue_create_timestamp shall return NULL.] */
@@ -907,7 +911,7 @@ int amqpvalue_get_timestamp(AMQP_VALUE value, int64_t* timestamp_value)
 /* Codes_SRS_AMQPVALUE_01_026: [1.6.18 uuid A universally unique identifier as defined by RFC-4122 section 4.1.2 .] */
 AMQP_VALUE amqpvalue_create_uuid(uuid value)
 {
-	AMQP_VALUE_DATA* result = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+	AMQP_VALUE result = REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
     if (result == NULL)
     {
         /* Codes_SRS_AMQPVALUE_01_114: [If allocating the AMQP_VALUE fails then amqpvalue_create_uuid shall return NULL.] */
@@ -960,7 +964,7 @@ int amqpvalue_get_uuid(AMQP_VALUE value, uuid* uuid_value)
 /* Codes_SRS_AMQPVALUE_01_027: [1.6.19 binary A sequence of octets.] */
 AMQP_VALUE amqpvalue_create_binary(amqp_binary value)
 {
-	AMQP_VALUE_DATA* result;
+	AMQP_VALUE result;
 	if ((value.bytes == NULL) &&
 		(value.length > 0))
 	{
@@ -970,7 +974,7 @@ AMQP_VALUE amqpvalue_create_binary(amqp_binary value)
 	}
 	else
 	{
-		result = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+		result = REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
         if (result == NULL)
         {
             /* Codes_SRS_AMQPVALUE_01_128: [If allocating the AMQP_VALUE fails then amqpvalue_create_binary shall return NULL.] */
@@ -1049,7 +1053,7 @@ int amqpvalue_get_binary(AMQP_VALUE value, amqp_binary* binary_value)
 /* Codes_SRS_AMQPVALUE_01_028: [1.6.20 string A sequence of Unicode characters.] */
 AMQP_VALUE amqpvalue_create_string(const char* value)
 {
-	AMQP_VALUE_DATA* result;
+	AMQP_VALUE result;
 	if (value == NULL)
 	{
         LogError("NULL argument value");
@@ -1059,7 +1063,7 @@ AMQP_VALUE amqpvalue_create_string(const char* value)
 	{
 		size_t length = strlen(value);
 		
-		result = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+		result = REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
         if (result == NULL)
         {
             /* Codes_SRS_AMQPVALUE_01_136: [If allocating the AMQP_VALUE fails then amqpvalue_create_string shall return NULL.] */
@@ -1124,7 +1128,7 @@ int amqpvalue_get_string(AMQP_VALUE value, const char** string_value)
 /* Codes_SRS_AMQPVALUE_01_029: [1.6.21 symbol Symbolic values from a constrained domain.] */
 AMQP_VALUE amqpvalue_create_symbol(const char* value)
 {
-	AMQP_VALUE_DATA* result;
+	AMQP_VALUE result;
 	if (value == NULL)
 	{
 		/* Codes_SRS_AMQPVALUE_01_400: [If value is NULL, amqpvalue_create_symbol shall fail and return NULL.] */
@@ -1143,7 +1147,7 @@ AMQP_VALUE amqpvalue_create_symbol(const char* value)
         else
         {
             /* Codes_SRS_AMQPVALUE_01_143: [If allocating the AMQP_VALUE fails then amqpvalue_create_symbol shall return NULL.] */
-		    result = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+			result = REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
             if (result == NULL)
             {
                 LogError("Cannot allocate memory for AMQP value");
@@ -1209,7 +1213,7 @@ int amqpvalue_get_symbol(AMQP_VALUE value, const char** symbol_value)
 /* Codes_SRS_AMQPVALUE_01_030: [1.6.22 list A sequence of polymorphic values.] */
 AMQP_VALUE amqpvalue_create_list(void)
 {
-	AMQP_VALUE_DATA* result = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+	AMQP_VALUE result = REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
     if (result == NULL)
     {
         /* Codes_SRS_AMQPVALUE_01_150: [If allocating the AMQP_VALUE fails then amqpvalue_create_list shall return NULL.] */
@@ -1499,8 +1503,7 @@ AMQP_VALUE amqpvalue_get_list_item(AMQP_VALUE value, size_t index)
 /* Codes_SRS_AMQPVALUE_01_031: [1.6.23 map A polymorphic mapping from distinct keys to values.] */
 AMQP_VALUE amqpvalue_create_map(void)
 {
-	AMQP_VALUE_DATA* result = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
-
+	AMQP_VALUE result = REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
     if (result == NULL)
     {
         /* Codes_SRS_AMQPVALUE_01_179: [If allocating memory for the map fails, then amqpvalue_create_map shall return NULL.] */
@@ -1798,7 +1801,7 @@ int amqpvalue_get_map(AMQP_VALUE value, AMQP_VALUE* map_value)
 
 AMQP_VALUE amqpvalue_create_array(void)
 {
-	AMQP_VALUE_DATA* result = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+	AMQP_VALUE result = REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
     if (result == NULL)
     {
         LogError("Could not allocate memory for AMQP value");
@@ -2157,358 +2160,17 @@ AMQP_VALUE amqpvalue_clone(AMQP_VALUE value)
 
 	if (value == NULL)
 	{
-        LogError("NULL value");
+		/* Codes_SRS_AMQPVALUE_01_402: [ If `value` is NULL, `amqpvalue_clone` shall return NULL. ]*/
+		LogError("NULL value");
         result = NULL;
 	}
 	else
 	{
-		AMQP_VALUE_DATA* value_data = (AMQP_VALUE_DATA*)value;
-		switch (value_data->type)
-		{
-		default:
-            LogError("Invalid data type: %d", (int)value_data->type);
-            result = NULL;
-			break;
-
-		case AMQP_TYPE_NULL:
-			/* Codes_SRS_AMQPVALUE_01_237: [null] */
-			result = amqpvalue_create_null();
-			break;
-
-		case AMQP_TYPE_BOOL:
-			/* Codes_SRS_AMQPVALUE_01_238: [boolean] */
-			result = amqpvalue_create_boolean(value_data->value.bool_value);
-			break;
-
-		case AMQP_TYPE_UBYTE:
-			/* Codes_SRS_AMQPVALUE_01_239: [ubyte] */
-			result = amqpvalue_create_ubyte(value_data->value.ubyte_value);
-			break;
-
-		case AMQP_TYPE_USHORT:
-			/* Codes_SRS_AMQPVALUE_01_240: [ushort] */
-			result = amqpvalue_create_ushort(value_data->value.ushort_value);
-			break;
-
-		case AMQP_TYPE_UINT:
-			/* Codes_SRS_AMQPVALUE_01_241: [uint] */
-			result = amqpvalue_create_uint(value_data->value.uint_value);
-			break;
-
-		case AMQP_TYPE_ULONG:
-			/* Codes_SRS_AMQPVALUE_01_242: [ulong] */
-			result = amqpvalue_create_ulong(value_data->value.ulong_value);
-			break;
-
-		case AMQP_TYPE_BYTE:
-			/* Codes_SRS_AMQPVALUE_01_243: [byte] */
-			result = amqpvalue_create_byte(value_data->value.byte_value);
-			break;
-
-		case AMQP_TYPE_SHORT:
-			/* Codes_SRS_AMQPVALUE_01_244: [short] */
-			result = amqpvalue_create_short(value_data->value.short_value);
-			break;
-
-		case AMQP_TYPE_INT:
-			/* Codes_SRS_AMQPVALUE_01_245: [int] */
-			result = amqpvalue_create_int(value_data->value.int_value);
-			break;
-
-		case AMQP_TYPE_LONG:
-			/* Codes_SRS_AMQPVALUE_01_246: [long] */
-			result = amqpvalue_create_long(value_data->value.long_value);
-			break;
-
-		case AMQP_TYPE_FLOAT:
-			/* Codes_SRS_AMQPVALUE_01_247: [float] */
-			result = amqpvalue_create_float(value_data->value.float_value);
-			break;
-
-		case AMQP_TYPE_DOUBLE:
-			/* Codes_SRS_AMQPVALUE_01_248: [double] */
-			result = amqpvalue_create_double(value_data->value.double_value);
-			break;
-
-		case AMQP_TYPE_CHAR:
-			/* Codes_SRS_AMQPVALUE_01_252: [char] */
-			result = amqpvalue_create_char(value_data->value.char_value);
-			break;
-
-		case AMQP_TYPE_TIMESTAMP:
-			/* Codes_SRS_AMQPVALUE_01_253: [timestamp] */
-			result = amqpvalue_create_timestamp(value_data->value.timestamp_value);
-			break;
-
-		case AMQP_TYPE_UUID:
-			/* Codes_SRS_AMQPVALUE_01_254: [uuid] */
-			result = amqpvalue_create_uuid(value_data->value.uuid_value);
-			break;
-
-		case AMQP_TYPE_BINARY:
-			/* Codes_SRS_AMQPVALUE_01_255: [binary] */
-			result = amqpvalue_create_binary(value_data->value.binary_value);
-			break;
-
-		case AMQP_TYPE_STRING:
-			/* Codes_SRS_AMQPVALUE_01_256: [string] */
-			result = amqpvalue_create_string(value_data->value.string_value.chars);
-			break;
-
-		case AMQP_TYPE_SYMBOL:
-			/* Codes_SRS_AMQPVALUE_01_257: [symbol] */
-			result = amqpvalue_create_symbol(value_data->value.symbol_value.chars);
-			break;
-
-		case AMQP_TYPE_LIST:
-		{
-			/* Codes_SRS_AMQPVALUE_01_258: [list] */
-			uint32_t i;
-			AMQP_VALUE_DATA* result_data = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
-			if (result_data == NULL)
-			{
-				/* Codes_SRS_AMQPVALUE_01_236: [If creating the cloned value fails, amqpvalue_clone shall return NULL.] */
-                LogError("Cannot allocate memory for cloned value");
-                result = NULL;
-			}
-			else
-			{
-				result_data->type = AMQP_TYPE_LIST;
-				result_data->value.list_value.count = value_data->value.list_value.count;
-
-				if (value_data->value.list_value.count > 0)
-				{
-					result_data->value.list_value.items = (AMQP_VALUE*)malloc(value_data->value.list_value.count * sizeof(AMQP_VALUE));
-					if (result_data->value.list_value.items == NULL)
-					{
-						/* Codes_SRS_AMQPVALUE_01_236: [If creating the cloned value fails, amqpvalue_clone shall return NULL.] */
-                        LogError("Cannot allocate memory for cloned list");
-                        free(result_data);
-						result = NULL;
-					}
-					else
-					{
-						for (i = 0; i < value_data->value.list_value.count; i++)
-						{
-							result_data->value.list_value.items[i] = amqpvalue_clone(value_data->value.list_value.items[i]);
-							if (result_data->value.list_value.items[i] == NULL)
-							{
-                                LogError("Cannot clone list item %u", (unsigned int)i);
-                                break;
-							}
-						}
-
-						if (i < value_data->value.list_value.count)
-						{
-							uint32_t j;
-
-							/* Codes_SRS_AMQPVALUE_01_236: [If creating the cloned value fails, amqpvalue_clone shall return NULL.] */
-							/* destroy all the allocated values to return to the initial state */
-							for (j = 0; j < i; j++)
-							{
-								amqpvalue_destroy(result_data->value.list_value.items[j]);
-							}
-
-							free(result_data->value.list_value.items);
-							free(result_data);
-							result = NULL;
-						}
-						else
-						{
-							result = result_data;
-						}
-					}
-				}
-				else
-				{
-					result_data->value.list_value.items = NULL;
-					result = result_data;
-				}
-			}
-
-			break;
-		}
-		case AMQP_TYPE_MAP:
-		{
-			/* Codes_SRS_AMQPVALUE_01_259: [map] */
-			uint32_t i;
-			AMQP_VALUE_DATA* result_data = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
-			if (result_data == NULL)
-			{
-				/* Codes_SRS_AMQPVALUE_01_236: [If creating the cloned value fails, amqpvalue_clone shall return NULL.] */
-                LogError("Cannot allocate memory for cloned map");
-                result = NULL;
-			}
-			else
-			{
-				result_data->type = AMQP_TYPE_MAP;
-				result_data->value.map_value.pair_count = value_data->value.map_value.pair_count;
-
-				if (result_data->value.map_value.pair_count > 0)
-				{
-					result_data->value.map_value.pairs = (AMQP_MAP_KEY_VALUE_PAIR*)malloc(value_data->value.map_value.pair_count * sizeof(AMQP_MAP_KEY_VALUE_PAIR));
-					if (result_data->value.map_value.pairs == NULL)
-					{
-						/* Codes_SRS_AMQPVALUE_01_236: [If creating the cloned value fails, amqpvalue_clone shall return NULL.] */
-                        LogError("Cannot allocate memory for cloned map storage");
-                        free(result_data);
-						result = NULL;
-					}
-					else
-					{
-						for (i = 0; i < value_data->value.map_value.pair_count; i++)
-						{
-							result_data->value.map_value.pairs[i].key = amqpvalue_clone(value_data->value.map_value.pairs[i].key);
-							if (result_data->value.map_value.pairs[i].key == NULL)
-							{
-                                LogError("Cannot clone map key index %u", (unsigned int)i);
-                                break;
-							}
-
-							result_data->value.map_value.pairs[i].value = amqpvalue_clone(value_data->value.map_value.pairs[i].value);
-							if (result_data->value.map_value.pairs[i].value == NULL)
-							{
-                                LogError("Cannot clone map value index %u", (unsigned int)i);
-                                amqpvalue_destroy(result_data->value.map_value.pairs[i].key);
-								break;
-							}
-						}
-
-						if (i < value_data->value.map_value.pair_count)
-						{
-							/* Codes_SRS_AMQPVALUE_01_236: [If creating the cloned value fails, amqpvalue_clone shall return NULL.] */
-							uint32_t j;
-
-							for (j = 0; j < i; j++)
-							{
-								amqpvalue_destroy(result_data->value.map_value.pairs[j].key);
-								amqpvalue_destroy(result_data->value.map_value.pairs[j].value);
-							}
-
-							free(result_data->value.map_value.pairs);
-							free(result_data);
-							result = NULL;
-						}
-						else
-						{
-							result = (AMQP_VALUE)result_data;
-						}
-					}
-				}
-				else
-				{
-					result_data->value.map_value.pairs = NULL;
-					result = (AMQP_VALUE)result_data;
-				}
-			}
-
-			break;
-		}
-		case AMQP_TYPE_ARRAY:
-		{
-			uint32_t i;
-			AMQP_VALUE_DATA* result_data = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
-			if (result_data == NULL)
-			{
-                LogError("Cannot allocate memory for cloned array");
-                result = NULL;
-			}
-			else
-			{
-				result_data->type = AMQP_TYPE_ARRAY;
-				result_data->value.array_value.count = value_data->value.array_value.count;
-
-				if (value_data->value.array_value.count > 0)
-				{
-					result_data->value.array_value.items = (AMQP_VALUE*)malloc(value_data->value.array_value.count * sizeof(AMQP_VALUE));
-					if (result_data->value.array_value.items == NULL)
-					{
-                        LogError("Cannot allocate memory for cloned array storage");
-                        free(result_data);
-						result = NULL;
-					}
-					else
-					{
-						for (i = 0; i < value_data->value.array_value.count; i++)
-						{
-							result_data->value.array_value.items[i] = amqpvalue_clone(value_data->value.array_value.items[i]);
-							if (result_data->value.array_value.items[i] == NULL)
-							{
-                                LogError("Cannot allocate memory for cloned array item %u", (unsigned int)i);
-                                break;
-							}
-						}
-
-						if (i < value_data->value.array_value.count)
-						{
-							uint32_t j;
-
-							for (j = 0; j < i; j++)
-							{
-								amqpvalue_destroy(result_data->value.array_value.items[j]);
-							}
-
-							free(result_data->value.array_value.items);
-							free(result_data);
-							result = NULL;
-						}
-						else
-						{
-							result = result_data;
-						}
-					}
-				}
-				else
-				{
-					result_data->value.array_value.items = NULL;
-					result = result_data;
-				}
-			}
-
-			break;
-		}
-		case AMQP_TYPE_DESCRIBED:
-			result = amqpvalue_create_described(amqpvalue_clone(value_data->value.described_value.descriptor), amqpvalue_clone(value_data->value.described_value.value));
-			break;
-
-		case AMQP_TYPE_COMPOSITE:
-		{
-			AMQP_VALUE_DATA* result_data = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
-			AMQP_VALUE cloned_descriptor;
-			AMQP_VALUE cloned_list;
-
-			if (result_data == NULL)
-			{
-                LogError("Cannot allocate memory for cloned composite value");
-                result = NULL;
-			}
-			else if ((cloned_descriptor = amqpvalue_clone(value_data->value.described_value.descriptor)) == NULL)
-			{
-                LogError("Cannot clone descriptor");
-                free(result_data);
-				result = NULL;
-			}
-			else if ((cloned_list = amqpvalue_clone(value_data->value.described_value.value)) == NULL)
-			{
-                LogError("Cannot clone described value");
-                amqpvalue_destroy(cloned_descriptor);
-				free(result_data);
-				result = NULL;
-			}
-			else
-			{
-				result_data->value.described_value.descriptor = cloned_descriptor;
-				result_data->value.described_value.value = cloned_list;
-				result_data->type = AMQP_TYPE_COMPOSITE;
-
-				result = (AMQP_VALUE)result_data;
-			}
-			break;
-		}
-		}
+		/* Codes_SRS_AMQPVALUE_01_235: [amqpvalue_clone shall clone the value passed as argument and return a new non-NULL handle to the cloned AMQP value.] */
+		INC_REF(AMQP_VALUE_DATA, value);
+		result = value;
 	}
 
-	/* Codes_SRS_AMQPVALUE_01_235: [amqpvalue_clone shall clone the value passed as argument and return a new non-NULL handle to the cloned AMQP value.] */
 	return result;
 }
 
@@ -3639,22 +3301,26 @@ void amqpvalue_destroy(AMQP_VALUE value)
     }
     else
     {
-		/* Codes_SRS_AMQPVALUE_01_314: [amqpvalue_destroy shall free all resources allocated by any of the amqpvalue_create_xxx functions or amqpvalue_clone.] */
-		AMQP_VALUE_DATA* value_data = (AMQP_VALUE_DATA*)value;
-		amqpvalue_clear(value_data);
-		free(value);
+		if (DEC_REF(AMQP_VALUE_DATA, value) == DEC_RETURN_ZERO)
+		{
+			/* Codes_SRS_AMQPVALUE_01_314: [amqpvalue_destroy shall free all resources allocated by any of the amqpvalue_create_xxx functions or amqpvalue_clone.] */
+			AMQP_VALUE_DATA* value_data = (AMQP_VALUE_DATA*)value;
+			amqpvalue_clear(value_data);
+			free(value);
+		}
 	}
 }
 
-static INTERNAL_DECODER_DATA* internal_decoder_create(ON_VALUE_DECODED on_value_decoded, void* callback_context, AMQP_VALUE_DATA* value_data)
+static INTERNAL_DECODER_DATA* internal_decoder_create(ON_VALUE_DECODED on_value_decoded, void* callback_context, AMQP_VALUE_DATA* value_data, bool is_internal)
 {
 	INTERNAL_DECODER_DATA* internal_decoder_data = (INTERNAL_DECODER_DATA*)malloc(sizeof(INTERNAL_DECODER_DATA));
-    if (internal_decoder_data == NULL)
+	if (internal_decoder_data == NULL)
     {
         LogError("Cannot allocate memory for internal decoder structure");
     }
     else
     {
+		internal_decoder_data->is_internal = is_internal;
 		internal_decoder_data->on_value_decoded = on_value_decoded;
 		internal_decoder_data->on_value_decoded_context = callback_context;
 		internal_decoder_data->decoder_state = DECODER_STATE_CONSTRUCTOR;
@@ -3710,7 +3376,24 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
 
 			case DECODER_STATE_CONSTRUCTOR:
 			{
-				amqpvalue_clear(internal_decoder_data->decode_to_value);
+				if ((internal_decoder_data->decode_to_value != NULL) && (!internal_decoder_data->is_internal))
+				{
+					amqpvalue_destroy(internal_decoder_data->decode_to_value);
+					internal_decoder_data->decode_to_value = NULL;
+				}
+
+				if (internal_decoder_data->decode_to_value == NULL)
+				{
+					internal_decoder_data->decode_to_value = (AMQP_VALUE_DATA*)REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
+				}
+
+                if (internal_decoder_data->decode_to_value == NULL)
+                {
+                    LogError("Cannot allocate decode value");
+                    result = __FAILURE__;
+                    break;
+                }
+
 				internal_decoder_data->constructor_byte = buffer[0];
 				buffer++;
 				size--;
@@ -3727,7 +3410,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                 {
 					AMQP_VALUE_DATA* descriptor;
                     internal_decoder_data->decode_to_value->type = AMQP_TYPE_DESCRIBED;
-                    descriptor = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+					descriptor = REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
                     if (descriptor == NULL)
                     {
                         internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
@@ -3738,7 +3421,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                     {
                         descriptor->type = AMQP_TYPE_UNKNOWN;
                         internal_decoder_data->decode_to_value->value.described_value.descriptor = descriptor;
-                        internal_decoder_data->inner_decoder = internal_decoder_create(inner_decoder_callback, internal_decoder_data, descriptor);
+                        internal_decoder_data->inner_decoder = internal_decoder_create(inner_decoder_callback, internal_decoder_data, descriptor, true);
                         if (internal_decoder_data->inner_decoder == NULL)
                         {
                             internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
@@ -4175,10 +3858,10 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
 
 							if (inner_decoder->decoder_state == DECODER_STATE_DONE)
 							{
-								AMQP_VALUE_DATA* described_value;
+								AMQP_VALUE described_value;
 								internal_decoder_destroy(inner_decoder);
 
-								described_value = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+								described_value = REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
 								if (described_value == NULL)
 								{
 									internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
@@ -4189,7 +3872,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
 								{
 									described_value->type = AMQP_TYPE_UNKNOWN;
 									internal_decoder_data->decode_to_value->value.described_value.value = (AMQP_VALUE)described_value;
-									internal_decoder_data->inner_decoder = internal_decoder_create(inner_decoder_callback, internal_decoder_data, described_value);
+									internal_decoder_data->inner_decoder = internal_decoder_create(inner_decoder_callback, internal_decoder_data, described_value, true);
 									if (internal_decoder_data->inner_decoder == NULL)
 									{
 										internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
@@ -5111,7 +4794,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
 
 						if (internal_decoder_data->bytes_decoded == 0)
 						{
-							AMQP_VALUE_DATA* list_item = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+							AMQP_VALUE_DATA* list_item = (AMQP_VALUE_DATA*)REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
 							if (list_item == NULL)
 							{
 								internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
@@ -5121,7 +4804,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
 							{
 								list_item->type = AMQP_TYPE_UNKNOWN;
 								internal_decoder_data->decode_to_value->value.list_value.items[internal_decoder_data->decode_value_state.list_value_state.item] = list_item;
-								internal_decoder_data->inner_decoder = internal_decoder_create(inner_decoder_callback, internal_decoder_data, list_item);
+								internal_decoder_data->inner_decoder = internal_decoder_create(inner_decoder_callback, internal_decoder_data, list_item, true);
 								if (internal_decoder_data->inner_decoder == NULL)
 								{
                                     LogError("Could not create inner decoder for list items");
@@ -5319,7 +5002,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
 
 						if (internal_decoder_data->bytes_decoded == 0)
 						{
-							AMQP_VALUE_DATA* map_item = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+							AMQP_VALUE_DATA* map_item = (AMQP_VALUE_DATA*)REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
 							if (map_item == NULL)
 							{
                                 LogError("Could not allocate memory for map item");
@@ -5337,7 +5020,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
 								{
 									internal_decoder_data->decode_to_value->value.map_value.pairs[internal_decoder_data->decode_value_state.map_value_state.item].value = map_item;
 								}
-								internal_decoder_data->inner_decoder = internal_decoder_create(inner_decoder_callback, internal_decoder_data, map_item);
+								internal_decoder_data->inner_decoder = internal_decoder_create(inner_decoder_callback, internal_decoder_data, map_item, true);
 								if (internal_decoder_data->inner_decoder == NULL)
 								{
                                     LogError("Could not create inner decoder for map item");
@@ -5528,7 +5211,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
 							AMQP_VALUE_DATA* array_item;
 							internal_decoder_data->decode_value_state.array_value_state.constructor_byte = buffer[0];
 
-							array_item = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+							array_item = (AMQP_VALUE_DATA*)REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
 							if (array_item == NULL)
 							{
                                 LogError("Could not allocate memory for array item to be decoded");
@@ -5539,7 +5222,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
 							{
 								array_item->type = AMQP_TYPE_UNKNOWN;
 								internal_decoder_data->decode_to_value->value.array_value.items[internal_decoder_data->decode_value_state.array_value_state.item] = array_item;
-								internal_decoder_data->inner_decoder = internal_decoder_create(inner_decoder_callback, internal_decoder_data, array_item);
+								internal_decoder_data->inner_decoder = internal_decoder_create(inner_decoder_callback, internal_decoder_data, array_item, true);
 								if (internal_decoder_data->inner_decoder == NULL)
 								{
 									internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
@@ -5585,7 +5268,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
 								}
 								else
 								{
-									AMQP_VALUE_DATA* array_item = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+									AMQP_VALUE_DATA* array_item = (AMQP_VALUE_DATA*)REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
 									if (array_item == NULL)
 									{
                                         LogError("Could not allocate memory for array item");
@@ -5596,7 +5279,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
 									{
 										array_item->type = AMQP_TYPE_UNKNOWN;
 										internal_decoder_data->decode_to_value->value.array_value.items[internal_decoder_data->decode_value_state.array_value_state.item] = array_item;
-										internal_decoder_data->inner_decoder = internal_decoder_create(inner_decoder_callback, internal_decoder_data, array_item);
+										internal_decoder_data->inner_decoder = internal_decoder_create(inner_decoder_callback, internal_decoder_data, array_item, true);
 										if (internal_decoder_data->inner_decoder == NULL)
 										{
                                             LogError("Could not create inner decoder for array item");
@@ -5670,7 +5353,7 @@ AMQPVALUE_DECODER_HANDLE amqpvalue_decoder_create(ON_VALUE_DECODED on_value_deco
         }
         else
         {
-			decoder_instance->decode_to_value = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+			decoder_instance->decode_to_value = REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
 			if (decoder_instance->decode_to_value == NULL)
 			{
 				/* Codes_SRS_AMQPVALUE_01_313: [If creating the decoder fails, amqpvalue_decoder_create shall return NULL.] */
@@ -5681,7 +5364,7 @@ AMQPVALUE_DECODER_HANDLE amqpvalue_decoder_create(ON_VALUE_DECODED on_value_deco
 			else
 			{
 				decoder_instance->decode_to_value->type = AMQP_TYPE_UNKNOWN;
-				decoder_instance->internal_decoder = internal_decoder_create(on_value_decoded, callback_context, decoder_instance->decode_to_value);
+				decoder_instance->internal_decoder = internal_decoder_create(on_value_decoded, callback_context, decoder_instance->decode_to_value, false);
 				if (decoder_instance->internal_decoder == NULL)
 				{
 					/* Codes_SRS_AMQPVALUE_01_313: [If creating the decoder fails, amqpvalue_decoder_create shall return NULL.] */
@@ -5709,7 +5392,7 @@ void amqpvalue_decoder_destroy(AMQPVALUE_DECODER_HANDLE handle)
     {
     	AMQPVALUE_DECODER_HANDLE_DATA* decoder_instance = (AMQPVALUE_DECODER_HANDLE_DATA*)handle;
 		/* Codes_SRS_AMQPVALUE_01_316: [amqpvalue_decoder_destroy shall free all resources associated with the amqpvalue_decoder.] */
-		amqpvalue_destroy(decoder_instance->decode_to_value);
+		amqpvalue_destroy(decoder_instance->internal_decoder->decode_to_value);
 		internal_decoder_destroy(decoder_instance->internal_decoder);
 		free(handle);
 	}
@@ -5807,7 +5490,7 @@ AMQP_VALUE amqpvalue_get_inplace_described_value(AMQP_VALUE value)
 
 AMQP_VALUE amqpvalue_create_described(AMQP_VALUE descriptor, AMQP_VALUE value)
 {
-	AMQP_VALUE_DATA* result = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+	AMQP_VALUE_DATA* result = (AMQP_VALUE_DATA*)REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
     if (result == NULL)
     {
         LogError("Cannot allocate memory for described type");
@@ -5824,7 +5507,7 @@ AMQP_VALUE amqpvalue_create_described(AMQP_VALUE descriptor, AMQP_VALUE value)
 
 AMQP_VALUE amqpvalue_create_composite(AMQP_VALUE descriptor, uint32_t list_size)
 {
-	AMQP_VALUE_DATA* result = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+	AMQP_VALUE_DATA* result = (AMQP_VALUE_DATA*)REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
     if (result == NULL)
     {
         LogError("Cannot allocate memory for composite type");
@@ -5868,7 +5551,7 @@ AMQP_VALUE amqpvalue_create_composite(AMQP_VALUE descriptor, uint32_t list_size)
 
 AMQP_VALUE amqpvalue_create_composite_with_ulong_descriptor(uint64_t descriptor)
 {
-	AMQP_VALUE_DATA* result = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+	AMQP_VALUE_DATA* result = (AMQP_VALUE_DATA*)REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
     if (result == NULL)
     {
         LogError("Cannot allocate memory for composite type");

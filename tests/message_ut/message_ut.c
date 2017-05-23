@@ -234,27 +234,4 @@ TEST_FUNCTION(message_clone_with_NULL_message_source_fails)
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
-/* Tests_SRS_MESSAGE_01_004: [If allocating memory for the new cloned message fails, `message_clone` shall fail and return NULL.] */
-TEST_FUNCTION(when_allocating_memory_fails_then_message_clone_fails)
-{
-	// arrange
-	MESSAGE_HANDLE message;
-	MESSAGE_HANDLE source_message = message_create();
-	(void)message_set_header(source_message, custom_message_header);
-    umock_c_reset_all_calls();
-
-	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
-		.SetReturn(NULL);
-
-	// act
-	message = message_clone(source_message);
-
-	// assert
-	ASSERT_IS_NULL(message);
-    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-
-	// cleanup
-	message_destroy(source_message);
-}
-
 END_TEST_SUITE(message_ut)

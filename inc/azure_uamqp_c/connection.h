@@ -7,6 +7,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include "azure_c_shared_utility/xio.h"
 #include "azure_uamqp_c/amqp_frame_codec.h"
 #include "azure_uamqp_c/amqp_definitions.h"
 

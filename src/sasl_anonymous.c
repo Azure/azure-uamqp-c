@@ -5,8 +5,8 @@
 #include <string.h>
 #include "azure_c_shared_utility/optimize_size.h"
 #include "azure_c_shared_utility/gballoc.h"
-#include "azure_uamqp_c/sasl_anonymous.h"
 #include "azure_c_shared_utility/xlogging.h"
+#include "azure_uamqp_c/sasl_anonymous.h"
 
 typedef struct SASL_ANONYMOUS_INSTANCE_TAG
 {

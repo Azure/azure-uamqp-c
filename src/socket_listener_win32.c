@@ -2,14 +2,14 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 #include <stdlib.h>
-#include "azure_c_shared_utility/gballoc.h"
-#include "azure_uamqp_c/socket_listener.h"
 #include "winsock2.h"
 #include "ws2tcpip.h"
 #include "windows.h"
+#include "azure_c_shared_utility/gballoc.h"
+#include "azure_c_shared_utility/xlogging.h"
 #include "azure_c_shared_utility/optimize_size.h"
 #include "azure_c_shared_utility/socketio.h"
-#include "azure_c_shared_utility/xlogging.h"
+#include "azure_uamqp_c/socket_listener.h"
 
 typedef struct SOCKET_LISTENER_INSTANCE_TAG
 {

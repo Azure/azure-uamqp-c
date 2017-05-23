@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include "azure_c_shared_utility/optimize_size.h"
 #include "azure_c_shared_utility/gballoc.h"
+#include "azure_c_shared_utility/xlogging.h"
 #include "azure_uamqp_c/header_detect_io.h"
 
 typedef enum IO_STATE_TAG

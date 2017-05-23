@@ -4,7 +4,6 @@
 #ifndef FRAME_CODEC_H
 #define FRAME_CODEC_H
 
-#include "azure_c_shared_utility/xio.h"
 #include "azure_uamqp_c/amqpvalue.h"
 
 #ifdef __cplusplus

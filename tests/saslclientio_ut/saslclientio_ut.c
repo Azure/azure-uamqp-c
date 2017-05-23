@@ -27,6 +27,7 @@ static void my_gballoc_free(void* ptr)
 #define ENABLE_MOCKS
 
 #include "azure_c_shared_utility/gballoc.h"
+#include "azure_c_shared_utility/xio.h"
 #include "azure_uamqp_c/amqpvalue.h"
 #include "azure_uamqp_c/amqpvalue_to_string.h"
 #include "azure_uamqp_c/frame_codec.h"

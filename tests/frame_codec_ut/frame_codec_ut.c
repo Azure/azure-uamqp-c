@@ -46,8 +46,6 @@ static void my_gballoc_free(void* ptr)
 #define TEST_ERROR_CONTEXT				(void*)0x4248
 #define TEST_LIST_ITEM_HANDLE			(LIST_ITEM_HANDLE)0x4249
 
-static const IO_INTERFACE_DESCRIPTION test_io_interface_description = { 0 };
-
 typedef struct TEST_LIST_ITEM_TAG
 {
     const void* item_value;

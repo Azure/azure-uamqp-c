@@ -5,6 +5,7 @@
 #include <string.h>
 #include "azure_c_shared_utility/optimize_size.h"
 #include "azure_c_shared_utility/gballoc.h"
+#include "azure_c_shared_utility/xlogging.h"
 #include "azure_uamqp_c/sasl_mssbcbs.h"
 
 typedef struct SASL_MSSBCBS_INSTANCE_TAG

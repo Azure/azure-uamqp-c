@@ -615,6 +615,7 @@ extern AMQP_VALUE amqpvalue_clone(AMQP_VALUE value);
 
 **SRS_AMQPVALUE_01_235: [**amqpvalue_clone shall clone the value passed as argument and return a new non-NULL handle to the cloned AMQP value.**]**
 **SRS_AMQPVALUE_01_402: [** If `value` is NULL, `amqpvalue_clone` shall return NULL. **]**
+**SRS_AMQPVALUE_01_403: [** Cloning should be done by reference counting. **]**
 
 All ISO types shall be supported:
 -	**SRS_AMQPVALUE_01_237: [**null**]** 

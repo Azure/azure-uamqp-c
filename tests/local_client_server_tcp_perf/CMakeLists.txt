@@ -21,14 +21,14 @@ if(WIN32)
 		secur32)
 
 	if(${use_openssl})
-		target_link_libraries(message_sender_sample
+		target_link_libraries(local_client_server_tcp_perf
 			$ENV{OpenSSLDir}/lib/ssleay32.lib $ENV{OpenSSLDir}/lib/libeay32.lib)
 	
 		file(COPY $ENV{OpenSSLDir}/bin/libeay32.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Debug)
 		file(COPY $ENV{OpenSSLDir}/bin/ssleay32.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Debug)
 	endif()
 	if(${use_wolfssl})
-		target_link_libraries(message_sender_sample $ENV{WolfSSLDir}/Debug/wolfssl.lib)
+		target_link_libraries(local_client_server_tcp_perf $ENV{WolfSSLDir}/Debug/wolfssl.lib)
 	endif()
 else()
 	target_link_libraries(local_client_server_tcp_perf uamqp aziotsharedutil)

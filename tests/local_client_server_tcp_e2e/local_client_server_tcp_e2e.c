@@ -178,6 +178,9 @@ TEST_FUNCTION(client_and_server_connect_and_send_one_message_settled)
     AMQP_VALUE target;
     time_t now_time;
     time_t start_time;
+	SOCKETIO_CONFIG socketio_config = { "localhost", 0, NULL };
+    unsigned char hello[] = { 'H', 'e', 'l', 'l', 'o' };
+    BINARY_DATA binary_data;
 
     server_instance.connection = NULL;
     server_instance.session = NULL;
@@ -191,7 +194,6 @@ TEST_FUNCTION(client_and_server_connect_and_send_one_message_settled)
     ASSERT_ARE_EQUAL_WITH_MSG(int, 0, result, "socketlistener_start failed");
 
     // start the client
-    SOCKETIO_CONFIG socketio_config = { "localhost", 0, NULL };
     socketio_config.port = port_number;
     socket_io = xio_create(socketio_get_interface_description(), &socketio_config);
     ASSERT_IS_NOT_NULL_WITH_MSG(socket_io, "Could not create socket IO");
@@ -218,8 +220,6 @@ TEST_FUNCTION(client_and_server_connect_and_send_one_message_settled)
 
     client_send_message = message_create();
     ASSERT_IS_NOT_NULL_WITH_MSG(client_send_message, "Could not create message");
-    unsigned char hello[] = { 'H', 'e', 'l', 'l', 'o' };
-    BINARY_DATA binary_data;
     binary_data.bytes = hello;
     binary_data.length = sizeof(hello);
     result = message_add_body_amqp_data(client_send_message, binary_data);
@@ -290,6 +290,9 @@ TEST_FUNCTION(client_and_server_connect_and_send_one_message_unsettled)
     AMQP_VALUE target;
     time_t now_time;
     time_t start_time;
+    SOCKETIO_CONFIG socketio_config = { "localhost", 0, NULL };
+    unsigned char hello[] = { 'H', 'e', 'l', 'l', 'o' };
+    BINARY_DATA binary_data;
 
     server_instance.connection = NULL;
     server_instance.session = NULL;
@@ -303,7 +306,6 @@ TEST_FUNCTION(client_and_server_connect_and_send_one_message_unsettled)
     ASSERT_ARE_EQUAL_WITH_MSG(int, 0, result, "socketlistener_start failed");
 
     // start the client
-    SOCKETIO_CONFIG socketio_config = { "localhost", 0, NULL };
     socketio_config.port = port_number;
     socket_io = xio_create(socketio_get_interface_description(), &socketio_config);
     ASSERT_IS_NOT_NULL_WITH_MSG(socket_io, "Could not create socket IO");
@@ -330,8 +332,6 @@ TEST_FUNCTION(client_and_server_connect_and_send_one_message_unsettled)
 
     client_send_message = message_create();
     ASSERT_IS_NOT_NULL_WITH_MSG(client_send_message, "Could not create message");
-    unsigned char hello[] = { 'H', 'e', 'l', 'l', 'o' };
-    BINARY_DATA binary_data;
     binary_data.bytes = hello;
     binary_data.length = sizeof(hello);
     result = message_add_body_amqp_data(client_send_message, binary_data);

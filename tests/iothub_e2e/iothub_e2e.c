@@ -201,6 +201,8 @@ TEST_FUNCTION(send_1_message_to_iothub_unsettled_auth_with_cbs)
     STRING_HANDLE keyname_string;
     STRING_HANDLE sas_token;
     CBS_HANDLE cbs;
+    unsigned char hello[] = { 'H', 'e', 'l', 'l', 'o' };
+    BINARY_DATA binary_data;
 
     // start the client
     TLSIO_CONFIG tlsio_config;
@@ -287,8 +289,6 @@ TEST_FUNCTION(send_1_message_to_iothub_unsettled_auth_with_cbs)
 
     client_send_message = message_create();
     ASSERT_IS_NOT_NULL_WITH_MSG(client_send_message, "Could not create message");
-    unsigned char hello[] = { 'H', 'e', 'l', 'l', 'o' };
-    BINARY_DATA binary_data;
     binary_data.bytes = hello;
     binary_data.length = sizeof(hello);
     result = message_add_body_amqp_data(client_send_message, binary_data);

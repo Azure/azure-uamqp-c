@@ -35,7 +35,7 @@ rem no error checking
 pushd %build-root%\cmake\%CMAKE_DIR%
 
 echo ***Running CMAKE for Win32***   
-cmake %build-root% -Drun_unittests:BOOL=ON -Duse_cppunittest:bool=OFF
+cmake %build-root% -Drun_unittests:BOOL=ON -Drun_e2e_tests:bool=ON -Duse_cppunittest:bool=OFF
 if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
 
 call :_run-msbuild "Build" uamqp.sln

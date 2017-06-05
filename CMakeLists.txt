@@ -49,9 +49,11 @@ option(use_installed_dependencies "set use_installed_dependencies to ON to use i
 option(memory_trace "set memory_trace to ON if memory usage is to be used, set to OFF to not use it" OFF)
 
 if(NOT ${use_installed_dependencies})
-    add_subdirectory(deps/azure-c-testrunnerswitcher)
-    add_subdirectory(deps/azure-ctest)
-    add_subdirectory(deps/umock-c)
+    if(${run_e2e_tests} OR ${run_unittests})
+        add_subdirectory(deps/azure-c-testrunnerswitcher)
+        add_subdirectory(deps/azure-ctest)
+        add_subdirectory(deps/umock-c)
+    endif()	
     add_subdirectory(deps/azure-c-shared-utility)
 endif()
 

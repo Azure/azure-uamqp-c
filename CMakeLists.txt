@@ -40,7 +40,6 @@ ELSE()
 ENDIF(WIN32)
 
 option(run_e2e_tests "set run_e2e_tests to ON to run e2e tests (default is OFF) [if possible, they are always built]" OFF)
-option(run_longhaul_tests "set run_longhaul_tests to ON to run longhaul tests (default is OFF)[if possible, they are always built]" OFF)
 option(run_unittests "set run_unittests to ON to run unittests (default is OFF)" OFF)
 option(skip_samples "set skip_samples to ON to skip building samples (default is OFF)[if possible, they are always built]" OFF)
 option(compileOption_C "passes a string to the command line of the C compiler" OFF)
@@ -48,14 +47,27 @@ option(compileOption_CXX "passes a string to the command line of the C++ compile
 option(use_installed_dependencies "set use_installed_dependencies to ON to use installed packages instead of building dependencies from submodules" OFF)
 option(memory_trace "set memory_trace to ON if memory usage is to be used, set to OFF to not use it" OFF)
 
+#do not add or build any tests of the dependencies
+set(original_run_e2e_tests ${run_e2e_tests})
+set(original_run_int_tests ${run_int_tests})
+set(original_run_unittests ${run_unittests})
+
+set(run_e2e_tests OFF)
+set(run_int_tests OFF)
+set(run_unittests OFF)
+
 if(NOT ${use_installed_dependencies})
-    if(${run_e2e_tests} OR ${run_unittests})
+    if(${original_run_e2e_tests} OR ${original_run_unittests})
         add_subdirectory(deps/azure-c-testrunnerswitcher)
         add_subdirectory(deps/azure-ctest)
         add_subdirectory(deps/umock-c)
     endif()	
     add_subdirectory(deps/azure-c-shared-utility)
 endif()
+
+set(run_e2e_tests ${original_run_e2e_tests})
+set(run_int_tests ${original_run_int_tests})
+set(run_unittests ${original_run_unittests})
 
 if(${memory_trace})
     add_definitions(-DGB_MEASURE_MEMORY_FOR_THIS -DGB_DEBUG_ALLOC)

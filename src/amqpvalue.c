@@ -1809,6 +1809,8 @@ AMQP_VALUE amqpvalue_create_array(void)
     else
     {
         result->type = AMQP_TYPE_ARRAY;
+        result->value.array_value.items = NULL;
+        result->value.array_value.count = 0;
     }
 
     return result;

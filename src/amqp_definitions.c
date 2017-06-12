@@ -11,8 +11,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#pragma warning (disable : 4127)
-
 /* role */
 
 AMQP_VALUE amqpvalue_create_role(role value)
@@ -344,7 +342,7 @@ int amqpvalue_get_error(AMQP_VALUE value, ERROR_HANDLE* error_handle)
                     error_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while (0);
+                } while((void)0,0);
             }
         }
     }
@@ -384,7 +382,8 @@ int error_get_condition(ERROR_HANDLE error, const char** condition_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_symbol(item_value, condition_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_symbol(item_value, condition_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -466,7 +465,8 @@ int error_get_description(ERROR_HANDLE error, const char** description_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_string(item_value, description_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_string(item_value, description_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -548,7 +548,8 @@ int error_get_info(ERROR_HANDLE error, fields* info_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_fields(item_value, info_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_fields(item_value, info_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -1078,7 +1079,7 @@ int amqpvalue_get_open(AMQP_VALUE value, OPEN_HANDLE* open_handle)
                     open_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while (0);
+                } while((void)0,0);
             }
         }
     }
@@ -1118,7 +1119,8 @@ int open_get_container_id(OPEN_HANDLE open, const char** container_id_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_string(item_value, container_id_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_string(item_value, container_id_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -1200,7 +1202,8 @@ int open_get_hostname(OPEN_HANDLE open, const char** hostname_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_string(item_value, hostname_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_string(item_value, hostname_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -1284,7 +1287,8 @@ int open_get_max_frame_size(OPEN_HANDLE open, uint32_t* max_frame_size_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_uint(item_value, max_frame_size_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_uint(item_value, max_frame_size_value)) != 0)
                     {
                         if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                         {
@@ -1376,7 +1380,8 @@ int open_get_channel_max(OPEN_HANDLE open, uint16_t* channel_max_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_ushort(item_value, channel_max_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_ushort(item_value, channel_max_value)) != 0)
                     {
                         if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                         {
@@ -1466,7 +1471,8 @@ int open_get_idle_time_out(OPEN_HANDLE open, milliseconds* idle_time_out_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_milliseconds(item_value, idle_time_out_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_milliseconds(item_value, idle_time_out_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -1548,13 +1554,59 @@ int open_get_outgoing_locales(OPEN_HANDLE open, AMQP_VALUE* outgoing_locales_val
                 }
                 else
                 {
-                    if (amqpvalue_get_array(item_value, outgoing_locales_value) != 0)
+                    ietf_language_tag outgoing_locales_single_value;
+                    int get_single_value_result;
+                    if (amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY)
+                    {
+                        get_single_value_result = amqpvalue_get_ietf_language_tag(item_value, &outgoing_locales_single_value);
+                    }
+                    else
+                    {
+                        (void)memset((void*)&outgoing_locales_single_value, 0, sizeof(outgoing_locales_single_value));
+                        get_single_value_result = 1;
+                    }
+
+                    if ((amqpvalue_get_array(item_value, outgoing_locales_value) != 0) &&
+                        (get_single_value_result != 0))
                     {
                         result = __FAILURE__;
                     }
                     else
                     {
-                        result = 0;
+                        if (amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY)
+                        {
+                            *outgoing_locales_value = amqpvalue_create_array();
+                            if (*outgoing_locales_value == NULL)
+                            {
+                                result = __FAILURE__;
+                            }
+                            else
+                            {
+                                AMQP_VALUE single_amqp_value = amqpvalue_create_ietf_language_tag(outgoing_locales_single_value);
+                                if (single_amqp_value == NULL)
+                                {
+                                    amqpvalue_destroy(*outgoing_locales_value);
+                                    result = __FAILURE__;
+                                }
+                                else
+                                {
+                                    if (amqpvalue_add_array_item(*outgoing_locales_value, single_amqp_value) != 0)
+                                    {
+                                        amqpvalue_destroy(*outgoing_locales_value);
+                                        amqpvalue_destroy(single_amqp_value);
+                                        result = __FAILURE__;
+                                    }
+                                    else
+                                    {
+                                        result = 0;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            result = 0;
+                        }
                     }
                 }
             }
@@ -1638,13 +1690,59 @@ int open_get_incoming_locales(OPEN_HANDLE open, AMQP_VALUE* incoming_locales_val
                 }
                 else
                 {
-                    if (amqpvalue_get_array(item_value, incoming_locales_value) != 0)
+                    ietf_language_tag incoming_locales_single_value;
+                    int get_single_value_result;
+                    if (amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY)
+                    {
+                        get_single_value_result = amqpvalue_get_ietf_language_tag(item_value, &incoming_locales_single_value);
+                    }
+                    else
+                    {
+                        (void)memset((void*)&incoming_locales_single_value, 0, sizeof(incoming_locales_single_value));
+                        get_single_value_result = 1;
+                    }
+
+                    if ((amqpvalue_get_array(item_value, incoming_locales_value) != 0) &&
+                        (get_single_value_result != 0))
                     {
                         result = __FAILURE__;
                     }
                     else
                     {
-                        result = 0;
+                        if (amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY)
+                        {
+                            *incoming_locales_value = amqpvalue_create_array();
+                            if (*incoming_locales_value == NULL)
+                            {
+                                result = __FAILURE__;
+                            }
+                            else
+                            {
+                                AMQP_VALUE single_amqp_value = amqpvalue_create_ietf_language_tag(incoming_locales_single_value);
+                                if (single_amqp_value == NULL)
+                                {
+                                    amqpvalue_destroy(*incoming_locales_value);
+                                    result = __FAILURE__;
+                                }
+                                else
+                                {
+                                    if (amqpvalue_add_array_item(*incoming_locales_value, single_amqp_value) != 0)
+                                    {
+                                        amqpvalue_destroy(*incoming_locales_value);
+                                        amqpvalue_destroy(single_amqp_value);
+                                        result = __FAILURE__;
+                                    }
+                                    else
+                                    {
+                                        result = 0;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            result = 0;
+                        }
                     }
                 }
             }
@@ -1728,13 +1826,59 @@ int open_get_offered_capabilities(OPEN_HANDLE open, AMQP_VALUE* offered_capabili
                 }
                 else
                 {
-                    if (amqpvalue_get_array(item_value, offered_capabilities_value) != 0)
+                    const char* offered_capabilities_single_value;
+                    int get_single_value_result;
+                    if (amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY)
+                    {
+                        get_single_value_result = amqpvalue_get_symbol(item_value, &offered_capabilities_single_value);
+                    }
+                    else
+                    {
+                        (void)memset((void*)&offered_capabilities_single_value, 0, sizeof(offered_capabilities_single_value));
+                        get_single_value_result = 1;
+                    }
+
+                    if ((amqpvalue_get_array(item_value, offered_capabilities_value) != 0) &&
+                        (get_single_value_result != 0))
                     {
                         result = __FAILURE__;
                     }
                     else
                     {
-                        result = 0;
+                        if (amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY)
+                        {
+                            *offered_capabilities_value = amqpvalue_create_array();
+                            if (*offered_capabilities_value == NULL)
+                            {
+                                result = __FAILURE__;
+                            }
+                            else
+                            {
+                                AMQP_VALUE single_amqp_value = amqpvalue_create_symbol(offered_capabilities_single_value);
+                                if (single_amqp_value == NULL)
+                                {
+                                    amqpvalue_destroy(*offered_capabilities_value);
+                                    result = __FAILURE__;
+                                }
+                                else
+                                {
+                                    if (amqpvalue_add_array_item(*offered_capabilities_value, single_amqp_value) != 0)
+                                    {
+                                        amqpvalue_destroy(*offered_capabilities_value);
+                                        amqpvalue_destroy(single_amqp_value);
+                                        result = __FAILURE__;
+                                    }
+                                    else
+                                    {
+                                        result = 0;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            result = 0;
+                        }
                     }
                 }
             }
@@ -1818,13 +1962,59 @@ int open_get_desired_capabilities(OPEN_HANDLE open, AMQP_VALUE* desired_capabili
                 }
                 else
                 {
-                    if (amqpvalue_get_array(item_value, desired_capabilities_value) != 0)
+                    const char* desired_capabilities_single_value;
+                    int get_single_value_result;
+                    if (amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY)
+                    {
+                        get_single_value_result = amqpvalue_get_symbol(item_value, &desired_capabilities_single_value);
+                    }
+                    else
+                    {
+                        (void)memset((void*)&desired_capabilities_single_value, 0, sizeof(desired_capabilities_single_value));
+                        get_single_value_result = 1;
+                    }
+
+                    if ((amqpvalue_get_array(item_value, desired_capabilities_value) != 0) &&
+                        (get_single_value_result != 0))
                     {
                         result = __FAILURE__;
                     }
                     else
                     {
-                        result = 0;
+                        if (amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY)
+                        {
+                            *desired_capabilities_value = amqpvalue_create_array();
+                            if (*desired_capabilities_value == NULL)
+                            {
+                                result = __FAILURE__;
+                            }
+                            else
+                            {
+                                AMQP_VALUE single_amqp_value = amqpvalue_create_symbol(desired_capabilities_single_value);
+                                if (single_amqp_value == NULL)
+                                {
+                                    amqpvalue_destroy(*desired_capabilities_value);
+                                    result = __FAILURE__;
+                                }
+                                else
+                                {
+                                    if (amqpvalue_add_array_item(*desired_capabilities_value, single_amqp_value) != 0)
+                                    {
+                                        amqpvalue_destroy(*desired_capabilities_value);
+                                        amqpvalue_destroy(single_amqp_value);
+                                        result = __FAILURE__;
+                                    }
+                                    else
+                                    {
+                                        result = 0;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            result = 0;
+                        }
                     }
                 }
             }
@@ -1908,7 +2098,8 @@ int open_get_properties(OPEN_HANDLE open, fields* properties_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_fields(item_value, properties_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_fields(item_value, properties_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -2384,7 +2575,7 @@ int amqpvalue_get_begin(AMQP_VALUE value, BEGIN_HANDLE* begin_handle)
                     begin_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while (0);
+                } while((void)0,0);
             }
         }
     }
@@ -2424,7 +2615,8 @@ int begin_get_remote_channel(BEGIN_HANDLE begin, uint16_t* remote_channel_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_ushort(item_value, remote_channel_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_ushort(item_value, remote_channel_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -2506,7 +2698,8 @@ int begin_get_next_outgoing_id(BEGIN_HANDLE begin, transfer_number* next_outgoin
                 }
                 else
                 {
-                    if (amqpvalue_get_transfer_number(item_value, next_outgoing_id_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_transfer_number(item_value, next_outgoing_id_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -2588,7 +2781,8 @@ int begin_get_incoming_window(BEGIN_HANDLE begin, uint32_t* incoming_window_valu
                 }
                 else
                 {
-                    if (amqpvalue_get_uint(item_value, incoming_window_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_uint(item_value, incoming_window_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -2670,7 +2864,8 @@ int begin_get_outgoing_window(BEGIN_HANDLE begin, uint32_t* outgoing_window_valu
                 }
                 else
                 {
-                    if (amqpvalue_get_uint(item_value, outgoing_window_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_uint(item_value, outgoing_window_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -2754,7 +2949,8 @@ int begin_get_handle_max(BEGIN_HANDLE begin, handle* handle_max_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_handle(item_value, handle_max_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_handle(item_value, handle_max_value)) != 0)
                     {
                         if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                         {
@@ -2844,13 +3040,59 @@ int begin_get_offered_capabilities(BEGIN_HANDLE begin, AMQP_VALUE* offered_capab
                 }
                 else
                 {
-                    if (amqpvalue_get_array(item_value, offered_capabilities_value) != 0)
+                    const char* offered_capabilities_single_value;
+                    int get_single_value_result;
+                    if (amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY)
+                    {
+                        get_single_value_result = amqpvalue_get_symbol(item_value, &offered_capabilities_single_value);
+                    }
+                    else
+                    {
+                        (void)memset((void*)&offered_capabilities_single_value, 0, sizeof(offered_capabilities_single_value));
+                        get_single_value_result = 1;
+                    }
+
+                    if ((amqpvalue_get_array(item_value, offered_capabilities_value) != 0) &&
+                        (get_single_value_result != 0))
                     {
                         result = __FAILURE__;
                     }
                     else
                     {
-                        result = 0;
+                        if (amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY)
+                        {
+                            *offered_capabilities_value = amqpvalue_create_array();
+                            if (*offered_capabilities_value == NULL)
+                            {
+                                result = __FAILURE__;
+                            }
+                            else
+                            {
+                                AMQP_VALUE single_amqp_value = amqpvalue_create_symbol(offered_capabilities_single_value);
+                                if (single_amqp_value == NULL)
+                                {
+                                    amqpvalue_destroy(*offered_capabilities_value);
+                                    result = __FAILURE__;
+                                }
+                                else
+                                {
+                                    if (amqpvalue_add_array_item(*offered_capabilities_value, single_amqp_value) != 0)
+                                    {
+                                        amqpvalue_destroy(*offered_capabilities_value);
+                                        amqpvalue_destroy(single_amqp_value);
+                                        result = __FAILURE__;
+                                    }
+                                    else
+                                    {
+                                        result = 0;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            result = 0;
+                        }
                     }
                 }
             }
@@ -2934,13 +3176,59 @@ int begin_get_desired_capabilities(BEGIN_HANDLE begin, AMQP_VALUE* desired_capab
                 }
                 else
                 {
-                    if (amqpvalue_get_array(item_value, desired_capabilities_value) != 0)
+                    const char* desired_capabilities_single_value;
+                    int get_single_value_result;
+                    if (amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY)
+                    {
+                        get_single_value_result = amqpvalue_get_symbol(item_value, &desired_capabilities_single_value);
+                    }
+                    else
+                    {
+                        (void)memset((void*)&desired_capabilities_single_value, 0, sizeof(desired_capabilities_single_value));
+                        get_single_value_result = 1;
+                    }
+
+                    if ((amqpvalue_get_array(item_value, desired_capabilities_value) != 0) &&
+                        (get_single_value_result != 0))
                     {
                         result = __FAILURE__;
                     }
                     else
                     {
-                        result = 0;
+                        if (amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY)
+                        {
+                            *desired_capabilities_value = amqpvalue_create_array();
+                            if (*desired_capabilities_value == NULL)
+                            {
+                                result = __FAILURE__;
+                            }
+                            else
+                            {
+                                AMQP_VALUE single_amqp_value = amqpvalue_create_symbol(desired_capabilities_single_value);
+                                if (single_amqp_value == NULL)
+                                {
+                                    amqpvalue_destroy(*desired_capabilities_value);
+                                    result = __FAILURE__;
+                                }
+                                else
+                                {
+                                    if (amqpvalue_add_array_item(*desired_capabilities_value, single_amqp_value) != 0)
+                                    {
+                                        amqpvalue_destroy(*desired_capabilities_value);
+                                        amqpvalue_destroy(single_amqp_value);
+                                        result = __FAILURE__;
+                                    }
+                                    else
+                                    {
+                                        result = 0;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            result = 0;
+                        }
                     }
                 }
             }
@@ -3024,7 +3312,8 @@ int begin_get_properties(BEGIN_HANDLE begin, fields* properties_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_fields(item_value, properties_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_fields(item_value, properties_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -3642,7 +3931,7 @@ int amqpvalue_get_attach(AMQP_VALUE value, ATTACH_HANDLE* attach_handle)
                     attach_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while (0);
+                } while((void)0,0);
             }
         }
     }
@@ -3682,7 +3971,8 @@ int attach_get_name(ATTACH_HANDLE attach, const char** name_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_string(item_value, name_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_string(item_value, name_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -3764,7 +4054,8 @@ int attach_get_handle(ATTACH_HANDLE attach, handle* handle_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_handle(item_value, handle_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_handle(item_value, handle_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -3846,7 +4137,8 @@ int attach_get_role(ATTACH_HANDLE attach, role* role_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_role(item_value, role_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_role(item_value, role_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -3930,7 +4222,8 @@ int attach_get_snd_settle_mode(ATTACH_HANDLE attach, sender_settle_mode* snd_set
                 }
                 else
                 {
-                    if (amqpvalue_get_sender_settle_mode(item_value, snd_settle_mode_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_sender_settle_mode(item_value, snd_settle_mode_value)) != 0)
                     {
                         if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                         {
@@ -4022,7 +4315,8 @@ int attach_get_rcv_settle_mode(ATTACH_HANDLE attach, receiver_settle_mode* rcv_s
                 }
                 else
                 {
-                    if (amqpvalue_get_receiver_settle_mode(item_value, rcv_settle_mode_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_receiver_settle_mode(item_value, rcv_settle_mode_value)) != 0)
                     {
                         if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                         {
@@ -4280,7 +4574,8 @@ int attach_get_unsettled(ATTACH_HANDLE attach, AMQP_VALUE* unsettled_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_map(item_value, unsettled_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_map(item_value, unsettled_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -4372,7 +4667,8 @@ int attach_get_incomplete_unsettled(ATTACH_HANDLE attach, bool* incomplete_unset
                 }
                 else
                 {
-                    if (amqpvalue_get_boolean(item_value, incomplete_unsettled_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_boolean(item_value, incomplete_unsettled_value)) != 0)
                     {
                         if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                         {
@@ -4462,7 +4758,8 @@ int attach_get_initial_delivery_count(ATTACH_HANDLE attach, sequence_no* initial
                 }
                 else
                 {
-                    if (amqpvalue_get_sequence_no(item_value, initial_delivery_count_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_sequence_no(item_value, initial_delivery_count_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -4544,7 +4841,8 @@ int attach_get_max_message_size(ATTACH_HANDLE attach, uint64_t* max_message_size
                 }
                 else
                 {
-                    if (amqpvalue_get_ulong(item_value, max_message_size_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_ulong(item_value, max_message_size_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -4626,13 +4924,59 @@ int attach_get_offered_capabilities(ATTACH_HANDLE attach, AMQP_VALUE* offered_ca
                 }
                 else
                 {
-                    if (amqpvalue_get_array(item_value, offered_capabilities_value) != 0)
+                    const char* offered_capabilities_single_value;
+                    int get_single_value_result;
+                    if (amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY)
+                    {
+                        get_single_value_result = amqpvalue_get_symbol(item_value, &offered_capabilities_single_value);
+                    }
+                    else
+                    {
+                        (void)memset((void*)&offered_capabilities_single_value, 0, sizeof(offered_capabilities_single_value));
+                        get_single_value_result = 1;
+                    }
+
+                    if ((amqpvalue_get_array(item_value, offered_capabilities_value) != 0) &&
+                        (get_single_value_result != 0))
                     {
                         result = __FAILURE__;
                     }
                     else
                     {
-                        result = 0;
+                        if (amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY)
+                        {
+                            *offered_capabilities_value = amqpvalue_create_array();
+                            if (*offered_capabilities_value == NULL)
+                            {
+                                result = __FAILURE__;
+                            }
+                            else
+                            {
+                                AMQP_VALUE single_amqp_value = amqpvalue_create_symbol(offered_capabilities_single_value);
+                                if (single_amqp_value == NULL)
+                                {
+                                    amqpvalue_destroy(*offered_capabilities_value);
+                                    result = __FAILURE__;
+                                }
+                                else
+                                {
+                                    if (amqpvalue_add_array_item(*offered_capabilities_value, single_amqp_value) != 0)
+                                    {
+                                        amqpvalue_destroy(*offered_capabilities_value);
+                                        amqpvalue_destroy(single_amqp_value);
+                                        result = __FAILURE__;
+                                    }
+                                    else
+                                    {
+                                        result = 0;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            result = 0;
+                        }
                     }
                 }
             }
@@ -4716,13 +5060,59 @@ int attach_get_desired_capabilities(ATTACH_HANDLE attach, AMQP_VALUE* desired_ca
                 }
                 else
                 {
-                    if (amqpvalue_get_array(item_value, desired_capabilities_value) != 0)
+                    const char* desired_capabilities_single_value;
+                    int get_single_value_result;
+                    if (amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY)
+                    {
+                        get_single_value_result = amqpvalue_get_symbol(item_value, &desired_capabilities_single_value);
+                    }
+                    else
+                    {
+                        (void)memset((void*)&desired_capabilities_single_value, 0, sizeof(desired_capabilities_single_value));
+                        get_single_value_result = 1;
+                    }
+
+                    if ((amqpvalue_get_array(item_value, desired_capabilities_value) != 0) &&
+                        (get_single_value_result != 0))
                     {
                         result = __FAILURE__;
                     }
                     else
                     {
-                        result = 0;
+                        if (amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY)
+                        {
+                            *desired_capabilities_value = amqpvalue_create_array();
+                            if (*desired_capabilities_value == NULL)
+                            {
+                                result = __FAILURE__;
+                            }
+                            else
+                            {
+                                AMQP_VALUE single_amqp_value = amqpvalue_create_symbol(desired_capabilities_single_value);
+                                if (single_amqp_value == NULL)
+                                {
+                                    amqpvalue_destroy(*desired_capabilities_value);
+                                    result = __FAILURE__;
+                                }
+                                else
+                                {
+                                    if (amqpvalue_add_array_item(*desired_capabilities_value, single_amqp_value) != 0)
+                                    {
+                                        amqpvalue_destroy(*desired_capabilities_value);
+                                        amqpvalue_destroy(single_amqp_value);
+                                        result = __FAILURE__;
+                                    }
+                                    else
+                                    {
+                                        result = 0;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            result = 0;
+                        }
                     }
                 }
             }
@@ -4806,7 +5196,8 @@ int attach_get_properties(ATTACH_HANDLE attach, fields* properties_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_fields(item_value, properties_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_fields(item_value, properties_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -5365,7 +5756,7 @@ int amqpvalue_get_flow(AMQP_VALUE value, FLOW_HANDLE* flow_handle)
                     flow_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while (0);
+                } while((void)0,0);
             }
         }
     }
@@ -5405,7 +5796,8 @@ int flow_get_next_incoming_id(FLOW_HANDLE flow, transfer_number* next_incoming_i
                 }
                 else
                 {
-                    if (amqpvalue_get_transfer_number(item_value, next_incoming_id_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_transfer_number(item_value, next_incoming_id_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -5487,7 +5879,8 @@ int flow_get_incoming_window(FLOW_HANDLE flow, uint32_t* incoming_window_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_uint(item_value, incoming_window_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_uint(item_value, incoming_window_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -5569,7 +5962,8 @@ int flow_get_next_outgoing_id(FLOW_HANDLE flow, transfer_number* next_outgoing_i
                 }
                 else
                 {
-                    if (amqpvalue_get_transfer_number(item_value, next_outgoing_id_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_transfer_number(item_value, next_outgoing_id_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -5651,7 +6045,8 @@ int flow_get_outgoing_window(FLOW_HANDLE flow, uint32_t* outgoing_window_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_uint(item_value, outgoing_window_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_uint(item_value, outgoing_window_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -5733,7 +6128,8 @@ int flow_get_handle(FLOW_HANDLE flow, handle* handle_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_handle(item_value, handle_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_handle(item_value, handle_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -5815,7 +6211,8 @@ int flow_get_delivery_count(FLOW_HANDLE flow, sequence_no* delivery_count_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_sequence_no(item_value, delivery_count_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_sequence_no(item_value, delivery_count_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -5897,7 +6294,8 @@ int flow_get_link_credit(FLOW_HANDLE flow, uint32_t* link_credit_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_uint(item_value, link_credit_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_uint(item_value, link_credit_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -5979,7 +6377,8 @@ int flow_get_available(FLOW_HANDLE flow, uint32_t* available_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_uint(item_value, available_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_uint(item_value, available_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -6063,7 +6462,8 @@ int flow_get_drain(FLOW_HANDLE flow, bool* drain_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_boolean(item_value, drain_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_boolean(item_value, drain_value)) != 0)
                     {
                         if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                         {
@@ -6155,7 +6555,8 @@ int flow_get_echo(FLOW_HANDLE flow, bool* echo_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_boolean(item_value, echo_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_boolean(item_value, echo_value)) != 0)
                     {
                         if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                         {
@@ -6245,7 +6646,8 @@ int flow_get_properties(FLOW_HANDLE flow, fields* properties_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_fields(item_value, properties_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_fields(item_value, properties_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -6752,7 +7154,7 @@ int amqpvalue_get_transfer(AMQP_VALUE value, TRANSFER_HANDLE* transfer_handle)
                     transfer_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while (0);
+                } while((void)0,0);
             }
         }
     }
@@ -6792,7 +7194,8 @@ int transfer_get_handle(TRANSFER_HANDLE transfer, handle* handle_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_handle(item_value, handle_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_handle(item_value, handle_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -6874,7 +7277,8 @@ int transfer_get_delivery_id(TRANSFER_HANDLE transfer, delivery_number* delivery
                 }
                 else
                 {
-                    if (amqpvalue_get_delivery_number(item_value, delivery_id_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_delivery_number(item_value, delivery_id_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -6956,7 +7360,8 @@ int transfer_get_delivery_tag(TRANSFER_HANDLE transfer, delivery_tag* delivery_t
                 }
                 else
                 {
-                    if (amqpvalue_get_delivery_tag(item_value, delivery_tag_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_delivery_tag(item_value, delivery_tag_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -7038,7 +7443,8 @@ int transfer_get_message_format(TRANSFER_HANDLE transfer, message_format* messag
                 }
                 else
                 {
-                    if (amqpvalue_get_message_format(item_value, message_format_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_message_format(item_value, message_format_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -7120,7 +7526,8 @@ int transfer_get_settled(TRANSFER_HANDLE transfer, bool* settled_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_boolean(item_value, settled_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_boolean(item_value, settled_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -7204,7 +7611,8 @@ int transfer_get_more(TRANSFER_HANDLE transfer, bool* more_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_boolean(item_value, more_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_boolean(item_value, more_value)) != 0)
                     {
                         if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                         {
@@ -7294,7 +7702,8 @@ int transfer_get_rcv_settle_mode(TRANSFER_HANDLE transfer, receiver_settle_mode*
                 }
                 else
                 {
-                    if (amqpvalue_get_receiver_settle_mode(item_value, rcv_settle_mode_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_receiver_settle_mode(item_value, rcv_settle_mode_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -7462,7 +7871,8 @@ int transfer_get_resume(TRANSFER_HANDLE transfer, bool* resume_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_boolean(item_value, resume_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_boolean(item_value, resume_value)) != 0)
                     {
                         if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                         {
@@ -7554,7 +7964,8 @@ int transfer_get_aborted(TRANSFER_HANDLE transfer, bool* aborted_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_boolean(item_value, aborted_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_boolean(item_value, aborted_value)) != 0)
                     {
                         if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                         {
@@ -7646,7 +8057,8 @@ int transfer_get_batchable(TRANSFER_HANDLE transfer, bool* batchable_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_boolean(item_value, batchable_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_boolean(item_value, batchable_value)) != 0)
                     {
                         if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                         {
@@ -8034,7 +8446,7 @@ int amqpvalue_get_disposition(AMQP_VALUE value, DISPOSITION_HANDLE* disposition_
                     disposition_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while (0);
+                } while((void)0,0);
             }
         }
     }
@@ -8074,7 +8486,8 @@ int disposition_get_role(DISPOSITION_HANDLE disposition, role* role_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_role(item_value, role_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_role(item_value, role_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -8156,7 +8569,8 @@ int disposition_get_first(DISPOSITION_HANDLE disposition, delivery_number* first
                 }
                 else
                 {
-                    if (amqpvalue_get_delivery_number(item_value, first_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_delivery_number(item_value, first_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -8238,7 +8652,8 @@ int disposition_get_last(DISPOSITION_HANDLE disposition, delivery_number* last_v
                 }
                 else
                 {
-                    if (amqpvalue_get_delivery_number(item_value, last_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_delivery_number(item_value, last_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -8322,7 +8737,8 @@ int disposition_get_settled(DISPOSITION_HANDLE disposition, bool* settled_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_boolean(item_value, settled_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_boolean(item_value, settled_value)) != 0)
                     {
                         if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                         {
@@ -8498,7 +8914,8 @@ int disposition_get_batchable(DISPOSITION_HANDLE disposition, bool* batchable_va
                 }
                 else
                 {
-                    if (amqpvalue_get_boolean(item_value, batchable_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_boolean(item_value, batchable_value)) != 0)
                     {
                         if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                         {
@@ -8801,7 +9218,7 @@ int amqpvalue_get_detach(AMQP_VALUE value, DETACH_HANDLE* detach_handle)
                     detach_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while (0);
+                } while((void)0,0);
             }
         }
     }
@@ -8841,7 +9258,8 @@ int detach_get_handle(DETACH_HANDLE detach, handle* handle_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_handle(item_value, handle_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_handle(item_value, handle_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -8925,7 +9343,8 @@ int detach_get_closed(DETACH_HANDLE detach, bool* closed_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_boolean(item_value, closed_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_boolean(item_value, closed_value)) != 0)
                     {
                         if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                         {
@@ -9015,7 +9434,8 @@ int detach_get_error(DETACH_HANDLE detach, ERROR_HANDLE* error_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_error(item_value, error_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_error(item_value, error_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -9228,7 +9648,7 @@ int amqpvalue_get_end(AMQP_VALUE value, END_HANDLE* end_handle)
                     end_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while (0);
+                } while((void)0,0);
             }
         }
     }
@@ -9268,7 +9688,8 @@ int end_get_error(END_HANDLE end, ERROR_HANDLE* error_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_error(item_value, error_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_error(item_value, error_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -9481,7 +9902,7 @@ int amqpvalue_get_close(AMQP_VALUE value, CLOSE_HANDLE* close_handle)
                     close_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while (0);
+                } while((void)0,0);
             }
         }
     }
@@ -9521,7 +9942,8 @@ int close_get_error(CLOSE_HANDLE close, ERROR_HANDLE* error_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_error(item_value, error_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_error(item_value, error_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -9763,7 +10185,7 @@ int amqpvalue_get_sasl_mechanisms(AMQP_VALUE value, SASL_MECHANISMS_HANDLE* sasl
                     sasl_mechanisms_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while (0);
+                } while((void)0,0);
             }
         }
     }
@@ -9803,13 +10225,59 @@ int sasl_mechanisms_get_sasl_server_mechanisms(SASL_MECHANISMS_HANDLE sasl_mecha
                 }
                 else
                 {
-                    if (amqpvalue_get_array(item_value, sasl_server_mechanisms_value) != 0)
+                    const char* sasl_server_mechanisms_single_value;
+                    int get_single_value_result;
+                    if (amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY)
+                    {
+                        get_single_value_result = amqpvalue_get_symbol(item_value, &sasl_server_mechanisms_single_value);
+                    }
+                    else
+                    {
+                        (void)memset((void*)&sasl_server_mechanisms_single_value, 0, sizeof(sasl_server_mechanisms_single_value));
+                        get_single_value_result = 1;
+                    }
+
+                    if ((amqpvalue_get_array(item_value, sasl_server_mechanisms_value) != 0) &&
+                        (get_single_value_result != 0))
                     {
                         result = __FAILURE__;
                     }
                     else
                     {
-                        result = 0;
+                        if (amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY)
+                        {
+                            *sasl_server_mechanisms_value = amqpvalue_create_array();
+                            if (*sasl_server_mechanisms_value == NULL)
+                            {
+                                result = __FAILURE__;
+                            }
+                            else
+                            {
+                                AMQP_VALUE single_amqp_value = amqpvalue_create_symbol(sasl_server_mechanisms_single_value);
+                                if (single_amqp_value == NULL)
+                                {
+                                    amqpvalue_destroy(*sasl_server_mechanisms_value);
+                                    result = __FAILURE__;
+                                }
+                                else
+                                {
+                                    if (amqpvalue_add_array_item(*sasl_server_mechanisms_value, single_amqp_value) != 0)
+                                    {
+                                        amqpvalue_destroy(*sasl_server_mechanisms_value);
+                                        amqpvalue_destroy(single_amqp_value);
+                                        result = __FAILURE__;
+                                    }
+                                    else
+                                    {
+                                        result = 0;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            result = 0;
+                        }
                     }
                 }
             }
@@ -10102,7 +10570,7 @@ int amqpvalue_get_sasl_init(AMQP_VALUE value, SASL_INIT_HANDLE* sasl_init_handle
                     sasl_init_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while (0);
+                } while((void)0,0);
             }
         }
     }
@@ -10142,7 +10610,8 @@ int sasl_init_get_mechanism(SASL_INIT_HANDLE sasl_init, const char** mechanism_v
                 }
                 else
                 {
-                    if (amqpvalue_get_symbol(item_value, mechanism_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_symbol(item_value, mechanism_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -10224,7 +10693,8 @@ int sasl_init_get_initial_response(SASL_INIT_HANDLE sasl_init, amqp_binary* init
                 }
                 else
                 {
-                    if (amqpvalue_get_binary(item_value, initial_response_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_binary(item_value, initial_response_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -10306,7 +10776,8 @@ int sasl_init_get_hostname(SASL_INIT_HANDLE sasl_init, const char** hostname_val
                 }
                 else
                 {
-                    if (amqpvalue_get_string(item_value, hostname_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_string(item_value, hostname_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -10539,7 +11010,7 @@ int amqpvalue_get_sasl_challenge(AMQP_VALUE value, SASL_CHALLENGE_HANDLE* sasl_c
                     sasl_challenge_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while (0);
+                } while((void)0,0);
             }
         }
     }
@@ -10579,7 +11050,8 @@ int sasl_challenge_get_challenge(SASL_CHALLENGE_HANDLE sasl_challenge, amqp_bina
                 }
                 else
                 {
-                    if (amqpvalue_get_binary(item_value, challenge_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_binary(item_value, challenge_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -10812,7 +11284,7 @@ int amqpvalue_get_sasl_response(AMQP_VALUE value, SASL_RESPONSE_HANDLE* sasl_res
                     sasl_response_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while (0);
+                } while((void)0,0);
             }
         }
     }
@@ -10852,7 +11324,8 @@ int sasl_response_get_response(SASL_RESPONSE_HANDLE sasl_response, amqp_binary* 
                 }
                 else
                 {
-                    if (amqpvalue_get_binary(item_value, response_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_binary(item_value, response_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -11114,7 +11587,7 @@ int amqpvalue_get_sasl_outcome(AMQP_VALUE value, SASL_OUTCOME_HANDLE* sasl_outco
                     sasl_outcome_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while (0);
+                } while((void)0,0);
             }
         }
     }
@@ -11154,7 +11627,8 @@ int sasl_outcome_get_code(SASL_OUTCOME_HANDLE sasl_outcome, sasl_code* code_valu
                 }
                 else
                 {
-                    if (amqpvalue_get_sasl_code(item_value, code_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_sasl_code(item_value, code_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -11236,7 +11710,8 @@ int sasl_outcome_get_additional_data(SASL_OUTCOME_HANDLE sasl_outcome, amqp_bina
                 }
                 else
                 {
-                    if (amqpvalue_get_binary(item_value, additional_data_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_binary(item_value, additional_data_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -11735,7 +12210,7 @@ int amqpvalue_get_source(AMQP_VALUE value, SOURCE_HANDLE* source_handle)
                     source_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while (0);
+                } while((void)0,0);
             }
         }
     }
@@ -11861,7 +12336,8 @@ int source_get_durable(SOURCE_HANDLE source, terminus_durability* durable_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_terminus_durability(item_value, durable_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_terminus_durability(item_value, durable_value)) != 0)
                     {
                         if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                         {
@@ -11953,7 +12429,8 @@ int source_get_expiry_policy(SOURCE_HANDLE source, terminus_expiry_policy* expir
                 }
                 else
                 {
-                    if (amqpvalue_get_terminus_expiry_policy(item_value, expiry_policy_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_terminus_expiry_policy(item_value, expiry_policy_value)) != 0)
                     {
                         if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                         {
@@ -12045,7 +12522,8 @@ int source_get_timeout(SOURCE_HANDLE source, seconds* timeout_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_seconds(item_value, timeout_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_seconds(item_value, timeout_value)) != 0)
                     {
                         if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                         {
@@ -12137,7 +12615,8 @@ int source_get_dynamic(SOURCE_HANDLE source, bool* dynamic_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_boolean(item_value, dynamic_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_boolean(item_value, dynamic_value)) != 0)
                     {
                         if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                         {
@@ -12227,7 +12706,8 @@ int source_get_dynamic_node_properties(SOURCE_HANDLE source, node_properties* dy
                 }
                 else
                 {
-                    if (amqpvalue_get_node_properties(item_value, dynamic_node_properties_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_node_properties(item_value, dynamic_node_properties_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -12309,7 +12789,8 @@ int source_get_distribution_mode(SOURCE_HANDLE source, const char** distribution
                 }
                 else
                 {
-                    if (amqpvalue_get_symbol(item_value, distribution_mode_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_symbol(item_value, distribution_mode_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -12391,7 +12872,8 @@ int source_get_filter(SOURCE_HANDLE source, filter_set* filter_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_filter_set(item_value, filter_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_filter_set(item_value, filter_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -12557,13 +13039,59 @@ int source_get_outcomes(SOURCE_HANDLE source, AMQP_VALUE* outcomes_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_array(item_value, outcomes_value) != 0)
+                    const char* outcomes_single_value;
+                    int get_single_value_result;
+                    if (amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY)
+                    {
+                        get_single_value_result = amqpvalue_get_symbol(item_value, &outcomes_single_value);
+                    }
+                    else
+                    {
+                        (void)memset((void*)&outcomes_single_value, 0, sizeof(outcomes_single_value));
+                        get_single_value_result = 1;
+                    }
+
+                    if ((amqpvalue_get_array(item_value, outcomes_value) != 0) &&
+                        (get_single_value_result != 0))
                     {
                         result = __FAILURE__;
                     }
                     else
                     {
-                        result = 0;
+                        if (amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY)
+                        {
+                            *outcomes_value = amqpvalue_create_array();
+                            if (*outcomes_value == NULL)
+                            {
+                                result = __FAILURE__;
+                            }
+                            else
+                            {
+                                AMQP_VALUE single_amqp_value = amqpvalue_create_symbol(outcomes_single_value);
+                                if (single_amqp_value == NULL)
+                                {
+                                    amqpvalue_destroy(*outcomes_value);
+                                    result = __FAILURE__;
+                                }
+                                else
+                                {
+                                    if (amqpvalue_add_array_item(*outcomes_value, single_amqp_value) != 0)
+                                    {
+                                        amqpvalue_destroy(*outcomes_value);
+                                        amqpvalue_destroy(single_amqp_value);
+                                        result = __FAILURE__;
+                                    }
+                                    else
+                                    {
+                                        result = 0;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            result = 0;
+                        }
                     }
                 }
             }
@@ -12647,13 +13175,59 @@ int source_get_capabilities(SOURCE_HANDLE source, AMQP_VALUE* capabilities_value
                 }
                 else
                 {
-                    if (amqpvalue_get_array(item_value, capabilities_value) != 0)
+                    const char* capabilities_single_value;
+                    int get_single_value_result;
+                    if (amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY)
+                    {
+                        get_single_value_result = amqpvalue_get_symbol(item_value, &capabilities_single_value);
+                    }
+                    else
+                    {
+                        (void)memset((void*)&capabilities_single_value, 0, sizeof(capabilities_single_value));
+                        get_single_value_result = 1;
+                    }
+
+                    if ((amqpvalue_get_array(item_value, capabilities_value) != 0) &&
+                        (get_single_value_result != 0))
                     {
                         result = __FAILURE__;
                     }
                     else
                     {
-                        result = 0;
+                        if (amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY)
+                        {
+                            *capabilities_value = amqpvalue_create_array();
+                            if (*capabilities_value == NULL)
+                            {
+                                result = __FAILURE__;
+                            }
+                            else
+                            {
+                                AMQP_VALUE single_amqp_value = amqpvalue_create_symbol(capabilities_single_value);
+                                if (single_amqp_value == NULL)
+                                {
+                                    amqpvalue_destroy(*capabilities_value);
+                                    result = __FAILURE__;
+                                }
+                                else
+                                {
+                                    if (amqpvalue_add_array_item(*capabilities_value, single_amqp_value) != 0)
+                                    {
+                                        amqpvalue_destroy(*capabilities_value);
+                                        amqpvalue_destroy(single_amqp_value);
+                                        result = __FAILURE__;
+                                    }
+                                    else
+                                    {
+                                        result = 0;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            result = 0;
+                        }
                     }
                 }
             }
@@ -13024,7 +13598,7 @@ int amqpvalue_get_target(AMQP_VALUE value, TARGET_HANDLE* target_handle)
                     target_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while (0);
+                } while((void)0,0);
             }
         }
     }
@@ -13150,7 +13724,8 @@ int target_get_durable(TARGET_HANDLE target, terminus_durability* durable_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_terminus_durability(item_value, durable_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_terminus_durability(item_value, durable_value)) != 0)
                     {
                         if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                         {
@@ -13242,7 +13817,8 @@ int target_get_expiry_policy(TARGET_HANDLE target, terminus_expiry_policy* expir
                 }
                 else
                 {
-                    if (amqpvalue_get_terminus_expiry_policy(item_value, expiry_policy_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_terminus_expiry_policy(item_value, expiry_policy_value)) != 0)
                     {
                         if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                         {
@@ -13334,7 +13910,8 @@ int target_get_timeout(TARGET_HANDLE target, seconds* timeout_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_seconds(item_value, timeout_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_seconds(item_value, timeout_value)) != 0)
                     {
                         if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                         {
@@ -13426,7 +14003,8 @@ int target_get_dynamic(TARGET_HANDLE target, bool* dynamic_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_boolean(item_value, dynamic_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_boolean(item_value, dynamic_value)) != 0)
                     {
                         if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                         {
@@ -13516,7 +14094,8 @@ int target_get_dynamic_node_properties(TARGET_HANDLE target, node_properties* dy
                 }
                 else
                 {
-                    if (amqpvalue_get_node_properties(item_value, dynamic_node_properties_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_node_properties(item_value, dynamic_node_properties_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -13598,13 +14177,59 @@ int target_get_capabilities(TARGET_HANDLE target, AMQP_VALUE* capabilities_value
                 }
                 else
                 {
-                    if (amqpvalue_get_array(item_value, capabilities_value) != 0)
+                    const char* capabilities_single_value;
+                    int get_single_value_result;
+                    if (amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY)
+                    {
+                        get_single_value_result = amqpvalue_get_symbol(item_value, &capabilities_single_value);
+                    }
+                    else
+                    {
+                        (void)memset((void*)&capabilities_single_value, 0, sizeof(capabilities_single_value));
+                        get_single_value_result = 1;
+                    }
+
+                    if ((amqpvalue_get_array(item_value, capabilities_value) != 0) &&
+                        (get_single_value_result != 0))
                     {
                         result = __FAILURE__;
                     }
                     else
                     {
-                        result = 0;
+                        if (amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY)
+                        {
+                            *capabilities_value = amqpvalue_create_array();
+                            if (*capabilities_value == NULL)
+                            {
+                                result = __FAILURE__;
+                            }
+                            else
+                            {
+                                AMQP_VALUE single_amqp_value = amqpvalue_create_symbol(capabilities_single_value);
+                                if (single_amqp_value == NULL)
+                                {
+                                    amqpvalue_destroy(*capabilities_value);
+                                    result = __FAILURE__;
+                                }
+                                else
+                                {
+                                    if (amqpvalue_add_array_item(*capabilities_value, single_amqp_value) != 0)
+                                    {
+                                        amqpvalue_destroy(*capabilities_value);
+                                        amqpvalue_destroy(single_amqp_value);
+                                        result = __FAILURE__;
+                                    }
+                                    else
+                                    {
+                                        result = 0;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            result = 0;
+                        }
                     }
                 }
             }
@@ -13973,7 +14598,7 @@ int amqpvalue_get_header(AMQP_VALUE value, HEADER_HANDLE* header_handle)
                     header_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while (0);
+                } while((void)0,0);
             }
         }
     }
@@ -14015,7 +14640,8 @@ int header_get_durable(HEADER_HANDLE header, bool* durable_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_boolean(item_value, durable_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_boolean(item_value, durable_value)) != 0)
                     {
                         if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                         {
@@ -14107,7 +14733,8 @@ int header_get_priority(HEADER_HANDLE header, uint8_t* priority_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_ubyte(item_value, priority_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_ubyte(item_value, priority_value)) != 0)
                     {
                         if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                         {
@@ -14197,7 +14824,8 @@ int header_get_ttl(HEADER_HANDLE header, milliseconds* ttl_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_milliseconds(item_value, ttl_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_milliseconds(item_value, ttl_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -14281,7 +14909,8 @@ int header_get_first_acquirer(HEADER_HANDLE header, bool* first_acquirer_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_boolean(item_value, first_acquirer_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_boolean(item_value, first_acquirer_value)) != 0)
                     {
                         if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                         {
@@ -14373,7 +15002,8 @@ int header_get_delivery_count(HEADER_HANDLE header, uint32_t* delivery_count_val
                 }
                 else
                 {
-                    if (amqpvalue_get_uint(item_value, delivery_count_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_uint(item_value, delivery_count_value)) != 0)
                     {
                         if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                         {
@@ -15210,7 +15840,7 @@ int amqpvalue_get_properties(AMQP_VALUE value, PROPERTIES_HANDLE* properties_han
                     properties_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while (0);
+                } while((void)0,0);
             }
         }
     }
@@ -15334,7 +15964,8 @@ int properties_get_user_id(PROPERTIES_HANDLE properties, amqp_binary* user_id_va
                 }
                 else
                 {
-                    if (amqpvalue_get_binary(item_value, user_id_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_binary(item_value, user_id_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -15500,7 +16131,8 @@ int properties_get_subject(PROPERTIES_HANDLE properties, const char** subject_va
                 }
                 else
                 {
-                    if (amqpvalue_get_string(item_value, subject_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_string(item_value, subject_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -15750,7 +16382,8 @@ int properties_get_content_type(PROPERTIES_HANDLE properties, const char** conte
                 }
                 else
                 {
-                    if (amqpvalue_get_symbol(item_value, content_type_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_symbol(item_value, content_type_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -15832,7 +16465,8 @@ int properties_get_content_encoding(PROPERTIES_HANDLE properties, const char** c
                 }
                 else
                 {
-                    if (amqpvalue_get_symbol(item_value, content_encoding_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_symbol(item_value, content_encoding_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -15914,7 +16548,8 @@ int properties_get_absolute_expiry_time(PROPERTIES_HANDLE properties, timestamp*
                 }
                 else
                 {
-                    if (amqpvalue_get_timestamp(item_value, absolute_expiry_time_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_timestamp(item_value, absolute_expiry_time_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -15996,7 +16631,8 @@ int properties_get_creation_time(PROPERTIES_HANDLE properties, timestamp* creati
                 }
                 else
                 {
-                    if (amqpvalue_get_timestamp(item_value, creation_time_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_timestamp(item_value, creation_time_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -16078,7 +16714,8 @@ int properties_get_group_id(PROPERTIES_HANDLE properties, const char** group_id_
                 }
                 else
                 {
-                    if (amqpvalue_get_string(item_value, group_id_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_string(item_value, group_id_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -16160,7 +16797,8 @@ int properties_get_group_sequence(PROPERTIES_HANDLE properties, sequence_no* gro
                 }
                 else
                 {
-                    if (amqpvalue_get_sequence_no(item_value, group_sequence_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_sequence_no(item_value, group_sequence_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -16242,7 +16880,8 @@ int properties_get_reply_to_group_id(PROPERTIES_HANDLE properties, const char** 
                 }
                 else
                 {
-                    if (amqpvalue_get_string(item_value, reply_to_group_id_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_string(item_value, reply_to_group_id_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -16522,7 +17161,7 @@ int amqpvalue_get_received(AMQP_VALUE value, RECEIVED_HANDLE* received_handle)
                     received_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while (0);
+                } while((void)0,0);
             }
         }
     }
@@ -16562,7 +17201,8 @@ int received_get_section_number(RECEIVED_HANDLE received, uint32_t* section_numb
                 }
                 else
                 {
-                    if (amqpvalue_get_uint(item_value, section_number_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_uint(item_value, section_number_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -16644,7 +17284,8 @@ int received_get_section_offset(RECEIVED_HANDLE received, uint64_t* section_offs
                 }
                 else
                 {
-                    if (amqpvalue_get_ulong(item_value, section_offset_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_ulong(item_value, section_offset_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -16823,7 +17464,7 @@ int amqpvalue_get_accepted(AMQP_VALUE value, ACCEPTED_HANDLE* accepted_handle)
                     accepted_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while (0);
+                } while((void)0,0);
             }
         }
     }
@@ -16994,7 +17635,7 @@ int amqpvalue_get_rejected(AMQP_VALUE value, REJECTED_HANDLE* rejected_handle)
                     rejected_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while (0);
+                } while((void)0,0);
             }
         }
     }
@@ -17034,7 +17675,8 @@ int rejected_get_error(REJECTED_HANDLE rejected, ERROR_HANDLE* error_value)
                 }
                 else
                 {
-                    if (amqpvalue_get_error(item_value, error_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_error(item_value, error_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -17213,7 +17855,7 @@ int amqpvalue_get_released(AMQP_VALUE value, RELEASED_HANDLE* released_handle)
                     released_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while (0);
+                } while((void)0,0);
             }
         }
     }
@@ -17438,7 +18080,7 @@ int amqpvalue_get_modified(AMQP_VALUE value, MODIFIED_HANDLE* modified_handle)
                     modified_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while (0);
+                } while((void)0,0);
             }
         }
     }
@@ -17478,7 +18120,8 @@ int modified_get_delivery_failed(MODIFIED_HANDLE modified, bool* delivery_failed
                 }
                 else
                 {
-                    if (amqpvalue_get_boolean(item_value, delivery_failed_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_boolean(item_value, delivery_failed_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -17560,7 +18203,8 @@ int modified_get_undeliverable_here(MODIFIED_HANDLE modified, bool* undeliverabl
                 }
                 else
                 {
-                    if (amqpvalue_get_boolean(item_value, undeliverable_here_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_boolean(item_value, undeliverable_here_value)) != 0)
                     {
                         result = __FAILURE__;
                     }
@@ -17642,7 +18286,8 @@ int modified_get_message_annotations(MODIFIED_HANDLE modified, fields* message_a
                 }
                 else
                 {
-                    if (amqpvalue_get_fields(item_value, message_annotations_value) != 0)
+                    int get_single_value_result;
+                    if ((get_single_value_result = amqpvalue_get_fields(item_value, message_annotations_value)) != 0)
                     {
                         result = __FAILURE__;
                     }

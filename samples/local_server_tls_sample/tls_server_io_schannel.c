@@ -58,8 +58,8 @@ typedef struct TLS_IO_INSTANCE_TAG
     void* on_io_error_context;
     CtxtHandle security_context;
     TLS_SERVER_IO_STATE tlsio_state;
-	SEC_TCHAR* host_name;
-	CredHandle credential_handle;
+    SEC_TCHAR* host_name;
+    CredHandle credential_handle;
     bool credential_handle_allocated;
     unsigned char* received_bytes;
     size_t received_byte_count;
@@ -69,7 +69,7 @@ typedef struct TLS_IO_INSTANCE_TAG
     char* x509privatekey;
     X509_SCHANNEL_HANDLE x509_schannel_handle;
     SINGLYLINKEDLIST_HANDLE pending_io_list;
-	PCCERT_CONTEXT cert_context;
+    PCCERT_CONTEXT cert_context;
 } TLS_IO_INSTANCE;
 
 static int tls_server_io_schannel_setoption(CONCRETE_IO_HANDLE tls_io, const char* optionName, const void* value);
@@ -89,7 +89,7 @@ static void* tls_server_io_schannel_CloneOption(const char* name, const void* va
     {
         if (strcmp(name, "x509certificate") == 0)
         {
-			if (mallocAndStrcpy_s((char**)&result, (const char *) value) != 0)
+            if (mallocAndStrcpy_s((char**)&result, (const char *) value) != 0)
             {
                 LogError("unable to mallocAndStrcpy_s x509certificate value");
                 result = NULL;
@@ -101,7 +101,7 @@ static void* tls_server_io_schannel_CloneOption(const char* name, const void* va
         }
         else if (strcmp(name, "x509privatekey") == 0)
         {
-			if (mallocAndStrcpy_s((char**)&result, (const char *) value) != 0)
+            if (mallocAndStrcpy_s((char**)&result, (const char *) value) != 0)
             {
                 LogError("unable to mallocAndStrcpy_s x509privatekey value");
                 result = NULL;
@@ -285,7 +285,7 @@ static void on_underlying_io_open_complete(void* context, IO_OPEN_RESULT io_open
             else
             {
 
-				certContext = tls_io_instance->cert_context;
+                certContext = tls_io_instance->cert_context;
                 auth_data.cCreds = 1;
                 auth_data.paCred = &certContext;
 
@@ -297,7 +297,7 @@ static void on_underlying_io_open_complete(void* context, IO_OPEN_RESULT io_open
 #if defined(SP_PROT_TLS1_2_SERVER)
             auth_data.grbitEnabledProtocols = SP_PROT_TLS1_2_SERVER;
 #else
-			auth_data.grbitEnabledProtocols = SP_PROT_TLS1_SERVER;
+            auth_data.grbitEnabledProtocols = SP_PROT_TLS1_SERVER;
 #endif
             auth_data.dwMinimumCipherStrength = 0;
             auth_data.dwMaximumCipherStrength = 0;
@@ -326,7 +326,7 @@ static int set_receive_buffer(TLS_IO_INSTANCE* tls_io_instance, size_t buffer_si
 {
     int result;
 
-	unsigned char* new_buffer = (unsigned char*) realloc(tls_io_instance->received_bytes, buffer_size);
+    unsigned char* new_buffer = (unsigned char*) realloc(tls_io_instance->received_bytes, buffer_size);
     if (new_buffer == NULL)
     {
         LogError("realloc failed");
@@ -652,7 +652,7 @@ static void on_underlying_io_bytes_received(void* context, const unsigned char* 
             {
                 SecBuffer security_buffers[4];
                 SecBufferDesc security_buffers_desc;
-				SECURITY_STATUS status;
+                SECURITY_STATUS status;
 
                 security_buffers[0].BufferType = SECBUFFER_DATA;
                 security_buffers[0].pvBuffer = tls_io_instance->received_bytes;
@@ -693,12 +693,12 @@ static void on_underlying_io_bytes_received(void* context, const unsigned char* 
                     }
                     else
                     {
-						size_t i;
+                        size_t i;
 
                         /* notify of the received data */
                         if (tls_io_instance->on_bytes_received != NULL)
                         {
-							tls_io_instance->on_bytes_received(tls_io_instance->on_bytes_received_context, (const unsigned char *) security_buffers[1].pvBuffer, security_buffers[1].cbBuffer);
+                            tls_io_instance->on_bytes_received(tls_io_instance->on_bytes_received_context, (const unsigned char *) security_buffers[1].pvBuffer, security_buffers[1].cbBuffer);
                         }
 
                         consumed_bytes = tls_io_instance->received_byte_count;
@@ -793,7 +793,7 @@ static void on_underlying_io_error(void* context)
 
 CONCRETE_IO_HANDLE tls_server_io_schannel_create(void* io_create_parameters)
 {
-	TLS_SERVER_IO_CONFIG* tls_server_io_config = (TLS_SERVER_IO_CONFIG*)io_create_parameters;
+    TLS_SERVER_IO_CONFIG* tls_server_io_config = (TLS_SERVER_IO_CONFIG*)io_create_parameters;
     TLS_IO_INSTANCE* result;
 
     if (tls_server_io_config == NULL)
@@ -803,18 +803,18 @@ CONCRETE_IO_HANDLE tls_server_io_schannel_create(void* io_create_parameters)
     }
     else
     {
-		result = (TLS_IO_INSTANCE*)malloc(sizeof(TLS_IO_INSTANCE));
+        result = (TLS_IO_INSTANCE*)malloc(sizeof(TLS_IO_INSTANCE));
         if (result == NULL)
         {
             LogError("malloc failed");
         }
         else
         {
-			HCERTSTORE cert_store_handle;
-			const IO_INTERFACE_DESCRIPTION* underlying_io_interface;
-			void* io_interface_parameters;
+            HCERTSTORE cert_store_handle;
+            const IO_INTERFACE_DESCRIPTION* underlying_io_interface;
+            void* io_interface_parameters;
 
-			result->on_bytes_received = NULL;
+            result->on_bytes_received = NULL;
             result->on_io_open_complete = NULL;
             result->on_io_close_complete = NULL;
             result->on_io_error = NULL;
@@ -826,34 +826,34 @@ CONCRETE_IO_HANDLE tls_server_io_schannel_create(void* io_create_parameters)
             result->x509_schannel_handle = NULL;
             result->needed_bytes = 0;
 
-			/* A cert store called "My" has to be available for use ...
-			This is because this is only used in a test now ... */
-			cert_store_handle = CertOpenStore(CERT_STORE_PROV_SYSTEM,
-				X509_ASN_ENCODING,
-				0,
-				CERT_SYSTEM_STORE_LOCAL_MACHINE,
-				L"MY");
+            /* A cert store called "My" has to be available for use ...
+            This is because this is only used in a test now ... */
+            cert_store_handle = CertOpenStore(CERT_STORE_PROV_SYSTEM,
+                X509_ASN_ENCODING,
+                0,
+                CERT_SYSTEM_STORE_LOCAL_MACHINE,
+                L"MY");
 
-			if (cert_store_handle == NULL)
-			{
-				result->cert_context = NULL;
-				LogError("Error opening store for server.");
-			}
-			else
-			{
-				result->cert_context = CertFindCertificateInStore(cert_store_handle,
-					X509_ASN_ENCODING,
-					0,
-					CERT_FIND_SUBJECT_STR_A,
-					"localhost", // use appropriate subject name
-					NULL
-				);
+            if (cert_store_handle == NULL)
+            {
+                result->cert_context = NULL;
+                LogError("Error opening store for server.");
+            }
+            else
+            {
+                result->cert_context = CertFindCertificateInStore(cert_store_handle,
+                    X509_ASN_ENCODING,
+                    0,
+                    CERT_FIND_SUBJECT_STR_A,
+                    "localhost", // use appropriate subject name
+                    NULL
+                );
 
-				if (!CertCloseStore(cert_store_handle, 0))
-				{
-					LogError("Error closing store.");
-				}
-			}
+                if (!CertCloseStore(cert_store_handle, 0))
+                {
+                    LogError("Error closing store.");
+                }
+            }
 
             underlying_io_interface = tls_server_io_config->underlying_io_interface;
             io_interface_parameters = tls_server_io_config->underlying_io_parameters;
@@ -908,7 +908,7 @@ void tls_server_io_schannel_destroy(CONCRETE_IO_HANDLE tls_io)
 {
     if (tls_io != NULL)
     {
-		LIST_ITEM_HANDLE first_pending_io;
+        LIST_ITEM_HANDLE first_pending_io;
         TLS_IO_INSTANCE* tls_io_instance = (TLS_IO_INSTANCE*)tls_io;
         if (tls_io_instance->credential_handle_allocated)
         {
@@ -963,13 +963,13 @@ void tls_server_io_schannel_destroy(CONCRETE_IO_HANDLE tls_io)
             }
         }
 
-		if (tls_io_instance->cert_context != NULL)
-		{
-			if (!CertFreeCertificateContext(tls_io_instance->cert_context))
-			{
-				LogError("Failure freeing certificate context");
-			}
-		}
+        if (tls_io_instance->cert_context != NULL)
+        {
+            if (!CertFreeCertificateContext(tls_io_instance->cert_context))
+            {
+                LogError("Failure freeing certificate context");
+            }
+        }
 
         singlylinkedlist_destroy(tls_io_instance->pending_io_list);
         free(tls_io);

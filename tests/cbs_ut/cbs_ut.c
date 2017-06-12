@@ -815,9 +815,9 @@ TEST_FUNCTION(cbs_close_when_not_open_fails)
 /* Tests_SRS_CBS_01_055: [ The `locales` argument shall be set to NULL. ]*/
 /* Tests_SRS_CBS_01_056: [ The `message` argument shall be the message constructed earlier according to the CBS spec. ]*/
 /* Tests_SRS_CBS_01_057: [ The arguments `on_execute_operation_complete` and `context` shall be set to a callback that is to be called by the AMQP management module when the operation is complete. ]*/
-/* Tests_SRS_CBS_01_005: [ operation	No	string	"put-token" ]*/
-/* Tests_SRS_CBS_01_006: [ Type	No	string	The type of the token being put, e.g., "amqp:jwt". ]*/
-/* Tests_SRS_CBS_01_007: [ name	No	string	The "audience" to which the token applies. ]*/
+/* Tests_SRS_CBS_01_005: [ operation    No    string    "put-token" ]*/
+/* Tests_SRS_CBS_01_006: [ Type    No    string    The type of the token being put, e.g., "amqp:jwt". ]*/
+/* Tests_SRS_CBS_01_007: [ name    No    string    The "audience" to which the token applies. ]*/
 /* Tests_SRS_CBS_01_009: [ The body of the message MUST contain the token. ]*/
 TEST_FUNCTION(cbs_put_token_async_creates_the_message_and_starts_the_amqp_management_operation)
 {
@@ -1055,7 +1055,7 @@ TEST_FUNCTION(when_any_underlying_call_fails_cbs_put_token_async_fails)
     {
         char tmp_msg[128];
 
-		if ((index == 7) ||
+        if ((index == 7) ||
             (index == 8))
         {
             continue;
@@ -1176,9 +1176,9 @@ TEST_FUNCTION(cbs_put_token_async_when_in_error_fails)
 /* Tests_SRS_CBS_01_066: [ The arguments `on_operation_complete` and `context` shall be set to a callback that is to be called by the AMQP management module when the operation is complete. ]*/
 /* Tests_SRS_CBS_01_020: [ To instruct a peer to delete a token associated with a specific audience, a "delete-token" message can be sent to the CBS Node ]*/
 /* Tests_SRS_CBS_01_021: [ The request message has the following application-properties: ]*/
-/* Tests_SRS_CBS_01_022: [ operation	Yes	string	"delete-token" ]*/
-/* Tests_SRS_CBS_01_023: [ Type	Yes	string	The type of the token being deleted, e.g., "amqp:jwt". ]*/
-/* Tests_SRS_CBS_01_024: [ name	Yes	string	The "audience" of the token being deleted. ]*/
+/* Tests_SRS_CBS_01_022: [ operation    Yes    string    "delete-token" ]*/
+/* Tests_SRS_CBS_01_023: [ Type    Yes    string    The type of the token being deleted, e.g., "amqp:jwt". ]*/
+/* Tests_SRS_CBS_01_024: [ name    Yes    string    The "audience" of the token being deleted. ]*/
 /* Tests_SRS_CBS_01_025: [ The body of the message MUST be empty. ]*/
 TEST_FUNCTION(cbs_delete_token_async_creates_the_message_and_starts_the_amqp_management_operation)
 {
@@ -1382,7 +1382,7 @@ TEST_FUNCTION(when_any_underlying_call_fails_cbs_delete_token_async_fails)
     {
         char tmp_msg[128];
 
-		if ((index == 5) ||
+        if ((index == 5) ||
             (index == 6))
         {
             continue;
@@ -1805,8 +1805,8 @@ TEST_FUNCTION(when_singlylinkedlist_item_get_value_fails_then_on_amqp_management
 /* Tests_SRS_CBS_01_102: [ The pending operation shall be removed from the pending operations list by calling `singlylinkedlist_remove`. ]*/
 /* Tests_SRS_CBS_01_096: [ The `context` for the operation shall also be freed. ]*/
 /* Tests_SRS_CBS_01_014: [ The response message has the following application-properties: ]*/
-/* Tests_SRS_CBS_01_013: [ status-code	No	int	HTTP response code [RFC2616]. ]*/
-/* Tests_SRS_CBS_01_015: [ status-description	Yes	string	Description of the status. ]*/
+/* Tests_SRS_CBS_01_013: [ status-code    No    int    HTTP response code [RFC2616]. ]*/
+/* Tests_SRS_CBS_01_015: [ status-description    Yes    string    Description of the status. ]*/
 /* Tests_SRS_CBS_01_016: [ The body of the message MUST be empty. ]*/
 TEST_FUNCTION(on_amqp_management_operation_complete_with_OK_triggers_the_cbs_operation_complete_with_OK)
 {
@@ -1929,8 +1929,8 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_INSTANCE_CLOSED_trigger
 /* Tests_SRS_CBS_01_102: [ The pending operation shall be removed from the pending operations list by calling `singlylinkedlist_remove`. ]*/
 /* Tests_SRS_CBS_01_096: [ The `context` for the operation shall also be freed. ]*/
 /* Tests_SRS_CBS_01_026: [ The response message has the following application-properties: ]*/
-/* Tests_SRS_CBS_01_027: [ status-code	Yes	int	HTTP response code [RFC2616]. ]*/
-/* Tests_SRS_CBS_01_028: [ status-description	No	string	Description of the status. ]*/
+/* Tests_SRS_CBS_01_027: [ status-code    Yes    int    HTTP response code [RFC2616]. ]*/
+/* Tests_SRS_CBS_01_028: [ status-description    No    string    Description of the status. ]*/
 /* Tests_SRS_CBS_01_029: [ The body of the message MUST be empty. ]*/
 TEST_FUNCTION(on_amqp_management_operation_complete_with_OK_for_delete_token_triggers_the_cbs_operation_complete_with_OK)
 {

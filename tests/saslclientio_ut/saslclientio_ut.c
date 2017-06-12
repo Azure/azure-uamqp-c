@@ -216,21 +216,21 @@ static int umocktypes_are_equal_SASL_MECHANISM_BYTES_ptr(SASL_MECHANISM_BYTES** 
 
 void stringify_bytes(const unsigned char* bytes, size_t byte_count, char* output_string)
 {
-	size_t i;
-	size_t pos = 0;
+    size_t i;
+    size_t pos = 0;
 
-	output_string[pos++] = '[';
-	for (i = 0; i < byte_count; i++)
-	{
-		(void)sprintf(&output_string[pos], "0x%02X", bytes[i]);
-		if (i < byte_count - 1)
-		{
-			strcat(output_string, ",");
-		}
-		pos = strlen(output_string);
-	}
-	output_string[pos++] = ']';
-	output_string[pos++] = '\0';
+    output_string[pos++] = '[';
+    for (i = 0; i < byte_count; i++)
+    {
+        (void)sprintf(&output_string[pos], "0x%02X", bytes[i]);
+        if (i < byte_count - 1)
+        {
+            strcat(output_string, ",");
+        }
+        pos = strlen(output_string);
+    }
+    output_string[pos++] = ']';
+    output_string[pos++] = '\0';
 }
 
 static const unsigned char test_challenge_bytes[] = { 0x42 };
@@ -427,37 +427,37 @@ TEST_FUNCTION_CLEANUP(method_cleanup)
 /* Tests_SRS_SASLCLIENTIO_01_084: [saslclientio_create shall create a sasl_frame_codec to be used for SASL frame encoding/decoding by calling sasl_frame_codec_create and passing the just created frame_codec as argument.] */
 TEST_FUNCTION(saslclientio_create_with_valid_args_succeeds)
 {
-	// arrange
+    // arrange
     CONCRETE_IO_HANDLE result;
     SASLCLIENTIO_CONFIG saslclientio_config;
     saslclientio_config.underlying_io = test_underlying_io;
     saslclientio_config.sasl_mechanism = test_sasl_mechanism;
 
-	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-	EXPECTED_CALL(frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-	EXPECTED_CALL(sasl_frame_codec_create(test_frame_codec, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.ValidateArgument(1);
+    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    EXPECTED_CALL(frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    EXPECTED_CALL(sasl_frame_codec_create(test_frame_codec, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .ValidateArgument(1);
 
-	// act
-	result = saslclientio_create(&saslclientio_config);
+    // act
+    result = saslclientio_create(&saslclientio_config);
 
-	// assert
-	ASSERT_IS_NOT_NULL(result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_IS_NOT_NULL(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(result);
+    // cleanup
+    saslclientio_destroy(result);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_005: [If xio_create_parameters is NULL, saslclientio_create shall fail and return NULL.] */
 TEST_FUNCTION(saslclientio_create_with_NULL_config_fails)
 {
-	// arrange
+    // arrange
 
-	// act
-	CONCRETE_IO_HANDLE result = saslclientio_create(NULL);
+    // act
+    CONCRETE_IO_HANDLE result = saslclientio_create(NULL);
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
     ASSERT_IS_NULL(result);
 }
@@ -465,19 +465,19 @@ TEST_FUNCTION(saslclientio_create_with_NULL_config_fails)
 /* Tests_SRS_SASLCLIENTIO_01_006: [If memory cannot be allocated for the new instance, saslclientio_create shall fail and return NULL.] */
 TEST_FUNCTION(when_allocating_memory_for_the_new_instance_fails_then_saslclientio_create_fails)
 {
-	// arrange
+    // arrange
     CONCRETE_IO_HANDLE result;
     SASLCLIENTIO_CONFIG saslclientio_config;
     saslclientio_config.underlying_io = test_underlying_io;
     saslclientio_config.sasl_mechanism = test_sasl_mechanism;
 
-	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
-		.SetReturn((void*)NULL);
+    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .SetReturn((void*)NULL);
 
-	// act
-	result = saslclientio_create(&saslclientio_config);
+    // act
+    result = saslclientio_create(&saslclientio_config);
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
     ASSERT_IS_NULL(result);
 }
@@ -485,21 +485,21 @@ TEST_FUNCTION(when_allocating_memory_for_the_new_instance_fails_then_saslclienti
 /* Tests_SRS_SASLCLIENTIO_01_090: [If frame_codec_create fails, then saslclientio_create shall fail and return NULL.] */
 TEST_FUNCTION(when_creating_the_frame_codec_fails_then_saslclientio_create_fails)
 {
-	// arrange
+    // arrange
     CONCRETE_IO_HANDLE result;
     SASLCLIENTIO_CONFIG saslclientio_config;
     saslclientio_config.underlying_io = test_underlying_io;
     saslclientio_config.sasl_mechanism = test_sasl_mechanism;
 
-	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-	EXPECTED_CALL(frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.SetReturn(NULL);
-	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    EXPECTED_CALL(frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .SetReturn(NULL);
+    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
-	// act
-	result = saslclientio_create(&saslclientio_config);
+    // act
+    result = saslclientio_create(&saslclientio_config);
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
     ASSERT_IS_NULL(result);
 }
@@ -507,24 +507,24 @@ TEST_FUNCTION(when_creating_the_frame_codec_fails_then_saslclientio_create_fails
 /* Tests_SRS_SASLCLIENTIO_01_085: [If sasl_frame_codec_create fails, then saslclientio_create shall fail and return NULL.] */
 TEST_FUNCTION(when_creating_the_sasl_frame_codec_fails_then_saslclientio_create_fails)
 {
-	// arrange
+    // arrange
     CONCRETE_IO_HANDLE result;
     SASLCLIENTIO_CONFIG saslclientio_config;
     saslclientio_config.underlying_io = test_underlying_io;
     saslclientio_config.sasl_mechanism = test_sasl_mechanism;
 
-	EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-	EXPECTED_CALL(frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-	EXPECTED_CALL(sasl_frame_codec_create(test_frame_codec, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.ValidateArgument(1)
-		.SetReturn(NULL);
-	STRICT_EXPECTED_CALL(frame_codec_destroy(test_frame_codec));
-	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    EXPECTED_CALL(frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    EXPECTED_CALL(sasl_frame_codec_create(test_frame_codec, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .ValidateArgument(1)
+        .SetReturn(NULL);
+    STRICT_EXPECTED_CALL(frame_codec_destroy(test_frame_codec));
+    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
-	// act
-	result = saslclientio_create(&saslclientio_config);
+    // act
+    result = saslclientio_create(&saslclientio_config);
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
     ASSERT_IS_NULL(result);
 }
@@ -532,16 +532,16 @@ TEST_FUNCTION(when_creating_the_sasl_frame_codec_fails_then_saslclientio_create_
 /* Tests_SRS_SASLCLIENTIO_01_092: [If any of the sasl_mechanism or underlying_io members of the configuration structure are NULL, saslclientio_create shall fail and return NULL.] */
 TEST_FUNCTION(saslclientio_create_with_a_NULL_underlying_io_fails)
 {
-	// arrange
+    // arrange
     CONCRETE_IO_HANDLE result;
     SASLCLIENTIO_CONFIG saslclientio_config;
     saslclientio_config.underlying_io = NULL;
     saslclientio_config.sasl_mechanism = test_sasl_mechanism;
 
-	// act
-	result = saslclientio_create(&saslclientio_config);
+    // act
+    result = saslclientio_create(&saslclientio_config);
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
     ASSERT_IS_NULL(result);
 }
@@ -549,16 +549,16 @@ TEST_FUNCTION(saslclientio_create_with_a_NULL_underlying_io_fails)
 /* Tests_SRS_SASLCLIENTIO_01_092: [If any of the sasl_mechanism or underlying_io members of the configuration structure are NULL, saslclientio_create shall fail and return NULL.] */
 TEST_FUNCTION(saslclientio_create_with_a_NULL_sasl_mechanism_fails)
 {
-	// arrange
+    // arrange
     CONCRETE_IO_HANDLE result;
     SASLCLIENTIO_CONFIG saslclientio_config;
     saslclientio_config.underlying_io = test_underlying_io;
     saslclientio_config.sasl_mechanism = NULL;
 
-	// act
-	result = saslclientio_create(&saslclientio_config);
+    // act
+    result = saslclientio_create(&saslclientio_config);
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
     ASSERT_IS_NULL(result);
 }
@@ -570,8 +570,8 @@ TEST_FUNCTION(saslclientio_create_with_a_NULL_sasl_mechanism_fails)
 /* Tests_SRS_SASLCLIENTIO_01_091: [saslclientio_destroy shall destroy the frame_codec created in saslclientio_create by calling frame_codec_destroy.] */
 TEST_FUNCTION(saslclientio_destroy_frees_the_resources_allocated_in_create)
 {
-	// arrange
-	CONCRETE_IO_HANDLE sasl_io;
+    // arrange
+    CONCRETE_IO_HANDLE sasl_io;
     SASLCLIENTIO_CONFIG saslclientio_config;
     saslclientio_config.underlying_io = test_underlying_io;
     saslclientio_config.sasl_mechanism = test_sasl_mechanism;
@@ -580,24 +580,24 @@ TEST_FUNCTION(saslclientio_destroy_frees_the_resources_allocated_in_create)
 
     EXPECTED_CALL(sasl_frame_codec_destroy(test_sasl_frame_codec));
     EXPECTED_CALL(frame_codec_destroy(test_frame_codec));
-	EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
-	// act
-	saslclientio_destroy(sasl_io);
+    // act
+    saslclientio_destroy(sasl_io);
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_008: [If the argument sasl_io is NULL, saslclientio_destroy shall do nothing.] */
 TEST_FUNCTION(saslclientio_destroy_with_NULL_argument_does_nothing)
 {
-	// arrange
+    // arrange
 
-	// act
-	saslclientio_destroy(NULL);
+    // act
+    saslclientio_destroy(NULL);
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
@@ -609,36 +609,36 @@ TEST_FUNCTION(saslclientio_destroy_with_NULL_argument_does_nothing)
 /* Tests_SRS_SASLCLIENTIO_01_013: [saslclientio_open shall pass to xio_open a callback for receiving bytes and a state changed callback for the underlying_io state changes.] */
 TEST_FUNCTION(saslclientio_open_with_valid_args_succeeds)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
     int result;
-	umock_c_reset_all_calls();
+    umock_c_reset_all_calls();
 
-	EXPECTED_CALL(xio_open(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.ValidateArgument(1);
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_OPENING, IO_STATE_NOT_OPEN));
+    EXPECTED_CALL(xio_open(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .ValidateArgument(1);
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_OPENING, IO_STATE_NOT_OPEN));
 
-	// act
-	result = saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    // act
+    result = saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
 
-	// assert
-	ASSERT_ARE_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_011: [If any of the sasl_io or on_bytes_received arguments is NULL, saslclientio_open shall fail and return a non-zero value.] */
 TEST_FUNCTION(saslclientio_open_with_NULL_sasl_io_handle_fails)
 {
-	// arrange
+    // arrange
 
-	// act
-	int result = saslclientio_open(NULL, test_on_bytes_received, test_on_io_state_changed, test_context);
+    // act
+    int result = saslclientio_open(NULL, test_on_bytes_received, test_on_io_state_changed, test_context);
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
     ASSERT_ARE_NOT_EQUAL(int, 0, result);
 }
@@ -646,43 +646,43 @@ TEST_FUNCTION(saslclientio_open_with_NULL_sasl_io_handle_fails)
 /* Tests_SRS_SASLCLIENTIO_01_011: [If any of the sasl_io or on_bytes_received arguments is NULL, saslclientio_open shall fail and return a non-zero value.] */
 TEST_FUNCTION(saslclientio_open_with_NULL_on_bytes_received_fails)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    umock_c_reset_all_calls();
 
-	// act
-	int result = saslclientio_open(sasl_io, NULL, test_on_io_state_changed, test_context);
+    // act
+    int result = saslclientio_open(sasl_io, NULL, test_on_io_state_changed, test_context);
 
-	// assert
-	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_012: [If the open of the underlying_io fails, saslclientio_open shall fail and return non-zero value.] */
 TEST_FUNCTION(when_opening_the_underlying_io_fails_saslclientio_open_fails)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    umock_c_reset_all_calls();
 
-	EXPECTED_CALL(xio_open(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.ValidateArgument(1)
-		.SetReturn(1);
+    EXPECTED_CALL(xio_open(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .ValidateArgument(1)
+        .SetReturn(1);
 
-	// act
-	int result = saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    // act
+    int result = saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
 
-	// assert
-	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* saslclientio_close */
@@ -692,50 +692,50 @@ TEST_FUNCTION(when_opening_the_underlying_io_fails_saslclientio_open_fails)
 /* Tests_SRS_SASLCLIENTIO_01_016: [On success, saslclientio_close shall return 0.] */
 TEST_FUNCTION(saslclientio_close_when_the_io_state_is_OPENING_closes_the_underlying_io)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(xio_close(test_underlying_io));
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_NOT_OPEN, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_NOT_OPEN, IO_STATE_OPENING));
 
-	// act
-	int result = saslclientio_close(sasl_io);
+    // act
+    int result = saslclientio_close(sasl_io);
 
-	// assert
-	ASSERT_ARE_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 static void setup_successful_sasl_handshake(CONCRETE_IO_HANDLE sasl_io)
 {
     sasl_code sasl_outcome_code = sasl_code_ok;
     saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
-		.SetReturn(true);
-	EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_outcome, sizeof(test_sasl_outcome));
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+        .SetReturn(true);
+    EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_outcome, sizeof(test_sasl_outcome));
     umock_c_reset_all_calls();
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
-		.SetReturn(false);
-	STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
-		.SetReturn(false);
-	STRICT_EXPECTED_CALL(is_sasl_outcome_type_by_descriptor(test_descriptor_value))
-		.SetReturn(true);
-	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_outcome(test_sasl_value, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_sasl_outcome_handle, sizeof(test_sasl_outcome_handle));
-	STRICT_EXPECTED_CALL(sasl_outcome_get_code(test_sasl_outcome_handle, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &sasl_outcome_code, sizeof(sasl_outcome_code));
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_sasl_outcome_type_by_descriptor(test_descriptor_value))
+        .SetReturn(true);
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_outcome(test_sasl_value, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_sasl_outcome_handle, sizeof(test_sasl_outcome_handle));
+    STRICT_EXPECTED_CALL(sasl_outcome_get_code(test_sasl_outcome_handle, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &sasl_outcome_code, sizeof(sasl_outcome_code));
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_015: [saslclientio_close shall close the underlying io handle passed in saslclientio_create by calling xio_close.] */
@@ -743,25 +743,25 @@ static void setup_successful_sasl_handshake(CONCRETE_IO_HANDLE sasl_io)
 /* Tests_SRS_SASLCLIENTIO_01_016: [On success, saslclientio_close shall return 0.] */
 TEST_FUNCTION(saslclientio_close_when_the_io_state_is_OPEN_closes_the_underlying_io)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(sasl_io);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    setup_successful_sasl_handshake(sasl_io);
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(xio_close(test_underlying_io));
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_NOT_OPEN, IO_STATE_OPEN));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_NOT_OPEN, IO_STATE_OPEN));
 
-	// act
-	int result = saslclientio_close(sasl_io);
+    // act
+    int result = saslclientio_close(sasl_io);
 
-	// assert
-	ASSERT_ARE_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_015: [saslclientio_close shall close the underlying io handle passed in saslclientio_create by calling xio_close.] */
@@ -769,77 +769,77 @@ TEST_FUNCTION(saslclientio_close_when_the_io_state_is_OPEN_closes_the_underlying
 /* Tests_SRS_SASLCLIENTIO_01_016: [On success, saslclientio_close shall return 0.] */
 TEST_FUNCTION(saslclientio_close_when_the_io_state_is_ERROR_closes_the_underlying_io)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_NOT_OPEN);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_NOT_OPEN);
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(xio_close(test_underlying_io));
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_NOT_OPEN, IO_STATE_ERROR));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_NOT_OPEN, IO_STATE_ERROR));
 
-	// act
-	int result = saslclientio_close(sasl_io);
+    // act
+    int result = saslclientio_close(sasl_io);
 
-	// assert
-	ASSERT_ARE_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_097: [If saslclientio_close is called when the IO is in the IO_STATE_NOT_OPEN state, no call to the underlying IO shall be made and saslclientio_close shall return 0.] */
 TEST_FUNCTION(saslclientio_close_when_the_io_state_is_NOT_OPEN_succeeds_without_calling_the_underlying_io)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    umock_c_reset_all_calls();
 
-	// act
-	int result = saslclientio_close(sasl_io);
+    // act
+    int result = saslclientio_close(sasl_io);
 
-	// assert
-	ASSERT_ARE_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_097: [If saslclientio_close is called when the IO is in the IO_STATE_NOT_OPEN state, no call to the underlying IO shall be made and saslclientio_close shall return 0.] */
 TEST_FUNCTION(saslclientio_close_when_the_io_state_is_NOT_OPEN_due_to_a_previous_close_succeeds_without_calling_the_underlying_io)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_NOT_OPEN);
-	(void)saslclientio_close(sasl_io);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_NOT_OPEN);
+    (void)saslclientio_close(sasl_io);
+    umock_c_reset_all_calls();
 
-	// act
-	int result = saslclientio_close(sasl_io);
+    // act
+    int result = saslclientio_close(sasl_io);
 
-	// assert
-	ASSERT_ARE_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_017: [If sasl_io is NULL, saslclientio_close shall fail and return a non-zero value.] */
 TEST_FUNCTION(saslclientio_close_with_NULL_sasl_io_fails)
 {
-	// arrange
+    // arrange
 
-	// act
-	int result = saslclientio_close(NULL);
+    // act
+    int result = saslclientio_close(NULL);
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
     ASSERT_ARE_NOT_EQUAL(int, 0, result);
 }
@@ -847,24 +847,24 @@ TEST_FUNCTION(saslclientio_close_with_NULL_sasl_io_fails)
 /* Tests_SRS_SASLCLIENTIO_01_018: [If xio_close fails, then saslclientio_close shall return a non-zero value.] */
 TEST_FUNCTION(when_xio_close_fails_saslclientio_close_fails)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(xio_close(test_underlying_io))
-		.SetReturn(1);
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io))
+        .SetReturn(1);
 
-	// act
-	int result = saslclientio_close(sasl_io);
+    // act
+    int result = saslclientio_close(sasl_io);
 
-	// assert
-	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* saslclientio_send */
@@ -872,154 +872,154 @@ TEST_FUNCTION(when_xio_close_fails_saslclientio_close_fails)
 /* Tests_SRS_SASLCLIENTIO_01_019: [If saslclientio_send is called while the SASL client IO state is not IO_STATE_OPEN, saslclientio_send shall fail and return a non-zero value.] */
 TEST_FUNCTION(saslclientio_send_when_io_state_is_NOT_OPEN_fails)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	umock_c_reset_all_calls();
-	unsigned char test_buffer[] = { 0x42 };
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    umock_c_reset_all_calls();
+    unsigned char test_buffer[] = { 0x42 };
 
-	// act
-	int result = saslclientio_send(sasl_io, test_buffer, sizeof(test_buffer), test_on_send_complete, test_context);
+    // act
+    int result = saslclientio_send(sasl_io, test_buffer, sizeof(test_buffer), test_on_send_complete, test_context);
 
-	// assert
-	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_019: [If saslclientio_send is called while the SASL client IO state is not IO_STATE_OPEN, saslclientio_send shall fail and return a non-zero value.] */
 TEST_FUNCTION(saslclientio_send_when_io_state_is_OPENING_fails)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	umock_c_reset_all_calls();
-	unsigned char test_buffer[] = { 0x42 };
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    umock_c_reset_all_calls();
+    unsigned char test_buffer[] = { 0x42 };
 
-	// act
-	int result = saslclientio_send(sasl_io, test_buffer, sizeof(test_buffer), test_on_send_complete, test_context);
+    // act
+    int result = saslclientio_send(sasl_io, test_buffer, sizeof(test_buffer), test_on_send_complete, test_context);
 
-	// assert
-	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_019: [If saslclientio_send is called while the SASL client IO state is not IO_STATE_OPEN, saslclientio_send shall fail and return a non-zero value.] */
 TEST_FUNCTION(saslclientio_send_when_io_state_is_ERROR_fails)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_NOT_OPEN);
-	umock_c_reset_all_calls();
-	unsigned char test_buffer[] = { 0x42 };
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_NOT_OPEN);
+    umock_c_reset_all_calls();
+    unsigned char test_buffer[] = { 0x42 };
 
-	// act
-	int result = saslclientio_send(sasl_io, test_buffer, sizeof(test_buffer), test_on_send_complete, test_context);
+    // act
+    int result = saslclientio_send(sasl_io, test_buffer, sizeof(test_buffer), test_on_send_complete, test_context);
 
-	// assert
-	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_020: [If the SASL client IO state is IO_STATE_OPEN, saslclientio_send shall call xio_send on the underlying_io passed to saslclientio_create, while passing as arguments the buffer, size, on_send_complete and callback_context.] */
 /* Tests_SRS_SASLCLIENTIO_01_021: [On success, saslclientio_send shall return 0.] */
 TEST_FUNCTION(saslclientio_send_when_io_state_is_OPEN_calls_the_underlying_io_send)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(sasl_io);
-	umock_c_reset_all_calls();
-	unsigned char test_buffer[] = { 0x42 };
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    setup_successful_sasl_handshake(sasl_io);
+    umock_c_reset_all_calls();
+    unsigned char test_buffer[] = { 0x42 };
 
-	STRICT_EXPECTED_CALL(xio_send(test_underlying_io, test_buffer, sizeof(test_buffer), test_on_send_complete, test_context))
-		.ValidateArgumentBuffer(2, test_buffer, sizeof(test_buffer));
+    STRICT_EXPECTED_CALL(xio_send(test_underlying_io, test_buffer, sizeof(test_buffer), test_on_send_complete, test_context))
+        .ValidateArgumentBuffer(2, test_buffer, sizeof(test_buffer));
 
-	// act
-	int result = saslclientio_send(sasl_io, test_buffer, sizeof(test_buffer), test_on_send_complete, test_context);
+    // act
+    int result = saslclientio_send(sasl_io, test_buffer, sizeof(test_buffer), test_on_send_complete, test_context);
 
-	// assert
-	ASSERT_ARE_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_020: [If the SASL client IO state is IO_STATE_OPEN, saslclientio_send shall call xio_send on the underlying_io passed to saslclientio_create, while passing as arguments the buffer, size, on_send_complete and callback_context.] */
 /* Tests_SRS_SASLCLIENTIO_01_021: [On success, saslclientio_send shall return 0.] */
 TEST_FUNCTION(saslclientio_send_with_NULL_on_send_complete_passes_NULL_to_the_underlying_io)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(sasl_io);
-	umock_c_reset_all_calls();
-	unsigned char test_buffer[] = { 0x42 };
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    setup_successful_sasl_handshake(sasl_io);
+    umock_c_reset_all_calls();
+    unsigned char test_buffer[] = { 0x42 };
 
-	STRICT_EXPECTED_CALL(xio_send(test_underlying_io, test_buffer, sizeof(test_buffer), NULL, test_context))
-		.ValidateArgumentBuffer(2, test_buffer, sizeof(test_buffer));
+    STRICT_EXPECTED_CALL(xio_send(test_underlying_io, test_buffer, sizeof(test_buffer), NULL, test_context))
+        .ValidateArgumentBuffer(2, test_buffer, sizeof(test_buffer));
 
-	// act
-	int result = saslclientio_send(sasl_io, test_buffer, sizeof(test_buffer), NULL, test_context);
+    // act
+    int result = saslclientio_send(sasl_io, test_buffer, sizeof(test_buffer), NULL, test_context);
 
-	// assert
-	ASSERT_ARE_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_020: [If the SASL client IO state is IO_STATE_OPEN, saslclientio_send shall call xio_send on the underlying_io passed to saslclientio_create, while passing as arguments the buffer, size, on_send_complete and callback_context.] */
 /* Tests_SRS_SASLCLIENTIO_01_021: [On success, saslclientio_send shall return 0.] */
 TEST_FUNCTION(saslclientio_send_with_NULL_on_send_complete_context_passes_NULL_to_the_underlying_io)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(sasl_io);
-	umock_c_reset_all_calls();
-	unsigned char test_buffer[] = { 0x42 };
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    setup_successful_sasl_handshake(sasl_io);
+    umock_c_reset_all_calls();
+    unsigned char test_buffer[] = { 0x42 };
 
-	STRICT_EXPECTED_CALL(xio_send(test_underlying_io, test_buffer, sizeof(test_buffer), test_on_send_complete, NULL))
-		.ValidateArgumentBuffer(2, test_buffer, sizeof(test_buffer));
+    STRICT_EXPECTED_CALL(xio_send(test_underlying_io, test_buffer, sizeof(test_buffer), test_on_send_complete, NULL))
+        .ValidateArgumentBuffer(2, test_buffer, sizeof(test_buffer));
 
-	// act
-	int result = saslclientio_send(sasl_io, test_buffer, sizeof(test_buffer), test_on_send_complete, NULL);
+    // act
+    int result = saslclientio_send(sasl_io, test_buffer, sizeof(test_buffer), test_on_send_complete, NULL);
 
-	// assert
-	ASSERT_ARE_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_022: [If the saslio or buffer argument is NULL, saslclientio_send shall fail and return a non-zero value.] */
 TEST_FUNCTION(saslclientio_send_with_NULL_sasl_io_fails)
 {
-	// arrange
-	unsigned char test_buffer[] = { 0x42 };
+    // arrange
+    unsigned char test_buffer[] = { 0x42 };
 
-	// act
-	int result = saslclientio_send(NULL, test_buffer, sizeof(test_buffer), test_on_send_complete, test_context);
+    // act
+    int result = saslclientio_send(NULL, test_buffer, sizeof(test_buffer), test_on_send_complete, test_context);
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
     ASSERT_ARE_NOT_EQUAL(int, 0, result);
 }
@@ -1027,71 +1027,71 @@ TEST_FUNCTION(saslclientio_send_with_NULL_sasl_io_fails)
 /* Tests_SRS_SASLCLIENTIO_01_022: [If the saslio or buffer argument is NULL, saslclientio_send shall fail and return a non-zero value.] */
 TEST_FUNCTION(saslclientio_send_with_NULL_buffer_fails)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(sasl_io);
-	umock_c_reset_all_calls();
-	unsigned char test_buffer[] = { 0x42 };
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    setup_successful_sasl_handshake(sasl_io);
+    umock_c_reset_all_calls();
+    unsigned char test_buffer[] = { 0x42 };
 
-	// act
-	int result = saslclientio_send(sasl_io, NULL, sizeof(test_buffer), test_on_send_complete, test_context);
+    // act
+    int result = saslclientio_send(sasl_io, NULL, sizeof(test_buffer), test_on_send_complete, test_context);
 
-	// assert
-	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_023: [If size is 0, saslclientio_send shall fail and return a non-zero value.] */
 TEST_FUNCTION(saslclientio_send_with_0_size_fails)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(sasl_io);
-	umock_c_reset_all_calls();
-	unsigned char test_buffer[] = { 0x42 };
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    setup_successful_sasl_handshake(sasl_io);
+    umock_c_reset_all_calls();
+    unsigned char test_buffer[] = { 0x42 };
 
-	// act
-	int result = saslclientio_send(sasl_io, test_buffer, 0, test_on_send_complete, test_context);
+    // act
+    int result = saslclientio_send(sasl_io, test_buffer, 0, test_on_send_complete, test_context);
 
-	// assert
-	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_024: [If the call to xio_send fails, then saslclientio_send shall fail and return a non-zero value.] */
 TEST_FUNCTION(when_the_underlying_xio_send_fails_then_saslclientio_send_fails)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(sasl_io);
-	umock_c_reset_all_calls();
-	unsigned char test_buffer[] = { 0x42 };
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    setup_successful_sasl_handshake(sasl_io);
+    umock_c_reset_all_calls();
+    unsigned char test_buffer[] = { 0x42 };
 
-	STRICT_EXPECTED_CALL(xio_send(test_underlying_io, test_buffer, sizeof(test_buffer), test_on_send_complete, test_context))
-		.ValidateArgumentBuffer(2, test_buffer, sizeof(test_buffer))
-		.SetReturn(1);
+    STRICT_EXPECTED_CALL(xio_send(test_underlying_io, test_buffer, sizeof(test_buffer), test_on_send_complete, test_context))
+        .ValidateArgumentBuffer(2, test_buffer, sizeof(test_buffer))
+        .SetReturn(1);
 
-	// act
-	int result = saslclientio_send(sasl_io, test_buffer, sizeof(test_buffer), test_on_send_complete, test_context);
+    // act
+    int result = saslclientio_send(sasl_io, test_buffer, sizeof(test_buffer), test_on_send_complete, test_context);
 
-	// assert
-	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* saslclientio_dowork */
@@ -1099,93 +1099,93 @@ TEST_FUNCTION(when_the_underlying_xio_send_fails_then_saslclientio_send_fails)
 /* Tests_SRS_SASLCLIENTIO_01_025: [saslclientio_dowork shall call the xio_dowork on the underlying_io passed in saslclientio_create.] */
 TEST_FUNCTION(when_the_io_state_is_OPEN_xio_dowork_calls_the_underlying_IO)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(sasl_io);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    setup_successful_sasl_handshake(sasl_io);
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(xio_dowork(test_underlying_io));
+    STRICT_EXPECTED_CALL(xio_dowork(test_underlying_io));
 
-	// act
-	saslclientio_dowork(sasl_io);
+    // act
+    saslclientio_dowork(sasl_io);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_025: [saslclientio_dowork shall call the xio_dowork on the underlying_io passed in saslclientio_create.] */
 TEST_FUNCTION(when_the_io_state_is_OPENING_xio_dowork_calls_the_underlying_IO)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(xio_dowork(test_underlying_io));
+    STRICT_EXPECTED_CALL(xio_dowork(test_underlying_io));
 
-	// act
-	saslclientio_dowork(sasl_io);
+    // act
+    saslclientio_dowork(sasl_io);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_025: [saslclientio_dowork shall call the xio_dowork on the underlying_io passed in saslclientio_create.] */
 TEST_FUNCTION(when_the_io_state_is_NOT_OPEN_xio_dowork_does_nothing)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    umock_c_reset_all_calls();
 
-	// act
-	saslclientio_dowork(sasl_io);
+    // act
+    saslclientio_dowork(sasl_io);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_025: [saslclientio_dowork shall call the xio_dowork on the underlying_io passed in saslclientio_create.] */
 TEST_FUNCTION(when_the_io_state_is_ERROR_xio_dowork_does_nothing)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_NOT_OPEN);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_NOT_OPEN);
+    umock_c_reset_all_calls();
 
-	// act
-	saslclientio_dowork(sasl_io);
+    // act
+    saslclientio_dowork(sasl_io);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_026: [If the sasl_io argument is NULL, saslclientio_dowork shall do nothing.] */
 TEST_FUNCTION(saslclientio_dowork_with_NULL_sasl_io_handle_does_nothing)
 {
-	// arrange
+    // arrange
 
-	// act
-	saslclientio_dowork(NULL);
+    // act
+    saslclientio_dowork(NULL);
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
@@ -1194,19 +1194,19 @@ TEST_FUNCTION(saslclientio_dowork_with_NULL_sasl_io_handle_does_nothing)
 /* Tests_SRS_SASLCLIENTIO_01_087: [saslclientio_get_interface_description shall return a pointer to an IO_INTERFACE_DESCRIPTION structure that contains pointers to the functions: saslclientio_create, saslclientio_destroy, saslclientio_open, saslclientio_close, saslclientio_send and saslclientio_dowork.] */
 TEST_FUNCTION(saslclientio_get_interface_description_returns_the_saslclientio_interface_functions)
 {
-	// arrange
+    // arrange
 
-	// act
-	const IO_INTERFACE_DESCRIPTION* result = saslclientio_get_interface_description();
+    // act
+    const IO_INTERFACE_DESCRIPTION* result = saslclientio_get_interface_description();
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
     ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslclientio_create, (void_ptr)result->concrete_io_create);
-	ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslclientio_destroy, (void_ptr)result->concrete_io_destroy);
-	ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslclientio_open, (void_ptr)result->concrete_io_open);
-	ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslclientio_close, (void_ptr)result->concrete_io_close);
-	ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslclientio_send, (void_ptr)result->concrete_io_send);
-	ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslclientio_dowork, (void_ptr)result->concrete_io_dowork);
+    ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslclientio_destroy, (void_ptr)result->concrete_io_destroy);
+    ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslclientio_open, (void_ptr)result->concrete_io_open);
+    ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslclientio_close, (void_ptr)result->concrete_io_close);
+    ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslclientio_send, (void_ptr)result->concrete_io_send);
+    ASSERT_ARE_EQUAL(void_ptr, (void_ptr)saslclientio_dowork, (void_ptr)result->concrete_io_dowork);
 }
 
 /* on_bytes_received */
@@ -1214,135 +1214,135 @@ TEST_FUNCTION(saslclientio_get_interface_description_returns_the_saslclientio_in
 /* Tests_SRS_SASLCLIENTIO_01_027: [When the on_bytes_received callback passed to the underlying IO is called and the SASL client IO state is IO_STATE_OPEN, the bytes shall be indicated to the user of SASL client IO by calling the on_bytes_received that was passed in saslclientio_open.] */
 TEST_FUNCTION(when_io_state_is_open_and_bytes_are_received_they_are_indicated_up)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	unsigned char test_bytes[] = { 0x42, 0x43 };
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(sasl_io);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    unsigned char test_bytes[] = { 0x42, 0x43 };
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    setup_successful_sasl_handshake(sasl_io);
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(test_on_bytes_received(test_context, test_bytes, sizeof(test_bytes)));
+    STRICT_EXPECTED_CALL(test_on_bytes_received(test_context, test_bytes, sizeof(test_bytes)));
 
-	// act
-	saved_on_bytes_received(saved_io_callback_context, test_bytes, sizeof(test_bytes));
+    // act
+    saved_on_bytes_received(saved_io_callback_context, test_bytes, sizeof(test_bytes));
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_027: [When the on_bytes_received callback passed to the underlying IO is called and the SASL client IO state is IO_STATE_OPEN, the bytes shall be indicated to the user of SASL client IO by calling the on_bytes_received that was passed in saslclientio_open.] */
 /* Tests_SRS_SASLCLIENTIO_01_029: [The context argument shall be set to the callback_context passed in saslclientio_open.] */
 TEST_FUNCTION(when_io_state_is_open_and_bytes_are_received_and_context_passed_to_open_was_NULL_NULL_is_passed_as_context_to_the_on_bytes_received_call)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	unsigned char test_bytes[] = { 0x42, 0x43 };
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, NULL);
-	setup_successful_sasl_handshake(sasl_io);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    unsigned char test_bytes[] = { 0x42, 0x43 };
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, NULL);
+    setup_successful_sasl_handshake(sasl_io);
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(test_on_bytes_received(NULL, test_bytes, sizeof(test_bytes)));
+    STRICT_EXPECTED_CALL(test_on_bytes_received(NULL, test_bytes, sizeof(test_bytes)));
 
-	// act
-	saved_on_bytes_received(saved_io_callback_context, test_bytes, sizeof(test_bytes));
+    // act
+    saved_on_bytes_received(saved_io_callback_context, test_bytes, sizeof(test_bytes));
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_028: [If buffer is NULL or size is zero, nothing should be indicated as received and the saslio state shall be switched to ERROR the on_state_changed callback shall be triggered.] */
 TEST_FUNCTION(when_io_state_is_open_and_bytes_are_received_with_bytes_NULL_nothing_is_indicated_up)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	unsigned char test_bytes[] = { 0x42, 0x43 };
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(sasl_io);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    unsigned char test_bytes[] = { 0x42, 0x43 };
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    setup_successful_sasl_handshake(sasl_io);
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPEN));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPEN));
 
-	// act
-	saved_on_bytes_received(saved_io_callback_context, NULL, sizeof(test_bytes));
+    // act
+    saved_on_bytes_received(saved_io_callback_context, NULL, sizeof(test_bytes));
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_028: [If buffer is NULL or size is zero, nothing should be indicated as received and the saslio state shall be switched to ERROR the on_state_changed callback shall be triggered.] */
 TEST_FUNCTION(when_io_state_is_open_and_bytes_are_received_with_size_zero_nothing_is_indicated_up)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	unsigned char test_bytes[] = { 0x42, 0x43 };
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(sasl_io);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    unsigned char test_bytes[] = { 0x42, 0x43 };
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    setup_successful_sasl_handshake(sasl_io);
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPEN));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPEN));
 
-	// act
-	saved_on_bytes_received(saved_io_callback_context, test_bytes, 0);
+    // act
+    saved_on_bytes_received(saved_io_callback_context, test_bytes, 0);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_031: [If bytes are received when the SASL client IO state is IO_STATE_ERROR, SASL client IO shall do nothing.]  */
 TEST_FUNCTION(when_io_state_is_ERROR_and_bytes_are_received_nothing_is_done)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	unsigned char test_bytes[] = { 0x42, 0x43 };
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_NOT_OPEN);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    unsigned char test_bytes[] = { 0x42, 0x43 };
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_NOT_OPEN);
+    umock_c_reset_all_calls();
 
-	// act
-	saved_on_bytes_received(saved_io_callback_context, test_bytes, 1);
+    // act
+    saved_on_bytes_received(saved_io_callback_context, test_bytes, 1);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_030: [If bytes are received when the SASL client IO state is IO_STATE_OPENING, the bytes shall be consumed by the SASL client IO to satisfy the SASL handshake.] */
 /* Tests_SRS_SASLCLIENTIO_01_003: [Other than using a protocol id of three, the exchange of SASL layer headers follows the same rules specified in the version negotiation section of the transport specification (See Part 2: section 2.2).] */
 TEST_FUNCTION(when_io_state_is_opening_and_1_byte_is_received_it_is_used_for_the_header)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    umock_c_reset_all_calls();
 
-	// act
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, 1);
+    // act
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, 1);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_030: [If bytes are received when the SASL client IO state is IO_STATE_OPENING, the bytes shall be consumed by the SASL client IO to satisfy the SASL handshake.] */
@@ -1350,23 +1350,23 @@ TEST_FUNCTION(when_io_state_is_opening_and_1_byte_is_received_it_is_used_for_the
 /* Tests_SRS_SASLCLIENTIO_01_073: [If the handshake fails (i.e. the outcome is an error) the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.]  */
 TEST_FUNCTION(when_io_state_is_opening_and_1_bad_byte_is_received_state_is_set_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	unsigned char test_bytes[] = { 0x42 };
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    unsigned char test_bytes[] = { 0x42 };
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
-	// act
-	saved_on_bytes_received(saved_io_callback_context, test_bytes, sizeof(test_bytes));
+    // act
+    saved_on_bytes_received(saved_io_callback_context, test_bytes, sizeof(test_bytes));
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_030: [If bytes are received when the SASL client IO state is IO_STATE_OPENING, the bytes shall be consumed by the SASL client IO to satisfy the SASL handshake.] */
@@ -1374,23 +1374,23 @@ TEST_FUNCTION(when_io_state_is_opening_and_1_bad_byte_is_received_state_is_set_t
 /* Tests_SRS_SASLCLIENTIO_01_073: [If the handshake fails (i.e. the outcome is an error) the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.]  */
 TEST_FUNCTION(when_io_state_is_opening_and_the_last_header_byte_is_bad_state_is_set_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	unsigned char test_bytes[] = { 'A', 'M', 'Q', 'P', 3, 1, 0, 'x' };
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    unsigned char test_bytes[] = { 'A', 'M', 'Q', 'P', 3, 1, 0, 'x' };
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
-	// act
-	saved_on_bytes_received(saved_io_callback_context, test_bytes, sizeof(test_bytes));
+    // act
+    saved_on_bytes_received(saved_io_callback_context, test_bytes, sizeof(test_bytes));
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_030: [If bytes are received when the SASL client IO state is IO_STATE_OPENING, the bytes shall be consumed by the SASL client IO to satisfy the SASL handshake.] */
@@ -1401,50 +1401,50 @@ TEST_FUNCTION(when_io_state_is_opening_and_the_last_header_byte_is_bad_state_is_
 /* Tests_SRS_SASLCLIENTIO_01_095: [Sending the header shall be done by using xio_send.] */
 TEST_FUNCTION(when_underlying_IO_switches_the_state_to_OPEN_the_SASL_header_is_sent)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    umock_c_reset_all_calls();
 
-	EXPECTED_CALL(xio_send(test_underlying_io, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.ValidateArgument(1).ExpectedAtLeastTimes(1);
+    EXPECTED_CALL(xio_send(test_underlying_io, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .ValidateArgument(1).ExpectedAtLeastTimes(1);
 
-	// act
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    // act
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-	stringify_bytes(io_send_bytes, io_send_byte_count, actual_stringified_io);
-	stringify_bytes(sasl_header, sizeof(sasl_header), expected_stringified_io);
-	ASSERT_ARE_EQUAL(char_ptr, expected_stringified_io, actual_stringified_io);
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    stringify_bytes(io_send_bytes, io_send_byte_count, actual_stringified_io);
+    stringify_bytes(sasl_header, sizeof(sasl_header), expected_stringified_io);
+    ASSERT_ARE_EQUAL(char_ptr, expected_stringified_io, actual_stringified_io);
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_073: [If the handshake fails (i.e. the outcome is an error) the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.]  */
 TEST_FUNCTION(when_sending_the_header_fails_state_is_set_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    umock_c_reset_all_calls();
 
-	EXPECTED_CALL(xio_send(test_underlying_io, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.ValidateArgument(1)
-		.SetReturn(1);
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    EXPECTED_CALL(xio_send(test_underlying_io, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .ValidateArgument(1)
+        .SetReturn(1);
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
-	// act
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    // act
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_030: [If bytes are received when the SASL client IO state is IO_STATE_OPENING, the bytes shall be consumed by the SASL client IO to satisfy the SASL handshake.] */
@@ -1452,48 +1452,48 @@ TEST_FUNCTION(when_sending_the_header_fails_state_is_set_to_ERROR)
 /* Tests_SRS_SASLCLIENTIO_01_073: [If the handshake fails (i.e. the outcome is an error) the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.]  */
 TEST_FUNCTION(when_a_bad_header_is_received_after_a_good_one_has_been_sent_state_is_set_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	unsigned char test_bytes[] = { 'A', 'M', 'Q', 'P', 3, 1, 0, 'x' };
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    unsigned char test_bytes[] = { 'A', 'M', 'Q', 'P', 3, 1, 0, 'x' };
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
-	// act
-	saved_on_bytes_received(saved_io_callback_context, test_bytes, sizeof(test_bytes));
+    // act
+    saved_on_bytes_received(saved_io_callback_context, test_bytes, sizeof(test_bytes));
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-	stringify_bytes(io_send_bytes, io_send_byte_count, actual_stringified_io);
-	stringify_bytes(sasl_header, sizeof(sasl_header), expected_stringified_io);
-	ASSERT_ARE_EQUAL(char_ptr, expected_stringified_io, actual_stringified_io);
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    stringify_bytes(io_send_bytes, io_send_byte_count, actual_stringified_io);
+    stringify_bytes(sasl_header, sizeof(sasl_header), expected_stringified_io);
+    ASSERT_ARE_EQUAL(char_ptr, expected_stringified_io, actual_stringified_io);
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_030: [If bytes are received when the SASL client IO state is IO_STATE_OPENING, the bytes shall be consumed by the SASL client IO to satisfy the SASL handshake.] */
 /* Tests_SRS_SASLCLIENTIO_01_003: [Other than using a protocol id of three, the exchange of SASL layer headers follows the same rules specified in the version negotiation section of the transport specification (See Part 2: section 2.2).] */
 TEST_FUNCTION(when_a_good_header_is_received_after_the_header_has_been_sent_yields_no_error)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    umock_c_reset_all_calls();
 
-	// act
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    // act
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_030: [If bytes are received when the SASL client IO state is IO_STATE_OPENING, the bytes shall be consumed by the SASL client IO to satisfy the SASL handshake.] */
@@ -1501,350 +1501,350 @@ TEST_FUNCTION(when_a_good_header_is_received_after_the_header_has_been_sent_yiel
 /* Tests_SRS_SASLCLIENTIO_01_068: [During the SASL frame exchange that constitutes the handshake the received bytes from the underlying IO shall be fed to the frame_codec instance created in saslclientio_create by calling frame_codec_receive_bytes.] */
 TEST_FUNCTION(when_one_byte_is_received_after_header_handshake_it_is_sent_to_the_frame_codec)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	unsigned char test_bytes[] = { 0x42 };
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    unsigned char test_bytes[] = { 0x42 };
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    umock_c_reset_all_calls();
 
-	EXPECTED_CALL(frame_codec_receive_bytes(test_frame_codec, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
-		.ValidateArgument(1).ExpectedAtLeastTimes(1);
+    EXPECTED_CALL(frame_codec_receive_bytes(test_frame_codec, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
+        .ValidateArgument(1).ExpectedAtLeastTimes(1);
 
-	// act
-	saved_on_bytes_received(saved_io_callback_context, test_bytes, sizeof(test_bytes));
+    // act
+    saved_on_bytes_received(saved_io_callback_context, test_bytes, sizeof(test_bytes));
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-	stringify_bytes(frame_codec_received_bytes, frame_codec_received_byte_count, actual_stringified_io);
-	stringify_bytes(test_bytes, sizeof(test_bytes), expected_stringified_io);
-	ASSERT_ARE_EQUAL(char_ptr, expected_stringified_io, actual_stringified_io);
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    stringify_bytes(frame_codec_received_bytes, frame_codec_received_byte_count, actual_stringified_io);
+    stringify_bytes(test_bytes, sizeof(test_bytes), expected_stringified_io);
+    ASSERT_ARE_EQUAL(char_ptr, expected_stringified_io, actual_stringified_io);
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_088: [If frame_codec_receive_bytes fails, the state of SASL client IO shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
 TEST_FUNCTION(when_frame_codec_receive_bytes_fails_then_the_state_is_switched_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	unsigned char test_bytes[] = { 0x42 };
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    unsigned char test_bytes[] = { 0x42 };
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    umock_c_reset_all_calls();
 
-	EXPECTED_CALL(frame_codec_receive_bytes(test_frame_codec, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
-		.ValidateArgument(1)
-		.SetReturn(1);
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    EXPECTED_CALL(frame_codec_receive_bytes(test_frame_codec, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
+        .ValidateArgument(1)
+        .SetReturn(1);
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
-	// act
-	saved_on_bytes_received(saved_io_callback_context, test_bytes, sizeof(test_bytes));
+    // act
+    saved_on_bytes_received(saved_io_callback_context, test_bytes, sizeof(test_bytes));
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-	stringify_bytes(frame_codec_received_bytes, frame_codec_received_byte_count, actual_stringified_io);
-	stringify_bytes(test_bytes, sizeof(test_bytes), expected_stringified_io);
-	ASSERT_ARE_EQUAL(char_ptr, expected_stringified_io, actual_stringified_io);
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    stringify_bytes(frame_codec_received_bytes, frame_codec_received_byte_count, actual_stringified_io);
+    stringify_bytes(test_bytes, sizeof(test_bytes), expected_stringified_io);
+    ASSERT_ARE_EQUAL(char_ptr, expected_stringified_io, actual_stringified_io);
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_101: [raise ERROR] */
 TEST_FUNCTION(ERROR_received_in_the_state_OPENING_sets_the_state_to_ERROR_and_triggers_callback)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
-	// act
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_NOT_OPEN);
+    // act
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_NOT_OPEN);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_102: [raise ERROR] */
 TEST_FUNCTION(ERROR_received_in_the_state_OPEN_sets_the_state_to_ERROR_and_triggers_callback)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(sasl_io);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    setup_successful_sasl_handshake(sasl_io);
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPEN));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPEN));
 
-	// act
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_OPEN);
+    // act
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_OPEN);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_103: [do nothing] */
 TEST_FUNCTION(ERROR_received_in_the_state_ERROR_does_nothing)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_OPEN);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_OPEN);
+    umock_c_reset_all_calls();
 
-	// act
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_OPEN);
+    // act
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_OPEN);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_109: [do nothing] */
 TEST_FUNCTION(OPENING_received_in_the_state_OPENING_does_nothing)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    umock_c_reset_all_calls();
 
-	// act
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPENING, IO_STATE_OPEN);
+    // act
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPENING, IO_STATE_OPEN);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_110: [raise ERROR] */
 TEST_FUNCTION(OPENING_received_in_the_state_OPEN_raises_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(sasl_io);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    setup_successful_sasl_handshake(sasl_io);
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPEN));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPEN));
 
-	// act
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPENING, IO_STATE_OPEN);
+    // act
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPENING, IO_STATE_OPEN);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_111: [do nothing] */
 TEST_FUNCTION(OPENING_received_in_the_state_ERROR_does_nothing)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(sasl_io);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_OPEN);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    setup_successful_sasl_handshake(sasl_io);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_OPEN);
+    umock_c_reset_all_calls();
 
-	// act
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPENING, IO_STATE_ERROR);
+    // act
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPENING, IO_STATE_ERROR);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_114: [raise ERROR] */
 TEST_FUNCTION(NOT_OPEN_received_in_the_state_OPENING_raises_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
-	// act
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_NOT_OPEN, IO_STATE_OPEN);
+    // act
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_NOT_OPEN, IO_STATE_OPEN);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_113: [raise ERROR] */
 TEST_FUNCTION(NOT_OPEN_received_in_the_state_OPEN_raises_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
-	// act
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_NOT_OPEN, IO_STATE_OPEN);
+    // act
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_NOT_OPEN, IO_STATE_OPEN);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_112: [do nothing] */
 TEST_FUNCTION(NOT_OPEN_received_in_the_state_ERROR_does_nothing)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_OPEN);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_OPEN);
+    umock_c_reset_all_calls();
 
-	// act
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_NOT_OPEN, IO_STATE_OPEN);
+    // act
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_NOT_OPEN, IO_STATE_OPEN);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_104: [do nothing] */
 TEST_FUNCTION(OPEN_received_in_the_state_NOT_OPEN_does_nothing)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_OPEN);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_OPEN);
+    umock_c_reset_all_calls();
 
-	// act
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_NOT_OPEN, IO_STATE_OPEN);
+    // act
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_NOT_OPEN, IO_STATE_OPEN);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_106: [do nothing] */
 TEST_FUNCTION(OPEN_received_in_the_state_OPEN_does_nothing)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(sasl_io);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    setup_successful_sasl_handshake(sasl_io);
+    umock_c_reset_all_calls();
 
-	// act
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_OPENING);
+    // act
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_OPENING);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_107: [do nothing] */
 TEST_FUNCTION(OPEN_received_in_the_state_ERROR_does_nothing)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(sasl_io);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_OPEN);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    setup_successful_sasl_handshake(sasl_io);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_ERROR, IO_STATE_OPEN);
+    umock_c_reset_all_calls();
 
-	// act
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_OPENING);
+    // act
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_OPENING);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_077: [If sending the SASL header fails, the SASL client IO state shall be set to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
 TEST_FUNCTION(when_sending_the_header_with_xio_send_fails_then_the_io_state_is_set_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    umock_c_reset_all_calls();
 
-	EXPECTED_CALL(xio_send(test_underlying_io, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.ValidateArgument(1).ExpectedAtLeastTimes(1).SetReturn(1);
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    EXPECTED_CALL(xio_send(test_underlying_io, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .ValidateArgument(1).ExpectedAtLeastTimes(1).SetReturn(1);
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
-	// act
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    // act
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_116: [Any underlying IO state changes to state OPEN after the header exchange has been started shall trigger no action.] */
 TEST_FUNCTION(when_underlying_io_sets_the_state_to_OPEN_after_the_header_exchange_was_started_nothing_shall_be_done)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, test_logger_log);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    umock_c_reset_all_calls();
 
-	// act
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_OPEN);
+    // act
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_OPEN);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_032: [The peer acting as the SASL server MUST announce supported authentication mechanisms using the sasl-mechanisms frame.] */
@@ -1858,431 +1858,431 @@ TEST_FUNCTION(when_underlying_io_sets_the_state_to_OPEN_after_the_header_exchang
 /* Tests_SRS_SASLCLIENTIO_01_070: [When a frame needs to be sent as part of the SASL handshake frame exchange, the send shall be done by calling sasl_frame_codec_encode_frame.] */
 TEST_FUNCTION(when_a_SASL_mechanism_is_received_after_the_header_exchange_a_sasl_init_frame_is_send_with_the_selected_mechanism)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
-		.SetReturn(true);
-	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
-	AMQP_VALUE sasl_server_mechanisms;
-	STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG));
-	uint32_t mechanisms_count = 1;
-	STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
-		.CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
-	STRICT_EXPECTED_CALL(amqpvalue_get_array_item(sasl_server_mechanisms, 0));
-	STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
-	STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
-	SASL_MECHANISM_BYTES init_bytes = { NULL, 0 };
-	STRICT_EXPECTED_CALL(sasl_init_create(test_mechanism));
-	EXPECTED_CALL(saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &init_bytes, sizeof(init_bytes));
-	STRICT_EXPECTED_CALL(amqpvalue_create_sasl_init(test_sasl_init_handle));
-	STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_init_amqp_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-	STRICT_EXPECTED_CALL(sasl_init_destroy(test_sasl_init_handle));
-	STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_init_amqp_value));
-	STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+        .SetReturn(true);
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
+    AMQP_VALUE sasl_server_mechanisms;
+    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG));
+    uint32_t mechanisms_count = 1;
+    STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
+        .CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
+    STRICT_EXPECTED_CALL(amqpvalue_get_array_item(sasl_server_mechanisms, 0));
+    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
+    STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
+    SASL_MECHANISM_BYTES init_bytes = { NULL, 0 };
+    STRICT_EXPECTED_CALL(sasl_init_create(test_mechanism));
+    EXPECTED_CALL(saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &init_bytes, sizeof(init_bytes));
+    STRICT_EXPECTED_CALL(amqpvalue_create_sasl_init(test_sasl_init_handle));
+    STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_init_amqp_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(sasl_init_destroy(test_sasl_init_handle));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_init_amqp_value));
+    STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
 
-	// act
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    // act
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_047: [A block of opaque data passed to the security mechanism.] */
 /* Tests_SRS_SASLCLIENTIO_01_048: [The contents of this data are defined by the SASL security mechanism.] */
 TEST_FUNCTION(when_a_SASL_mechanism_is_received_a_sasl_init_frame_is_send_with_the_mechanism_name_and_the_init_bytes)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	unsigned char test_init_bytes[] = { 0x42, 0x43 };
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    unsigned char test_init_bytes[] = { 0x42, 0x43 };
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
-		.SetReturn(true);
-	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
-	AMQP_VALUE sasl_server_mechanisms;
-	STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG));
-	uint32_t mechanisms_count = 1;
-	STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
-		.CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
-	STRICT_EXPECTED_CALL(amqpvalue_get_array_item(sasl_server_mechanisms, 0));
-	STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
-	STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
-	SASL_MECHANISM_BYTES init_bytes = { test_init_bytes, sizeof(test_init_bytes) };
-	STRICT_EXPECTED_CALL(sasl_init_create(test_mechanism));
-	EXPECTED_CALL(saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &init_bytes, sizeof(init_bytes));
-	STRICT_EXPECTED_CALL(amqpvalue_create_sasl_init(test_sasl_init_handle));
-	amqp_binary expected_creds = { test_init_bytes, sizeof(test_init_bytes) };
-	STRICT_EXPECTED_CALL(sasl_init_set_initial_response(test_sasl_init_handle, expected_creds));
-	STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_init_amqp_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-	STRICT_EXPECTED_CALL(sasl_init_destroy(test_sasl_init_handle));
-	STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_init_amqp_value));
-	STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+        .SetReturn(true);
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
+    AMQP_VALUE sasl_server_mechanisms;
+    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG));
+    uint32_t mechanisms_count = 1;
+    STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
+        .CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
+    STRICT_EXPECTED_CALL(amqpvalue_get_array_item(sasl_server_mechanisms, 0));
+    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
+    STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
+    SASL_MECHANISM_BYTES init_bytes = { test_init_bytes, sizeof(test_init_bytes) };
+    STRICT_EXPECTED_CALL(sasl_init_create(test_mechanism));
+    EXPECTED_CALL(saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &init_bytes, sizeof(init_bytes));
+    STRICT_EXPECTED_CALL(amqpvalue_create_sasl_init(test_sasl_init_handle));
+    amqp_binary expected_creds = { test_init_bytes, sizeof(test_init_bytes) };
+    STRICT_EXPECTED_CALL(sasl_init_set_initial_response(test_sasl_init_handle, expected_creds));
+    STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_init_amqp_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(sasl_init_destroy(test_sasl_init_handle));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_init_amqp_value));
+    STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
 
-	// act
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    // act
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_118: [If on_sasl_frame_received_callback is called in the OPENING state but the header exchange has not yet been completed, then the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
 TEST_FUNCTION(when_a_SASL_mechanism_is_received_when_header_handshake_is_not_done_the_IO_state_is_set_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
-	// act
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    // act
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_117: [If on_sasl_frame_received_callback is called when the state of the IO is OPEN then the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
 TEST_FUNCTION(when_a_SASL_mechanism_is_received_in_the_OPEN_state_the_IO_state_is_set_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(sasl_io);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    setup_successful_sasl_handshake(sasl_io);
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPEN));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPEN));
 
-	// act
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    // act
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_119: [If any error is encountered when parsing the received frame, the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
 TEST_FUNCTION(when_a_SASL_mechanism_is_received_and_getting_the_descriptor_fails_the_IO_state_is_set_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value))
-		.SetReturn((AMQP_VALUE)NULL);
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value))
+        .SetReturn((AMQP_VALUE)NULL);
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
-	// act
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    // act
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_119: [If any error is encountered when parsing the received frame, the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
 TEST_FUNCTION(when_a_SASL_mechanism_is_received_and_getting_the_mechanism_name_fails_the_IO_state_is_set_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
-	AMQP_VALUE sasl_server_mechanisms;
-	STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG));
-	uint32_t mechanisms_count = 1;
-	STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
-		.CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
-	STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism))
-		.SetReturn((const char*)NULL);
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
-	STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
+    AMQP_VALUE sasl_server_mechanisms;
+    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG));
+    uint32_t mechanisms_count = 1;
+    STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
+        .CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
+    STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism))
+        .SetReturn((const char*)NULL);
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
 
-	// act
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    // act
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_119: [If any error is encountered when parsing the received frame, the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
 TEST_FUNCTION(when_a_SASL_mechanism_is_received_and_creating_the_sasl_init_value_fails_the_IO_state_is_set_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
-		.SetReturn(true);
-	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
-	AMQP_VALUE sasl_server_mechanisms;
-	STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG));
-	uint32_t mechanisms_count = 1;
-	STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
-		.CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
-	STRICT_EXPECTED_CALL(amqpvalue_get_array_item(sasl_server_mechanisms, 0));
-	STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
-	STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
-	SASL_MECHANISM_BYTES init_bytes = { NULL, 0 };
-	STRICT_EXPECTED_CALL(sasl_init_create(test_mechanism))
-		.SetReturn((SASL_INIT_HANDLE)NULL);
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
-	STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+        .SetReturn(true);
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
+    AMQP_VALUE sasl_server_mechanisms;
+    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG));
+    uint32_t mechanisms_count = 1;
+    STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
+        .CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
+    STRICT_EXPECTED_CALL(amqpvalue_get_array_item(sasl_server_mechanisms, 0));
+    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
+    STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
+    SASL_MECHANISM_BYTES init_bytes = { NULL, 0 };
+    STRICT_EXPECTED_CALL(sasl_init_create(test_mechanism))
+        .SetReturn((SASL_INIT_HANDLE)NULL);
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
 
-	// act
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    // act
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_119: [If any error is encountered when parsing the received frame, the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
 TEST_FUNCTION(when_a_SASL_mechanism_is_received_and_getting_the_initial_bytes_fails_the_IO_state_is_set_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
-	AMQP_VALUE sasl_server_mechanisms;
-	STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG));
-	uint32_t mechanisms_count = 1;
-	STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
-		.CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
-	STRICT_EXPECTED_CALL(amqpvalue_get_array_item(sasl_server_mechanisms, 0));
-	STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
-	STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
-	SASL_MECHANISM_BYTES init_bytes = { NULL, 0 };
-	STRICT_EXPECTED_CALL(sasl_init_create(test_mechanism));
-	EXPECTED_CALL(saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &init_bytes, sizeof(init_bytes))
-		.SetReturn(1);
-	STRICT_EXPECTED_CALL(sasl_init_destroy(test_sasl_init_handle));
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
-	STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
+    AMQP_VALUE sasl_server_mechanisms;
+    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG));
+    uint32_t mechanisms_count = 1;
+    STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
+        .CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
+    STRICT_EXPECTED_CALL(amqpvalue_get_array_item(sasl_server_mechanisms, 0));
+    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
+    STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
+    SASL_MECHANISM_BYTES init_bytes = { NULL, 0 };
+    STRICT_EXPECTED_CALL(sasl_init_create(test_mechanism));
+    EXPECTED_CALL(saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &init_bytes, sizeof(init_bytes))
+        .SetReturn(1);
+    STRICT_EXPECTED_CALL(sasl_init_destroy(test_sasl_init_handle));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
 
-	// act
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    // act
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_119: [If any error is encountered when parsing the received frame, the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
 TEST_FUNCTION(when_a_SASL_mechanism_is_received_and_getting_the_AMQP_VALUE_fails_the_IO_state_is_set_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
-	AMQP_VALUE sasl_server_mechanisms;
-	STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG));
-	uint32_t mechanisms_count = 1;
-	STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
-		.CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
-	STRICT_EXPECTED_CALL(amqpvalue_get_array_item(sasl_server_mechanisms, 0));
-	STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
-	STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
-	SASL_MECHANISM_BYTES init_bytes = { NULL, 0 };
-	STRICT_EXPECTED_CALL(sasl_init_create(test_mechanism));
-	EXPECTED_CALL(saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &init_bytes, sizeof(init_bytes));
-	STRICT_EXPECTED_CALL(amqpvalue_create_sasl_init(test_sasl_init_handle))
-		.SetReturn((AMQP_VALUE)NULL);
-	STRICT_EXPECTED_CALL(sasl_init_destroy(test_sasl_init_handle));
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
-	STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
+    AMQP_VALUE sasl_server_mechanisms;
+    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG));
+    uint32_t mechanisms_count = 1;
+    STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
+        .CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
+    STRICT_EXPECTED_CALL(amqpvalue_get_array_item(sasl_server_mechanisms, 0));
+    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
+    STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
+    SASL_MECHANISM_BYTES init_bytes = { NULL, 0 };
+    STRICT_EXPECTED_CALL(sasl_init_create(test_mechanism));
+    EXPECTED_CALL(saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &init_bytes, sizeof(init_bytes));
+    STRICT_EXPECTED_CALL(amqpvalue_create_sasl_init(test_sasl_init_handle))
+        .SetReturn((AMQP_VALUE)NULL);
+    STRICT_EXPECTED_CALL(sasl_init_destroy(test_sasl_init_handle));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
 
-	// act
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    // act
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_071: [If sasl_frame_codec_encode_frame fails, then the state of SASL client IO shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
 TEST_FUNCTION(when_a_SASL_mechanism_is_received_and_encoding_the_sasl_frame_fails_the_IO_state_is_set_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
-	AMQP_VALUE sasl_server_mechanisms;
-	STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG));
-	uint32_t mechanisms_count = 1;
-	STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
-		.CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
-	STRICT_EXPECTED_CALL(amqpvalue_get_array_item(sasl_server_mechanisms, 0));
-	STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
-	STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
-	SASL_MECHANISM_BYTES init_bytes = { NULL, 0 };
-	STRICT_EXPECTED_CALL(sasl_init_create(test_mechanism));
-	EXPECTED_CALL(saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &init_bytes, sizeof(init_bytes));
-	STRICT_EXPECTED_CALL(amqpvalue_create_sasl_init(test_sasl_init_handle));
-	STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_init_amqp_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.SetReturn(1);
-	STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_init_amqp_value));
-	STRICT_EXPECTED_CALL(sasl_init_destroy(test_sasl_init_handle));
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
-	STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
+    AMQP_VALUE sasl_server_mechanisms;
+    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG));
+    uint32_t mechanisms_count = 1;
+    STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
+        .CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
+    STRICT_EXPECTED_CALL(amqpvalue_get_array_item(sasl_server_mechanisms, 0));
+    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
+    STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
+    SASL_MECHANISM_BYTES init_bytes = { NULL, 0 };
+    STRICT_EXPECTED_CALL(sasl_init_create(test_mechanism));
+    EXPECTED_CALL(saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &init_bytes, sizeof(init_bytes));
+    STRICT_EXPECTED_CALL(amqpvalue_create_sasl_init(test_sasl_init_handle));
+    STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_init_amqp_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .SetReturn(1);
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_init_amqp_value));
+    STRICT_EXPECTED_CALL(sasl_init_destroy(test_sasl_init_handle));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
 
-	// act
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    // act
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_071: [If sasl_frame_codec_encode_frame fails, then the state of SASL client IO shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
 TEST_FUNCTION(when_a_SASL_mechanism_is_received_and_setting_the_init_bytes_fails_the_IO_state_is_set_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	unsigned char test_init_bytes[] = { 0x42 };
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    unsigned char test_init_bytes[] = { 0x42 };
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
-	AMQP_VALUE sasl_server_mechanisms;
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
+    AMQP_VALUE sasl_server_mechanisms;
     STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG));
-	uint32_t mechanisms_count = 1;
-	STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
-		.CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
-	STRICT_EXPECTED_CALL(amqpvalue_get_array_item(sasl_server_mechanisms, 0));
-	STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
-	STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
-	SASL_MECHANISM_BYTES init_bytes = { test_init_bytes, sizeof(test_init_bytes) };
-	STRICT_EXPECTED_CALL(sasl_init_create(test_mechanism));
-	STRICT_EXPECTED_CALL(saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &init_bytes, sizeof(init_bytes));
-	amqp_binary expected_creds = { test_init_bytes, sizeof(test_init_bytes) };
-	STRICT_EXPECTED_CALL(sasl_init_set_initial_response(test_sasl_init_handle, expected_creds));
-	STRICT_EXPECTED_CALL(amqpvalue_create_sasl_init(test_sasl_init_handle));
-	STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_init_amqp_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.SetReturn(1);
-	STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_init_amqp_value));
-	STRICT_EXPECTED_CALL(sasl_init_destroy(test_sasl_init_handle));
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
-	STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
+    uint32_t mechanisms_count = 1;
+    STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
+        .CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
+    STRICT_EXPECTED_CALL(amqpvalue_get_array_item(sasl_server_mechanisms, 0));
+    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
+    STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
+    SASL_MECHANISM_BYTES init_bytes = { test_init_bytes, sizeof(test_init_bytes) };
+    STRICT_EXPECTED_CALL(sasl_init_create(test_mechanism));
+    STRICT_EXPECTED_CALL(saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &init_bytes, sizeof(init_bytes));
+    amqp_binary expected_creds = { test_init_bytes, sizeof(test_init_bytes) };
+    STRICT_EXPECTED_CALL(sasl_init_set_initial_response(test_sasl_init_handle, expected_creds));
+    STRICT_EXPECTED_CALL(amqpvalue_create_sasl_init(test_sasl_init_handle));
+    STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_init_amqp_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .SetReturn(1);
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_init_amqp_value));
+    STRICT_EXPECTED_CALL(sasl_init_destroy(test_sasl_init_handle));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
 
-	// act
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    // act
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_058: [This frame indicates the outcome of the SASL dialog.] */
@@ -2293,196 +2293,196 @@ TEST_FUNCTION(when_a_SASL_mechanism_is_received_and_setting_the_init_bytes_fails
 /* Tests_SRS_SASLCLIENTIO_01_072: [When the SASL handshake is complete, if the handshake is successful, the SASL client IO state shall be switched to IO_STATE_OPEN and the on_state_changed callback shall be triggered.] */
 TEST_FUNCTION(when_a_SASL_outcome_frame_is_received_with_ok_the_SASL_IO_state_is_switched_to_OPEN)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
-		.SetReturn(true);
-	EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_outcome, sizeof(test_sasl_outcome));
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+        .SetReturn(true);
+    EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_outcome, sizeof(test_sasl_outcome));
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
-		.SetReturn(false);
-	STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
-		.SetReturn(false);
-	STRICT_EXPECTED_CALL(is_sasl_outcome_type_by_descriptor(test_descriptor_value))
-		.SetReturn(true);
-	sasl_code sasl_outcome_code = sasl_code_ok;
-	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_outcome(test_sasl_value, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_sasl_outcome_handle, sizeof(test_sasl_outcome_handle));
-	STRICT_EXPECTED_CALL(sasl_outcome_get_code(test_sasl_outcome_handle, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &sasl_outcome_code, sizeof(sasl_outcome_code));
-	STRICT_EXPECTED_CALL(sasl_outcome_destroy(test_sasl_outcome_handle));
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_sasl_outcome_type_by_descriptor(test_descriptor_value))
+        .SetReturn(true);
+    sasl_code sasl_outcome_code = sasl_code_ok;
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_outcome(test_sasl_value, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_sasl_outcome_handle, sizeof(test_sasl_outcome_handle));
+    STRICT_EXPECTED_CALL(sasl_outcome_get_code(test_sasl_outcome_handle, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &sasl_outcome_code, sizeof(sasl_outcome_code));
+    STRICT_EXPECTED_CALL(sasl_outcome_destroy(test_sasl_outcome_handle));
 
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_OPEN, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_OPEN, IO_STATE_OPENING));
 
-	// act
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    // act
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 void when_an_outcome_with_error_code_is_received_the_SASL_IO_state_is_set_to_ERROR(sasl_code test_sasl_code)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
-		.SetReturn(true);
-	EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_outcome, sizeof(test_sasl_outcome));
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+        .SetReturn(true);
+    EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_outcome, sizeof(test_sasl_outcome));
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
-		.SetReturn(false);
-	STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
-		.SetReturn(false);
-	STRICT_EXPECTED_CALL(is_sasl_outcome_type_by_descriptor(test_descriptor_value))
-		.SetReturn(true);
-	sasl_code sasl_outcome_code = test_sasl_code;
-	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_outcome(test_sasl_value, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_sasl_outcome_handle, sizeof(test_sasl_outcome_handle));
-	STRICT_EXPECTED_CALL(sasl_outcome_get_code(test_sasl_outcome_handle, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &sasl_outcome_code, sizeof(sasl_outcome_code));
-	STRICT_EXPECTED_CALL(sasl_outcome_destroy(test_sasl_outcome_handle));
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_sasl_outcome_type_by_descriptor(test_descriptor_value))
+        .SetReturn(true);
+    sasl_code sasl_outcome_code = test_sasl_code;
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_outcome(test_sasl_value, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_sasl_outcome_handle, sizeof(test_sasl_outcome_handle));
+    STRICT_EXPECTED_CALL(sasl_outcome_get_code(test_sasl_outcome_handle, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &sasl_outcome_code, sizeof(sasl_outcome_code));
+    STRICT_EXPECTED_CALL(sasl_outcome_destroy(test_sasl_outcome_handle));
 
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
-	// act
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    // act
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_063: [1 Connection authentication failed due to an unspecified problem with the supplied credentials.] */
 TEST_FUNCTION(when_a_SASL_outcome_frame_is_received_with_auth_error_code_the_SASL_IO_state_is_switched_to_ERROR)
 {
-	when_an_outcome_with_error_code_is_received_the_SASL_IO_state_is_set_to_ERROR(sasl_code_auth);
+    when_an_outcome_with_error_code_is_received_the_SASL_IO_state_is_set_to_ERROR(sasl_code_auth);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_064: [2 Connection authentication failed due to a system error.] */
 TEST_FUNCTION(when_a_SASL_outcome_frame_is_received_with_sys_error_code_the_SASL_IO_state_is_switched_to_ERROR)
 {
-	when_an_outcome_with_error_code_is_received_the_SASL_IO_state_is_set_to_ERROR(sasl_code_sys);
+    when_an_outcome_with_error_code_is_received_the_SASL_IO_state_is_set_to_ERROR(sasl_code_sys);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_065: [3 Connection authentication failed due to a system error that is unlikely to be corrected without intervention.] */
 TEST_FUNCTION(when_a_SASL_outcome_frame_is_received_with_sys_perm_error_code_the_SASL_IO_state_is_switched_to_ERROR)
 {
-	when_an_outcome_with_error_code_is_received_the_SASL_IO_state_is_set_to_ERROR(sasl_code_sys_perm);
+    when_an_outcome_with_error_code_is_received_the_SASL_IO_state_is_set_to_ERROR(sasl_code_sys_perm);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_066: [4 Connection authentication failed due to a transient system error.] */
 TEST_FUNCTION(when_a_SASL_outcome_frame_is_received_with_sys_temp_error_code_the_SASL_IO_state_is_switched_to_ERROR)
 {
-	when_an_outcome_with_error_code_is_received_the_SASL_IO_state_is_set_to_ERROR(sasl_code_sys_temp);
+    when_an_outcome_with_error_code_is_received_the_SASL_IO_state_is_set_to_ERROR(sasl_code_sys_temp);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_032: [The peer acting as the SASL server MUST announce supported authentication mechanisms using the sasl-mechanisms frame.] */
 TEST_FUNCTION(when_a_SASL_outcome_frame_is_received_before_mechanisms_the_state_is_set_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_outcome, sizeof(test_sasl_outcome));
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_outcome, sizeof(test_sasl_outcome));
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
-		.SetReturn(false);
-	STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
-		.SetReturn(false);
-	STRICT_EXPECTED_CALL(is_sasl_outcome_type_by_descriptor(test_descriptor_value))
-		.SetReturn(true);
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_sasl_outcome_type_by_descriptor(test_descriptor_value))
+        .SetReturn(true);
 
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
-	// act
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    // act
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_032: [The peer acting as the SASL server MUST announce supported authentication mechanisms using the sasl-mechanisms frame.] */
 TEST_FUNCTION(when_a_SASL_challenge_is_received_before_mechanisms_the_state_is_set_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_challenge, sizeof(test_sasl_challenge));
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_challenge, sizeof(test_sasl_challenge));
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
-		.SetReturn(false);
-	STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
-		.SetReturn(true);
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
+        .SetReturn(true);
 
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
-	// act
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    // act
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 static void setup_succesfull_challenge_response(void)
 {
 
-	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
-		.SetReturn(false);
-	STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
-		.SetReturn(true);
-	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle));
-	STRICT_EXPECTED_CALL(sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &some_challenge_bytes, sizeof(some_challenge_bytes));
-	STRICT_EXPECTED_CALL(saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(3, &sasl_mechanism_response_bytes, sizeof(sasl_mechanism_response_bytes));
-	STRICT_EXPECTED_CALL(sasl_response_create(response_binary_value));
-	STRICT_EXPECTED_CALL(amqpvalue_create_sasl_response(test_sasl_response_handle));
-	STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_response_amqp_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-	STRICT_EXPECTED_CALL(sasl_response_destroy(test_sasl_response_handle));
-	STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_response_amqp_value));
-	STRICT_EXPECTED_CALL(sasl_challenge_destroy(test_sasl_challenge_handle));
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
+        .SetReturn(true);
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle));
+    STRICT_EXPECTED_CALL(sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &some_challenge_bytes, sizeof(some_challenge_bytes));
+    STRICT_EXPECTED_CALL(saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(3, &sasl_mechanism_response_bytes, sizeof(sasl_mechanism_response_bytes));
+    STRICT_EXPECTED_CALL(sasl_response_create(response_binary_value));
+    STRICT_EXPECTED_CALL(amqpvalue_create_sasl_response(test_sasl_response_handle));
+    STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_response_amqp_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(sasl_response_destroy(test_sasl_response_handle));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_response_amqp_value));
+    STRICT_EXPECTED_CALL(sasl_challenge_destroy(test_sasl_challenge_handle));
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_052: [Send the SASL challenge data as defined by the SASL specification.] */
@@ -2495,920 +2495,920 @@ static void setup_succesfull_challenge_response(void)
 /* Tests_SRS_SASLCLIENTIO_01_070: [When a frame needs to be sent as part of the SASL handshake frame exchange, the send shall be done by calling sasl_frame_codec_encode_frame.] */
 TEST_FUNCTION(when_a_SASL_challenge_is_received_after_the_mechanisms_the_sasl_mechanism_challenge_processing_is_invoked)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
-		.SetReturn(true);
-	EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_challenge, sizeof(test_sasl_challenge));
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+        .SetReturn(true);
+    EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_challenge, sizeof(test_sasl_challenge));
+    umock_c_reset_all_calls();
 
-	setup_succesfull_challenge_response();
+    setup_succesfull_challenge_response();
 
-	// act
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    // act
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_119: [If any error is encountered when parsing the received frame, the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
 TEST_FUNCTION(when_getting_the_sasl_challenge_fails_then_the_state_is_set_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	unsigned char test_challenge_bytes[] = { 0x42 };
-	unsigned char test_response_bytes[] = { 0x43, 0x44 };
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
-		.SetReturn(true);
-	EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_challenge, sizeof(test_sasl_challenge));
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    unsigned char test_challenge_bytes[] = { 0x42 };
+    unsigned char test_response_bytes[] = { 0x43, 0x44 };
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+        .SetReturn(true);
+    EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_challenge, sizeof(test_sasl_challenge));
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
-		.SetReturn(false);
-	STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
-		.SetReturn(true);
-	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle))
-		.SetReturn(1);
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
+        .SetReturn(true);
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle))
+        .SetReturn(1);
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
-	// act
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    // act
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_119: [If any error is encountered when parsing the received frame, the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
 TEST_FUNCTION(when_getting_the_challenge_bytes_fails_then_the_state_is_set_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	unsigned char test_challenge_bytes[] = { 0x42 };
-	unsigned char test_response_bytes[] = { 0x43, 0x44 };
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
-		.SetReturn(true);
-	EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_challenge, sizeof(test_sasl_challenge));
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    unsigned char test_challenge_bytes[] = { 0x42 };
+    unsigned char test_response_bytes[] = { 0x43, 0x44 };
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+        .SetReturn(true);
+    EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_challenge, sizeof(test_sasl_challenge));
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
-		.SetReturn(false);
-	STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
-		.SetReturn(true);
-	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle));
-	amqp_binary some_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
-	STRICT_EXPECTED_CALL(sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &some_challenge_bytes, sizeof(some_challenge_bytes))
-		.SetReturn(1);
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
-	STRICT_EXPECTED_CALL(sasl_challenge_destroy(test_sasl_challenge_handle));
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
+        .SetReturn(true);
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle));
+    amqp_binary some_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
+    STRICT_EXPECTED_CALL(sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &some_challenge_bytes, sizeof(some_challenge_bytes))
+        .SetReturn(1);
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(sasl_challenge_destroy(test_sasl_challenge_handle));
 
-	// act
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    // act
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_119: [If any error is encountered when parsing the received frame, the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
 TEST_FUNCTION(when_the_sasl_mechanism_challenge_response_function_fails_then_the_state_is_set_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	unsigned char test_challenge_bytes[] = { 0x42 };
-	unsigned char test_response_bytes[] = { 0x43, 0x44 };
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
-		.SetReturn(true);
-	EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_challenge, sizeof(test_sasl_challenge));
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    unsigned char test_challenge_bytes[] = { 0x42 };
+    unsigned char test_response_bytes[] = { 0x43, 0x44 };
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+        .SetReturn(true);
+    EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_challenge, sizeof(test_sasl_challenge));
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
-		.SetReturn(false);
-	STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
-		.SetReturn(true);
-	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle));
-	amqp_binary some_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
-	STRICT_EXPECTED_CALL(sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &some_challenge_bytes, sizeof(some_challenge_bytes));
-	SASL_MECHANISM_BYTES sasl_mechanism_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
-	SASL_MECHANISM_BYTES sasl_mechanism_response_bytes = { test_response_bytes, sizeof(test_response_bytes) };
-	STRICT_EXPECTED_CALL(saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(3, &sasl_mechanism_response_bytes, sizeof(sasl_mechanism_response_bytes))
-		.SetReturn(1);
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
-	STRICT_EXPECTED_CALL(sasl_challenge_destroy(test_sasl_challenge_handle));
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
+        .SetReturn(true);
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle));
+    amqp_binary some_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
+    STRICT_EXPECTED_CALL(sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &some_challenge_bytes, sizeof(some_challenge_bytes));
+    SASL_MECHANISM_BYTES sasl_mechanism_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
+    SASL_MECHANISM_BYTES sasl_mechanism_response_bytes = { test_response_bytes, sizeof(test_response_bytes) };
+    STRICT_EXPECTED_CALL(saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(3, &sasl_mechanism_response_bytes, sizeof(sasl_mechanism_response_bytes))
+        .SetReturn(1);
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(sasl_challenge_destroy(test_sasl_challenge_handle));
 
-	// act
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    // act
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_119: [If any error is encountered when parsing the received frame, the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
 TEST_FUNCTION(when_creating_the_sasl_response_fails_the_state_is_set_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	unsigned char test_challenge_bytes[] = { 0x42 };
-	unsigned char test_response_bytes[] = { 0x43, 0x44 };
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
-		.SetReturn(true);
-	EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_challenge, sizeof(test_sasl_challenge));
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    unsigned char test_challenge_bytes[] = { 0x42 };
+    unsigned char test_response_bytes[] = { 0x43, 0x44 };
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+        .SetReturn(true);
+    EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_challenge, sizeof(test_sasl_challenge));
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
-		.SetReturn(false);
-	STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
-		.SetReturn(true);
-	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle));
-	amqp_binary some_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
-	STRICT_EXPECTED_CALL(sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &some_challenge_bytes, sizeof(some_challenge_bytes));
-	SASL_MECHANISM_BYTES sasl_mechanism_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
-	SASL_MECHANISM_BYTES sasl_mechanism_response_bytes = { test_response_bytes, sizeof(test_response_bytes) };
-	STRICT_EXPECTED_CALL(saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(3, &sasl_mechanism_response_bytes, sizeof(sasl_mechanism_response_bytes));
-	amqp_binary response_binary_value = { test_response_bytes, sizeof(test_response_bytes) };
-	STRICT_EXPECTED_CALL(sasl_response_create(response_binary_value))
-		.SetReturn((SASL_RESPONSE_HANDLE)NULL);
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
-	STRICT_EXPECTED_CALL(sasl_challenge_destroy(test_sasl_challenge_handle));
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
+        .SetReturn(true);
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle));
+    amqp_binary some_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
+    STRICT_EXPECTED_CALL(sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &some_challenge_bytes, sizeof(some_challenge_bytes));
+    SASL_MECHANISM_BYTES sasl_mechanism_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
+    SASL_MECHANISM_BYTES sasl_mechanism_response_bytes = { test_response_bytes, sizeof(test_response_bytes) };
+    STRICT_EXPECTED_CALL(saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(3, &sasl_mechanism_response_bytes, sizeof(sasl_mechanism_response_bytes));
+    amqp_binary response_binary_value = { test_response_bytes, sizeof(test_response_bytes) };
+    STRICT_EXPECTED_CALL(sasl_response_create(response_binary_value))
+        .SetReturn((SASL_RESPONSE_HANDLE)NULL);
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(sasl_challenge_destroy(test_sasl_challenge_handle));
 
-	// act
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    // act
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_119: [If any error is encountered when parsing the received frame, the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
 TEST_FUNCTION(when_creating_the_AMQP_VALUE_for_sasl_response_fails_the_state_is_set_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	unsigned char test_challenge_bytes[] = { 0x42 };
-	unsigned char test_response_bytes[] = { 0x43, 0x44 };
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
-		.SetReturn(true);
-	EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_challenge, sizeof(test_sasl_challenge));
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    unsigned char test_challenge_bytes[] = { 0x42 };
+    unsigned char test_response_bytes[] = { 0x43, 0x44 };
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+        .SetReturn(true);
+    EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_challenge, sizeof(test_sasl_challenge));
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
-		.SetReturn(false);
-	STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
-		.SetReturn(true);
-	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle));
-	amqp_binary some_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
-	STRICT_EXPECTED_CALL(sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &some_challenge_bytes, sizeof(some_challenge_bytes));
-	SASL_MECHANISM_BYTES sasl_mechanism_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
-	SASL_MECHANISM_BYTES sasl_mechanism_response_bytes = { test_response_bytes, sizeof(test_response_bytes) };
-	STRICT_EXPECTED_CALL(saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(3, &sasl_mechanism_response_bytes, sizeof(sasl_mechanism_response_bytes));
-	amqp_binary response_binary_value = { test_response_bytes, sizeof(test_response_bytes) };
-	STRICT_EXPECTED_CALL(sasl_response_create(response_binary_value));
-	STRICT_EXPECTED_CALL(amqpvalue_create_sasl_response(test_sasl_response_handle))
-		.SetReturn((AMQP_VALUE)NULL);
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
-	STRICT_EXPECTED_CALL(sasl_response_destroy(test_sasl_response_handle));
-	STRICT_EXPECTED_CALL(sasl_challenge_destroy(test_sasl_challenge_handle));
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
+        .SetReturn(true);
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle));
+    amqp_binary some_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
+    STRICT_EXPECTED_CALL(sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &some_challenge_bytes, sizeof(some_challenge_bytes));
+    SASL_MECHANISM_BYTES sasl_mechanism_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
+    SASL_MECHANISM_BYTES sasl_mechanism_response_bytes = { test_response_bytes, sizeof(test_response_bytes) };
+    STRICT_EXPECTED_CALL(saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(3, &sasl_mechanism_response_bytes, sizeof(sasl_mechanism_response_bytes));
+    amqp_binary response_binary_value = { test_response_bytes, sizeof(test_response_bytes) };
+    STRICT_EXPECTED_CALL(sasl_response_create(response_binary_value));
+    STRICT_EXPECTED_CALL(amqpvalue_create_sasl_response(test_sasl_response_handle))
+        .SetReturn((AMQP_VALUE)NULL);
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(sasl_response_destroy(test_sasl_response_handle));
+    STRICT_EXPECTED_CALL(sasl_challenge_destroy(test_sasl_challenge_handle));
 
-	// act
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    // act
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_119: [If any error is encountered when parsing the received frame, the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
 TEST_FUNCTION(when_encoding_the_sasl_frame_for_sasl_response_fails_the_state_is_set_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	unsigned char test_challenge_bytes[] = { 0x42 };
-	unsigned char test_response_bytes[] = { 0x43, 0x44 };
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
-		.SetReturn(true);
-	EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_challenge, sizeof(test_sasl_challenge));
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    unsigned char test_challenge_bytes[] = { 0x42 };
+    unsigned char test_response_bytes[] = { 0x43, 0x44 };
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+        .SetReturn(true);
+    EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_challenge, sizeof(test_sasl_challenge));
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
-		.SetReturn(false);
-	STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
-		.SetReturn(true);
-	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle));
-	amqp_binary some_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
-	STRICT_EXPECTED_CALL(sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &some_challenge_bytes, sizeof(some_challenge_bytes));
-	SASL_MECHANISM_BYTES sasl_mechanism_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
-	SASL_MECHANISM_BYTES sasl_mechanism_response_bytes = { test_response_bytes, sizeof(test_response_bytes) };
-	STRICT_EXPECTED_CALL(saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(3, &sasl_mechanism_response_bytes, sizeof(sasl_mechanism_response_bytes));
-	amqp_binary response_binary_value = { test_response_bytes, sizeof(test_response_bytes) };
-	STRICT_EXPECTED_CALL(sasl_response_create(response_binary_value));
-	STRICT_EXPECTED_CALL(amqpvalue_create_sasl_response(test_sasl_response_handle));
-	STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_response_amqp_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.SetReturn(1);
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
-	STRICT_EXPECTED_CALL(sasl_response_destroy(test_sasl_response_handle));
-	STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_response_amqp_value));
-	STRICT_EXPECTED_CALL(sasl_challenge_destroy(test_sasl_challenge_handle));
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
+        .SetReturn(true);
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle));
+    amqp_binary some_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
+    STRICT_EXPECTED_CALL(sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &some_challenge_bytes, sizeof(some_challenge_bytes));
+    SASL_MECHANISM_BYTES sasl_mechanism_challenge_bytes = { test_challenge_bytes, sizeof(test_challenge_bytes) };
+    SASL_MECHANISM_BYTES sasl_mechanism_response_bytes = { test_response_bytes, sizeof(test_response_bytes) };
+    STRICT_EXPECTED_CALL(saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(3, &sasl_mechanism_response_bytes, sizeof(sasl_mechanism_response_bytes));
+    amqp_binary response_binary_value = { test_response_bytes, sizeof(test_response_bytes) };
+    STRICT_EXPECTED_CALL(sasl_response_create(response_binary_value));
+    STRICT_EXPECTED_CALL(amqpvalue_create_sasl_response(test_sasl_response_handle));
+    STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_response_amqp_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .SetReturn(1);
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(sasl_response_destroy(test_sasl_response_handle));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_response_amqp_value));
+    STRICT_EXPECTED_CALL(sasl_challenge_destroy(test_sasl_challenge_handle));
 
-	// act
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    // act
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_039: [the SASL challenge/response step can occur zero or more times depending on the details of the SASL mechanism chosen.] */
 TEST_FUNCTION(SASL_challenge_response_twice_succeed)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
-		.SetReturn(true);
-	EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_challenge, sizeof(test_sasl_challenge));
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+        .SetReturn(true);
+    EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_challenge, sizeof(test_sasl_challenge));
+    umock_c_reset_all_calls();
 
-	setup_succesfull_challenge_response();
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    setup_succesfull_challenge_response();
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	setup_succesfull_challenge_response();
+    setup_succesfull_challenge_response();
 
-	// act
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    // act
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_039: [the SASL challenge/response step can occur zero or more times depending on the details of the SASL mechanism chosen.] */
 TEST_FUNCTION(SASL_challenge_response_256_times_succeeds)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	size_t i;
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    size_t i;
 
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
-		.SetReturn(true);
-	EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_challenge, sizeof(test_sasl_challenge));
-	umock_c_reset_all_calls();
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+        .SetReturn(true);
+    EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_challenge, sizeof(test_sasl_challenge));
+    umock_c_reset_all_calls();
 
-	// act
-	for (i = 0; i < 256; i++)
-	{
-		setup_succesfull_challenge_response();
-		saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
-	}
+    // act
+    for (i = 0; i < 256; i++)
+    {
+        setup_succesfull_challenge_response();
+        saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    }
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_039: [the SASL challenge/response step can occur zero or more times depending on the details of the SASL mechanism chosen.] */
 /* Tests_SRS_SASLCLIENTIO_01_072: [When the SASL handshake is complete, if the handshake is successful, the SASL client IO state shall be switched to IO_STATE_OPEN and the on_state_changed callback shall be triggered.] */
 TEST_FUNCTION(SASL_challenge_response_256_times_followed_by_outcome_succeeds)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	size_t i;
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    size_t i;
 
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
-		.SetReturn(true);
-	EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_challenge, sizeof(test_sasl_challenge));
-	umock_c_reset_all_calls();
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+        .SetReturn(true);
+    EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_challenge, sizeof(test_sasl_challenge));
+    umock_c_reset_all_calls();
 
-	for (i = 0; i < 256; i++)
-	{
-		setup_succesfull_challenge_response();
-		saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
-	}
+    for (i = 0; i < 256; i++)
+    {
+        setup_succesfull_challenge_response();
+        saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    }
 
-	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
-		.SetReturn(false);
-	STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
-		.SetReturn(false);
-	STRICT_EXPECTED_CALL(is_sasl_outcome_type_by_descriptor(test_descriptor_value))
-		.SetReturn(true);
-	sasl_code sasl_outcome_code = sasl_code_ok;
-	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_outcome(test_sasl_value, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_sasl_outcome_handle, sizeof(test_sasl_outcome_handle));
-	STRICT_EXPECTED_CALL(sasl_outcome_get_code(test_sasl_outcome_handle, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &sasl_outcome_code, sizeof(sasl_outcome_code));
-	STRICT_EXPECTED_CALL(sasl_outcome_destroy(test_sasl_outcome_handle));
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_sasl_outcome_type_by_descriptor(test_descriptor_value))
+        .SetReturn(true);
+    sasl_code sasl_outcome_code = sasl_code_ok;
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_outcome(test_sasl_value, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_sasl_outcome_handle, sizeof(test_sasl_outcome_handle));
+    STRICT_EXPECTED_CALL(sasl_outcome_get_code(test_sasl_outcome_handle, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &sasl_outcome_code, sizeof(sasl_outcome_code));
+    STRICT_EXPECTED_CALL(sasl_outcome_destroy(test_sasl_outcome_handle));
 
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_OPEN, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_OPEN, IO_STATE_OPENING));
 
-	// act
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    // act
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_119: [If any error is encountered when parsing the received frame, the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
 TEST_FUNCTION(when_the_mechanisms_sasl_value_cannot_be_decoded_the_state_is_set_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	umock_c_reset_all_calls();
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
-	AMQP_VALUE sasl_server_mechanisms;
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
+    AMQP_VALUE sasl_server_mechanisms;
     STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG))
         .SetReturn(1);
-	STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
+    STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
 
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
-	// act
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    // act
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_042: [It is invalid for this list to be null or empty.] */
 TEST_FUNCTION(when_a_NULL_list_is_received_in_the_SASL_mechanisms_then_state_is_set_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	umock_c_reset_all_calls();
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
-	AMQP_VALUE sasl_server_mechanisms;
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
+    AMQP_VALUE sasl_server_mechanisms;
     STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG))
         .SetReturn(1);
-	STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
+    STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
 
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
-	// act
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    // act
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_042: [It is invalid for this list to be null or empty.] */
 TEST_FUNCTION(when_an_empty_array_is_received_in_the_SASL_mechanisms_then_state_is_set_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	umock_c_reset_all_calls();
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
-	AMQP_VALUE sasl_server_mechanisms;
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
+    AMQP_VALUE sasl_server_mechanisms;
     STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG));
     uint32_t mechanisms_count = 0;
-	STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
-		.CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
-	STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
+    STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
+        .CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
+    STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
 
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
-	// act
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    // act
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_119: [If any error is encountered when parsing the received frame, the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
 TEST_FUNCTION(when_getting_the_mechanisms_array_item_count_fails_then_state_is_set_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	umock_c_reset_all_calls();
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
-	AMQP_VALUE sasl_server_mechanisms;
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
+    AMQP_VALUE sasl_server_mechanisms;
     STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG));
     uint32_t mechanisms_count = 0;
-	STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
-		.CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count))
-		.SetReturn(1);
-	STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
+    STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
+        .CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count))
+        .SetReturn(1);
+    STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
 
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
-	// act
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    // act
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_073: [If the handshake fails (i.e. the outcome is an error) the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.]  */
 TEST_FUNCTION(when_the_mechanisms_array_does_not_contain_a_usable_SASL_mechanism_then_the_state_is_set_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	umock_c_reset_all_calls();
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
-	AMQP_VALUE sasl_server_mechanisms;
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
+    AMQP_VALUE sasl_server_mechanisms;
     STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
-	uint32_t mechanisms_count = 1;
-	STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
-		.CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
-	STRICT_EXPECTED_CALL(amqpvalue_get_array_item(sasl_server_mechanisms, 0));
-	const char* test_sasl_server_mechanism_name = "blahblah";
-	STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_sasl_server_mechanism_name, sizeof(test_sasl_server_mechanism_name));
-	STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
+    uint32_t mechanisms_count = 1;
+    STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
+        .CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
+    STRICT_EXPECTED_CALL(amqpvalue_get_array_item(sasl_server_mechanisms, 0));
+    const char* test_sasl_server_mechanism_name = "blahblah";
+    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_sasl_server_mechanism_name, sizeof(test_sasl_server_mechanism_name));
+    STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
 
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
-	// act
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    // act
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_073: [If the handshake fails (i.e. the outcome is an error) the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.]  */
 TEST_FUNCTION(when_the_mechanisms_array_has_2_mechanisms_and_none_matches_the_state_is_set_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	umock_c_reset_all_calls();
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
-	AMQP_VALUE sasl_server_mechanisms;
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
+    AMQP_VALUE sasl_server_mechanisms;
     STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
-	uint32_t mechanisms_count = 2;
-	STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
-		.CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
-	STRICT_EXPECTED_CALL(amqpvalue_get_array_item(sasl_server_mechanisms, 0));
-	const char* test_sasl_server_mechanism_name_1 = "blahblah";
-	STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_sasl_server_mechanism_name_1, sizeof(test_sasl_server_mechanism_name_1));
-	STRICT_EXPECTED_CALL(amqpvalue_get_array_item(sasl_server_mechanisms, 1));
-	const char* test_sasl_server_mechanism_name_2 = "another_blah";
-	STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_sasl_server_mechanism_name_2, sizeof(test_sasl_server_mechanism_name_2));
-	STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
+    uint32_t mechanisms_count = 2;
+    STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
+        .CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
+    STRICT_EXPECTED_CALL(amqpvalue_get_array_item(sasl_server_mechanisms, 0));
+    const char* test_sasl_server_mechanism_name_1 = "blahblah";
+    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_sasl_server_mechanism_name_1, sizeof(test_sasl_server_mechanism_name_1));
+    STRICT_EXPECTED_CALL(amqpvalue_get_array_item(sasl_server_mechanisms, 1));
+    const char* test_sasl_server_mechanism_name_2 = "another_blah";
+    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_sasl_server_mechanism_name_2, sizeof(test_sasl_server_mechanism_name_2));
+    STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
 
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
-	// act
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    // act
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 static void setup_send_init(void)
 {
-	STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
-	STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-	STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
-	AMQP_VALUE sasl_server_mechanisms;
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
+    STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
+    AMQP_VALUE sasl_server_mechanisms;
     STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG));
     uint32_t mechanisms_count = 1;
-	STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
-		.CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
-	STRICT_EXPECTED_CALL(amqpvalue_get_array_item(sasl_server_mechanisms, 0));
-	STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
-	STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
-	SASL_MECHANISM_BYTES init_bytes = { NULL, 0 };
-	STRICT_EXPECTED_CALL(sasl_init_create(test_mechanism));
-	EXPECTED_CALL(saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_PTR_ARG))
-		.CopyOutArgumentBuffer(2, &init_bytes, sizeof(init_bytes));
-	STRICT_EXPECTED_CALL(amqpvalue_create_sasl_init(test_sasl_init_handle));
-	STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_init_amqp_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-	STRICT_EXPECTED_CALL(sasl_init_destroy(test_sasl_init_handle));
-	STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_init_amqp_value));
-	STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
+    STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count))
+        .CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
+    STRICT_EXPECTED_CALL(amqpvalue_get_array_item(sasl_server_mechanisms, 0));
+    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
+    STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
+    SASL_MECHANISM_BYTES init_bytes = { NULL, 0 };
+    STRICT_EXPECTED_CALL(sasl_init_create(test_mechanism));
+    EXPECTED_CALL(saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &init_bytes, sizeof(init_bytes));
+    STRICT_EXPECTED_CALL(amqpvalue_create_sasl_init(test_sasl_init_handle));
+    STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_init_amqp_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(sasl_init_destroy(test_sasl_init_handle));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_init_amqp_value));
+    STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_120: [When SASL client IO is notified by sasl_frame_codec of bytes that have been encoded via the on_bytes_encoded callback and SASL client IO is in the state OPENING, SASL client IO shall send these bytes by using xio_send.] */
 TEST_FUNCTION(when_encoded_bytes_are_received_they_are_given_to_xio_send)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	unsigned char encoded_bytes[] = { 0x42, 0x43 };
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    unsigned char encoded_bytes[] = { 0x42, 0x43 };
 
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	umock_c_reset_all_calls();
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+    umock_c_reset_all_calls();
 
-	setup_send_init();
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    setup_send_init();
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	STRICT_EXPECTED_CALL(xio_send(test_underlying_io, encoded_bytes, sizeof(encoded_bytes), NULL, NULL))
-		.ValidateArgumentBuffer(2, &encoded_bytes, sizeof(encoded_bytes));
+    STRICT_EXPECTED_CALL(xio_send(test_underlying_io, encoded_bytes, sizeof(encoded_bytes), NULL, NULL))
+        .ValidateArgumentBuffer(2, &encoded_bytes, sizeof(encoded_bytes));
 
-	// act
-	saved_on_bytes_encoded(saved_on_bytes_encoded_callback_context, encoded_bytes, sizeof(encoded_bytes), true);
+    // act
+    saved_on_bytes_encoded(saved_on_bytes_encoded_callback_context, encoded_bytes, sizeof(encoded_bytes), true);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_120: [When SASL client IO is notified by sasl_frame_codec of bytes that have been encoded via the on_bytes_encoded callback and SASL client IO is in the state OPENING, SASL client IO shall send these bytes by using xio_send.] */
 TEST_FUNCTION(when_encoded_bytes_are_received_with_encoded_complete_flag_set_to_false_they_are_given_to_xio_send)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	unsigned char encoded_bytes[] = { 0x42, 0x43 };
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    unsigned char encoded_bytes[] = { 0x42, 0x43 };
 
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	umock_c_reset_all_calls();
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+    umock_c_reset_all_calls();
 
-	setup_send_init();
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    setup_send_init();
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	STRICT_EXPECTED_CALL(xio_send(test_underlying_io, encoded_bytes, sizeof(encoded_bytes), NULL, NULL))
-		.ValidateArgumentBuffer(2, &encoded_bytes, sizeof(encoded_bytes));
+    STRICT_EXPECTED_CALL(xio_send(test_underlying_io, encoded_bytes, sizeof(encoded_bytes), NULL, NULL))
+        .ValidateArgumentBuffer(2, &encoded_bytes, sizeof(encoded_bytes));
 
-	// act
-	saved_on_bytes_encoded(saved_on_bytes_encoded_callback_context, encoded_bytes, sizeof(encoded_bytes), false);
+    // act
+    saved_on_bytes_encoded(saved_on_bytes_encoded_callback_context, encoded_bytes, sizeof(encoded_bytes), false);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_121: [If xio_send fails, the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
 TEST_FUNCTION(when_xio_send_fails_when_sending_encoded_bytes_then_state_is_set_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	unsigned char encoded_bytes[] = { 0x42, 0x43 };
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    unsigned char encoded_bytes[] = { 0x42, 0x43 };
 
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	umock_c_reset_all_calls();
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+    umock_c_reset_all_calls();
 
-	setup_send_init();
-	saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
+    setup_send_init();
+    saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 
-	STRICT_EXPECTED_CALL(xio_send(test_underlying_io, encoded_bytes, sizeof(encoded_bytes), NULL, NULL))
-		.ValidateArgumentBuffer(2, &encoded_bytes, sizeof(encoded_bytes))
-		.SetReturn(1);
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(xio_send(test_underlying_io, encoded_bytes, sizeof(encoded_bytes), NULL, NULL))
+        .ValidateArgumentBuffer(2, &encoded_bytes, sizeof(encoded_bytes))
+        .SetReturn(1);
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
-	// act
-	saved_on_bytes_encoded(saved_on_bytes_encoded_callback_context, encoded_bytes, sizeof(encoded_bytes), false);
+    // act
+    saved_on_bytes_encoded(saved_on_bytes_encoded_callback_context, encoded_bytes, sizeof(encoded_bytes), false);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_122: [When on_frame_codec_error is called while in the OPENING or OPEN state the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
 TEST_FUNCTION(when_the_frame_codec_triggers_an_error_in_the_OPENING_state_the_saslclientio_state_is_set_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	umock_c_reset_all_calls();
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
-	// act
-	saved_on_frame_codec_error(saved_on_frame_codec_error_callback_context);
+    // act
+    saved_on_frame_codec_error(saved_on_frame_codec_error_callback_context);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_122: [When on_frame_codec_error is called while in the OPENING or OPEN state the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
 TEST_FUNCTION(when_the_frame_codec_triggers_an_error_in_the_OPEN_state_the_saslclientio_state_is_set_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(sasl_io);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    setup_successful_sasl_handshake(sasl_io);
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPEN));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPEN));
 
-	// act
-	saved_on_frame_codec_error(saved_on_frame_codec_error_callback_context);
+    // act
+    saved_on_frame_codec_error(saved_on_frame_codec_error_callback_context);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_123: [When on_frame_codec_error is called in the ERROR state nothing shall be done.] */
 TEST_FUNCTION(when_the_frame_codec_triggers_an_error_in_the_ERROR_state_nothing_is_done)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(sasl_io);
-	saved_on_frame_codec_error(saved_sasl_frame_codec_callback_context);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    setup_successful_sasl_handshake(sasl_io);
+    saved_on_frame_codec_error(saved_sasl_frame_codec_callback_context);
+    umock_c_reset_all_calls();
 
-	// act
-	saved_on_frame_codec_error(saved_on_frame_codec_error_callback_context);
+    // act
+    saved_on_frame_codec_error(saved_on_frame_codec_error_callback_context);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_124: [When on_sasl_frame_codec_error is called while in the OPENING or OPEN state the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
 TEST_FUNCTION(when_the_sasl_frame_codec_triggers_an_error_in_the_OPENING_state_the_saslclientio_state_is_set_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
 
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
-	saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
-	saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
-	umock_c_reset_all_calls();
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    saved_io_state_changed(saved_io_callback_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
+    saved_on_bytes_received(saved_io_callback_context, sasl_header, sizeof(sasl_header));
+    saved_on_bytes_received(saved_io_callback_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPENING));
 
-	// act
-	saved_on_sasl_frame_codec_error(saved_sasl_frame_codec_callback_context);
+    // act
+    saved_on_sasl_frame_codec_error(saved_sasl_frame_codec_callback_context);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_124: [When on_sasl_frame_codec_error is called while in the OPENING or OPEN state the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.] */
 TEST_FUNCTION(when_the_sasl_frame_codec_triggers_an_error_in_the_OPEN_state_the_saslclientio_state_is_set_to_ERROR)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(sasl_io);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    setup_successful_sasl_handshake(sasl_io);
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPEN));
+    STRICT_EXPECTED_CALL(test_on_io_state_changed(test_context, IO_STATE_ERROR, IO_STATE_OPEN));
 
-	// act
-	saved_on_sasl_frame_codec_error(saved_sasl_frame_codec_callback_context);
+    // act
+    saved_on_sasl_frame_codec_error(saved_sasl_frame_codec_callback_context);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 
 /* Tests_SRS_SASLCLIENTIO_01_125: [When on_sasl_frame_codec_error is called in the ERROR state nothing shall be done.] */
 TEST_FUNCTION(when_the_sasl_frame_codec_triggers_an_error_in_the_ERROR_state_nothing_is_done)
 {
-	// arrange
-	SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
-	CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
-	(void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
-	setup_successful_sasl_handshake(sasl_io);
-	saved_on_sasl_frame_codec_error(saved_sasl_frame_codec_callback_context);
-	umock_c_reset_all_calls();
+    // arrange
+    SASLCLIENTIO_CONFIG saslclientio_config = { test_underlying_io, test_sasl_mechanism };
+    CONCRETE_IO_HANDLE sasl_io = saslclientio_create(&saslclientio_config, NULL);
+    (void)saslclientio_open(sasl_io, test_on_io_open_complete, test_on_bytes_received, test_on_io_error, test_context);
+    setup_successful_sasl_handshake(sasl_io);
+    saved_on_sasl_frame_codec_error(saved_sasl_frame_codec_callback_context);
+    umock_c_reset_all_calls();
 
-	// act
-	saved_on_sasl_frame_codec_error(saved_sasl_frame_codec_callback_context);
+    // act
+    saved_on_sasl_frame_codec_error(saved_sasl_frame_codec_callback_context);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslclientio_destroy(sasl_io);
+    // cleanup
+    saslclientio_destroy(sasl_io);
 }
 #endif
 

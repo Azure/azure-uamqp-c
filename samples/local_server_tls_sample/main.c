@@ -30,14 +30,14 @@ static size_t cert_size;
 static void on_message_receiver_state_changed(const void* context, MESSAGE_RECEIVER_STATE new_state, MESSAGE_RECEIVER_STATE previous_state)
 {
     (void)context;
-	(void)new_state;
-	(void)previous_state;
+    (void)new_state;
+    (void)previous_state;
 }
 
 static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE message)
 {
-	(void)context;
-	(void)message;
+    (void)context;
+    (void)message;
 
     if ((count_received % 1000) == 0)
     {
@@ -45,34 +45,34 @@ static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE messag
     }
     count_received++;
 
-	return messaging_delivery_accepted();
+    return messaging_delivery_accepted();
 }
 
 static bool on_new_link_attached(void* context, LINK_ENDPOINT_HANDLE new_link_endpoint, const char* name, role role, AMQP_VALUE source, AMQP_VALUE target)
 {
     (void)context;
-	link = link_create_from_endpoint(session, new_link_endpoint, name, role, source, target);
-	link_set_rcv_settle_mode(link, receiver_settle_mode_first);
-	message_receiver = messagereceiver_create(link, on_message_receiver_state_changed, NULL);
-	messagereceiver_open(message_receiver, on_message_received, NULL);
-	return true;
+    link = link_create_from_endpoint(session, new_link_endpoint, name, role, source, target);
+    link_set_rcv_settle_mode(link, receiver_settle_mode_first);
+    message_receiver = messagereceiver_create(link, on_message_receiver_state_changed, NULL);
+    messagereceiver_open(message_receiver, on_message_received, NULL);
+    return true;
 }
 
 static bool on_new_session_endpoint(void* context, ENDPOINT_HANDLE new_endpoint)
 {
     (void)context;
-	session = session_create_from_endpoint(connection, new_endpoint, on_new_link_attached, NULL);
-	session_set_incoming_window(session, 10000);
-	session_begin(session);
-	return true;
+    session = session_create_from_endpoint(connection, new_endpoint, on_new_link_attached, NULL);
+    session_set_incoming_window(session, 10000);
+    session_begin(session);
+    return true;
 }
 
 static void on_socket_accepted(void* context, const IO_INTERFACE_DESCRIPTION* interface_description, void* io_parameters)
 {
-	HEADERDETECTIO_CONFIG header_detect_io_config;
+    HEADERDETECTIO_CONFIG header_detect_io_config;
     TLS_SERVER_IO_CONFIG tls_server_io_config;
     XIO_HANDLE underlying_io;
-	XIO_HANDLE header_detect_io;
+    XIO_HANDLE header_detect_io;
 
     (void)context;
 
@@ -84,39 +84,39 @@ static void on_socket_accepted(void* context, const IO_INTERFACE_DESCRIPTION* in
     underlying_io = xio_create(tls_server_io_get_interface_description(), &tls_server_io_config);
 
     header_detect_io_config.underlying_io = underlying_io;
-	header_detect_io = xio_create(headerdetectio_get_interface_description(), &header_detect_io_config);
-	connection = connection_create(header_detect_io, NULL, "1", on_new_session_endpoint, NULL);
-	connection_listen(connection);
+    header_detect_io = xio_create(headerdetectio_get_interface_description(), &header_detect_io_config);
+    connection = connection_create(header_detect_io, NULL, "1", on_new_session_endpoint, NULL);
+    connection_listen(connection);
 }
 
 int main(int argc, char** argv)
 {
-	int result;
+    int result;
 
     (void)argc;
-	(void)argv;
+    (void)argv;
 
-	if (platform_init() != 0)
-	{
-		(void)printf("Could not initialize platform\r\n");
-		result = -1;
-	}
-	else
-	{
-		size_t last_memory_used = 0;
-		SOCKET_LISTENER_HANDLE socket_listener;
+    if (platform_init() != 0)
+    {
+        (void)printf("Could not initialize platform\r\n");
+        result = -1;
+    }
+    else
+    {
+        size_t last_memory_used = 0;
+        SOCKET_LISTENER_HANDLE socket_listener;
 
         gballoc_init();
 
         socket_listener = socketlistener_create(5671);
         if (socketlistener_start(socket_listener, on_socket_accepted, NULL) != 0)
         {
-			(void)printf("Could not start socket listener\r\n");
+            (void)printf("Could not start socket listener\r\n");
             result = -1;
         }
         else
         {
-			bool keep_running = true;
+            bool keep_running = true;
             while (keep_running)
             {
                 size_t current_memory_used;
@@ -150,10 +150,10 @@ int main(int argc, char** argv)
         platform_deinit();
 
         (void)printf("Max memory usage:%lu\r\n", (unsigned long)gballoc_getCurrentMemoryUsed());
-		(void)printf("Current memory usage:%lu\r\n", (unsigned long)gballoc_getMaximumMemoryUsed());
+        (void)printf("Current memory usage:%lu\r\n", (unsigned long)gballoc_getMaximumMemoryUsed());
 
         gballoc_deinit();
     }
 
-	return result;
+    return result;
 }

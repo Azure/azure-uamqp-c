@@ -18,46 +18,46 @@ extern "C" {
 
 #include "azure_c_shared_utility/umock_c_prod.h"
 
-	#define MESSAGE_BODY_TYPE_VALUES \
-		MESSAGE_BODY_TYPE_NONE, \
-		MESSAGE_BODY_TYPE_DATA, \
-		MESSAGE_BODY_TYPE_SEQUENCE, \
-		MESSAGE_BODY_TYPE_VALUE
+    #define MESSAGE_BODY_TYPE_VALUES \
+        MESSAGE_BODY_TYPE_NONE, \
+        MESSAGE_BODY_TYPE_DATA, \
+        MESSAGE_BODY_TYPE_SEQUENCE, \
+        MESSAGE_BODY_TYPE_VALUE
 
-	DEFINE_ENUM(MESSAGE_BODY_TYPE, MESSAGE_BODY_TYPE_VALUES)
-	
-	typedef struct MESSAGE_INSTANCE_TAG* MESSAGE_HANDLE;
-	typedef struct BINARY_DATA_TAG
-	{
-		const unsigned char* bytes;
-		size_t length;
-	} BINARY_DATA;
+    DEFINE_ENUM(MESSAGE_BODY_TYPE, MESSAGE_BODY_TYPE_VALUES)
+    
+    typedef struct MESSAGE_INSTANCE_TAG* MESSAGE_HANDLE;
+    typedef struct BINARY_DATA_TAG
+    {
+        const unsigned char* bytes;
+        size_t length;
+    } BINARY_DATA;
 
-	MOCKABLE_FUNCTION(, MESSAGE_HANDLE, message_create);
-	MOCKABLE_FUNCTION(, MESSAGE_HANDLE, message_clone, MESSAGE_HANDLE, source_message);
-	MOCKABLE_FUNCTION(, void, message_destroy, MESSAGE_HANDLE, message);
-	MOCKABLE_FUNCTION(, int, message_set_header, MESSAGE_HANDLE, message, HEADER_HANDLE, message_header);
-	MOCKABLE_FUNCTION(, int, message_get_header, MESSAGE_HANDLE, message, HEADER_HANDLE*, message_header);
-	MOCKABLE_FUNCTION(, int, message_set_delivery_annotations, MESSAGE_HANDLE, message, delivery_annotations, annotations);
-	MOCKABLE_FUNCTION(, int, message_get_delivery_annotations, MESSAGE_HANDLE, message, delivery_annotations*, annotations);
-	MOCKABLE_FUNCTION(, int, message_set_message_annotations, MESSAGE_HANDLE, message, message_annotations, annotations);
-	MOCKABLE_FUNCTION(, int, message_get_message_annotations, MESSAGE_HANDLE, message, message_annotations*, annotations);
-	MOCKABLE_FUNCTION(, int, message_set_properties, MESSAGE_HANDLE, message, PROPERTIES_HANDLE, properties);
-	MOCKABLE_FUNCTION(, int, message_get_properties, MESSAGE_HANDLE, message, PROPERTIES_HANDLE*, properties);
-	MOCKABLE_FUNCTION(, int, message_set_application_properties, MESSAGE_HANDLE, message, AMQP_VALUE, application_properties);
-	MOCKABLE_FUNCTION(, int, message_get_application_properties, MESSAGE_HANDLE, message, AMQP_VALUE*, application_properties);
-	MOCKABLE_FUNCTION(, int, message_set_footer, MESSAGE_HANDLE, message, annotations, footer);
-	MOCKABLE_FUNCTION(, int, message_get_footer, MESSAGE_HANDLE, message, annotations*, footer);
-	MOCKABLE_FUNCTION(, int, message_add_body_amqp_data, MESSAGE_HANDLE, message, BINARY_DATA, amqp_data);
-	MOCKABLE_FUNCTION(, int, message_get_body_amqp_data_in_place, MESSAGE_HANDLE, message, size_t, index, BINARY_DATA*, amqp_data);
-	MOCKABLE_FUNCTION(, int, message_get_body_amqp_data_count, MESSAGE_HANDLE, message, size_t*, count);
-	MOCKABLE_FUNCTION(, int, message_set_body_amqp_value, MESSAGE_HANDLE, message, AMQP_VALUE, body_amqp_value);
-	MOCKABLE_FUNCTION(, int, message_get_body_amqp_value_in_place, MESSAGE_HANDLE, message, AMQP_VALUE*, body_amqp_value);
-	MOCKABLE_FUNCTION(, int, message_add_body_amqp_sequence, MESSAGE_HANDLE, message, AMQP_VALUE, sequence);
-	MOCKABLE_FUNCTION(, int, message_get_body_amqp_sequence_in_place, MESSAGE_HANDLE, message, size_t, index, AMQP_VALUE*, sequence);
-	MOCKABLE_FUNCTION(, int, message_get_body_amqp_sequence_count, MESSAGE_HANDLE, message, size_t*, count);
-	MOCKABLE_FUNCTION(, int, message_get_body_type, MESSAGE_HANDLE, message, MESSAGE_BODY_TYPE*, body_type);
-	MOCKABLE_FUNCTION(, int, message_set_message_format, MESSAGE_HANDLE, message, uint32_t, message_format);
+    MOCKABLE_FUNCTION(, MESSAGE_HANDLE, message_create);
+    MOCKABLE_FUNCTION(, MESSAGE_HANDLE, message_clone, MESSAGE_HANDLE, source_message);
+    MOCKABLE_FUNCTION(, void, message_destroy, MESSAGE_HANDLE, message);
+    MOCKABLE_FUNCTION(, int, message_set_header, MESSAGE_HANDLE, message, HEADER_HANDLE, message_header);
+    MOCKABLE_FUNCTION(, int, message_get_header, MESSAGE_HANDLE, message, HEADER_HANDLE*, message_header);
+    MOCKABLE_FUNCTION(, int, message_set_delivery_annotations, MESSAGE_HANDLE, message, delivery_annotations, annotations);
+    MOCKABLE_FUNCTION(, int, message_get_delivery_annotations, MESSAGE_HANDLE, message, delivery_annotations*, annotations);
+    MOCKABLE_FUNCTION(, int, message_set_message_annotations, MESSAGE_HANDLE, message, message_annotations, annotations);
+    MOCKABLE_FUNCTION(, int, message_get_message_annotations, MESSAGE_HANDLE, message, message_annotations*, annotations);
+    MOCKABLE_FUNCTION(, int, message_set_properties, MESSAGE_HANDLE, message, PROPERTIES_HANDLE, properties);
+    MOCKABLE_FUNCTION(, int, message_get_properties, MESSAGE_HANDLE, message, PROPERTIES_HANDLE*, properties);
+    MOCKABLE_FUNCTION(, int, message_set_application_properties, MESSAGE_HANDLE, message, AMQP_VALUE, application_properties);
+    MOCKABLE_FUNCTION(, int, message_get_application_properties, MESSAGE_HANDLE, message, AMQP_VALUE*, application_properties);
+    MOCKABLE_FUNCTION(, int, message_set_footer, MESSAGE_HANDLE, message, annotations, footer);
+    MOCKABLE_FUNCTION(, int, message_get_footer, MESSAGE_HANDLE, message, annotations*, footer);
+    MOCKABLE_FUNCTION(, int, message_add_body_amqp_data, MESSAGE_HANDLE, message, BINARY_DATA, amqp_data);
+    MOCKABLE_FUNCTION(, int, message_get_body_amqp_data_in_place, MESSAGE_HANDLE, message, size_t, index, BINARY_DATA*, amqp_data);
+    MOCKABLE_FUNCTION(, int, message_get_body_amqp_data_count, MESSAGE_HANDLE, message, size_t*, count);
+    MOCKABLE_FUNCTION(, int, message_set_body_amqp_value, MESSAGE_HANDLE, message, AMQP_VALUE, body_amqp_value);
+    MOCKABLE_FUNCTION(, int, message_get_body_amqp_value_in_place, MESSAGE_HANDLE, message, AMQP_VALUE*, body_amqp_value);
+    MOCKABLE_FUNCTION(, int, message_add_body_amqp_sequence, MESSAGE_HANDLE, message, AMQP_VALUE, sequence);
+    MOCKABLE_FUNCTION(, int, message_get_body_amqp_sequence_in_place, MESSAGE_HANDLE, message, size_t, index, AMQP_VALUE*, sequence);
+    MOCKABLE_FUNCTION(, int, message_get_body_amqp_sequence_count, MESSAGE_HANDLE, message, size_t*, count);
+    MOCKABLE_FUNCTION(, int, message_get_body_type, MESSAGE_HANDLE, message, MESSAGE_BODY_TYPE*, body_type);
+    MOCKABLE_FUNCTION(, int, message_set_message_format, MESSAGE_HANDLE, message, uint32_t, message_format);
     MOCKABLE_FUNCTION(, int, message_get_message_format, MESSAGE_HANDLE, message, uint32_t*, message_format);
 
 #ifdef __cplusplus

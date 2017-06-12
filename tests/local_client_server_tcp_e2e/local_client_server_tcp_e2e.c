@@ -178,7 +178,7 @@ TEST_FUNCTION(client_and_server_connect_and_send_one_message_settled)
     AMQP_VALUE target;
     time_t now_time;
     time_t start_time;
-	SOCKETIO_CONFIG socketio_config = { "localhost", 0, NULL };
+    SOCKETIO_CONFIG socketio_config = { "localhost", 0, NULL };
     unsigned char hello[] = { 'H', 'e', 'l', 'l', 'o' };
     BINARY_DATA binary_data;
 

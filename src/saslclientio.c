@@ -276,7 +276,7 @@ static void log_incoming_frame(AMQP_VALUE performative)
         AMQP_VALUE descriptor = amqpvalue_get_inplace_descriptor(performative);
         if (descriptor != NULL)
         {
-			char* performative_as_string;
+            char* performative_as_string;
             LOG(AZ_LOG_TRACE, 0, "<- ");
             LOG(AZ_LOG_TRACE, 0, (char*)get_frame_type_as_string(descriptor));
             performative_as_string = NULL;
@@ -300,7 +300,7 @@ static void log_outgoing_frame(AMQP_VALUE performative)
         AMQP_VALUE descriptor = amqpvalue_get_inplace_descriptor(performative);
         if (descriptor != NULL)
         {
-			char* performative_as_string;
+            char* performative_as_string;
             LOG(AZ_LOG_TRACE, 0, "-> ");
             LOG(AZ_LOG_TRACE, 0, (char*)get_frame_type_as_string(descriptor));
             performative_as_string = NULL;

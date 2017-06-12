@@ -57,20 +57,20 @@ static void my_gballoc_free(void* ptr)
 /* Tests_SRS_CONNECTION_01_235: [CLOSE_SENT - * TCP Close for Write] */
 /* Tests_SRS_CONNECTION_01_234: [CLOSE_RCVD * -TCP Close for Read] */
 
-#define TEST_IO_HANDLE					(XIO_HANDLE)0x4242
-#define TEST_FRAME_CODEC_HANDLE			(FRAME_CODEC_HANDLE)0x4243
-#define TEST_AMQP_FRAME_CODEC_HANDLE	(AMQP_FRAME_CODEC_HANDLE)0x4244
-#define TEST_DESCRIPTOR_AMQP_VALUE		(AMQP_VALUE)0x4245
-#define TEST_LIST_ITEM_AMQP_VALUE		(AMQP_VALUE)0x4246
-#define TEST_DESCRIBED_AMQP_VALUE		(AMQP_VALUE)0x4247
-#define TEST_AMQP_OPEN_FRAME_HANDLE		(AMQP_OPEN_FRAME_HANDLE)0x4245
-#define TEST_LIST_HANDLE				(SINGLYLINKEDLIST_HANDLE)0x4246
-#define TEST_OPEN_PERFORMATIVE			(AMQP_VALUE)0x4301
-#define TEST_CLOSE_PERFORMATIVE				(AMQP_VALUE)0x4302
-#define TEST_CLOSE_DESCRIPTOR_AMQP_VALUE	(AMQP_VALUE)0x4303
-#define TEST_TRANSFER_PERFORMATIVE			(AMQP_VALUE)0x4304
+#define TEST_IO_HANDLE                    (XIO_HANDLE)0x4242
+#define TEST_FRAME_CODEC_HANDLE            (FRAME_CODEC_HANDLE)0x4243
+#define TEST_AMQP_FRAME_CODEC_HANDLE    (AMQP_FRAME_CODEC_HANDLE)0x4244
+#define TEST_DESCRIPTOR_AMQP_VALUE        (AMQP_VALUE)0x4245
+#define TEST_LIST_ITEM_AMQP_VALUE        (AMQP_VALUE)0x4246
+#define TEST_DESCRIBED_AMQP_VALUE        (AMQP_VALUE)0x4247
+#define TEST_AMQP_OPEN_FRAME_HANDLE        (AMQP_OPEN_FRAME_HANDLE)0x4245
+#define TEST_LIST_HANDLE                (SINGLYLINKEDLIST_HANDLE)0x4246
+#define TEST_OPEN_PERFORMATIVE            (AMQP_VALUE)0x4301
+#define TEST_CLOSE_PERFORMATIVE                (AMQP_VALUE)0x4302
+#define TEST_CLOSE_DESCRIPTOR_AMQP_VALUE    (AMQP_VALUE)0x4303
+#define TEST_TRANSFER_PERFORMATIVE            (AMQP_VALUE)0x4304
 
-#define TEST_CONTEXT					(void*)(0x4242)
+#define TEST_CONTEXT                    (void*)(0x4242)
 
 static const TICK_COUNTER_HANDLE test_tick_counter = (TICK_COUNTER_HANDLE)0x4305;
 static const char test_container_id[] = "1234";
@@ -3376,7 +3376,7 @@ static void TEST_on_io_error(void* context)
 TEST_FUNCTION(connection_create2_with_valid_args_succeeds)
 {
     // arrange
-	CONNECTION_HANDLE connection;
+    CONNECTION_HANDLE connection;
     EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     EXPECTED_CALL(frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
     EXPECTED_CALL(amqp_frame_codec_create(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
@@ -3415,7 +3415,7 @@ TEST_FUNCTION(connection_set_trace_succeeds)
 {
     // arrange
     CONNECTION_HANDLE connection = connection_create2(TEST_IO_HANDLE, "testhost", test_container_id, NULL, NULL, NULL, TEST_IO_HANDLE, TEST_on_io_error, TEST_CONTEXT);
-	bool traceOn;
+    bool traceOn;
     umock_c_reset_all_calls();
 
     // act

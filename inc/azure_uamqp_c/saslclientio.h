@@ -20,8 +20,8 @@ extern "C" {
 
 typedef struct SASLCLIENTIO_CONFIG_TAG
 {
-	XIO_HANDLE underlying_io;
-	SASL_MECHANISM_HANDLE sasl_mechanism;
+    XIO_HANDLE underlying_io;
+    SASL_MECHANISM_HANDLE sasl_mechanism;
 } SASLCLIENTIO_CONFIG;
 
 MOCKABLE_FUNCTION(, CONCRETE_IO_HANDLE, saslclientio_create, void*, io_create_parameters);

@@ -16,15 +16,15 @@ extern "C" {
 
 #include "azure_c_shared_utility/umock_c_prod.h"
 
-#define AMQP_OPEN			(uint64_t)0x10
-#define AMQP_BEGIN			(uint64_t)0x11
-#define AMQP_ATTACH			(uint64_t)0x12
-#define AMQP_FLOW			(uint64_t)0x13
-#define AMQP_TRANSFER		(uint64_t)0x14
-#define AMQP_DISPOSITION	(uint64_t)0x15
-#define AMQP_DETACH			(uint64_t)0x16
-#define AMQP_END			(uint64_t)0x17
-#define AMQP_CLOSE			(uint64_t)0x18
+#define AMQP_OPEN               (uint64_t)0x10
+#define AMQP_BEGIN              (uint64_t)0x11
+#define AMQP_ATTACH             (uint64_t)0x12
+#define AMQP_FLOW               (uint64_t)0x13
+#define AMQP_TRANSFER           (uint64_t)0x14
+#define AMQP_DISPOSITION        (uint64_t)0x15
+#define AMQP_DETACH             (uint64_t)0x16
+#define AMQP_END                (uint64_t)0x17
+#define AMQP_CLOSE              (uint64_t)0x18
 
 typedef struct AMQP_FRAME_CODEC_INSTANCE_TAG* AMQP_FRAME_CODEC_HANDLE;
 typedef void(*AMQP_EMPTY_FRAME_RECEIVED_CALLBACK)(void* context, uint16_t channel);

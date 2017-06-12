@@ -12,14 +12,14 @@ extern "C" {
 
 #include "azure_c_shared_utility/umock_c_prod.h"
 
-	typedef struct SASL_PLAIN_CONFIG_TAG
-	{
-		const char* authcid;
-		const char* passwd;
-		const char* authzid;
-	} SASL_PLAIN_CONFIG;
+    typedef struct SASL_PLAIN_CONFIG_TAG
+    {
+        const char* authcid;
+        const char* passwd;
+        const char* authzid;
+    } SASL_PLAIN_CONFIG;
 
-	MOCKABLE_FUNCTION(, const SASL_MECHANISM_INTERFACE_DESCRIPTION*, saslplain_get_interface);
+    MOCKABLE_FUNCTION(, const SASL_MECHANISM_INTERFACE_DESCRIPTION*, saslplain_get_interface);
 
 #ifdef __cplusplus
 }

@@ -1167,14 +1167,15 @@ namespace amqplib_generator
             
             #line default
             #line hidden
-            this.Write("_array;\r\n                                if ((amqpvalue_get_array(item_value, &");
+            this.Write("_array;\r\n                                if (((amqpvalue_get_type(item_value) != " +
+                    "AMQP_TYPE_ARRAY) || (amqpvalue_get_array(item_value, &");
             
             #line 254 "D:\repos\azure-uamqp-c\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
             #line hidden
-            this.Write("_array) != 0) &&\r\n                                    (amqpvalue_get_");
+            this.Write("_array) != 0)) &&\r\n                                    (amqpvalue_get_");
             
             #line 255 "D:\repos\azure-uamqp-c\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field.type.ToLower().Replace('-', '_').Replace(':', '_')));
@@ -1839,14 +1840,15 @@ namespace amqplib_generator
             #line default
             #line hidden
             this.Write("_single_value));\r\n                        get_single_value_result = 1;\r\n         " +
-                    "           }\r\n\r\n                    if ((amqpvalue_get_array(item_value, ");
+                    "           }\r\n\r\n                    if (((amqpvalue_get_type(item_value) != AMQP" +
+                    "_TYPE_ARRAY) || (amqpvalue_get_array(item_value, ");
             
             #line 398 "D:\repos\azure-uamqp-c\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
             #line hidden
-            this.Write("_value) != 0) &&\r\n                        (get_single_value_result != 0))\r\n");
+            this.Write("_value) != 0)) &&\r\n                        (get_single_value_result != 0))\r\n");
             
             #line 400 "D:\repos\azure-uamqp-c\uamqp_generator\amqp_definitions_c.tt"
                           } 

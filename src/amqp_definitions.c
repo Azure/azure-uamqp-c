@@ -940,7 +940,7 @@ int amqpvalue_get_open(AMQP_VALUE value, OPEN_HANDLE* open_handle)
                             {
                                 ietf_language_tag outgoing_locales = NULL;
                                 AMQP_VALUE outgoing_locales_array;
-                                if ((amqpvalue_get_array(item_value, &outgoing_locales_array) != 0) &&
+                                if (((amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY) || (amqpvalue_get_array(item_value, &outgoing_locales_array) != 0)) &&
                                     (amqpvalue_get_ietf_language_tag(item_value, &outgoing_locales) != 0))
                                 {
                                     amqpvalue_destroy(item_value);
@@ -971,7 +971,7 @@ int amqpvalue_get_open(AMQP_VALUE value, OPEN_HANDLE* open_handle)
                             {
                                 ietf_language_tag incoming_locales = NULL;
                                 AMQP_VALUE incoming_locales_array;
-                                if ((amqpvalue_get_array(item_value, &incoming_locales_array) != 0) &&
+                                if (((amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY) || (amqpvalue_get_array(item_value, &incoming_locales_array) != 0)) &&
                                     (amqpvalue_get_ietf_language_tag(item_value, &incoming_locales) != 0))
                                 {
                                     amqpvalue_destroy(item_value);
@@ -1002,7 +1002,7 @@ int amqpvalue_get_open(AMQP_VALUE value, OPEN_HANDLE* open_handle)
                             {
                                 const char* offered_capabilities = NULL;
                                 AMQP_VALUE offered_capabilities_array;
-                                if ((amqpvalue_get_array(item_value, &offered_capabilities_array) != 0) &&
+                                if (((amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY) || (amqpvalue_get_array(item_value, &offered_capabilities_array) != 0)) &&
                                     (amqpvalue_get_symbol(item_value, &offered_capabilities) != 0))
                                 {
                                     amqpvalue_destroy(item_value);
@@ -1033,7 +1033,7 @@ int amqpvalue_get_open(AMQP_VALUE value, OPEN_HANDLE* open_handle)
                             {
                                 const char* desired_capabilities = NULL;
                                 AMQP_VALUE desired_capabilities_array;
-                                if ((amqpvalue_get_array(item_value, &desired_capabilities_array) != 0) &&
+                                if (((amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY) || (amqpvalue_get_array(item_value, &desired_capabilities_array) != 0)) &&
                                     (amqpvalue_get_symbol(item_value, &desired_capabilities) != 0))
                                 {
                                     amqpvalue_destroy(item_value);
@@ -1566,7 +1566,7 @@ int open_get_outgoing_locales(OPEN_HANDLE open, AMQP_VALUE* outgoing_locales_val
                         get_single_value_result = 1;
                     }
 
-                    if ((amqpvalue_get_array(item_value, outgoing_locales_value) != 0) &&
+                    if (((amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY) || (amqpvalue_get_array(item_value, outgoing_locales_value) != 0)) &&
                         (get_single_value_result != 0))
                     {
                         result = __FAILURE__;
@@ -1702,7 +1702,7 @@ int open_get_incoming_locales(OPEN_HANDLE open, AMQP_VALUE* incoming_locales_val
                         get_single_value_result = 1;
                     }
 
-                    if ((amqpvalue_get_array(item_value, incoming_locales_value) != 0) &&
+                    if (((amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY) || (amqpvalue_get_array(item_value, incoming_locales_value) != 0)) &&
                         (get_single_value_result != 0))
                     {
                         result = __FAILURE__;
@@ -1838,7 +1838,7 @@ int open_get_offered_capabilities(OPEN_HANDLE open, AMQP_VALUE* offered_capabili
                         get_single_value_result = 1;
                     }
 
-                    if ((amqpvalue_get_array(item_value, offered_capabilities_value) != 0) &&
+                    if (((amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY) || (amqpvalue_get_array(item_value, offered_capabilities_value) != 0)) &&
                         (get_single_value_result != 0))
                     {
                         result = __FAILURE__;
@@ -1974,7 +1974,7 @@ int open_get_desired_capabilities(OPEN_HANDLE open, AMQP_VALUE* desired_capabili
                         get_single_value_result = 1;
                     }
 
-                    if ((amqpvalue_get_array(item_value, desired_capabilities_value) != 0) &&
+                    if (((amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY) || (amqpvalue_get_array(item_value, desired_capabilities_value) != 0)) &&
                         (get_single_value_result != 0))
                     {
                         result = __FAILURE__;
@@ -2498,7 +2498,7 @@ int amqpvalue_get_begin(AMQP_VALUE value, BEGIN_HANDLE* begin_handle)
                             {
                                 const char* offered_capabilities = NULL;
                                 AMQP_VALUE offered_capabilities_array;
-                                if ((amqpvalue_get_array(item_value, &offered_capabilities_array) != 0) &&
+                                if (((amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY) || (amqpvalue_get_array(item_value, &offered_capabilities_array) != 0)) &&
                                     (amqpvalue_get_symbol(item_value, &offered_capabilities) != 0))
                                 {
                                     amqpvalue_destroy(item_value);
@@ -2529,7 +2529,7 @@ int amqpvalue_get_begin(AMQP_VALUE value, BEGIN_HANDLE* begin_handle)
                             {
                                 const char* desired_capabilities = NULL;
                                 AMQP_VALUE desired_capabilities_array;
-                                if ((amqpvalue_get_array(item_value, &desired_capabilities_array) != 0) &&
+                                if (((amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY) || (amqpvalue_get_array(item_value, &desired_capabilities_array) != 0)) &&
                                     (amqpvalue_get_symbol(item_value, &desired_capabilities) != 0))
                                 {
                                     amqpvalue_destroy(item_value);
@@ -3052,7 +3052,7 @@ int begin_get_offered_capabilities(BEGIN_HANDLE begin, AMQP_VALUE* offered_capab
                         get_single_value_result = 1;
                     }
 
-                    if ((amqpvalue_get_array(item_value, offered_capabilities_value) != 0) &&
+                    if (((amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY) || (amqpvalue_get_array(item_value, offered_capabilities_value) != 0)) &&
                         (get_single_value_result != 0))
                     {
                         result = __FAILURE__;
@@ -3188,7 +3188,7 @@ int begin_get_desired_capabilities(BEGIN_HANDLE begin, AMQP_VALUE* desired_capab
                         get_single_value_result = 1;
                     }
 
-                    if ((amqpvalue_get_array(item_value, desired_capabilities_value) != 0) &&
+                    if (((amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY) || (amqpvalue_get_array(item_value, desired_capabilities_value) != 0)) &&
                         (get_single_value_result != 0))
                     {
                         result = __FAILURE__;
@@ -3854,7 +3854,7 @@ int amqpvalue_get_attach(AMQP_VALUE value, ATTACH_HANDLE* attach_handle)
                             {
                                 const char* offered_capabilities = NULL;
                                 AMQP_VALUE offered_capabilities_array;
-                                if ((amqpvalue_get_array(item_value, &offered_capabilities_array) != 0) &&
+                                if (((amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY) || (amqpvalue_get_array(item_value, &offered_capabilities_array) != 0)) &&
                                     (amqpvalue_get_symbol(item_value, &offered_capabilities) != 0))
                                 {
                                     amqpvalue_destroy(item_value);
@@ -3885,7 +3885,7 @@ int amqpvalue_get_attach(AMQP_VALUE value, ATTACH_HANDLE* attach_handle)
                             {
                                 const char* desired_capabilities = NULL;
                                 AMQP_VALUE desired_capabilities_array;
-                                if ((amqpvalue_get_array(item_value, &desired_capabilities_array) != 0) &&
+                                if (((amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY) || (amqpvalue_get_array(item_value, &desired_capabilities_array) != 0)) &&
                                     (amqpvalue_get_symbol(item_value, &desired_capabilities) != 0))
                                 {
                                     amqpvalue_destroy(item_value);
@@ -4936,7 +4936,7 @@ int attach_get_offered_capabilities(ATTACH_HANDLE attach, AMQP_VALUE* offered_ca
                         get_single_value_result = 1;
                     }
 
-                    if ((amqpvalue_get_array(item_value, offered_capabilities_value) != 0) &&
+                    if (((amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY) || (amqpvalue_get_array(item_value, offered_capabilities_value) != 0)) &&
                         (get_single_value_result != 0))
                     {
                         result = __FAILURE__;
@@ -5072,7 +5072,7 @@ int attach_get_desired_capabilities(ATTACH_HANDLE attach, AMQP_VALUE* desired_ca
                         get_single_value_result = 1;
                     }
 
-                    if ((amqpvalue_get_array(item_value, desired_capabilities_value) != 0) &&
+                    if (((amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY) || (amqpvalue_get_array(item_value, desired_capabilities_value) != 0)) &&
                         (get_single_value_result != 0))
                     {
                         result = __FAILURE__;
@@ -10164,7 +10164,7 @@ int amqpvalue_get_sasl_mechanisms(AMQP_VALUE value, SASL_MECHANISMS_HANDLE* sasl
                             {
                                 const char* sasl_server_mechanisms = NULL;
                                 AMQP_VALUE sasl_server_mechanisms_array;
-                                if ((amqpvalue_get_array(item_value, &sasl_server_mechanisms_array) != 0) &&
+                                if (((amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY) || (amqpvalue_get_array(item_value, &sasl_server_mechanisms_array) != 0)) &&
                                     (amqpvalue_get_symbol(item_value, &sasl_server_mechanisms) != 0))
                                 {
                                     amqpvalue_destroy(item_value);
@@ -10237,7 +10237,7 @@ int sasl_mechanisms_get_sasl_server_mechanisms(SASL_MECHANISMS_HANDLE sasl_mecha
                         get_single_value_result = 1;
                     }
 
-                    if ((amqpvalue_get_array(item_value, sasl_server_mechanisms_value) != 0) &&
+                    if (((amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY) || (amqpvalue_get_array(item_value, sasl_server_mechanisms_value) != 0)) &&
                         (get_single_value_result != 0))
                     {
                         result = __FAILURE__;
@@ -12162,7 +12162,7 @@ int amqpvalue_get_source(AMQP_VALUE value, SOURCE_HANDLE* source_handle)
                             {
                                 const char* outcomes = NULL;
                                 AMQP_VALUE outcomes_array;
-                                if ((amqpvalue_get_array(item_value, &outcomes_array) != 0) &&
+                                if (((amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY) || (amqpvalue_get_array(item_value, &outcomes_array) != 0)) &&
                                     (amqpvalue_get_symbol(item_value, &outcomes) != 0))
                                 {
                                     amqpvalue_destroy(item_value);
@@ -12193,7 +12193,7 @@ int amqpvalue_get_source(AMQP_VALUE value, SOURCE_HANDLE* source_handle)
                             {
                                 const char* capabilities = NULL;
                                 AMQP_VALUE capabilities_array;
-                                if ((amqpvalue_get_array(item_value, &capabilities_array) != 0) &&
+                                if (((amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY) || (amqpvalue_get_array(item_value, &capabilities_array) != 0)) &&
                                     (amqpvalue_get_symbol(item_value, &capabilities) != 0))
                                 {
                                     amqpvalue_destroy(item_value);
@@ -13051,7 +13051,7 @@ int source_get_outcomes(SOURCE_HANDLE source, AMQP_VALUE* outcomes_value)
                         get_single_value_result = 1;
                     }
 
-                    if ((amqpvalue_get_array(item_value, outcomes_value) != 0) &&
+                    if (((amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY) || (amqpvalue_get_array(item_value, outcomes_value) != 0)) &&
                         (get_single_value_result != 0))
                     {
                         result = __FAILURE__;
@@ -13187,7 +13187,7 @@ int source_get_capabilities(SOURCE_HANDLE source, AMQP_VALUE* capabilities_value
                         get_single_value_result = 1;
                     }
 
-                    if ((amqpvalue_get_array(item_value, capabilities_value) != 0) &&
+                    if (((amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY) || (amqpvalue_get_array(item_value, capabilities_value) != 0)) &&
                         (get_single_value_result != 0))
                     {
                         result = __FAILURE__;
@@ -13581,7 +13581,7 @@ int amqpvalue_get_target(AMQP_VALUE value, TARGET_HANDLE* target_handle)
                             {
                                 const char* capabilities = NULL;
                                 AMQP_VALUE capabilities_array;
-                                if ((amqpvalue_get_array(item_value, &capabilities_array) != 0) &&
+                                if (((amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY) || (amqpvalue_get_array(item_value, &capabilities_array) != 0)) &&
                                     (amqpvalue_get_symbol(item_value, &capabilities) != 0))
                                 {
                                     amqpvalue_destroy(item_value);
@@ -14189,7 +14189,7 @@ int target_get_capabilities(TARGET_HANDLE target, AMQP_VALUE* capabilities_value
                         get_single_value_result = 1;
                     }
 
-                    if ((amqpvalue_get_array(item_value, capabilities_value) != 0) &&
+                    if (((amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY) || (amqpvalue_get_array(item_value, capabilities_value) != 0)) &&
                         (get_single_value_result != 0))
                     {
                         result = __FAILURE__;

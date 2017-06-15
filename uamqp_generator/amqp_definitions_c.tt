@@ -251,7 +251,7 @@ int amqpvalue_get_<#= type_name #>(AMQP_VALUE value, <#= type_name.ToUpper() #>_
 <#      { #>
                                 <#= c_type #> <#= field_name #> = NULL;
                                 AMQP_VALUE <#= field_name #>_array;
-                                if ((amqpvalue_get_array(item_value, &<#= field_name #>_array) != 0) &&
+                                if (((amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY) || (amqpvalue_get_array(item_value, &<#= field_name #>_array) != 0)) &&
                                     (amqpvalue_get_<#= field.type.ToLower().Replace('-', '_').Replace(':', '_') #>(item_value, &<#= field_name #>) != 0))
 <#      } #>
                                 {
@@ -395,7 +395,7 @@ int <#= type_name #>_get_<#= field_name #>(<#= type_name.ToUpper() #>_HANDLE <#=
                         get_single_value_result = 1;
                     }
 
-                    if ((amqpvalue_get_array(item_value, <#= field_name #>_value) != 0) &&
+                    if (((amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY) || (amqpvalue_get_array(item_value, <#= field_name #>_value) != 0)) &&
                         (get_single_value_result != 0))
 <#                          } #>
                     {

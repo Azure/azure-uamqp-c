@@ -296,28 +296,11 @@ if(${use_installed_dependencies})
             ${package_location}
     )
 else()
-	if(UNIX)
-		set(install_headers
-			./inc/azure_uamqp_c/socket_listener.h
-			./inc/azure_uamqp_c/session.h
-			./inc/azure_uamqp_c/sasl_plain.h
-			./inc/azure_uamqp_c/sasl_mssbcbs.h
-			./inc/azure_uamqp_c/saslclientio.h
-			./inc/azure_uamqp_c/messaging.h
-			./inc/azure_uamqp_c/message_sender.h
-			./inc/azure_uamqp_c/message_receiver.h
-			./inc/azure_uamqp_c/message.h
-			./inc/azure_uamqp_c/link.h
-			./inc/azure_uamqp_c/header_detect_io.h
-			./inc/azure_uamqp_c/connection.h
-			./inc/azure_uamqp_c/cbs.h
-		)
-		set(install_staticlibs
-			uamqp
-		)
-		install(FILES ${install_headers}
-			DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azure_uamqp_c) #${CMAKE_INSTALL_INCLUDEDIR}/azureiot)
-		install(TARGETS ${install_staticlibs} 
-			ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
-	endif()
+	set(install_staticlibs
+		uamqp
+	)
+	install(FILES ${uamqp_h_files}
+		DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azure_uamqp_c) 
+	install(TARGETS ${install_staticlibs} 
+		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()

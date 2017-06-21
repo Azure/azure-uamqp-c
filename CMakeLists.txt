@@ -249,10 +249,10 @@ endif()
 set(UAMQP_INC_FOLDER ${CMAKE_CURRENT_LIST_DIR}/inc CACHE INTERNAL "This is the include folder for UAMQP" FORCE)
 set(UAMQP_SRC_FOLDER ${CMAKE_CURRENT_LIST_DIR}/src CACHE INTERNAL "This is the lib folder for UAMQP" FORCE)
 
-if(${use_installed_dependencies})
-    # Set CMAKE_INSTALL_LIBDIR if not defined
-    include(GNUInstallDirs)
+# Set CMAKE_INSTALL_LIBDIR if not defined
+include(GNUInstallDirs)
 
+if(${use_installed_dependencies})
     # Install uamqp
     set(package_location "cmake")
 
@@ -295,4 +295,27 @@ if(${use_installed_dependencies})
         DESTINATION
             ${package_location}
     )
+else()
+	set(install_headers
+		./inc/azure_uamqp_c/socket_listener.h
+		./inc/azure_uamqp_c/session.h
+		./inc/azure_uamqp_c/sasl_plain.h
+		./inc/azure_uamqp_c/sasl_mssbcbs.h
+		./inc/azure_uamqp_c/saslclientio.h
+		./inc/azure_uamqp_c/messaging.h
+		./inc/azure_uamqp_c/message_sender.h
+		./inc/azure_uamqp_c/message_receiver.h
+		./inc/azure_uamqp_c/message.h
+		./inc/azure_uamqp_c/link.h
+		./inc/azure_uamqp_c/header_detect_io.h
+		./inc/azure_uamqp_c/connection.h
+		./inc/azure_uamqp_c/cbs.h
+	)
+	set(install_staticlibs
+		uamqp
+	)
+	install(FILES ${install_headers}
+		DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azure_uamqp_c) #${CMAKE_INSTALL_INCLUDEDIR}/azureiot)
+	install(TARGETS ${install_staticlibs} 
+		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()

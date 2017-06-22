@@ -199,6 +199,7 @@ set(uamqp_h_files
     ./inc/azure_uamqp_c/sasl_mssbcbs.h
     ./inc/azure_uamqp_c/sasl_plain.h
     ./inc/azure_uamqp_c/saslclientio.h
+    ./inc/azure_uamqp_c/server_protocol_io.h
     ./inc/azure_uamqp_c/session.h
     ./inc/azure_uamqp_c/socket_listener.h
 )

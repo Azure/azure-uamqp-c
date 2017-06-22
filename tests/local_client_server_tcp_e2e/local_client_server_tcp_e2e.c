@@ -37,8 +37,6 @@ static int generate_port_number(void)
     return port_number;
 }
 
-
-
 BEGIN_TEST_SUITE(local_client_server_tcp_e2e)
 
 TEST_SUITE_INITIALIZE(suite_init)
@@ -71,6 +69,7 @@ typedef struct SERVER_INSTANCE_TAG
     MESSAGE_RECEIVER_HANDLE message_receiver;
     size_t received_messages;
     XIO_HANDLE header_detect_io;
+    XIO_HANDLE underlying_io;
 } SERVER_INSTANCE;
 
 static void on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_result)
@@ -144,14 +143,25 @@ static bool on_new_session_endpoint(void* context, ENDPOINT_HANDLE new_endpoint)
 
 static void on_socket_accepted(void* context, const IO_INTERFACE_DESCRIPTION* interface_description, void* io_parameters)
 {
-    HEADERDETECTIO_CONFIG header_detect_io_config;
+    HEADER_DETECT_IO_CONFIG header_detect_io_config;
+    HEADER_DETECT_ENTRY header_detect_entries[1];
     SERVER_INSTANCE* server = (SERVER_INSTANCE*)context;
-    XIO_HANDLE underlying_io;
     int result;
+    AMQP_HEADER amqp_header;
 
-    underlying_io = xio_create(interface_description, io_parameters);
-    header_detect_io_config.underlying_io = underlying_io;
-    server->header_detect_io = xio_create(headerdetectio_get_interface_description(), &header_detect_io_config);
+    server->underlying_io = xio_create(interface_description, io_parameters);
+    ASSERT_IS_NOT_NULL_WITH_MSG(server->underlying_io, "Could not create underlying IO");
+
+    amqp_header = header_detect_io_get_amqp_header();
+    header_detect_entries[0].header.header_bytes = amqp_header.header_bytes;
+    header_detect_entries[0].header.header_size = amqp_header.header_size;
+    header_detect_entries[0].io_interface_description = NULL;
+
+    header_detect_io_config.underlying_io = server->underlying_io;
+    header_detect_io_config.header_detect_entry_count = 1;
+    header_detect_io_config.header_detect_entries = header_detect_entries;
+
+    server->header_detect_io = xio_create(header_detect_io_get_interface_description(), &header_detect_io_config);
     ASSERT_IS_NOT_NULL_WITH_MSG(server->header_detect_io, "Could not create header detect IO");
     server->connection = connection_create(server->header_detect_io, NULL, "1", on_new_session_endpoint, server);
     ASSERT_IS_NOT_NULL_WITH_MSG(server->connection, "Could not create server connection");
@@ -269,6 +279,7 @@ TEST_FUNCTION(client_and_server_connect_and_send_one_message_settled)
     session_destroy(server_instance.session);
     connection_destroy(server_instance.connection);
     xio_destroy(server_instance.header_detect_io);
+    xio_destroy(server_instance.underlying_io);
     socketlistener_destroy(socket_listener);
 }
 
@@ -382,6 +393,7 @@ TEST_FUNCTION(client_and_server_connect_and_send_one_message_unsettled)
     session_destroy(server_instance.session);
     connection_destroy(server_instance.connection);
     xio_destroy(server_instance.header_detect_io);
+    xio_destroy(server_instance.underlying_io);
     socketlistener_destroy(socket_listener);
 }
 

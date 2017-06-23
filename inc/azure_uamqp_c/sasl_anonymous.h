@@ -12,7 +12,7 @@ extern "C" {
 
 #include "azure_c_shared_utility/umock_c_prod.h"
 
-	MOCKABLE_FUNCTION(, const SASL_MECHANISM_INTERFACE_DESCRIPTION*, saslanonymous_get_interface);
+    MOCKABLE_FUNCTION(, const SASL_MECHANISM_INTERFACE_DESCRIPTION*, saslanonymous_get_interface);
 
 #ifdef __cplusplus
 }

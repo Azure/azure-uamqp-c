@@ -231,12 +231,12 @@ static void on_amqp_management_execute_operation_complete(void* context, AMQP_MA
 
             /* Codes_SRS_CBS_01_095: [ `status_code` and `status_description` shall be passed as they are to the cbs operation complete callback. ]*/
             /* Codes_SRS_CBS_01_014: [ The response message has the following application-properties: ]*/
-            /* Codes_SRS_CBS_01_013: [ status-code	No	int	HTTP response code [RFC2616]. ]*/
-            /* Codes_SRS_CBS_01_015: [ status-description	Yes	string	Description of the status. ]*/
+            /* Codes_SRS_CBS_01_013: [ status-code    No    int    HTTP response code [RFC2616]. ]*/
+            /* Codes_SRS_CBS_01_015: [ status-description    Yes    string    Description of the status. ]*/
             /* Codes_SRS_CBS_01_016: [ The body of the message MUST be empty. ]*/
             /* Codes_SRS_CBS_01_026: [ The response message has the following application-properties: ]*/
-            /* Codes_SRS_CBS_01_027: [ status-code	Yes	int	HTTP response code [RFC2616]. ]*/
-            /* Codes_SRS_CBS_01_028: [ status-description	No	string	Description of the status. ]*/
+            /* Codes_SRS_CBS_01_027: [ status-code    Yes    int    HTTP response code [RFC2616]. ]*/
+            /* Codes_SRS_CBS_01_028: [ status-description    No    string    Description of the status. ]*/
             /* Codes_SRS_CBS_01_029: [ The body of the message MUST be empty. ]*/
             cbs_operation->on_cbs_operation_complete(cbs_operation->on_cbs_operation_complete_context, cbs_operation_result, status_code, status_description);
 
@@ -539,9 +539,9 @@ int cbs_put_token_async(CBS_HANDLE cbs, const char* type, const char* audience, 
                                         /* Codes_SRS_CBS_01_055: [ The `locales` argument shall be set to NULL. ]*/
                                         /* Codes_SRS_CBS_01_056: [ The `message` argument shall be the message constructed earlier according to the CBS spec. ]*/
                                         /* Codes_SRS_CBS_01_057: [ The arguments `on_execute_operation_complete` and `context` shall be set to a callback that is to be called by the AMQP management module when the operation is complete. ]*/
-                                        /* Codes_SRS_CBS_01_005: [ operation	No	string	"put-token" ]*/
-                                        /* Codes_SRS_CBS_01_006: [ Type	No	string	The type of the token being put, e.g., "amqp:jwt". ]*/
-                                        /* Codes_SRS_CBS_01_007: [ name	No	string	The "audience" to which the token applies. ]*/
+                                        /* Codes_SRS_CBS_01_005: [ operation    No    string    "put-token" ]*/
+                                        /* Codes_SRS_CBS_01_006: [ Type    No    string    The type of the token being put, e.g., "amqp:jwt". ]*/
+                                        /* Codes_SRS_CBS_01_007: [ name    No    string    The "audience" to which the token applies. ]*/
                                         if (amqp_management_execute_operation_async(cbs->amqp_management, "put-token", type, NULL, message, on_amqp_management_execute_operation_complete, list_item) != 0)
                                         {
                                             singlylinkedlist_remove(cbs->pending_operations, list_item);
@@ -664,9 +664,9 @@ int cbs_delete_token_async(CBS_HANDLE cbs, const char* type, const char* audienc
                                 /* Codes_SRS_CBS_01_065: [ The `message` argument shall be the message constructed earlier according to the CBS spec. ]*/
                                 /* Codes_SRS_CBS_01_066: [ The arguments `on_operation_complete` and `context` shall be set to a callback that is to be called by the AMQP management module when the operation is complete. ]*/
                                 /* Codes_SRS_CBS_01_020: [ To instruct a peer to delete a token associated with a specific audience, a "delete-token" message can be sent to the CBS Node ]*/
-                                /* Codes_SRS_CBS_01_022: [ operation	Yes	string	"delete-token" ]*/
-                                /* Codes_SRS_CBS_01_023: [ Type	Yes	string	The type of the token being deleted, e.g., "amqp:jwt". ]*/
-                                /* Codes_SRS_CBS_01_024: [ name	Yes	string	The "audience" of the token being deleted. ]*/
+                                /* Codes_SRS_CBS_01_022: [ operation    Yes    string    "delete-token" ]*/
+                                /* Codes_SRS_CBS_01_023: [ Type    Yes    string    The type of the token being deleted, e.g., "amqp:jwt". ]*/
+                                /* Codes_SRS_CBS_01_024: [ name    Yes    string    The "audience" of the token being deleted. ]*/
                                 if (amqp_management_execute_operation_async(cbs->amqp_management, "delete-token", type, NULL, message, on_amqp_management_execute_operation_complete, list_item) != 0)
                                 {
                                     /* Codes_SRS_CBS_01_087: [ If `amqp_management_execute_operation_async` fails `cbs_put_token_async` shall fail and return a non-zero value. ]*/

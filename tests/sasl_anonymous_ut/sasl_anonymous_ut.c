@@ -90,33 +90,33 @@ TEST_FUNCTION_CLEANUP(method_cleanup)
 /* Tests_SRS_SASL_ANONYMOUS_01_001: [`saslanonymous_create` shall return on success a non-NULL handle to a new SASL anonymous mechanism.]*/
 TEST_FUNCTION(saslanonymous_create_with_valid_args_succeeds)
 {
-	// arrange
+    // arrange
     CONCRETE_SASL_MECHANISM_HANDLE result;
-	STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 
-	// act
-	result = saslanonymous_get_interface()->concrete_sasl_mechanism_create((void*)0x4242);
+    // act
+    result = saslanonymous_get_interface()->concrete_sasl_mechanism_create((void*)0x4242);
 
-	// assert
-	ASSERT_IS_NOT_NULL(result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_IS_NOT_NULL(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
+    // cleanup
     saslanonymous_get_interface()->concrete_sasl_mechanism_destroy(result);
 }
 
 /* Tests_SRS_SASL_ANONYMOUS_01_002: [If allocating the memory needed for the SASL anonymous instance fails then `saslanonymous_create` shall return NULL.] */
 TEST_FUNCTION(when_allocating_memory_fails_then_saslanonymous_create_fails)
 {
-	// arrange
+    // arrange
     CONCRETE_SASL_MECHANISM_HANDLE result;
-	STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
-		.SetReturn(NULL);
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .SetReturn(NULL);
 
-	// act
-	result = saslanonymous_get_interface()->concrete_sasl_mechanism_create((void*)0x4242);
+    // act
+    result = saslanonymous_get_interface()->concrete_sasl_mechanism_create((void*)0x4242);
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
     ASSERT_IS_NULL(result);
 }
@@ -124,18 +124,18 @@ TEST_FUNCTION(when_allocating_memory_fails_then_saslanonymous_create_fails)
 /* Tests_SRS_SASL_ANONYMOUS_01_003: [Since this is the ANONYMOUS SASL mechanism, `config` shall be ignored.]*/
 TEST_FUNCTION(saslanonymous_create_with_NULL_config_succeeds)
 {
-	// arrange
+    // arrange
     CONCRETE_SASL_MECHANISM_HANDLE result;
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 
-	// act
-	result = saslanonymous_get_interface()->concrete_sasl_mechanism_create(NULL);
+    // act
+    result = saslanonymous_get_interface()->concrete_sasl_mechanism_create(NULL);
 
-	// assert
-	ASSERT_IS_NOT_NULL(result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_IS_NOT_NULL(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
+    // cleanup
     saslanonymous_get_interface()->concrete_sasl_mechanism_destroy(result);
 }
 
@@ -144,28 +144,28 @@ TEST_FUNCTION(saslanonymous_create_with_NULL_config_succeeds)
 /* Tests_SRS_SASL_ANONYMOUS_01_004: [`saslanonymous_destroy` shall free all resources associated with the SASL mechanism.] */
 TEST_FUNCTION(saslanonymous_destroy_frees_the_allocated_resources)
 {
-	// arrange
-	CONCRETE_SASL_MECHANISM_HANDLE result = saslanonymous_get_interface()->concrete_sasl_mechanism_create(NULL);
-	umock_c_reset_all_calls();
+    // arrange
+    CONCRETE_SASL_MECHANISM_HANDLE result = saslanonymous_get_interface()->concrete_sasl_mechanism_create(NULL);
+    umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
-	// act
+    // act
     saslanonymous_get_interface()->concrete_sasl_mechanism_destroy(result);
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
 /* Tests_SRS_SASL_ANONYMOUS_01_005: [If the argument `concrete_sasl_mechanism` is NULL, `saslanonymous_destroy` shall do nothing.]*/
 TEST_FUNCTION(saslanonymous_destroy_with_NULL_argument_does_nothing)
 {
-	// arrange
+    // arrange
 
-	// act
+    // act
     saslanonymous_get_interface()->concrete_sasl_mechanism_destroy(NULL);
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
@@ -176,37 +176,37 @@ TEST_FUNCTION(saslanonymous_destroy_with_NULL_argument_does_nothing)
 /* Tests_SRS_SASL_ANONYMOUS_01_011: [On success `saslanonymous_get_init_bytes` shall return zero.] */
 TEST_FUNCTION(saslannymous_get_init_bytes_sets_the_bytes_to_NULL_and_length_to_zero)
 {
-	// arrange
-	CONCRETE_SASL_MECHANISM_HANDLE saslanonymous = saslanonymous_get_interface()->concrete_sasl_mechanism_create(NULL);
-	SASL_MECHANISM_BYTES init_bytes;
+    // arrange
+    CONCRETE_SASL_MECHANISM_HANDLE saslanonymous = saslanonymous_get_interface()->concrete_sasl_mechanism_create(NULL);
+    SASL_MECHANISM_BYTES init_bytes;
     int result;
-	umock_c_reset_all_calls();
+    umock_c_reset_all_calls();
 
-	// act
-	result = saslanonymous_get_interface()->concrete_sasl_mechanism_get_init_bytes(saslanonymous, &init_bytes);
+    // act
+    result = saslanonymous_get_interface()->concrete_sasl_mechanism_get_init_bytes(saslanonymous, &init_bytes);
 
-	// assert
-	ASSERT_IS_NULL(init_bytes.bytes);
-	ASSERT_ARE_EQUAL(size_t, 0, init_bytes.length);
-	ASSERT_ARE_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_IS_NULL(init_bytes.bytes);
+    ASSERT_ARE_EQUAL(size_t, 0, init_bytes.length);
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
+    // cleanup
     saslanonymous_get_interface()->concrete_sasl_mechanism_destroy(saslanonymous);
 }
 
 /* Tests_SRS_SASL_ANONYMOUS_01_007: [If any argument is NULL, `saslanonymous_get_init_bytes` shall return a non-zero value.]*/
 TEST_FUNCTION(saslannymous_get_init_bytes_with_NULL_concrete_sasl_mechanism_fails)
 {
-	// arrange
-	SASL_MECHANISM_BYTES init_bytes;
+    // arrange
+    SASL_MECHANISM_BYTES init_bytes;
     int result;
-	umock_c_reset_all_calls();
+    umock_c_reset_all_calls();
 
-	// act
-	result = saslanonymous_get_interface()->concrete_sasl_mechanism_get_init_bytes(NULL, &init_bytes);
+    // act
+    result = saslanonymous_get_interface()->concrete_sasl_mechanism_get_init_bytes(NULL, &init_bytes);
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
     ASSERT_ARE_NOT_EQUAL(int, 0, result);
 }
@@ -214,20 +214,20 @@ TEST_FUNCTION(saslannymous_get_init_bytes_with_NULL_concrete_sasl_mechanism_fail
 /* Tests_SRS_SASL_ANONYMOUS_01_007: [If any argument is NULL, `saslanonymous_get_init_bytes` shall return a non-zero value.]*/
 TEST_FUNCTION(saslannymous_get_init_bytes_with_NULL_init_bytes_fails)
 {
-	// arrange
-	CONCRETE_SASL_MECHANISM_HANDLE saslanonymous = saslanonymous_get_interface()->concrete_sasl_mechanism_create(NULL);
+    // arrange
+    CONCRETE_SASL_MECHANISM_HANDLE saslanonymous = saslanonymous_get_interface()->concrete_sasl_mechanism_create(NULL);
     int result;
-	umock_c_reset_all_calls();
+    umock_c_reset_all_calls();
 
-	// act
-	result = saslanonymous_get_interface()->concrete_sasl_mechanism_get_init_bytes(saslanonymous, NULL);
+    // act
+    result = saslanonymous_get_interface()->concrete_sasl_mechanism_get_init_bytes(saslanonymous, NULL);
 
-	// assert
-	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslanonymous_get_interface()->concrete_sasl_mechanism_destroy(saslanonymous);
+    // cleanup
+    saslanonymous_get_interface()->concrete_sasl_mechanism_destroy(saslanonymous);
 }
 
 /* saslanonymous_get_mechanism_name */
@@ -235,31 +235,31 @@ TEST_FUNCTION(saslannymous_get_init_bytes_with_NULL_init_bytes_fails)
 /* Tests_SRS_SASL_ANONYMOUS_01_008: [`saslanonymous_get_mechanism_name` shall validate the argument `concrete_sasl_mechanism` and on success it shall return a pointer to the string `ANONYMOUS`.] */
 TEST_FUNCTION(saslanonymous_get_mechanism_name_with_non_NULL_concrete_sasl_mechanism_succeeds)
 {
-	// arrange
-	CONCRETE_SASL_MECHANISM_HANDLE saslanonymous = saslanonymous_get_interface()->concrete_sasl_mechanism_create(NULL);
+    // arrange
+    CONCRETE_SASL_MECHANISM_HANDLE saslanonymous = saslanonymous_get_interface()->concrete_sasl_mechanism_create(NULL);
     const char* result;
-	umock_c_reset_all_calls();
+    umock_c_reset_all_calls();
 
-	// act
-	result = saslanonymous_get_interface()->concrete_sasl_mechanism_get_mechanism_name(saslanonymous);
+    // act
+    result = saslanonymous_get_interface()->concrete_sasl_mechanism_get_mechanism_name(saslanonymous);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, "ANONYMOUS", result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, "ANONYMOUS", result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslanonymous_get_interface()->concrete_sasl_mechanism_destroy(saslanonymous);
+    // cleanup
+    saslanonymous_get_interface()->concrete_sasl_mechanism_destroy(saslanonymous);
 }
 
 /* Tests_SRS_SASL_ANONYMOUS_01_009: [If the argument `concrete_sasl_mechanism` is NULL, `saslanonymous_get_mechanism_name` shall return NULL.] */
 TEST_FUNCTION(saslanonymous_get_mechanism_name_with_NULL_concrete_sasl_mechanism_fails)
 {
-	// arrange
+    // arrange
 
-	// act
-	const char* result = saslanonymous_get_interface()->concrete_sasl_mechanism_get_mechanism_name(NULL);
+    // act
+    const char* result = saslanonymous_get_interface()->concrete_sasl_mechanism_get_mechanism_name(NULL);
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
     ASSERT_IS_NULL(result);
 }
@@ -270,60 +270,60 @@ TEST_FUNCTION(saslanonymous_get_mechanism_name_with_NULL_concrete_sasl_mechanism
 /* Tests_SRS_SASL_ANONYMOUS_01_014: [On success, `saslanonymous_challenge` shall return 0.] */
 TEST_FUNCTION(saslanonymous_challenge_returns_a_NULL_response_bytes_buffer)
 {
-	// arrange
-	CONCRETE_SASL_MECHANISM_HANDLE saslanonymous = saslanonymous_get_interface()->concrete_sasl_mechanism_create(NULL);
-	SASL_MECHANISM_BYTES challenge_bytes;
-	SASL_MECHANISM_BYTES response_bytes;
+    // arrange
+    CONCRETE_SASL_MECHANISM_HANDLE saslanonymous = saslanonymous_get_interface()->concrete_sasl_mechanism_create(NULL);
+    SASL_MECHANISM_BYTES challenge_bytes;
+    SASL_MECHANISM_BYTES response_bytes;
     int result;
-	umock_c_reset_all_calls();
+    umock_c_reset_all_calls();
 
-	// act
-	result = saslanonymous_get_interface()->concrete_sasl_mechanism_challenge(saslanonymous, &challenge_bytes, &response_bytes);
+    // act
+    result = saslanonymous_get_interface()->concrete_sasl_mechanism_challenge(saslanonymous, &challenge_bytes, &response_bytes);
 
-	// assert
-	ASSERT_ARE_EQUAL(int, 0, result);
-	ASSERT_IS_NULL(response_bytes.bytes);
-	ASSERT_ARE_EQUAL(size_t, 0, response_bytes.length);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_IS_NULL(response_bytes.bytes);
+    ASSERT_ARE_EQUAL(size_t, 0, response_bytes.length);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslanonymous_get_interface()->concrete_sasl_mechanism_destroy(saslanonymous);
+    // cleanup
+    saslanonymous_get_interface()->concrete_sasl_mechanism_destroy(saslanonymous);
 }
 
 /* Tests_SRS_SASL_ANONYMOUS_01_014: [On success, `saslanonymous_challenge` shall return 0.] */
 TEST_FUNCTION(saslanonymous_with_NULL_challenge_bytes_returns_a_NULL_response_bytes_buffer)
 {
-	// arrange
-	CONCRETE_SASL_MECHANISM_HANDLE saslanonymous = saslanonymous_get_interface()->concrete_sasl_mechanism_create(NULL);
-	SASL_MECHANISM_BYTES response_bytes;
+    // arrange
+    CONCRETE_SASL_MECHANISM_HANDLE saslanonymous = saslanonymous_get_interface()->concrete_sasl_mechanism_create(NULL);
+    SASL_MECHANISM_BYTES response_bytes;
     int result;
-	umock_c_reset_all_calls();
+    umock_c_reset_all_calls();
 
-	// act
-	result = saslanonymous_get_interface()->concrete_sasl_mechanism_challenge(saslanonymous, NULL, &response_bytes);
+    // act
+    result = saslanonymous_get_interface()->concrete_sasl_mechanism_challenge(saslanonymous, NULL, &response_bytes);
 
-	// assert
-	ASSERT_ARE_EQUAL(int, 0, result);
-	ASSERT_IS_NULL(response_bytes.bytes);
-	ASSERT_ARE_EQUAL(size_t, 0, response_bytes.length);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_IS_NULL(response_bytes.bytes);
+    ASSERT_ARE_EQUAL(size_t, 0, response_bytes.length);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslanonymous_get_interface()->concrete_sasl_mechanism_destroy(saslanonymous);
+    // cleanup
+    saslanonymous_get_interface()->concrete_sasl_mechanism_destroy(saslanonymous);
 }
 
 /* Tests_SRS_SASL_ANONYMOUS_01_015: [If the `concrete_sasl_mechanism` or `response_bytes` argument is NULL then `saslanonymous_challenge` shall fail and return a non-zero value.] */
 TEST_FUNCTION(saslanonymous_challenge_with_NULL_handle_fails)
 {
-	// arrange
-	SASL_MECHANISM_BYTES challenge_bytes;
-	SASL_MECHANISM_BYTES response_bytes;
+    // arrange
+    SASL_MECHANISM_BYTES challenge_bytes;
+    SASL_MECHANISM_BYTES response_bytes;
     int result;
 
-	// act
-	result = saslanonymous_get_interface()->concrete_sasl_mechanism_challenge(NULL, &challenge_bytes, &response_bytes);
+    // act
+    result = saslanonymous_get_interface()->concrete_sasl_mechanism_challenge(NULL, &challenge_bytes, &response_bytes);
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
     ASSERT_ARE_NOT_EQUAL(int, 0, result);
 }
@@ -331,21 +331,21 @@ TEST_FUNCTION(saslanonymous_challenge_with_NULL_handle_fails)
 /* Tests_SRS_SASL_ANONYMOUS_01_015: [If the `concrete_sasl_mechanism` or `response_bytes` argument is NULL then `saslanonymous_challenge` shall fail and return a non-zero value.] */
 TEST_FUNCTION(saslanonymous_challenge_with_NULL_response_bytes_fails)
 {
-	// arrange
-	CONCRETE_SASL_MECHANISM_HANDLE saslanonymous = saslanonymous_get_interface()->concrete_sasl_mechanism_create(NULL);
-	SASL_MECHANISM_BYTES challenge_bytes;
+    // arrange
+    CONCRETE_SASL_MECHANISM_HANDLE saslanonymous = saslanonymous_get_interface()->concrete_sasl_mechanism_create(NULL);
+    SASL_MECHANISM_BYTES challenge_bytes;
     int result;
-	umock_c_reset_all_calls();
+    umock_c_reset_all_calls();
 
-	// act
-	result = saslanonymous_get_interface()->concrete_sasl_mechanism_challenge(saslanonymous, &challenge_bytes, NULL);
+    // act
+    result = saslanonymous_get_interface()->concrete_sasl_mechanism_challenge(saslanonymous, &challenge_bytes, NULL);
 
-	// assert
-	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslanonymous_get_interface()->concrete_sasl_mechanism_destroy(saslanonymous);
+    // cleanup
+    saslanonymous_get_interface()->concrete_sasl_mechanism_destroy(saslanonymous);
 }
 
 /* saslanonymous_get_interface */
@@ -353,12 +353,12 @@ TEST_FUNCTION(saslanonymous_challenge_with_NULL_response_bytes_fails)
 /* Tests_SRS_SASL_ANONYMOUS_01_010: [`saslanonymous_get_interface` shall return a pointer to a `SASL_MECHANISM_INTERFACE_DESCRIPTION` structure that contains pointers to the functions: `saslanonymous_create`, `saslanonymous_destroy`, `saslanonymous_get_init_bytes`, `saslanonymous_get_mechanism_name`, `saslanonymous_challenge`.] */
 TEST_FUNCTION(saslanonymous_get_interface_returns_the_sasl_anonymous_mechanism_interface)
 {
-	// arrange
+    // arrange
 
-	// act
-	const SASL_MECHANISM_INTERFACE_DESCRIPTION* result = saslanonymous_get_interface();
+    // act
+    const SASL_MECHANISM_INTERFACE_DESCRIPTION* result = saslanonymous_get_interface();
 
-	// assert
+    // assert
     ASSERT_IS_NOT_NULL(result->concrete_sasl_mechanism_create);
     ASSERT_IS_NOT_NULL(result->concrete_sasl_mechanism_destroy);
     ASSERT_IS_NOT_NULL(result->concrete_sasl_mechanism_get_init_bytes);

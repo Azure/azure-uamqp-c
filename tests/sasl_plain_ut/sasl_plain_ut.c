@@ -93,38 +93,38 @@ TEST_FUNCTION_CLEANUP(method_cleanup)
 /* Tests_SRS_SASL_PLAIN_01_001: [`saslplain_create` shall return on success a non-NULL handle to a new SASL plain mechanism.] */
 TEST_FUNCTION(saslplain_create_with_valid_args_succeeds)
 {
-	// arrange
-	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", "test_authzid" };
+    // arrange
+    SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", "test_authzid" };
     CONCRETE_SASL_MECHANISM_HANDLE result;
 
-	STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 
-	// act
-	result = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
+    // act
+    result = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
 
-	// assert
-	ASSERT_IS_NOT_NULL(result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_IS_NOT_NULL(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslplain_get_interface()->concrete_sasl_mechanism_destroy(result);
+    // cleanup
+    saslplain_get_interface()->concrete_sasl_mechanism_destroy(result);
 }
 
 /* Tests_SRS_SASL_PLAIN_01_002: [If allocating the memory needed for the saslplain instance fails then `saslplain_create` shall return NULL.] */
 TEST_FUNCTION(when_allocating_memory_fails_then_saslplain_create_fails)
 {
-	// arrange
-	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", "test_authzid" };
-	CONCRETE_SASL_MECHANISM_HANDLE result;
+    // arrange
+    SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", "test_authzid" };
+    CONCRETE_SASL_MECHANISM_HANDLE result;
 
-	STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
-		.SetReturn(NULL);
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .SetReturn(NULL);
 
-	// act
-	result = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
+    // act
+    result = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
     ASSERT_IS_NULL(result);
 }
@@ -132,19 +132,19 @@ TEST_FUNCTION(when_allocating_memory_fails_then_saslplain_create_fails)
 /* Tests_SRS_SASL_PLAIN_01_002: [If allocating the memory needed for the saslplain instance fails then `saslplain_create` shall return NULL.] */
 TEST_FUNCTION(when_allocating_memory_for_the_config_fails_then_saslplain_create_fails)
 {
-	// arrange
-	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", "test_authzid" };
-	CONCRETE_SASL_MECHANISM_HANDLE result;
+    // arrange
+    SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", "test_authzid" };
+    CONCRETE_SASL_MECHANISM_HANDLE result;
 
-	STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
-		.SetReturn(NULL);
-	STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .SetReturn(NULL);
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
-	// act
-	result = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
+    // act
+    result = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
     ASSERT_IS_NULL(result);
 }
@@ -152,12 +152,12 @@ TEST_FUNCTION(when_allocating_memory_for_the_config_fails_then_saslplain_create_
 /* Tests_SRS_SASL_PLAIN_01_003: [If the `config` argument is NULL, then `saslplain_create` shall fail and return NULL.] */
 TEST_FUNCTION(saslplain_create_with_NULL_config_fails)
 {
-	// arrange
+    // arrange
 
-	// act
-	CONCRETE_SASL_MECHANISM_HANDLE result = saslplain_get_interface()->concrete_sasl_mechanism_create(NULL);
+    // act
+    CONCRETE_SASL_MECHANISM_HANDLE result = saslplain_get_interface()->concrete_sasl_mechanism_create(NULL);
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
     ASSERT_IS_NULL(result);
 }
@@ -165,13 +165,13 @@ TEST_FUNCTION(saslplain_create_with_NULL_config_fails)
 /* Tests_SRS_SASL_PLAIN_01_004: [If either the `authcid` or `passwd` member of the `config` structure is NULL, then `saslplain_create` shall fail and return NULL.] */
 TEST_FUNCTION(saslplain_create_with_NULL_authcid_fails)
 {
-	// arrange
-	SASL_PLAIN_CONFIG sasl_plain_config = { NULL, "test_pwd", "test_authzid" };
+    // arrange
+    SASL_PLAIN_CONFIG sasl_plain_config = { NULL, "test_pwd", "test_authzid" };
 
-	// act
-	CONCRETE_SASL_MECHANISM_HANDLE result = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
+    // act
+    CONCRETE_SASL_MECHANISM_HANDLE result = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
     ASSERT_IS_NULL(result);
 }
@@ -179,13 +179,13 @@ TEST_FUNCTION(saslplain_create_with_NULL_authcid_fails)
 /* Tests_SRS_SASL_PLAIN_01_004: [If either the `authcid` or `passwd` member of the `config` structure is NULL, then `saslplain_create` shall fail and return NULL.] */
 TEST_FUNCTION(saslplain_create_with_NULL_passwd_fails)
 {
-	// arrange
-	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", NULL, "test_authzid" };
+    // arrange
+    SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", NULL, "test_authzid" };
 
-	// act
-	CONCRETE_SASL_MECHANISM_HANDLE result = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
+    // act
+    CONCRETE_SASL_MECHANISM_HANDLE result = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
     ASSERT_IS_NULL(result);
 }
@@ -194,22 +194,22 @@ TEST_FUNCTION(saslplain_create_with_NULL_passwd_fails)
 /* Tests_SRS_SASL_PLAIN_01_025: [ `authzid` shall be optional. ]*/
 TEST_FUNCTION(saslplain_create_with_NULL_authzid_succeeds)
 {
-	// arrange
-	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", NULL };
-	CONCRETE_SASL_MECHANISM_HANDLE result;
+    // arrange
+    SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", NULL };
+    CONCRETE_SASL_MECHANISM_HANDLE result;
 
-	STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-	STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 
-	// act
-	result = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
+    // act
+    result = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
 
-	// assert
-	ASSERT_IS_NOT_NULL(result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_IS_NOT_NULL(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslplain_get_interface()->concrete_sasl_mechanism_destroy(result);
+    // cleanup
+    saslplain_get_interface()->concrete_sasl_mechanism_destroy(result);
 }
 
 /* saslplain_destroy */
@@ -217,30 +217,30 @@ TEST_FUNCTION(saslplain_create_with_NULL_authzid_succeeds)
 /* Tests_SRS_SASL_PLAIN_01_005: [`saslplain_destroy` shall free all resources associated with the SASL mechanism.] */
 TEST_FUNCTION(saslplain_destroy_frees_the_allocated_memory)
 {
-	// arrange
-	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", NULL };
-	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
-	umock_c_reset_all_calls();
+    // arrange
+    SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", NULL };
+    CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
+    umock_c_reset_all_calls();
 
-	STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-	STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
-	// act
-	saslplain_get_interface()->concrete_sasl_mechanism_destroy(sasl_plain);
+    // act
+    saslplain_get_interface()->concrete_sasl_mechanism_destroy(sasl_plain);
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
 /* Tests_SRS_SASL_PLAIN_01_006: [If the argument `concrete_sasl_mechanism` is NULL, `saslplain_destroy` shall do nothing.] */
 TEST_FUNCTION(saslplain_destroy_with_NULL_handle_does_nothing)
 {
-	// arrange
+    // arrange
 
-	// act
-	saslplain_get_interface()->concrete_sasl_mechanism_destroy(NULL);
+    // act
+    saslplain_get_interface()->concrete_sasl_mechanism_destroy(NULL);
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
@@ -255,26 +255,26 @@ TEST_FUNCTION(saslplain_destroy_with_NULL_handle_does_nothing)
 /* Tests_SRS_SASL_PLAIN_01_024: [As the NUL (U+0000) character is used as a deliminator, the NUL (U+0000) character MUST NOT appear in authzid, authcid, or passwd productions.] */
 TEST_FUNCTION(saslplain_get_init_bytes_returns_the_correct_concateneted_bytes)
 {
-	// arrange
-	int result;
-	unsigned char expected_bytes[] = "test_authzid" "\0" "test_authcid" "\0" "test_pwd";
-	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", "test_authzid" };
-	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
-	SASL_MECHANISM_BYTES init_bytes;
+    // arrange
+    int result;
+    unsigned char expected_bytes[] = "test_authzid" "\0" "test_authcid" "\0" "test_pwd";
+    SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", "test_authzid" };
+    CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
+    SASL_MECHANISM_BYTES init_bytes;
 
-	umock_c_reset_all_calls();
+    umock_c_reset_all_calls();
 
-	// act
-	result = saslplain_get_interface()->concrete_sasl_mechanism_get_init_bytes(sasl_plain, &init_bytes);
+    // act
+    result = saslplain_get_interface()->concrete_sasl_mechanism_get_init_bytes(sasl_plain, &init_bytes);
 
-	// assert
-	ASSERT_ARE_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(size_t, sizeof(expected_bytes) - 1, init_bytes.length);
-	ASSERT_ARE_EQUAL(int, 0, memcmp(expected_bytes, init_bytes.bytes, sizeof(expected_bytes) - 1));
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(size_t, sizeof(expected_bytes) - 1, init_bytes.length);
+    ASSERT_ARE_EQUAL(int, 0, memcmp(expected_bytes, init_bytes.bytes, sizeof(expected_bytes) - 1));
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslplain_get_interface()->concrete_sasl_mechanism_destroy(sasl_plain);
+    // cleanup
+    saslplain_get_interface()->concrete_sasl_mechanism_destroy(sasl_plain);
 }
 
 /* Tests_SRS_SASL_PLAIN_01_007: [`saslplain_get_init_bytes` shall construct the initial bytes per the RFC 4616.] */
@@ -282,73 +282,73 @@ TEST_FUNCTION(saslplain_get_init_bytes_returns_the_correct_concateneted_bytes)
 /* Tests_SRS_SASL_PLAIN_01_018: [As with other SASL mechanisms, the client does not provide an authorization identity when it wishes the server to derive an identity from the credentials and use that as the authorization identity.] */
 TEST_FUNCTION(saslplain_get_init_bytes_with_NULL_authzid_returns_the_correct_concateneted_bytes)
 {
-	// arrange
-	int result;
-	unsigned char expected_bytes[] = "\0" "test_authcid" "\0" "test_pwd";
-	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", NULL };
-	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
-	SASL_MECHANISM_BYTES init_bytes;
-	umock_c_reset_all_calls();
+    // arrange
+    int result;
+    unsigned char expected_bytes[] = "\0" "test_authcid" "\0" "test_pwd";
+    SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", NULL };
+    CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
+    SASL_MECHANISM_BYTES init_bytes;
+    umock_c_reset_all_calls();
 
-	// act
-	result = saslplain_get_interface()->concrete_sasl_mechanism_get_init_bytes(sasl_plain, &init_bytes);
+    // act
+    result = saslplain_get_interface()->concrete_sasl_mechanism_get_init_bytes(sasl_plain, &init_bytes);
 
-	// assert
-	ASSERT_ARE_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(size_t, sizeof(expected_bytes) - 1, init_bytes.length);
-	ASSERT_ARE_EQUAL(int, 0, memcmp(expected_bytes, init_bytes.bytes, sizeof(expected_bytes) - 1));
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(size_t, sizeof(expected_bytes) - 1, init_bytes.length);
+    ASSERT_ARE_EQUAL(int, 0, memcmp(expected_bytes, init_bytes.bytes, sizeof(expected_bytes) - 1));
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslplain_get_interface()->concrete_sasl_mechanism_destroy(sasl_plain);
+    // cleanup
+    saslplain_get_interface()->concrete_sasl_mechanism_destroy(sasl_plain);
 }
 
 /* Tests_SRS_SASL_PLAIN_01_018: [As with other SASL mechanisms, the client does not provide an authorization identity when it wishes the server to derive an identity from the credentials and use that as the authorization identity.] */
 TEST_FUNCTION(saslplain_get_init_bytes_with_authzid_zero_length_succeeds)
 {
-	// arrange
-	int result;
-	unsigned char expected_bytes[] = "\0" "test_authcid" "\0" "test_pwd";
-	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", "" };
-	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
-	SASL_MECHANISM_BYTES init_bytes;
-	umock_c_reset_all_calls();
+    // arrange
+    int result;
+    unsigned char expected_bytes[] = "\0" "test_authcid" "\0" "test_pwd";
+    SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", "" };
+    CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
+    SASL_MECHANISM_BYTES init_bytes;
+    umock_c_reset_all_calls();
 
-	// act
-	result = saslplain_get_interface()->concrete_sasl_mechanism_get_init_bytes(sasl_plain, &init_bytes);
+    // act
+    result = saslplain_get_interface()->concrete_sasl_mechanism_get_init_bytes(sasl_plain, &init_bytes);
 
-	// assert
-	ASSERT_ARE_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(size_t, sizeof(expected_bytes) - 1, init_bytes.length);
-	ASSERT_ARE_EQUAL(int, 0, memcmp(expected_bytes, init_bytes.bytes, sizeof(expected_bytes) - 1));
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(size_t, sizeof(expected_bytes) - 1, init_bytes.length);
+    ASSERT_ARE_EQUAL(int, 0, memcmp(expected_bytes, init_bytes.bytes, sizeof(expected_bytes) - 1));
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslplain_get_interface()->concrete_sasl_mechanism_destroy(sasl_plain);
+    // cleanup
+    saslplain_get_interface()->concrete_sasl_mechanism_destroy(sasl_plain);
 }
 
 /* Tests_SRS_SASL_PLAIN_01_020: [   authcid   = 1*SAFE ; MUST accept up to 255 octets] */
 TEST_FUNCTION(saslplain_get_init_bytes_with_1_byte_for_each_field_succeeds)
 {
-	// arrange
-	int result;
-	unsigned char expected_bytes[] = "1" "\0" "b" "\0" "c";
-	SASL_PLAIN_CONFIG sasl_plain_config = { "b", "c", "1" };
-	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
-	SASL_MECHANISM_BYTES init_bytes;
-	umock_c_reset_all_calls();
+    // arrange
+    int result;
+    unsigned char expected_bytes[] = "1" "\0" "b" "\0" "c";
+    SASL_PLAIN_CONFIG sasl_plain_config = { "b", "c", "1" };
+    CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
+    SASL_MECHANISM_BYTES init_bytes;
+    umock_c_reset_all_calls();
 
-	// act
-	result = saslplain_get_interface()->concrete_sasl_mechanism_get_init_bytes(sasl_plain, &init_bytes);
+    // act
+    result = saslplain_get_interface()->concrete_sasl_mechanism_get_init_bytes(sasl_plain, &init_bytes);
 
-	// assert
-	ASSERT_ARE_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(size_t, sizeof(expected_bytes) - 1, init_bytes.length);
-	ASSERT_ARE_EQUAL(int, 0, memcmp(expected_bytes, init_bytes.bytes, sizeof(expected_bytes) - 1));
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(size_t, sizeof(expected_bytes) - 1, init_bytes.length);
+    ASSERT_ARE_EQUAL(int, 0, memcmp(expected_bytes, init_bytes.bytes, sizeof(expected_bytes) - 1));
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslplain_get_interface()->concrete_sasl_mechanism_destroy(sasl_plain);
+    // cleanup
+    saslplain_get_interface()->concrete_sasl_mechanism_destroy(sasl_plain);
 }
 
 /* Tests_SRS_SASL_PLAIN_01_020: [   authcid   = 1*SAFE ; MUST accept up to 255 octets] */
@@ -356,37 +356,37 @@ TEST_FUNCTION(saslplain_get_init_bytes_with_1_byte_for_each_field_succeeds)
 /* Tests_SRS_SASL_PLAIN_01_022: [   passwd    = 1*SAFE ; MUST accept up to 255 octets] */
 TEST_FUNCTION(saslplain_get_init_bytes_with_max_bytes_for_each_field_succeeds)
 {
-	// arrange
-	int result;
-	unsigned char expected_bytes[] = MAX_AUTHZID "\0" MAX_AUTHCID "\0" MAX_PASSWD;
-	SASL_PLAIN_CONFIG sasl_plain_config = { MAX_AUTHCID, MAX_PASSWD, MAX_AUTHZID };
-	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
-	SASL_MECHANISM_BYTES init_bytes;
-	umock_c_reset_all_calls();
+    // arrange
+    int result;
+    unsigned char expected_bytes[] = MAX_AUTHZID "\0" MAX_AUTHCID "\0" MAX_PASSWD;
+    SASL_PLAIN_CONFIG sasl_plain_config = { MAX_AUTHCID, MAX_PASSWD, MAX_AUTHZID };
+    CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
+    SASL_MECHANISM_BYTES init_bytes;
+    umock_c_reset_all_calls();
 
-	// act
-	result = saslplain_get_interface()->concrete_sasl_mechanism_get_init_bytes(sasl_plain, &init_bytes);
+    // act
+    result = saslplain_get_interface()->concrete_sasl_mechanism_get_init_bytes(sasl_plain, &init_bytes);
 
-	// assert
-	ASSERT_ARE_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(size_t, sizeof(expected_bytes) - 1, init_bytes.length);
-	ASSERT_ARE_EQUAL(int, 0, memcmp(expected_bytes, init_bytes.bytes, sizeof(expected_bytes) - 1));
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(size_t, sizeof(expected_bytes) - 1, init_bytes.length);
+    ASSERT_ARE_EQUAL(int, 0, memcmp(expected_bytes, init_bytes.bytes, sizeof(expected_bytes) - 1));
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslplain_get_interface()->concrete_sasl_mechanism_destroy(sasl_plain);
+    // cleanup
+    saslplain_get_interface()->concrete_sasl_mechanism_destroy(sasl_plain);
 }
 
 /* Tests_SRS_SASL_PLAIN_01_020: [   authcid   = 1*SAFE ; MUST accept up to 255 octets] */
 TEST_FUNCTION(saslplain_get_init_bytes_with_authcid_over_max_bytes_fails)
 {
-	// arrange
-	SASL_PLAIN_CONFIG sasl_plain_config = { MAX_AUTHCID "x", MAX_PASSWD, MAX_AUTHZID };
+    // arrange
+    SASL_PLAIN_CONFIG sasl_plain_config = { MAX_AUTHCID "x", MAX_PASSWD, MAX_AUTHZID };
 
-	// act
-	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
+    // act
+    CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
     ASSERT_IS_NULL(sasl_plain);
 }
@@ -394,13 +394,13 @@ TEST_FUNCTION(saslplain_get_init_bytes_with_authcid_over_max_bytes_fails)
 /* Tests_SRS_SASL_PLAIN_01_021: [   authzid   = 1*SAFE ; MUST accept up to 255 octets] */
 TEST_FUNCTION(saslplain_get_init_bytes_with_authzid_over_max_bytes_fails)
 {
-	// arrange
-	SASL_PLAIN_CONFIG sasl_plain_config = { MAX_AUTHCID, MAX_PASSWD, MAX_AUTHZID "x" };
+    // arrange
+    SASL_PLAIN_CONFIG sasl_plain_config = { MAX_AUTHCID, MAX_PASSWD, MAX_AUTHZID "x" };
 
-	// act
-	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
+    // act
+    CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
     ASSERT_IS_NULL(sasl_plain);
 }
@@ -408,13 +408,13 @@ TEST_FUNCTION(saslplain_get_init_bytes_with_authzid_over_max_bytes_fails)
 /* Tests_SRS_SASL_PLAIN_01_022: [   passwd    = 1*SAFE ; MUST accept up to 255 octets] */
 TEST_FUNCTION(saslplain_get_init_bytes_with_passwd_over_max_bytes_fails)
 {
-	// arrange
-	SASL_PLAIN_CONFIG sasl_plain_config = { MAX_AUTHCID, MAX_PASSWD "x", MAX_AUTHZID };
+    // arrange
+    SASL_PLAIN_CONFIG sasl_plain_config = { MAX_AUTHCID, MAX_PASSWD "x", MAX_AUTHZID };
 
-	// act
-	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
+    // act
+    CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
     ASSERT_IS_NULL(sasl_plain);
 }
@@ -422,13 +422,13 @@ TEST_FUNCTION(saslplain_get_init_bytes_with_passwd_over_max_bytes_fails)
 /* Tests_SRS_SASL_PLAIN_01_020: [   authcid   = 1*SAFE ; MUST accept up to 255 octets] */
 TEST_FUNCTION(saslplain_get_init_bytes_with_authcid_zero_length_fails)
 {
-	// arrange
-	SASL_PLAIN_CONFIG sasl_plain_config = { "", "passwd", "authzid" };
+    // arrange
+    SASL_PLAIN_CONFIG sasl_plain_config = { "", "passwd", "authzid" };
 
-	// act
-	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
+    // act
+    CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
     ASSERT_IS_NULL(sasl_plain);
 }
@@ -436,13 +436,13 @@ TEST_FUNCTION(saslplain_get_init_bytes_with_authcid_zero_length_fails)
 /* Tests_SRS_SASL_PLAIN_01_022: [   passwd    = 1*SAFE ; MUST accept up to 255 octets] */
 TEST_FUNCTION(saslplain_get_init_bytes_with_passwd_zero_length_fails)
 {
-	// arrange
-	SASL_PLAIN_CONFIG sasl_plain_config = { "authcid", "", "authzid" };
+    // arrange
+    SASL_PLAIN_CONFIG sasl_plain_config = { "authcid", "", "authzid" };
 
-	// act
-	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
+    // act
+    CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
     ASSERT_IS_NULL(sasl_plain);
 }
@@ -450,13 +450,13 @@ TEST_FUNCTION(saslplain_get_init_bytes_with_passwd_zero_length_fails)
 /* Tests_SRS_SASL_PLAIN_01_009: [If any argument is NULL, `saslplain_get_init_bytes` shall return a non-zero value.] */
 TEST_FUNCTION(saslplain_get_init_bytes_with_NULL_sasl_plain_handle_fails)
 {
-	// arrange
-	SASL_MECHANISM_BYTES init_bytes;
+    // arrange
+    SASL_MECHANISM_BYTES init_bytes;
 
-	// act
-	int result = saslplain_get_interface()->concrete_sasl_mechanism_get_init_bytes(NULL, &init_bytes);
+    // act
+    int result = saslplain_get_interface()->concrete_sasl_mechanism_get_init_bytes(NULL, &init_bytes);
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
     ASSERT_ARE_NOT_EQUAL(int, 0, result);
 }
@@ -464,21 +464,21 @@ TEST_FUNCTION(saslplain_get_init_bytes_with_NULL_sasl_plain_handle_fails)
 /* Tests_SRS_SASL_PLAIN_01_009: [If any argument is NULL, `saslplain_get_init_bytes` shall return a non-zero value.] */
 TEST_FUNCTION(saslplain_get_init_bytes_with_NULL_init_bytes_fails)
 {
-	// arrange
-	int result;
-	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", NULL };
-	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
-	umock_c_reset_all_calls();
+    // arrange
+    int result;
+    SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", NULL };
+    CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
+    umock_c_reset_all_calls();
 
-	// act
-	result = saslplain_get_interface()->concrete_sasl_mechanism_get_init_bytes(sasl_plain, NULL);
+    // act
+    result = saslplain_get_interface()->concrete_sasl_mechanism_get_init_bytes(sasl_plain, NULL);
 
-	// assert
-	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslplain_get_interface()->concrete_sasl_mechanism_destroy(sasl_plain);
+    // cleanup
+    saslplain_get_interface()->concrete_sasl_mechanism_destroy(sasl_plain);
 }
 
 /* saslplain_get_mechanism_name */
@@ -486,32 +486,32 @@ TEST_FUNCTION(saslplain_get_init_bytes_with_NULL_init_bytes_fails)
 /* Tests_SRS_SASL_PLAIN_01_010: [`saslplain_get_mechanism_name` shall validate the argument `concrete_sasl_mechanism` and on success it shall return a pointer to the string "PLAIN".] */
 TEST_FUNCTION(saslplain_get_mechanism_name_with_non_NULL_concrete_sasl_mechanism_succeeds)
 {
-	// arrange
-	const char* result;
-	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", NULL };
-	CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
-	umock_c_reset_all_calls();
+    // arrange
+    const char* result;
+    SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", NULL };
+    CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
+    umock_c_reset_all_calls();
 
-	// act
-	result = saslplain_get_interface()->concrete_sasl_mechanism_get_mechanism_name(sasl_plain);
+    // act
+    result = saslplain_get_interface()->concrete_sasl_mechanism_get_mechanism_name(sasl_plain);
 
-	// assert
-	ASSERT_ARE_EQUAL(char_ptr, "PLAIN", result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, "PLAIN", result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslplain_get_interface()->concrete_sasl_mechanism_destroy(sasl_plain);
+    // cleanup
+    saslplain_get_interface()->concrete_sasl_mechanism_destroy(sasl_plain);
 }
 
 /* Tests_SRS_SASL_PLAIN_01_011: [If the argument `concrete_sasl_mechanism` is NULL, `saslplain_get_mechanism_name` shall return NULL.] */
 TEST_FUNCTION(saslplain_get_mechanism_name_with_NULL_concrete_sasl_mechanism_fails)
 {
-	// arrange
+    // arrange
 
-	// act
-	const char* result = saslplain_get_interface()->concrete_sasl_mechanism_get_mechanism_name(NULL);
+    // act
+    const char* result = saslplain_get_interface()->concrete_sasl_mechanism_get_mechanism_name(NULL);
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
     ASSERT_IS_NULL(result);
 }
@@ -522,61 +522,61 @@ TEST_FUNCTION(saslplain_get_mechanism_name_with_NULL_concrete_sasl_mechanism_fai
 /* Tests_SRS_SASL_PLAIN_01_013: [On success, `saslplain_challenge` shall return 0.] */
 TEST_FUNCTION(saslplain_challenge_returns_a_NULL_response_bytes_buffer)
 {
-	// arrange
-	int result;
-	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", NULL };
-	CONCRETE_SASL_MECHANISM_HANDLE saslplain = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
-	SASL_MECHANISM_BYTES challenge_bytes;
-	SASL_MECHANISM_BYTES response_bytes;
-	umock_c_reset_all_calls();
+    // arrange
+    int result;
+    SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", NULL };
+    CONCRETE_SASL_MECHANISM_HANDLE saslplain = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
+    SASL_MECHANISM_BYTES challenge_bytes;
+    SASL_MECHANISM_BYTES response_bytes;
+    umock_c_reset_all_calls();
 
-	// act
-	result = saslplain_get_interface()->concrete_sasl_mechanism_challenge(saslplain, &challenge_bytes, &response_bytes);
+    // act
+    result = saslplain_get_interface()->concrete_sasl_mechanism_challenge(saslplain, &challenge_bytes, &response_bytes);
 
-	// assert
-	ASSERT_ARE_EQUAL(int, 0, result);
-	ASSERT_IS_NULL(response_bytes.bytes);
-	ASSERT_ARE_EQUAL(size_t, 0, response_bytes.length);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_IS_NULL(response_bytes.bytes);
+    ASSERT_ARE_EQUAL(size_t, 0, response_bytes.length);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslplain_get_interface()->concrete_sasl_mechanism_destroy(saslplain);
+    // cleanup
+    saslplain_get_interface()->concrete_sasl_mechanism_destroy(saslplain);
 }
 
 /* Tests_SRS_SASL_PLAIN_01_013: [On success, `saslplain_challenge` shall return 0.] */
 TEST_FUNCTION(saslplain_with_NULL_challenge_bytes_returns_a_NULL_response_bytes_buffer)
 {
-	// arrange
-	int result;
-	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", NULL };
-	CONCRETE_SASL_MECHANISM_HANDLE saslplain = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
-	SASL_MECHANISM_BYTES response_bytes;
-	umock_c_reset_all_calls();
+    // arrange
+    int result;
+    SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", NULL };
+    CONCRETE_SASL_MECHANISM_HANDLE saslplain = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
+    SASL_MECHANISM_BYTES response_bytes;
+    umock_c_reset_all_calls();
 
-	// act
-	result = saslplain_get_interface()->concrete_sasl_mechanism_challenge(saslplain, NULL, &response_bytes);
+    // act
+    result = saslplain_get_interface()->concrete_sasl_mechanism_challenge(saslplain, NULL, &response_bytes);
 
-	// assert
-	ASSERT_ARE_EQUAL(int, 0, result);
-	ASSERT_IS_NULL(response_bytes.bytes);
-	ASSERT_ARE_EQUAL(size_t, 0, response_bytes.length);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_IS_NULL(response_bytes.bytes);
+    ASSERT_ARE_EQUAL(size_t, 0, response_bytes.length);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslplain_get_interface()->concrete_sasl_mechanism_destroy(saslplain);
+    // cleanup
+    saslplain_get_interface()->concrete_sasl_mechanism_destroy(saslplain);
 }
 
 /* Tests_SRS_SASL_PLAIN_01_014: [If the `concrete_sasl_mechanism` or `response_bytes` argument is NULL then `saslplain_challenge` shall fail and return a non-zero value.] */
 TEST_FUNCTION(saslplain_challenge_with_NULL_handle_fails)
 {
-	// arrange
-	SASL_MECHANISM_BYTES challenge_bytes;
-	SASL_MECHANISM_BYTES response_bytes;
+    // arrange
+    SASL_MECHANISM_BYTES challenge_bytes;
+    SASL_MECHANISM_BYTES response_bytes;
 
-	// act
-	int result = saslplain_get_interface()->concrete_sasl_mechanism_challenge(NULL, &challenge_bytes, &response_bytes);
+    // act
+    int result = saslplain_get_interface()->concrete_sasl_mechanism_challenge(NULL, &challenge_bytes, &response_bytes);
 
-	// assert
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
     ASSERT_ARE_NOT_EQUAL(int, 0, result);
 }
@@ -584,22 +584,22 @@ TEST_FUNCTION(saslplain_challenge_with_NULL_handle_fails)
 /* Tests_SRS_SASL_PLAIN_01_014: [If the `concrete_sasl_mechanism` or `response_bytes` argument is NULL then `saslplain_challenge` shall fail and return a non-zero value.] */
 TEST_FUNCTION(saslplain_challenge_with_NULL_response_bytes_fails)
 {
-	// arrange
-	int result;
-	SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", NULL };
-	CONCRETE_SASL_MECHANISM_HANDLE saslplain = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
-	SASL_MECHANISM_BYTES challenge_bytes;
-	umock_c_reset_all_calls();
+    // arrange
+    int result;
+    SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", NULL };
+    CONCRETE_SASL_MECHANISM_HANDLE saslplain = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
+    SASL_MECHANISM_BYTES challenge_bytes;
+    umock_c_reset_all_calls();
 
-	// act
-	result = saslplain_get_interface()->concrete_sasl_mechanism_challenge(saslplain, &challenge_bytes, NULL);
+    // act
+    result = saslplain_get_interface()->concrete_sasl_mechanism_challenge(saslplain, &challenge_bytes, NULL);
 
-	// assert
-	ASSERT_ARE_NOT_EQUAL(int, 0, result);
-	ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    // assert
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
-	// cleanup
-	saslplain_get_interface()->concrete_sasl_mechanism_destroy(saslplain);
+    // cleanup
+    saslplain_get_interface()->concrete_sasl_mechanism_destroy(saslplain);
 }
 
 /* saslplain_get_interface */
@@ -607,13 +607,13 @@ TEST_FUNCTION(saslplain_challenge_with_NULL_response_bytes_fails)
 /* Tests_SRS_SASL_PLAIN_01_015: [**`saslplain_get_interface` shall return a pointer to a `SASL_MECHANISM_INTERFACE_DESCRIPTION` structure that contains pointers to the functions: `saslplain_create`, `saslplain_destroy`, `saslplain_get_init_bytes`, `saslplain_get_mechanism_name`, `saslplain_challenge`.] */
 TEST_FUNCTION(saslplain_get_interface_returns_the_sasl_plain_mechanism_interface)
 {
-	// arrange
+    // arrange
 
-	// act
-	const SASL_MECHANISM_INTERFACE_DESCRIPTION* result = saslplain_get_interface();
+    // act
+    const SASL_MECHANISM_INTERFACE_DESCRIPTION* result = saslplain_get_interface();
 
-	// assert
-	ASSERT_IS_NOT_NULL(result->concrete_sasl_mechanism_create);
+    // assert
+    ASSERT_IS_NOT_NULL(result->concrete_sasl_mechanism_create);
     ASSERT_IS_NOT_NULL(result->concrete_sasl_mechanism_destroy);
     ASSERT_IS_NOT_NULL(result->concrete_sasl_mechanism_get_init_bytes);
     ASSERT_IS_NOT_NULL(result->concrete_sasl_mechanism_get_mechanism_name);

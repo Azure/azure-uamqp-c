@@ -10,7 +10,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-	MOCKABLE_FUNCTION(, char*, amqpvalue_to_string, AMQP_VALUE, amqp_value);
+    MOCKABLE_FUNCTION(, char*, amqpvalue_to_string, AMQP_VALUE, amqp_value);
 
 #ifdef __cplusplus
 }

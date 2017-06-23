@@ -22,6 +22,7 @@ set(mbed_exported_project_files
 		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/sasl_mssbcbs.h
 		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/sasl_plain.h
 		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/saslclientio.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/server_protocol_io.h
 		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/session.h
 		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/socket_listener.h
         )

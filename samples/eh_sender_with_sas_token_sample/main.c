@@ -61,45 +61,45 @@ static void on_cbs_put_token_complete(void* context, CBS_OPERATION_RESULT cbs_op
     (void)status_code;
     (void)status_description;
 
-	if (cbs_operation_result == CBS_OPERATION_RESULT_OK)
-	{
-		auth = true;
-	}
+    if (cbs_operation_result == CBS_OPERATION_RESULT_OK)
+    {
+        auth = true;
+    }
 }
 
 static void on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_result)
 {
-	(void)send_result;
-	(void)context;
+    (void)send_result;
+    (void)context;
 
-	sent_messages++;
+    sent_messages++;
 }
 
 int main(int argc, char** argv)
 {
-	int result;
+    int result;
 
     (void)argc;
     (void)argv;
 
-	if (platform_init() != 0)
-	{
-		result = -1;
-	}
-	else
-	{
-		XIO_HANDLE sasl_io;
-		CONNECTION_HANDLE connection;
-		SESSION_HANDLE session;
-		LINK_HANDLE link;
-		MESSAGE_SENDER_HANDLE message_sender;
-		MESSAGE_HANDLE message;
+    if (platform_init() != 0)
+    {
+        result = -1;
+    }
+    else
+    {
+        XIO_HANDLE sasl_io;
+        CONNECTION_HANDLE connection;
+        SESSION_HANDLE session;
+        LINK_HANDLE link;
+        MESSAGE_SENDER_HANDLE message_sender;
+        MESSAGE_HANDLE message;
 
-		size_t last_memory_used = 0;
+        size_t last_memory_used = 0;
 
-		/* create SASL PLAIN handler */
-		SASL_MECHANISM_HANDLE sasl_mechanism_handle = saslmechanism_create(saslmssbcbs_get_interface(), NULL);
-		XIO_HANDLE tls_io;
+        /* create SASL PLAIN handler */
+        SASL_MECHANISM_HANDLE sasl_mechanism_handle = saslmechanism_create(saslmssbcbs_get_interface(), NULL);
+        XIO_HANDLE tls_io;
         STRING_HANDLE sas_key_name;
         STRING_HANDLE sas_key_value;
         STRING_HANDLE resource_uri;
@@ -107,32 +107,32 @@ int main(int argc, char** argv)
         STRING_HANDLE sas_token;
         BUFFER_HANDLE buffer;
         TLSIO_CONFIG tls_io_config = { EH_HOST, 5671 };
-		const IO_INTERFACE_DESCRIPTION* tlsio_interface;
-		SASLCLIENTIO_CONFIG sasl_io_config;
-		time_t currentTime;
-		size_t expiry_time;
-		CBS_HANDLE cbs;
-		AMQP_VALUE source;
-		AMQP_VALUE target;
-		unsigned char hello[] = { 'H', 'e', 'l', 'l', 'o' };
-		BINARY_DATA binary_data;
+        const IO_INTERFACE_DESCRIPTION* tlsio_interface;
+        SASLCLIENTIO_CONFIG sasl_io_config;
+        time_t currentTime;
+        size_t expiry_time;
+        CBS_HANDLE cbs;
+        AMQP_VALUE source;
+        AMQP_VALUE target;
+        unsigned char hello[] = { 'H', 'e', 'l', 'l', 'o' };
+        BINARY_DATA binary_data;
 
         gballoc_init();
 
-		/* create the TLS IO */
-		tlsio_interface = platform_get_default_tlsio();
-		tls_io = xio_create(tlsio_interface, &tls_io_config);
+        /* create the TLS IO */
+        tlsio_interface = platform_get_default_tlsio();
+        tls_io = xio_create(tlsio_interface, &tls_io_config);
 
-		/* create the SASL client IO using the TLS IO */
+        /* create the SASL client IO using the TLS IO */
         sasl_io_config.underlying_io = tls_io;
         sasl_io_config.sasl_mechanism = sasl_mechanism_handle;
-		sasl_io = xio_create(saslclientio_get_interface_description(), &sasl_io_config);
+        sasl_io = xio_create(saslclientio_get_interface_description(), &sasl_io_config);
 
-		/* create the connection, session and link */
-		connection = connection_create(sasl_io, EH_HOST, "some", NULL, NULL);
-		session = session_create(connection, NULL, NULL);
-		session_set_incoming_window(session, 2147483647);
-		session_set_outgoing_window(session, 65536);
+        /* create the connection, session and link */
+        connection = connection_create(sasl_io, EH_HOST, "some", NULL, NULL);
+        session = session_create(connection, NULL, NULL);
+        session_set_incoming_window(session, 2147483647);
+        session_set_outgoing_window(session, 65536);
 
         /* Construct a SAS token */
         sas_key_name = STRING_construct(EH_KEY_NAME);
@@ -150,27 +150,27 @@ int main(int argc, char** argv)
 
         sas_token = SASToken_Create(sas_key_value, encoded_resource_uri, sas_key_name, expiry_time);
 
-		cbs = cbs_create(session);
-		if (cbs_open_async(cbs, on_cbs_open_complete, cbs, on_cbs_error, cbs) == 0)
-		{
-			(void)cbs_put_token_async(cbs, "servicebus.windows.net:sastoken", "sb://" EH_HOST "/" EH_NAME "/publishers/" EH_PUBLISHER, STRING_c_str(sas_token), on_cbs_put_token_complete, cbs);
+        cbs = cbs_create(session);
+        if (cbs_open_async(cbs, on_cbs_open_complete, cbs, on_cbs_error, cbs) == 0)
+        {
+            (void)cbs_put_token_async(cbs, "servicebus.windows.net:sastoken", "sb://" EH_HOST "/" EH_NAME "/publishers/" EH_PUBLISHER, STRING_c_str(sas_token), on_cbs_put_token_complete, cbs);
 
-			while (!auth)
-			{
-				size_t current_memory_used;
-				size_t maximum_memory_used;
-				connection_dowork(connection);
+            while (!auth)
+            {
+                size_t current_memory_used;
+                size_t maximum_memory_used;
+                connection_dowork(connection);
 
-				current_memory_used = gballoc_getCurrentMemoryUsed();
-				maximum_memory_used = gballoc_getMaximumMemoryUsed();
+                current_memory_used = gballoc_getCurrentMemoryUsed();
+                maximum_memory_used = gballoc_getMaximumMemoryUsed();
 
-				if (current_memory_used != last_memory_used)
-				{
+                if (current_memory_used != last_memory_used)
+                {
                     (void)printf("Current memory usage:%lu (max:%lu)\r\n", (unsigned long)current_memory_used, (unsigned long)maximum_memory_used);
-					last_memory_used = current_memory_used;
-				}
-			}
-		}
+                    last_memory_used = current_memory_used;
+                }
+            }
+        }
 
         STRING_delete(sas_token);
         STRING_delete(sas_key_name);
@@ -178,94 +178,94 @@ int main(int argc, char** argv)
         STRING_delete(resource_uri);
         STRING_delete(encoded_resource_uri);
 
-		source = messaging_create_source("ingress");
-		target = messaging_create_target("amqps://" EH_HOST "/" EH_NAME);
-		link = link_create(session, "sender-link", role_sender, source, target);
-		link_set_snd_settle_mode(link, sender_settle_mode_settled);
-		(void)link_set_max_message_size(link, 65536);
+        source = messaging_create_source("ingress");
+        target = messaging_create_target("amqps://" EH_HOST "/" EH_NAME);
+        link = link_create(session, "sender-link", role_sender, source, target);
+        link_set_snd_settle_mode(link, sender_settle_mode_settled);
+        (void)link_set_max_message_size(link, 65536);
 
-		amqpvalue_destroy(source);
-		amqpvalue_destroy(target);
+        amqpvalue_destroy(source);
+        amqpvalue_destroy(target);
 
-		message = message_create();
+        message = message_create();
 
-		binary_data.bytes = hello;
+        binary_data.bytes = hello;
         binary_data.length = sizeof(hello);
-		message_add_body_amqp_data(message, binary_data);
+        message_add_body_amqp_data(message, binary_data);
 
-		/* create a message sender */
-		message_sender = messagesender_create(link, NULL, NULL);
-		if (messagesender_open(message_sender) == 0)
-		{
-			uint32_t i;
-			bool keep_running = true;
-			tickcounter_ms_t start_time;
-			TICK_COUNTER_HANDLE tick_counter = tickcounter_create();
+        /* create a message sender */
+        message_sender = messagesender_create(link, NULL, NULL);
+        if (messagesender_open(message_sender) == 0)
+        {
+            uint32_t i;
+            bool keep_running = true;
+            tickcounter_ms_t start_time;
+            TICK_COUNTER_HANDLE tick_counter = tickcounter_create();
 
-			if (tickcounter_get_current_ms(tick_counter, &start_time) != 0)
-			{
-				(void)printf("Error getting start time\r\n");
-			}
-			else
-			{
-				for (i = 0; i < msg_count; i++)
-				{
-					(void)messagesender_send(message_sender, message, on_message_send_complete, message);
-				}
+            if (tickcounter_get_current_ms(tick_counter, &start_time) != 0)
+            {
+                (void)printf("Error getting start time\r\n");
+            }
+            else
+            {
+                for (i = 0; i < msg_count; i++)
+                {
+                    (void)messagesender_send(message_sender, message, on_message_send_complete, message);
+                }
 
-				message_destroy(message);
+                message_destroy(message);
 
-				while (keep_running)
-				{
-					size_t current_memory_used;
-					size_t maximum_memory_used;
-					connection_dowork(connection);
+                while (keep_running)
+                {
+                    size_t current_memory_used;
+                    size_t maximum_memory_used;
+                    connection_dowork(connection);
 
-					current_memory_used = gballoc_getCurrentMemoryUsed();
-					maximum_memory_used = gballoc_getMaximumMemoryUsed();
+                    current_memory_used = gballoc_getCurrentMemoryUsed();
+                    maximum_memory_used = gballoc_getMaximumMemoryUsed();
 
-					if (current_memory_used != last_memory_used)
-					{
-						(void)printf("Current memory usage:%lu (max:%lu)\r\n", (unsigned long)current_memory_used, (unsigned long)maximum_memory_used);
-						last_memory_used = current_memory_used;
-					}
+                    if (current_memory_used != last_memory_used)
+                    {
+                        (void)printf("Current memory usage:%lu (max:%lu)\r\n", (unsigned long)current_memory_used, (unsigned long)maximum_memory_used);
+                        last_memory_used = current_memory_used;
+                    }
 
-					if (sent_messages == msg_count)
-					{
-						break;
-					}
-				}
+                    if (sent_messages == msg_count)
+                    {
+                        break;
+                    }
+                }
 
-				{
-					tickcounter_ms_t end_time;
-					if (tickcounter_get_current_ms(tick_counter, &end_time) != 0)
-					{
-						(void)printf("Error getting end time\r\n");
-					}
-					else
-					{
-						(void)printf("Send %u messages in %lu ms: %.02f msgs/sec\r\n", (unsigned int)msg_count, (unsigned long)(end_time - start_time), (float)msg_count / ((float)(end_time - start_time) / 1000));
-					}
-				}
-			}
-		}
+                {
+                    tickcounter_ms_t end_time;
+                    if (tickcounter_get_current_ms(tick_counter, &end_time) != 0)
+                    {
+                        (void)printf("Error getting end time\r\n");
+                    }
+                    else
+                    {
+                        (void)printf("Send %u messages in %lu ms: %.02f msgs/sec\r\n", (unsigned int)msg_count, (unsigned long)(end_time - start_time), (float)msg_count / ((float)(end_time - start_time) / 1000));
+                    }
+                }
+            }
+        }
 
-		messagesender_destroy(message_sender);
-		link_destroy(link);
-		session_destroy(session);
-		connection_destroy(connection);
-		xio_destroy(sasl_io);
-		xio_destroy(tls_io);
-		saslmechanism_destroy(sasl_mechanism_handle);
-		platform_deinit();
+        messagesender_destroy(message_sender);
+        link_destroy(link);
+        session_destroy(session);
+        connection_destroy(connection);
+        xio_destroy(sasl_io);
+        xio_destroy(tls_io);
+        saslmechanism_destroy(sasl_mechanism_handle);
+        platform_deinit();
 
         (void)printf("Max memory usage:%lu\r\n", (unsigned long)gballoc_getCurrentMemoryUsed());
         (void)printf("Current memory usage:%lu\r\n", (unsigned long)gballoc_getMaximumMemoryUsed());
 
         gballoc_deinit();
 
-		result = 0;
-	}
+        result = 0;
+    }
 
-	return result;
+    return result;
 }

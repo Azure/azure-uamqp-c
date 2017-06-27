@@ -315,5 +315,6 @@ else()
 	install(FILES ${uamqp_h_files}
 		DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azure_uamqp_c) 
 	install(TARGETS ${install_staticlibs} 
+		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()

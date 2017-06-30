@@ -5597,7 +5597,8 @@ int amqpvalue_set_composite_item(AMQP_VALUE value, uint32_t index, AMQP_VALUE it
     else
     {
         AMQP_VALUE_DATA* value_data = (AMQP_VALUE_DATA*)value;
-        if (value_data->type != AMQP_TYPE_COMPOSITE)
+        if ((value_data->type != AMQP_TYPE_COMPOSITE) &&
+            (value_data->type != AMQP_TYPE_DESCRIBED))
         {
             LogError("Attempt to set composite item on a non-composite type");
             result = __FAILURE__;

@@ -465,6 +465,7 @@ int <#= type_name #>_get_<#= field_name #>(<#= type_name.ToUpper() #>_HANDLE <#=
 
                                     amqpvalue_destroy(single_amqp_value);
                                 }
+                                amqpvalue_destroy(*<#= field_name #>_value);
                             }
                         }
                         else

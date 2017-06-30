@@ -1611,6 +1611,7 @@ int open_get_outgoing_locales(OPEN_HANDLE open, AMQP_VALUE* outgoing_locales_val
 
                                     amqpvalue_destroy(single_amqp_value);
                                 }
+                                amqpvalue_destroy(*outgoing_locales_value);
                             }
                         }
                         else
@@ -1757,6 +1758,7 @@ int open_get_incoming_locales(OPEN_HANDLE open, AMQP_VALUE* incoming_locales_val
 
                                     amqpvalue_destroy(single_amqp_value);
                                 }
+                                amqpvalue_destroy(*incoming_locales_value);
                             }
                         }
                         else
@@ -1903,6 +1905,7 @@ int open_get_offered_capabilities(OPEN_HANDLE open, AMQP_VALUE* offered_capabili
 
                                     amqpvalue_destroy(single_amqp_value);
                                 }
+                                amqpvalue_destroy(*offered_capabilities_value);
                             }
                         }
                         else
@@ -2049,6 +2052,7 @@ int open_get_desired_capabilities(OPEN_HANDLE open, AMQP_VALUE* desired_capabili
 
                                     amqpvalue_destroy(single_amqp_value);
                                 }
+                                amqpvalue_destroy(*desired_capabilities_value);
                             }
                         }
                         else
@@ -3137,6 +3141,7 @@ int begin_get_offered_capabilities(BEGIN_HANDLE begin, AMQP_VALUE* offered_capab
 
                                     amqpvalue_destroy(single_amqp_value);
                                 }
+                                amqpvalue_destroy(*offered_capabilities_value);
                             }
                         }
                         else
@@ -3283,6 +3288,7 @@ int begin_get_desired_capabilities(BEGIN_HANDLE begin, AMQP_VALUE* desired_capab
 
                                     amqpvalue_destroy(single_amqp_value);
                                 }
+                                amqpvalue_destroy(*desired_capabilities_value);
                             }
                         }
                         else
@@ -5041,6 +5047,7 @@ int attach_get_offered_capabilities(ATTACH_HANDLE attach, AMQP_VALUE* offered_ca
 
                                     amqpvalue_destroy(single_amqp_value);
                                 }
+                                amqpvalue_destroy(*offered_capabilities_value);
                             }
                         }
                         else
@@ -5187,6 +5194,7 @@ int attach_get_desired_capabilities(ATTACH_HANDLE attach, AMQP_VALUE* desired_ca
 
                                     amqpvalue_destroy(single_amqp_value);
                                 }
+                                amqpvalue_destroy(*desired_capabilities_value);
                             }
                         }
                         else
@@ -10362,6 +10370,8 @@ int sasl_mechanisms_get_sasl_server_mechanisms(SASL_MECHANISMS_HANDLE sasl_mecha
 
                                     amqpvalue_destroy(single_amqp_value);
                                 }
+
+                                amqpvalue_destroy(*sasl_server_mechanisms_value);
                             }
                         }
                         else
@@ -13186,6 +13196,7 @@ int source_get_outcomes(SOURCE_HANDLE source, AMQP_VALUE* outcomes_value)
 
                                     amqpvalue_destroy(single_amqp_value);
                                 }
+                                amqpvalue_destroy(*outcomes_value);
                             }
                         }
                         else
@@ -13332,6 +13343,7 @@ int source_get_capabilities(SOURCE_HANDLE source, AMQP_VALUE* capabilities_value
 
                                     amqpvalue_destroy(single_amqp_value);
                                 }
+                                amqpvalue_destroy(*capabilities_value);
                             }
                         }
                         else
@@ -14344,6 +14356,7 @@ int target_get_capabilities(TARGET_HANDLE target, AMQP_VALUE* capabilities_value
 
                                     amqpvalue_destroy(single_amqp_value);
                                 }
+                                amqpvalue_destroy(*capabilities_value);
                             }
                         }
                         else

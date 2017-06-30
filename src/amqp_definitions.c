@@ -1598,8 +1598,18 @@ int open_get_outgoing_locales(OPEN_HANDLE open, AMQP_VALUE* outgoing_locales_val
                                     }
                                     else
                                     {
-                                        result = 0;
+                                        if (amqpvalue_set_composite_item(open_instance->composite_value, 5, *outgoing_locales_value) != 0)
+                                        {
+                                            amqpvalue_destroy(*outgoing_locales_value);
+                                            result = __FAILURE__;
+                                        }
+                                        else
+                                        {
+                                            result = 0;
+                                        }
                                     }
+
+                                    amqpvalue_destroy(single_amqp_value);
                                 }
                             }
                         }
@@ -1734,8 +1744,18 @@ int open_get_incoming_locales(OPEN_HANDLE open, AMQP_VALUE* incoming_locales_val
                                     }
                                     else
                                     {
-                                        result = 0;
+                                        if (amqpvalue_set_composite_item(open_instance->composite_value, 6, *incoming_locales_value) != 0)
+                                        {
+                                            amqpvalue_destroy(*incoming_locales_value);
+                                            result = __FAILURE__;
+                                        }
+                                        else
+                                        {
+                                            result = 0;
+                                        }
                                     }
+
+                                    amqpvalue_destroy(single_amqp_value);
                                 }
                             }
                         }
@@ -1870,8 +1890,18 @@ int open_get_offered_capabilities(OPEN_HANDLE open, AMQP_VALUE* offered_capabili
                                     }
                                     else
                                     {
-                                        result = 0;
+                                        if (amqpvalue_set_composite_item(open_instance->composite_value, 7, *offered_capabilities_value) != 0)
+                                        {
+                                            amqpvalue_destroy(*offered_capabilities_value);
+                                            result = __FAILURE__;
+                                        }
+                                        else
+                                        {
+                                            result = 0;
+                                        }
                                     }
+
+                                    amqpvalue_destroy(single_amqp_value);
                                 }
                             }
                         }
@@ -2006,8 +2036,18 @@ int open_get_desired_capabilities(OPEN_HANDLE open, AMQP_VALUE* desired_capabili
                                     }
                                     else
                                     {
-                                        result = 0;
+                                        if (amqpvalue_set_composite_item(open_instance->composite_value, 8, *desired_capabilities_value) != 0)
+                                        {
+                                            amqpvalue_destroy(*desired_capabilities_value);
+                                            result = __FAILURE__;
+                                        }
+                                        else
+                                        {
+                                            result = 0;
+                                        }
                                     }
+
+                                    amqpvalue_destroy(single_amqp_value);
                                 }
                             }
                         }
@@ -3084,8 +3124,18 @@ int begin_get_offered_capabilities(BEGIN_HANDLE begin, AMQP_VALUE* offered_capab
                                     }
                                     else
                                     {
-                                        result = 0;
+                                        if (amqpvalue_set_composite_item(begin_instance->composite_value, 5, *offered_capabilities_value) != 0)
+                                        {
+                                            amqpvalue_destroy(*offered_capabilities_value);
+                                            result = __FAILURE__;
+                                        }
+                                        else
+                                        {
+                                            result = 0;
+                                        }
                                     }
+
+                                    amqpvalue_destroy(single_amqp_value);
                                 }
                             }
                         }
@@ -3220,8 +3270,18 @@ int begin_get_desired_capabilities(BEGIN_HANDLE begin, AMQP_VALUE* desired_capab
                                     }
                                     else
                                     {
-                                        result = 0;
+                                        if (amqpvalue_set_composite_item(begin_instance->composite_value, 6, *desired_capabilities_value) != 0)
+                                        {
+                                            amqpvalue_destroy(*desired_capabilities_value);
+                                            result = __FAILURE__;
+                                        }
+                                        else
+                                        {
+                                            result = 0;
+                                        }
                                     }
+
+                                    amqpvalue_destroy(single_amqp_value);
                                 }
                             }
                         }
@@ -4968,8 +5028,18 @@ int attach_get_offered_capabilities(ATTACH_HANDLE attach, AMQP_VALUE* offered_ca
                                     }
                                     else
                                     {
-                                        result = 0;
+                                        if (amqpvalue_set_composite_item(attach_instance->composite_value, 11, *offered_capabilities_value) != 0)
+                                        {
+                                            amqpvalue_destroy(*offered_capabilities_value);
+                                            result = __FAILURE__;
+                                        }
+                                        else
+                                        {
+                                            result = 0;
+                                        }
                                     }
+
+                                    amqpvalue_destroy(single_amqp_value);
                                 }
                             }
                         }
@@ -5104,8 +5174,18 @@ int attach_get_desired_capabilities(ATTACH_HANDLE attach, AMQP_VALUE* desired_ca
                                     }
                                     else
                                     {
-                                        result = 0;
+                                        if (amqpvalue_set_composite_item(attach_instance->composite_value, 12, *desired_capabilities_value) != 0)
+                                        {
+                                            amqpvalue_destroy(*desired_capabilities_value);
+                                            result = __FAILURE__;
+                                        }
+                                        else
+                                        {
+                                            result = 0;
+                                        }
                                     }
+
+                                    amqpvalue_destroy(single_amqp_value);
                                 }
                             }
                         }
@@ -10269,8 +10349,18 @@ int sasl_mechanisms_get_sasl_server_mechanisms(SASL_MECHANISMS_HANDLE sasl_mecha
                                     }
                                     else
                                     {
-                                        result = 0;
+                                        if (amqpvalue_set_composite_item(sasl_mechanisms_instance->composite_value, 0, *sasl_server_mechanisms_value) != 0)
+                                        {
+                                            amqpvalue_destroy(*sasl_server_mechanisms_value);
+                                            result = __FAILURE__;
+                                        }
+                                        else
+                                        {
+                                            result = 0;
+                                        }
                                     }
+
+                                    amqpvalue_destroy(single_amqp_value);
                                 }
                             }
                         }
@@ -13083,8 +13173,18 @@ int source_get_outcomes(SOURCE_HANDLE source, AMQP_VALUE* outcomes_value)
                                     }
                                     else
                                     {
-                                        result = 0;
+                                        if (amqpvalue_set_composite_item(source_instance->composite_value, 9, *outcomes_value) != 0)
+                                        {
+                                            amqpvalue_destroy(*outcomes_value);
+                                            result = __FAILURE__;
+                                        }
+                                        else
+                                        {
+                                            result = 0;
+                                        }
                                     }
+
+                                    amqpvalue_destroy(single_amqp_value);
                                 }
                             }
                         }
@@ -13219,8 +13319,18 @@ int source_get_capabilities(SOURCE_HANDLE source, AMQP_VALUE* capabilities_value
                                     }
                                     else
                                     {
-                                        result = 0;
+                                        if (amqpvalue_set_composite_item(source_instance->composite_value, 10, *capabilities_value) != 0)
+                                        {
+                                            amqpvalue_destroy(*capabilities_value);
+                                            result = __FAILURE__;
+                                        }
+                                        else
+                                        {
+                                            result = 0;
+                                        }
                                     }
+
+                                    amqpvalue_destroy(single_amqp_value);
                                 }
                             }
                         }
@@ -14221,8 +14331,18 @@ int target_get_capabilities(TARGET_HANDLE target, AMQP_VALUE* capabilities_value
                                     }
                                     else
                                     {
-                                        result = 0;
+                                        if (amqpvalue_set_composite_item(target_instance->composite_value, 6, *capabilities_value) != 0)
+                                        {
+                                            amqpvalue_destroy(*capabilities_value);
+                                            result = __FAILURE__;
+                                        }
+                                        else
+                                        {
+                                            result = 0;
+                                        }
                                     }
+
+                                    amqpvalue_destroy(single_amqp_value);
                                 }
                             }
                         }

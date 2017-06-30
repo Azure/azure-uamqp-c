@@ -196,6 +196,7 @@ set(uamqp_h_files
     ./inc/azure_uamqp_c/sasl_anonymous.h
     ./inc/azure_uamqp_c/sasl_frame_codec.h
     ./inc/azure_uamqp_c/sasl_mechanism.h
+    ./inc/azure_uamqp_c/sasl_server_mechanism.h
     ./inc/azure_uamqp_c/sasl_mssbcbs.h
     ./inc/azure_uamqp_c/sasl_plain.h
     ./inc/azure_uamqp_c/saslclientio.h

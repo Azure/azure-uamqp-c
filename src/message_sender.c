@@ -178,6 +178,7 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
     if ((message_get_body_type(message, &message_body_type) != 0) ||
         (message_get_message_format(message, &message_format) != 0))
     {
+        LogError("Failure getting message body type and/or message format");
         result = SEND_ONE_MESSAGE_ERROR;
     }
     else

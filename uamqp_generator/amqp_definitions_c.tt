@@ -452,8 +452,18 @@ int <#= type_name #>_get_<#= field_name #>(<#= type_name.ToUpper() #>_HANDLE <#=
                                     }
                                     else
                                     {
-                                        result = 0;
+                                        if (amqpvalue_set_composite_item(<#= type_name #>_instance->composite_value, <#= j #>, *<#= field_name #>_value) != 0)
+                                        {
+                                            amqpvalue_destroy(*<#= field_name #>_value);
+                                            result = __FAILURE__;
+                                        }
+                                        else
+                                        {
+                                            result = 0;
+                                        }
                                     }
+
+                                    amqpvalue_destroy(single_amqp_value);
                                 }
                             }
                         }

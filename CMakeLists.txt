@@ -65,6 +65,8 @@ if(NOT ${use_installed_dependencies})
     add_subdirectory(deps/azure-c-shared-utility)
 endif()
 
+set_platform_files(${CMAKE_CURRENT_LIST_DIR}/deps/azure-c-shared-utility)
+
 set(run_e2e_tests ${original_run_e2e_tests})
 set(run_int_tests ${original_run_int_tests})
 set(run_unittests ${original_run_unittests})

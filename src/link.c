@@ -277,6 +277,7 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                 (attach_get_initial_delivery_count(attach_handle, &link_instance->delivery_count) != 0))
             {
                 /* error */
+                remove_all_pending_deliveries(link_instance, true);
                 set_link_state(link_instance, LINK_STATE_DETACHED);
             }
             else
@@ -327,6 +328,7 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                     (flow_get_delivery_count(flow_handle, &rcv_delivery_count) != 0))
                 {
                     /* error */
+                    remove_all_pending_deliveries(link_instance, true);
                     set_link_state(link_instance, LINK_STATE_DETACHED);
                 }
                 else
@@ -546,12 +548,14 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
             {
                 error_destroy(error);
 
+                remove_all_pending_deliveries(link_instance, true);
                 set_link_state(link_instance, LINK_STATE_ERROR);
             }
             else 
             {
                 (void)detach_get_closed(detach, &closed);
 
+                remove_all_pending_deliveries(link_instance, true);
                 set_link_state(link_instance, LINK_STATE_DETACHED);
             }
 
@@ -577,13 +581,13 @@ static void on_session_state_changed(void* context, SESSION_STATE new_session_st
     }
     else if (new_session_state == SESSION_STATE_DISCARDING)
     {
-                set_link_state(link_instance, LINK_STATE_DETACHED);
                 remove_all_pending_deliveries(link_instance, true);
+                set_link_state(link_instance, LINK_STATE_DETACHED);
     }
     else if (new_session_state == SESSION_STATE_ERROR)
     {
-                set_link_state(link_instance, LINK_STATE_ERROR);
                 remove_all_pending_deliveries(link_instance, true);
+                set_link_state(link_instance, LINK_STATE_ERROR);
     }
 }
 

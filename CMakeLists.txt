@@ -65,6 +65,8 @@ if(NOT ${use_installed_dependencies})
     add_subdirectory(deps/azure-c-shared-utility)
 endif()
 
+set_platform_files(${CMAKE_CURRENT_LIST_DIR}/deps/azure-c-shared-utility)
+
 set(run_e2e_tests ${original_run_e2e_tests})
 set(run_int_tests ${original_run_int_tests})
 set(run_unittests ${original_run_unittests})
@@ -196,9 +198,11 @@ set(uamqp_h_files
     ./inc/azure_uamqp_c/sasl_anonymous.h
     ./inc/azure_uamqp_c/sasl_frame_codec.h
     ./inc/azure_uamqp_c/sasl_mechanism.h
+    ./inc/azure_uamqp_c/sasl_server_mechanism.h
     ./inc/azure_uamqp_c/sasl_mssbcbs.h
     ./inc/azure_uamqp_c/sasl_plain.h
     ./inc/azure_uamqp_c/saslclientio.h
+    ./inc/azure_uamqp_c/sasl_server_io.h
     ./inc/azure_uamqp_c/server_protocol_io.h
     ./inc/azure_uamqp_c/session.h
     ./inc/azure_uamqp_c/socket_listener.h

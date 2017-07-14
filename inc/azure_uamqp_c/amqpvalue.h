@@ -10,7 +10,6 @@
 extern "C" {
 #include <cstddef>
 #include <cstdint>
-#include <cstdbool>
 #else
 #include <stddef.h>
 #include <stdint.h>

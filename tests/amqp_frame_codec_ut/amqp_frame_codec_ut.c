@@ -4,7 +4,6 @@
 #ifdef __cplusplus
 #include <cstdlib>
 #include <cstdint>
-#include <cstdbool>
 #include <cstddef>
 #include <cstring>
 #else

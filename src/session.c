@@ -1124,7 +1124,7 @@ int session_start_link_endpoint(LINK_ENDPOINT_HANDLE link_endpoint, ON_ENDPOINT_
     return result;
 }
 
-static int encode_frame(LINK_ENDPOINT_HANDLE link_endpoint, const AMQP_VALUE performative, PAYLOAD* payloads, size_t payload_count)
+static int encode_frame(LINK_ENDPOINT_HANDLE link_endpoint, AMQP_VALUE performative, PAYLOAD* payloads, size_t payload_count)
 {
     int result;
 

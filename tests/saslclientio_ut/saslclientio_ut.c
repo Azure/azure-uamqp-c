@@ -278,7 +278,7 @@ static SASL_FRAME_CODEC_HANDLE my_sasl_frame_codec_create(FRAME_CODEC_HANDLE fra
     return test_sasl_frame_codec;
 }
 
-static int my_sasl_frame_codec_encode_frame(SASL_FRAME_CODEC_HANDLE sasl_frame_codec, const AMQP_VALUE sasl_frame_value, ON_BYTES_ENCODED on_bytes_encoded, void* callback_context)
+static int my_sasl_frame_codec_encode_frame(SASL_FRAME_CODEC_HANDLE sasl_frame_codec, AMQP_VALUE sasl_frame_value, ON_BYTES_ENCODED on_bytes_encoded, void* callback_context)
 {
     (void)sasl_frame_codec;
     (void)sasl_frame_value;

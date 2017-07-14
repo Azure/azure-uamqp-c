@@ -91,7 +91,7 @@ extern "C" {
     MOCKABLE_FUNCTION(, int, connection_start_endpoint, ENDPOINT_HANDLE, endpoint, ON_ENDPOINT_FRAME_RECEIVED, on_frame_received, ON_CONNECTION_STATE_CHANGED, on_connection_state_changed, void*, context);
     MOCKABLE_FUNCTION(, int, connection_endpoint_get_incoming_channel, ENDPOINT_HANDLE, endpoint, uint16_t*, incoming_channel);
     MOCKABLE_FUNCTION(, void, connection_destroy_endpoint, ENDPOINT_HANDLE, endpoint);
-    MOCKABLE_FUNCTION(, int, connection_encode_frame, ENDPOINT_HANDLE, endpoint, const AMQP_VALUE, performative, PAYLOAD*, payloads, size_t, payload_count, ON_SEND_COMPLETE, on_send_complete, void*, callback_context);
+    MOCKABLE_FUNCTION(, int, connection_encode_frame, ENDPOINT_HANDLE, endpoint, AMQP_VALUE, performative, PAYLOAD*, payloads, size_t, payload_count, ON_SEND_COMPLETE, on_send_complete, void*, callback_context);
     MOCKABLE_FUNCTION(, void, connection_set_trace, CONNECTION_HANDLE, connection, bool, trace_on);
 
 #ifdef __cplusplus

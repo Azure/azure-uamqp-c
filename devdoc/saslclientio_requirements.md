@@ -1,10 +1,10 @@
-#saslclientio requirements
+# saslclientio requirements
  
-##Overview
+## Overview
 
-saslclientio is module that implements a concrete IO, that implements the section 5.3 of the AMQP ISO.
+`saslclientio` is module that implements a SASL client concrete IO, per the section 5.3 of the AMQP ISO.
 
-##Exposed API
+## Exposed API
 
 ```C
 typedef struct SASLCLIENTIO_CONFIG_TAG
@@ -13,167 +13,276 @@ typedef struct SASLCLIENTIO_CONFIG_TAG
 	SASL_MECHANISM_HANDLE sasl_mechanism;
 } SASLCLIENTIO_CONFIG;
 
-extern CONCRETE_IO_HANDLE saslclientio_create(void* io_create_parameters);
-extern void saslclientio_destroy(CONCRETE_IO_HANDLE sasl_client_io);
-extern int saslclientio_open(CONCRETE_IO_HANDLE sasl_client_io, ON_BYTES_RECEIVED on_bytes_received, ON_IO_STATE_CHANGED on_io_state_changed, void* callback_context);
-extern int saslclientio_close(CONCRETE_IO_HANDLE sasl_client_io);
-extern int saslclientio_send(CONCRETE_IO_HANDLE sasl_client_io, const void* buffer, size_t size, ON_SEND_COMPLETE on_send_complete, void* callback_context);
-extern void saslclientio_dowork(CONCRETE_IO_HANDLE sasl_client_io);
-extern int saslclientio_setoption(CONCRETE_IO_HANDLE socket_io, const char* optionName, const void* value);
-
-extern const IO_INTERFACE_DESCRIPTION* saslclientio_get_interface_description(void);
+MOCKABLE_FUNCTION(, const IO_INTERFACE_DESCRIPTION*, saslclientio_get_interface_description);
 ```
 
-###saslclientio_create
+### saslclientio_create
 
 ```C
-extern CONCRETE_IO_HANDLE saslclientio_create(void* io_create_parameters);
+CONCRETE_IO_HANDLE saslclientio_create(void* io_create_parameters);
 ```
 
-**SRS_SASLCLIENTIO_01_004: [**saslclientio_create shall return on success a non-NULL handle to a new SASL client IO instance.**]** 
-**SRS_SASLCLIENTIO_01_005: [**If xio_create_parameters is NULL, saslclientio_create shall fail and return NULL.**]** 
-**SRS_SASLCLIENTIO_01_006: [**If memory cannot be allocated for the new instance, saslclientio_create shall fail and return NULL.**]** 
-**SRS_SASLCLIENTIO_01_089: [**saslclientio_create shall create a frame_codec to be used for encoding/decoding frames bycalling frame_codec_create and passing the underlying_io as argument.**]** 
-**SRS_SASLCLIENTIO_01_090: [**If frame_codec_create fails, then saslclientio_create shall fail and return NULL.**]** 
-**SRS_SASLCLIENTIO_01_084: [**saslclientio_create shall create a sasl_frame_codec to be used for SASL frame encoding/decoding by calling sasl_frame_codec_create and passing the just created frame_codec as argument.**]** 
-**SRS_SASLCLIENTIO_01_085: [**If sasl_frame_codec_create fails, then saslclientio_create shall fail and return NULL.**]** 
-**SRS_SASLCLIENTIO_01_092: [**If any of the sasl_mechanism or underlying_io members of the configuration structure are NULL, saslclientio_create shall fail and return NULL.**]** 
+`saslclientio_create` is the implementation provided via `header_detect_io_get_interface_description` for the `concrete_io_create` member.
 
-###saslclientio_destroy
+**SRS_SASLCLIENTIO_01_004: [**`saslclientio_create` shall return on success a non-NULL handle to a new SASL client IO instance.**]**
+
+**SRS_SASLCLIENTIO_01_005: [**If `io_create_parameters` is NULL, `saslclientio_create` shall fail and return NULL.**]**
+
+**SRS_SASLCLIENTIO_01_006: [**If memory cannot be allocated for the new instance, `saslclientio_create` shall fail and return NULL.**]**
+
+**SRS_SASLCLIENTIO_01_089: [**`saslclientio_create` shall create a frame codec to be used for encoding/decoding frames by calling `frame_codec_create` and passing `on_frame_codec_error` and a context as arguments.**]**
+
+**SRS_SASLCLIENTIO_01_090: [**If `frame_codec_create` fails, then `saslclientio_create` shall fail and return NULL.**]**
+
+**SRS_SASLCLIENTIO_01_084: [**`saslclientio_create` shall create a SASL frame codec to be used for SASL frame encoding/decoding by calling `sasl_frame_codec_create` and passing the just created frame codec as argument.**]**
+
+**SRS_SASLCLIENTIO_01_085: [**If `sasl_frame_codec_create` fails, then `saslclientio_create` shall fail and return NULL.**]**
+
+**SRS_SASLCLIENTIO_01_092: [**If any of the `sasl_mechanism` or `underlying_io` members of the configuration structure are NULL, `saslclientio_create` shall fail and return NULL.**]**
+
+### saslclientio_destroy
 
 ```C
-extern void saslclientio_destroy(CONCRETE_IO_HANDLE sasl_client_io);
+void saslclientio_destroy(CONCRETE_IO_HANDLE sasl_client_io);
 ```
 
-**SRS_SASLCLIENTIO_01_007: [**saslclientio_destroy shall free all resources associated with the SASL client IO handle.**]** 
-**SRS_SASLCLIENTIO_01_086: [**saslclientio_destroy shall destroy the sasl_frame_codec created in saslclientio_create by calling sasl_frame_codec_destroy.**]** 
-**SRS_SASLCLIENTIO_01_091: [**saslclientio_destroy shall destroy the frame_codec created in saslclientio_create by calling frame_codec_destroy.**]** 
-**SRS_SASLCLIENTIO_01_008: [**If the argument sasl_client_io is NULL, saslclientio_destroy shall do nothing.**]** 
+`saslclientio_destroy` is the implementation provided via `header_detect_io_get_interface_description` for the `concrete_io_destroy` member.
 
-###saslclientio_open
+**SRS_SASLCLIENTIO_01_007: [**`saslclientio_destroy` shall free all resources associated with the SASL client IO handle.**]** 
+
+**SRS_SASLCLIENTIO_01_086: [**`saslclientio_destroy` shall destroy the SASL frame codec created in `saslclientio_create` by calling `sasl_frame_codec_destroy`.**]** 
+
+**SRS_SASLCLIENTIO_01_091: [**`saslclientio_destroy` shall destroy the frame codec created in `saslclientio_create` by calling `frame_codec_destroy`.**]** 
+
+**SRS_SASLCLIENTIO_01_008: [**If the argument `sasl_client_io` is NULL, `saslclientio_destroy` shall do nothing.**]** 
+
+### saslclientio_open_async
 
 ```C
-extern int saslclientio_open(CONCRETE_IO_HANDLE sasl_client_io, ON_BYTES_RECEIVED on_bytes_received, ON_IO_STATE_CHANGED on_io_state_changed, void* callback_context);
+int saslclientio_open_async(CONCRETE_IO_HANDLE sasl_client_io, ON_IO_OPEN_COMPLETE on_io_open_complete, void* on_io_open_complete_context, ON_BYTES_RECEIVED on_bytes_received, void* on_bytes_received_context, ON_IO_ERROR on_io_error, void* on_io_error_context);
 ```
 
-**SRS_SASLCLIENTIO_01_009: [**saslclientio_open shall call xio_open on the underlying_io passed to saslclientio_create.**]** 
-**SRS_SASLCLIENTIO_01_010: [**On success, saslclientio_open shall return 0.**]** 
-**SRS_SASLCLIENTIO_01_011: [**If any of the sasl_client_io or on_bytes_received arguments is NULL, saslclientio_open shall fail and return a non-zero value.**]** 
-**SRS_SASLCLIENTIO_01_012: [**If the open of the underlying_io fails, saslclientio_open shall fail and return non-zero value.**]** 
-**SRS_SASLCLIENTIO_01_013: [**saslclientio_open shall pass to xio_open a callback for receiving bytes and a state changed callback for the underlying_io state changes.**]** 
+`saslclientio_open_async` is the implementation provided via `header_detect_io_get_interface_description` for the `concrete_io_open` member.
 
-###saslclientio_close
+**SRS_SASLCLIENTIO_01_009: [**`saslclientio_open` shall call `xio_open` on the `underlying_io` passed to `saslclientio_create`.**]** 
+
+**SRS_SASLCLIENTIO_01_010: [**On success, `saslclientio_open_async` shall return 0.**]** 
+
+**SRS_SASLCLIENTIO_01_011: [**If any of the `sasl_client_io`, `on_io_open_complete`, `on_bytes_received` or `on_io_error` arguments is NULL, `saslclientio_open` shall fail and return a non-zero value.**]** 
+
+**SRS_SASLCLIENTIO_01_012: [**If the open of the `underlying_io` fails, `saslclientio_open_async` shall fail and return non-zero value.**]** 
+
+**SRS_SASLCLIENTIO_01_013: [**`saslclientio_open_async` shall pass to `xio_open` the `on_underlying_io_open_complete` as `on_io_open_complete` argument, `on_underlying_io_bytes_received` as `on_bytes_received` argument and `on_underlying_io_error` as `on_io_error` argument.**]** 
+
+### saslclientio_close_async
 
 ```C
-extern int saslclientio_close(CONCRETE_IO_HANDLE sasl_client_io);
+int saslclientio_close_async(CONCRETE_IO_HANDLE sasl_client_io, ON_IO_CLOSE_COMPLETE on_io_close_complete, void* on_io_close_complete_context);
 ```
 
-**SRS_SASLCLIENTIO_01_015: [**saslclientio_close shall close the underlying io handle passed in saslclientio_create by calling xio_close.**]** 
-**SRS_SASLCLIENTIO_01_016: [**On success, saslclientio_close shall return 0.**]** 
-**SRS_SASLCLIENTIO_01_098: [**saslclientio_close shall only perform the close if the state is OPEN, OPENING or ERROR.**]** 
-**SRS_SASLCLIENTIO_01_097: [**If saslclientio_close is called when the IO is in the IO_STATE_NOT_OPEN state, no call to the underlying IO shall be made and saslclientio_close shall return 0.**]** 
-**SRS_SASLCLIENTIO_01_017: [**If sasl_client_io is NULL, saslclientio_close shall fail and return a non-zero value.**]** 
-**SRS_SASLCLIENTIO_01_018: [**If xio_close fails, then saslclientio_close shall return a non-zero value.**]** 
+`saslclientio_close_async` is the implementation provided via `header_detect_io_get_interface_description` for the `concrete_io_close` member.
 
-###saslclientio_send
+**SRS_SASLCLIENTIO_01_015: [**`saslclientio_close_async` shall close the underlying io handle passed in `saslclientio_create` by calling `xio_close`.**]** 
+
+**SRS_SASLCLIENTIO_01_016: [**On success, `saslclientio_close_async` shall return 0.**]** 
+
+**SRS_SASLCLIENTIO_01_098: [**`saslclientio_close_async` shall only perform the close if the state is OPEN, OPENING or ERROR.**]** 
+
+**SRS_SASLCLIENTIO_01_097: [**If `saslclientio_close_async` is called when the IO is in the `IO_STATE_NOT_OPEN` state, `saslclientio_close_async` shall fail and return a non zero value.**]** 
+
+**SRS_SASLCLIENTIO_01_017: [**If `sasl_client_io` is NULL, `saslclientio_close_async` shall fail and return a non-zero value.**]** 
+
+**SRS_SASLCLIENTIO_01_018: [**If `xio_close` fails, then `saslclientio_close_async` shall return a non-zero value.**]** 
+
+### saslclientio_send_async
 
 ```C
-extern int saslclientio_send(CONCRETE_IO_HANDLE sasl_client_io, const void* buffer, size_t size, ON_SEND_COMPLETE on_send_complete, void* callback_context);
+int saslclientio_send_async(CONCRETE_IO_HANDLE sasl_client_io, const void* buffer, size_t size, ON_SEND_COMPLETE on_send_complete, void* callback_context);
 ```
 
-**SRS_SASLCLIENTIO_01_019: [**If saslclientio_send is called while the SASL client IO state is not IO_STATE_OPEN, saslclientio_send shall fail and return a non-zero value.**]** 
-**SRS_SASLCLIENTIO_01_020: [**If the SASL client IO state is IO_STATE_OPEN, saslclientio_send shall call xio_send on the underlying_io passed to saslclientio_create, while passing as arguments the buffer, size, on_send_complete and callback_context.**]** 
-**SRS_SASLCLIENTIO_01_021: [**On success, saslclientio_send shall return 0.**]** 
-**SRS_SASLCLIENTIO_01_022: [**If the saslio or buffer argument is NULL, saslclientio_send shall fail and return a non-zero value.**]** 
-**SRS_SASLCLIENTIO_01_023: [**If size is 0, saslclientio_send shall fail and return a non-zero value.**]** 
-**SRS_SASLCLIENTIO_01_024: [**If the call to xio_send fails, then saslclientio_send shall fail and return a non-zero value.**]** 
+`saslclientio_send_async` is the implementation provided via `header_detect_io_get_interface_description` for the `concrete_io_send` member.
 
-###saslclientio_dowork
+**SRS_SASLCLIENTIO_01_019: [**If `saslclientio_send_async` is called while the SASL client IO state is not `IO_STATE_OPEN`, `saslclientio_send_async` shall fail and return a non-zero value.**]** 
+
+**SRS_SASLCLIENTIO_01_020: [**If the SASL client IO state is `IO_STATE_OPEN`, `saslclientio_send_async` shall call `xio_send` on the `underlying_io` passed to `saslclientio_create`, while passing as arguments the `buffer`,`size`, `on_send_complete` and `callback_context`.**]** 
+
+**SRS_SASLCLIENTIO_01_021: [**On success, `saslclientio_send_async` shall return 0.**]** 
+
+**SRS_SASLCLIENTIO_01_022: [**If the `sasl_client_io` or `buffer` argument is NULL, `saslclientio_send_async` shall fail and return a non-zero value.**]** 
+
+**SRS_SASLCLIENTIO_01_023: [**If `size` is 0, `saslclientio_send_async` shall fail and return a non-zero value.**]**
+
+**SRS_SASLCLIENTIO_01_127: [** `on_send_complete` shall be allowed to be NULL. **]** 
+
+**SRS_SASLCLIENTIO_01_024: [**If the call to `xio_send` fails, then `saslclientio_send_async` shall fail and return a non-zero value.**]** 
+
+### saslclientio_dowork
 
 ```C
-extern void saslclientio_dowork(CONCRETE_IO_HANDLE sasl_client_io);
+void saslclientio_dowork(CONCRETE_IO_HANDLE sasl_client_io);
 ```
 
-**SRS_SASLCLIENTIO_01_025: [**saslclientio_dowork shall call the xio_dowork on the underlying_io passed in saslclientio_create.**]** 
-**SRS_SASLCLIENTIO_01_099: [**If the state of the IO is NOT_OPEN or ERROR, saslclientio_dowork shall make no calls to the underlying IO.**]** 
-**SRS_SASLCLIENTIO_01_026: [**If the sasl_client_io argument is NULL, saslclientio_dowork shall do nothing.**]** 
+`saslclientio_dowork` is the implementation provided via `header_detect_io_get_interface_description` for the `concrete_io_dowork` member.
 
-###saslclientio_setoption
+**SRS_SASLCLIENTIO_01_025: [**`saslclientio_dowork` shall call the `xio_dowork` on the `underlying_io` passed in `saslclientio_create`.**]** 
+
+**SRS_SASLCLIENTIO_01_099: [**If the state of the IO is `IO_NOT_OPEN`, `saslclientio_dowork` shall make no calls to the underlying IO.**]** 
+
+**SRS_SASLCLIENTIO_01_026: [**If the `sasl_client_io` argument is NULL, `saslclientio_dowork` shall do nothing.**]** 
+
+### saslclientio_get_interface_description
 
 ```C
-extern int saslclientio_setoption(CONCRETE_IO_HANDLE socket_io, const char* optionName, const void* value);
+const IO_INTERFACE_DESCRIPTION* saslclientio_get_interface_description(void);
 ```
 
-**SRS_SASLCLIENTIO_03_001: [**saslclientio_setoption shall forward options to underlying io.**]** 
+**SRS_SASLCLIENTIO_01_087: [**`saslclientio_get_interface_description` shall return a pointer to an `IO_INTERFACE_DESCRIPTION` structure that contains pointers to the functions: `saslclientio_create`, `saslclientio_destroy`, `saslclientio_open_async`, `saslclientio_close_async`, `saslclientio_send_async`, `saslclientio_setoption`, `saslclientio_retrieveoptions` and `saslclientio_dowork`.**]** 
 
-###saslclientio_get_interface_description
+### saslclientio_setoption
 
 ```C
-extern const IO_INTERFACE_DESCRIPTION* saslclientio_get_interface_description(void);
+int saslclientio_setoption(CONCRETE_IO_HANDLE sasl_client_io, const char* option_name, const void* value);
 ```
-**SRS_SASLCLIENTIO_01_087: [**saslclientio_get_interface_description shall return a pointer to an IO_INTERFACE_DESCRIPTION structure that contains pointers to the functions: saslclientio_create, saslclientio_destroy, saslclientio_open, saslclientio_close, saslclientio_send, saslclientio_setoptions and saslclientio_dowork.**]** 
 
-###on_bytes_received
+`saslclientio_setoption` is the implementation provided via `header_detect_io_get_interface_description` for the `concrete_io_setoption` member.
 
-**SRS_SASLCLIENTIO_01_027: [**When the on_bytes_received callback passed to the underlying IO is called and the SASL client IO state is IO_STATE_OPEN, the bytes shall be indicated to the user of SASL client IO by calling the on_bytes_received that was passed in saslclientio_open.**]** 
-**SRS_SASLCLIENTIO_01_028: [**If buffer is NULL or size is zero, nothing should be indicated as received and the saslio state shall be switched to ERROR the on_state_changed callback shall be triggered.**]** 
-**SRS_SASLCLIENTIO_01_029: [**The context argument shall be set to the callback_context passed in saslclientio_open.**]** 
-**SRS_SASLCLIENTIO_01_030: [**If bytes are received when the SASL client IO state is IO_STATE_OPENING, the bytes shall be consumed by the SASL client IO to satisfy the SASL handshake.**]** 
-**SRS_SASLCLIENTIO_01_031: [**If bytes are received when the SASL client IO state is IO_STATE_ERROR, SASL client IO shall do nothing.**]** 
+**SRS_SASLCLIENTIO_03_001: [**`saslclientio_setoption` shall forward all unhandled options to underlying io by calling `xio_setoption`.**]**
 
-###on_state_changed
+**SRS_SASLCLIENTIO_01_128: [** On success, `saslclientio_setoption` shall return 0. **]**
+
+**SRS_SASLCLIENTIO_01_129: [** If `xio_setoption` fails, `saslclientio_setoption` shall fail and return a non-zero value. **]**
+
+**SRS_SASLCLIENTIO_01_130: [** If `sasl_client_io` or `option_name` is NULL, `saslclientio_setoption`  shall fail and return a non-zero value. **]**
+
+**SRS_SASLCLIENTIO_01_131: [** SASL client IO shall handle the following options: **]**
+
+**SRS_SASLCLIENTIO_01_132: [** - logtrace - bool. **]**
+
+### saslclientio_retrieveoption
+
+```C
+OPTIONHANDLER_HANDLE saslclientio_retrieveoptions(CONCRETE_IO_HANDLE sasl_client_io);
+```
+
+`saslclientio_retrieveoptions` is the implementation provided via `header_detect_io_get_interface_description` for the `concrete_io_retrieveoptions` member.
+
+**SRS_SASLCLIENTIO_01_133: [** `saslclientio_retrieveoptions` shall create an option handler by calling `OptionHandler_Create`. **]**
+
+**SRS_SASLCLIENTIO_01_134: [** `saslclientio_retrieveoptions` shall add the handled options to it: **]**
+
+**SRS_SASLCLIENTIO_01_135: [** - logtrace - bool. **]**
+
+**SRS_SASLCLIENTIO_01_136: [** If the `logtrace` option was not set it shall not be added to the option Handler. **]**
+
+**SRS_SASLCLIENTIO_01_137: [** The options shall be added by calling `OptionHandler_AddOption`. **]**
+
+**SRS_SASLCLIENTIO_01_138: [** If `OptionHandler_AddOption` or `OptionHandler_Create` fails then `saslclientio_retrieveoptions` shall fail and return NULL. **]**
+
+**SRS_SASLCLIENTIO_01_139: [** When `saslclientio_retrieveoptions` is called with NULL `sasl_client_io` it shall fail and return NULL. **]**
+
+### on_underlying_io_bytes_received
+
+```C
+void on_underlying_io_bytes_received(void* context, const unsigned char* buffer, size_t size)
+```
+
+**SRS_SASLCLIENTIO_01_027: [**When the `on_underlying_io_bytes_received` callback passed to the underlying IO is called and the SASL client IO state is `IO_STATE_OPEN`, the bytes shall be indicated to the user of SASL client IO by calling the `on_bytes_received` callback that was passed in `saslclientio_open`.**]** 
+
+**SRS_SASLCLIENTIO_01_140: [** If the `context` argument is NULL, `on_underlying_io_bytes_received` shall do nothing. **]**
+
+**SRS_SASLCLIENTIO_01_028: [**If `buffer` is NULL or `size` is zero, nothing should be indicated as received, the state shall be switched to ERROR and the `on_io_error` callback shall be triggered.**]** 
+
+**SRS_SASLCLIENTIO_01_029: [**The `context` argument for `on_io_error` shall be set to the `on_io_error_context` passed in `saslclientio_open`.**]** 
+
+**SRS_SASLCLIENTIO_01_030: [**If bytes are received when the SASL client IO state is `IO_STATE_OPENING`, the bytes shall be consumed by the SASL client IO to satisfy the SASL handshake.**]** 
+
+**SRS_SASLCLIENTIO_01_031: [**If bytes are received when the SASL client IO state is `IO_STATE_ERROR`, SASL client IO shall do nothing.**]** 
+
+### State handling
 
 The following actions matrix shall be implemented when a new state change is received from the underlying IO:
-|          | new underlying IO state																																				|
-|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|SASL state|NOT_OPEN							  |OPENING								   |OPEN											|ERROR									|
-|----------|--------------------------------------|----------------------------------------|------------------------------------------------|---------------------------------------|
-|NOT_OPEN  |**SRS_SASLCLIENTIO_01_115: [**do nothing**]** |	**SRS_SASLCLIENTIO_01_108: [**do nothing**]**  |**SRS_SASLCLIENTIO_01_104: [**do nothing**]**			|**SRS_SASLCLIENTIO_01_100: [**do nothing**]**	| 
-|OPENING   |**SRS_SASLCLIENTIO_01_114: [**raise ERROR**]**|	**SRS_SASLCLIENTIO_01_109: [**do nothing**]**  |**SRS_SASLCLIENTIO_01_105: [**start header exchange**]**|**SRS_SASLCLIENTIO_01_101: [**raise ERROR**]**	| 
-|OPEN	   |**SRS_SASLCLIENTIO_01_113: [**raise ERROR**]**| **SRS_SASLCLIENTIO_01_110: [**raise ERROR**]** |**SRS_SASLCLIENTIO_01_106: [**do nothing**]** 			|**SRS_SASLCLIENTIO_01_102: [**raise ERROR**]**	|
-|ERROR     |**SRS_SASLCLIENTIO_01_112: [**do nothing**]** | **SRS_SASLCLIENTIO_01_111: [**do nothing**]**  |**SRS_SASLCLIENTIO_01_107: [**do nothing**]** 			|**SRS_SASLCLIENTIO_01_103: [**do nothing**]**	|
-|----------|--------------------------------------|----------------------------------------|------------------------------------------------|---------------------------------------|
+
+|SASL state\new underlying IO state|`NOT_OPEN`	 |`OPENING`                                        |`OPEN`                                                    |`ERROR`                                                                   |
+|----------------------------------|-------------|-------------------------------------------------|----------------------------------------------------------|--------------------------------------------------------------------------|
+|`NOT_OPEN`                        |do nothing   |do nothing                                       |do nothing                                                |do nothing                                                                | 
+|`OPENING`                         |not possible |do nothing                                       |**`SRS_SASLCLIENTIO_01_105`: [**start header exchange**]**|**SRS_SASLCLIENTIO_01_101: [**`on_open_complete` with `IO_OPEN_ERROR`**]**| 
+|`OPEN`	                           |not possible |**`SRS_SASLCLIENTIO_01_110`: [**raise ERROR**]** |**`SRS_SASLCLIENTIO_01_106`: [**raise error**]**          |**SRS_SASLCLIENTIO_01_102: [**raise ERROR**]**                            |
+|`ERROR`                           |not possible |**`SRS_SASLCLIENTIO_01_111`: [**do nothing**]**  |**`SRS_SASLCLIENTIO_01_107`: [**do nothing**]**           |**SRS_SASLCLIENTIO_01_103: [**do nothing**]**                             |
 
 Starting the header exchange is done as follows:
 
 **SRS_SASLCLIENTIO_01_078: [**SASL client IO shall start the header exchange by sending the SASL header.**]** 
-**SRS_SASLCLIENTIO_01_095: [**Sending the header shall be done by using xio_send.**]** 
-**SRS_SASLCLIENTIO_01_077: [**If sending the SASL header fails, the SASL client IO state shall be set to IO_STATE_ERROR and the on_state_changed callback shall be triggered.**]** 
-**SRS_SASLCLIENTIO_01_116: [**Any underlying IO state changes to state OPEN after the header exchange has been started shall trigger no action.**]** 
 
-###on_sasl_frame_received_callback
+**SRS_SASLCLIENTIO_01_095: [**Sending the header shall be done by using `xio_send`.**]** 
 
-**SRS_SASLCLIENTIO_01_117: [**If on_sasl_frame_received_callback is called when the state of the IO is OPEN then the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.**]** 
-**SRS_SASLCLIENTIO_01_118: [**If on_sasl_frame_received_callback is called in the OPENING state but the header exchange has not yet been completed, then the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.**]** 
-When a frame is indicated as received by sasl_frame_codec it shall be processed as described in the ISO. 
-**SRS_SASLCLIENTIO_01_070: [**When a frame needs to be sent as part of the SASL handshake frame exchange, the send shall be done by calling sasl_frame_codec_encode_frame.**]** 
-**SRS_SASLCLIENTIO_01_071: [**If sasl_frame_codec_encode_frame fails, then the state of SASL client IO shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.**]** 
-**SRS_SASLCLIENTIO_01_072: [**When the SASL handshake is complete, if the handshake is successful, the SASL client IO state shall be switched to IO_STATE_OPEN and the on_state_changed callback shall be triggered.**]** 
-**SRS_SASLCLIENTIO_01_119: [**If any error is encountered when parsing the received frame, the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.**]** 
-**SRS_SASLCLIENTIO_01_073: [**If the handshake fails (i.e. the outcome is an error) the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.**]**
+**SRS_SASLCLIENTIO_01_077: [**If sending the SASL header fails, the `on_io_open_complete` callback shall be triggered with `IO_OPEN_ERROR`.**]** 
 
-###on_bytes_encoded
+**SRS_SASLCLIENTIO_01_116: [**If the underlying IO indicates another open while the after the header exchange has been started an error shall be indicated by calling `on_io_error`.**]** 
 
-**SRS_SASLCLIENTIO_01_120: [**When SASL client IO is notified by sasl_frame_codec of bytes that have been encoded via the on_bytes_encoded callback and SASL client IO is in the state OPENING, SASL client IO shall send these bytes by using xio_send.**]** 
-**SRS_SASLCLIENTIO_01_121: [**If xio_send fails, the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.**]** 
+### on_sasl_frame_received_callback
 
-###on_frame_codec_error
+```C
+void on_sasl_frame_received_callback(void* context, AMQP_VALUE sasl_frame);
+```
 
-**SRS_SASLCLIENTIO_01_122: [**When on_frame_codec_error is called while in the OPENING or OPEN state the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.**]** 
-**SRS_SASLCLIENTIO_01_123: [**When on_frame_codec_error is called in the ERROR state nothing shall be done.**]** 
+**SRS_SASLCLIENTIO_01_117: [**If `on_sasl_frame_received_callback` is called when the state of the IO is OPEN then the `on_io_error` callback shall be triggered.**]** 
 
-###on_sasl_frame_codec_error
+**SRS_SASLCLIENTIO_01_118: [**If `on_sasl_frame_received_callback` is called in the OPENING state but the header exchange has not yet been completed, then the `on_io_error` callback shall be triggered.**]** 
+When a frame is indicated as received by sasl_frame_codec it shall be processed as described in the ISO.
 
-**SRS_SASLCLIENTIO_01_124: [**When on_sasl_frame_codec_error is called while in the OPENING or OPEN state the SASL client IO state shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.**]** 
-**SRS_SASLCLIENTIO_01_125: [**When on_sasl_frame_codec_error is called in the ERROR state nothing shall be done.**]** 
+**SRS_SASLCLIENTIO_01_070: [**When a frame needs to be sent as part of the SASL handshake frame exchange, the send shall be done by calling `sasl_frame_codec_encode_frame`.**]** 
 
-##SASL negotiation
+**SRS_SASLCLIENTIO_01_071: [**If `sasl_frame_codec_encode_frame` fails, then the `on_io_error` callback shall be triggered.**]** 
+
+**SRS_SASLCLIENTIO_01_072: [**When the SASL handshake is complete, if the handshake is successful, the SASL client IO state shall be switched to `IO_STATE_OPEN` and the `on_io_open_complete` callback shall be called with `IO_OPEN_OK`.**]** 
+
+**SRS_SASLCLIENTIO_01_119: [**If any error is encountered when parsing the received frame, the `on_io_open_complete` callback shall be triggered with `IO_OPEN_ERROR`.**]** 
+
+**SRS_SASLCLIENTIO_01_073: [**If the handshake fails (i.e. the outcome is an error) the `on_io_open_complete` callback shall be triggered with `IO_OPEN_ERROR`.**]**
+
+### on_bytes_encoded
+
+```C
+void on_bytes_encoded(void* context, const unsigned char* bytes, size_t length, bool encode_complete);
+```
+
+**SRS_SASLCLIENTIO_01_120: [**When SASL client IO is notified by `sasl_frame_codec` of bytes that have been encoded via the `on_bytes_encoded` callback and SASL client IO is in the state OPENING, SASL client IO shall send these bytes by using `xio_send`.**]** 
+
+**SRS_SASLCLIENTIO_01_121: [**If `xio_send` fails, the `on_io_error` callback shall be triggered.**]** 
+
+### on_frame_codec_error
+
+```C
+void on_frame_codec_error(void* context);
+```
+
+**SRS_SASLCLIENTIO_01_122: [**When `on_frame_codec_error` is called while in the OPENING state the `on_io_open_complete` callback shall be triggered with `IO_OPEN_ERROR`.**]**
+
+**SRS_SASLCLIENTIO_01_143: [** When `on_frame_codec_error` is called while in the OPEN state the `on_io_error` callback shall be triggered. **]** 
+
+**SRS_SASLCLIENTIO_01_123: [**When `on_frame_codec_error` is called in the ERROR state nothing shall be done.**]** 
+
+### on_sasl_frame_codec_error
+
+```C
+void on_sasl_frame_codec_error(void* context);
+```
+
+**SRS_SASLCLIENTIO_01_141: [** When `on_sasl_frame_codec_error` is called while in the OPENING state the `on_io_open_complete` callback shall be triggered with `IO_OPEN_ERROR`. **]**
+
+**SRS_SASLCLIENTIO_01_144: [** When `on_sasl_frame_codec_error` is called while OPEN state the `on_io_error` callback shall be triggered. **]** 
+
+**SRS_SASLCLIENTIO_01_142: [** When `on_sasl_frame_codec_error` is called in the ERROR state nothing shall be done. **]** 
+
+## SASL negotiation
 
 **SRS_SASLCLIENTIO_01_067: [**The SASL frame exchange shall be started as soon as the SASL header handshake is done.**]** 
-**SRS_SASLCLIENTIO_01_068: [**During the SASL frame exchange that constitutes the handshake the received bytes from the underlying IO shall be fed to the frame_codec instance created in saslclientio_create by calling frame_codec_receive_bytes.**]** 
-**SRS_SASLCLIENTIO_01_088: [**If frame_codec_receive_bytes fails, the state of SASL client IO shall be switched to IO_STATE_ERROR and the on_state_changed callback shall be triggered.**]** 
 
-##ISO section
+**SRS_SASLCLIENTIO_01_068: [**During the SASL frame exchange that constitutes the handshake the received bytes from the underlying IO shall be fed to the frame codec instance created in `saslclientio_create` by calling `frame_codec_receive_bytes`.**]** 
+
+**SRS_SASLCLIENTIO_01_088: [**If `frame_codec_receive_bytes` fails, the `on_io_error` callback shall be triggered.**]** 
+
+## ISO section
 
 **SRS_SASLCLIENTIO_01_001: [**To establish a SASL layer, each peer MUST start by sending a protocol header.**]** 
 **SRS_SASLCLIENTIO_01_002: [**The protocol header consists of the upper case ASCII letters "AMQP" followed by a protocol id of three, followed by three unsigned bytes representing the major, minor, and revision of the specification version (currently 1 (SASL-MAJOR), 0 (SASLMINOR), 0 (SASL-REVISION)).**]** In total this is an 8-octet sequence:

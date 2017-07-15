@@ -50,7 +50,7 @@ static ON_IO_OPEN_COMPLETE saved_on_io_open_complete;
 static void* saved_on_io_open_complete_context;
 static ON_IO_ERROR saved_on_io_error;
 static void* saved_on_io_error_context;
-static ON_IO_ERROR saved_on_io_close_complete;
+static ON_IO_CLOSE_COMPLETE saved_on_io_close_complete;
 static void* saved_on_io_close_complete_context;
 static ON_SEND_COMPLETE saved_on_send_complete;
 static void* saved_on_send_complete_context;

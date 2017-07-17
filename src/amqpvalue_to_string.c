@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <inttypes.h>
 #include <stddef.h>
 #include <string.h>
 #include <stdio.h>
@@ -101,8 +102,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
             }
             else
             {
-                unsigned int uint_value = value;
-                if ((sprintf(str_value, "%u", uint_value) < 0) ||
+                if ((sprintf(str_value, "%" PRIu8, value) < 0) ||
                     (string_concat(&result, str_value) != 0))
                 {
                     free(result);
@@ -122,8 +122,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
             }
             else
             {
-                unsigned int uint_value = value;
-                if ((sprintf(str_value, "%u", uint_value) < 0) ||
+                if ((sprintf(str_value, "%" PRIu16, value) < 0) ||
                     (string_concat(&result, str_value) != 0))
                 {
                     free(result);
@@ -143,8 +142,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
             }
             else
             {
-                unsigned long uint_value = value;
-                if ((sprintf(str_value, "%lu", uint_value) < 0) ||
+                if ((sprintf(str_value, "%" PRIu32, value) < 0) ||
                     (string_concat(&result, str_value) != 0))
                 {
                     free(result);
@@ -164,8 +162,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
             }
             else
             {
-                unsigned long long uint_value = value;
-                if ((sprintf(str_value, "%llu", uint_value) < 0) ||
+                if ((sprintf(str_value, "%" PRIu64, value) < 0) ||
                     (string_concat(&result, str_value) != 0))
                 {
                     free(result);
@@ -177,16 +174,15 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
         case AMQP_TYPE_BYTE:
         {
             char str_value[5];
-            uint8_t value;
-            if (amqpvalue_get_ubyte(amqp_value, &value) != 0)
+            char value;
+            if (amqpvalue_get_byte(amqp_value, &value) != 0)
             {
                 free(result);
                 result = NULL;
             }
             else
             {
-                int int_value = value;
-                if ((sprintf(str_value, "%d", int_value) < 0) ||
+                if ((sprintf(str_value, "%" PRId8, value) < 0) ||
                     (string_concat(&result, str_value) != 0))
                 {
                     free(result);
@@ -198,16 +194,15 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
         case AMQP_TYPE_SHORT:
         {
             char str_value[7];
-            uint16_t value;
-            if (amqpvalue_get_ushort(amqp_value, &value) != 0)
+            int16_t value;
+            if (amqpvalue_get_short(amqp_value, &value) != 0)
             {
                 free(result);
                 result = NULL;
             }
             else
             {
-                int int_value = value;
-                if ((sprintf(str_value, "%d", int_value) < 0) ||
+                if ((sprintf(str_value, "%" PRId16, value) < 0) ||
                     (string_concat(&result, str_value) != 0))
                 {
                     free(result);
@@ -227,8 +222,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
             }
             else
             {
-                unsigned long int_value = value;
-                if ((sprintf(str_value, "%ld", int_value) < 0) ||
+                if ((sprintf(str_value, "%" PRId32, value) < 0) ||
                     (string_concat(&result, str_value) != 0))
                 {
                     free(result);
@@ -240,16 +234,15 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
         case AMQP_TYPE_LONG:
         {
             char str_value[21];
-            uint64_t value;
-            if (amqpvalue_get_ulong(amqp_value, &value) != 0)
+            int64_t value;
+            if (amqpvalue_get_long(amqp_value, &value) != 0)
             {
                 free(result);
                 result = NULL;
             }
             else
             {
-                long long int_value = value;
-                if ((sprintf(str_value, "%lld", int_value) < 0) ||
+                if ((sprintf(str_value, "%" PRId64, value) < 0) ||
                     (string_concat(&result, str_value) != 0))
                 {
                     free(result);

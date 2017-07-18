@@ -149,79 +149,86 @@ static bool on_new_session_endpoint(void* context, ENDPOINT_HANDLE new_endpoint)
 
 static void on_socket_accepted(void* context, const IO_INTERFACE_DESCRIPTION* interface_description, void* io_parameters)
 {
-	HEADER_DETECT_IO_CONFIG header_detect_io_config;
-	XIO_HANDLE underlying_io;
-	XIO_HANDLE header_detect_io;
+    HEADER_DETECT_IO_CONFIG header_detect_io_config;
+    XIO_HANDLE underlying_io;
+    XIO_HANDLE header_detect_io;
 
-	(void)context;
+    (void)context;
 
-	LogInfo("Socket accepted");
+    LogInfo("Socket accepted");
 
-	underlying_io = xio_create(interface_description, io_parameters);
-	if (underlying_io == NULL)
-	{
-		LogError("Cannot create accepted socket IO");
-	}
-	else
-	{
-		header_detect_io_config.underlying_io = underlying_io;
-		header_detect_io = xio_create(header_detect_io_get_interface_description(), &header_detect_io_config);
-		if (header_detect_io == NULL)
-		{
-			xio_destroy(underlying_io);
-			LogError("Cannot create header detect IO");
-		}
-		else
-		{
-			SERVER_CONNECTED_CLIENT* server_connected_client = (SERVER_CONNECTED_CLIENT*)malloc(sizeof(SERVER_CONNECTED_CLIENT));
-			if (server_connected_client == NULL)
-			{
-				xio_destroy(underlying_io);
-				xio_destroy(header_detect_io);
-				LogError("Cannot create header detect IO");
-			}
-			else
-			{
-				if (singlylinkedlist_add(server_connected_clients, server_connected_client) == NULL)
-				{
-					free(server_connected_client);
-					xio_destroy(underlying_io);
-					xio_destroy(header_detect_io);
-					LogError("Cannot create header detect IO");
-				}
-				else
-				{
-					server_connected_client->link = NULL;
-					server_connected_client->message_receiver = NULL;
-					server_connected_client->session = NULL;
-					server_connected_client->connection = connection_create(header_detect_io, NULL, "1", on_new_session_endpoint, server_connected_client);
-					if (server_connected_client->connection == NULL)
-					{
-						free(server_connected_client);
-						xio_destroy(underlying_io);
-						xio_destroy(header_detect_io);
-						LogError("Cannot create header detect IO");
-					}
-					else
-					{
-						if (connection_listen(server_connected_client->connection) != 0)
-						{
-							connection_destroy(server_connected_client->connection);
-							free(server_connected_client);
-							xio_destroy(underlying_io);
-							xio_destroy(header_detect_io);
-							LogError("Cannot create header detect IO");
-						}
-						else
-						{
-							/* All OK */
-							server_connected_client->io = header_detect_io;
-						}
-					}
-				}
-			}
-		}
-	}
+    underlying_io = xio_create(interface_description, io_parameters);
+    if (underlying_io == NULL)
+    {
+        LogError("Cannot create accepted socket IO");
+    }
+    else
+    {
+        HEADER_DETECT_ENTRY header_detect_entries[1];
+
+        header_detect_entries[0].header = header_detect_io_get_amqp_header();
+        header_detect_entries[0].io_interface_description = NULL;
+
+        header_detect_io_config.underlying_io = underlying_io;
+        header_detect_io_config.header_detect_entry_count = 1;
+        header_detect_io_config.header_detect_entries = header_detect_entries;
+        header_detect_io = xio_create(header_detect_io_get_interface_description(), &header_detect_io_config);
+        if (header_detect_io == NULL)
+        {
+            xio_destroy(underlying_io);
+            LogError("Cannot create header detect IO");
+        }
+        else
+        {
+            SERVER_CONNECTED_CLIENT* server_connected_client = (SERVER_CONNECTED_CLIENT*)malloc(sizeof(SERVER_CONNECTED_CLIENT));
+            if (server_connected_client == NULL)
+            {
+                xio_destroy(underlying_io);
+                xio_destroy(header_detect_io);
+                LogError("Cannot create header detect IO");
+            }
+            else
+            {
+                if (singlylinkedlist_add(server_connected_clients, server_connected_client) == NULL)
+                {
+                    free(server_connected_client);
+                    xio_destroy(underlying_io);
+                    xio_destroy(header_detect_io);
+                    LogError("Cannot create header detect IO");
+                }
+                else
+                {
+                    server_connected_client->link = NULL;
+                    server_connected_client->message_receiver = NULL;
+                    server_connected_client->session = NULL;
+                    server_connected_client->connection = connection_create(header_detect_io, NULL, "1", on_new_session_endpoint, server_connected_client);
+                    if (server_connected_client->connection == NULL)
+                    {
+                        free(server_connected_client);
+                        xio_destroy(underlying_io);
+                        xio_destroy(header_detect_io);
+                        LogError("Cannot create header detect IO");
+                    }
+                    else
+                    {
+                        if (connection_listen(server_connected_client->connection) != 0)
+                        {
+                            connection_destroy(server_connected_client->connection);
+                            free(server_connected_client);
+                            xio_destroy(underlying_io);
+                            xio_destroy(header_detect_io);
+                            LogError("Cannot create header detect IO");
+                        }
+                        else
+                        {
+                            /* All OK */
+                            server_connected_client->io = header_detect_io;
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 typedef struct CLIENT_TAG

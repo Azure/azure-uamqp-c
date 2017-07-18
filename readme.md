@@ -4,15 +4,30 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 
 `uAMQP` is a general purpose C library for AMQP 1.0.
 
-The goal is to be as compliant with the standard as possible while optimizing for low RAM footprint and also being portable.
+The goals are:
 
-It is currently a client side implementation only. Although much of the standard is symmetrical, there are parts that are asymmetrical, like the SASL handshake.
-Currently `uAMQP` does not provide the server side for these asymmetrical portions of the ISO.
+- Compliance with the standard
+- Optimizing for low RAM footprint
+- Be as portable as possible
+
+It is currently mostly a client side implementation only.
+Although much of the standard is symmetrical, there are parts that are asymmetrical, like the SASL handshake.
+
+The server side support of `uAMQP` (for example for SASL) is currently work in progress.
 
 ## Dependencies
 
 `uAMQP` uses `azure-c-shared-utility`, which is a C library providing common functionality for basic tasks (string manipulation, list manipulation, IO, etc.).
 `azure-c-shared-utility` is available here: https://github.com/Azure/azure-c-shared-utility and it is used as a submodule.
+
+Please note that azure-c-shared-utility in turn depends on several libraries (libssl-dev, libuuid-dev, libcurl-dev).
+
+On an Ubuntu distoro it is recommended to install all needed packages by running:
+
+```
+  sudo apt-get update
+  sudo apt-get install -y git cmake build-essential curl libcurl4-openssl-dev libssl-dev uuid-dev
+```
 
 azure-c-shared-utility provides several tlsio implementations, some being:
 - tlsio_schannel - runs only on Windows
@@ -37,9 +52,9 @@ For WebSockets support `uAMQP` depends on the support provided by azure-c-shared
 git clone --recursive https://github.com/Azure/azure-uamqp-c.git
 ```
 
-- Create a folder cmake under azure-uamqp-c
+- Create a folder named `cmake` under `azure-uamqp-c`
 
-- Switch to the cmake folder and run
+- Switch to the `cmake` folder and run
 
 ```
 cmake ..
@@ -52,9 +67,10 @@ cmake --build .
 ```
 
 ### Installation and Use
+
 Optionally, you may choose to install azure-uamqp-c on your machine:
 
-1. Switch to the *cmake* folder and run
+1. Switch to the `cmake` folder and run
     ```
     cmake -Duse_installed=ON ../
     ```
@@ -86,11 +102,19 @@ _If running tests, this requires that umock-c, azure-ctest, and azure-c-testrunn
 
 ### Building the tests
 
-In order to build the tests use:
+In order to build the unit tests use:
 
 ```
 cmake .. -Drun_unittests:bool=ON
 ```
+
+In order to build the end to end tests use:
+
+```
+cmake .. -Drun_e2e_tests:bool=ON
+```
+
+Please note that some end to end tests (talking to Event Hubs or IoT Hubs) require setup of environment variables so that the tests have the information about the endpoints that they need to connect to.
 
 ## Switching branches
 
@@ -99,8 +123,6 @@ After any switch of branches (git checkout for example), one should also update 
 ```
 git submodule update --init --recursive
 ```
-
-- Build
 
 ## Samples
 

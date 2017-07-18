@@ -562,7 +562,7 @@ static CONCRETE_IO_HANDLE header_detect_io_create(void* io_create_parameters)
                         }
                         else
                         {
-                            /* Codes*SRS_HEADER_DETECT_IO_01_060: [ `header_detect_io_create` shall create a singly linked list by calling `singlylinkedlist_create` where the chained detected IOs shall be stored. ]*/
+                            /* Codes_SRS_HEADER_DETECT_IO_01_060: [ `header_detect_io_create` shall create a singly linked list by calling `singlylinkedlist_create` where the chained detected IOs shall be stored. ]*/
                             result->chained_io_list = singlylinkedlist_create();
                             if (result->chained_io_list == NULL)
                             {

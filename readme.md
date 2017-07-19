@@ -22,7 +22,7 @@ The server side support of `uAMQP` (for example for SASL) is currently work in p
 
 Please note that azure-c-shared-utility in turn depends on several libraries (libssl-dev, libuuid-dev, libcurl-dev).
 
-On an Ubuntu distoro it is recommended to install all needed packages by running:
+On an Ubuntu distro it is recommended to install all needed packages by running:
 
 ```
   sudo apt-get update

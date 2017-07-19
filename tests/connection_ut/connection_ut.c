@@ -308,13 +308,12 @@ TEST_FUNCTION_CLEANUP(method_cleanup)
 TEST_FUNCTION(connection_create_with_valid_args_succeeds)
 {
     // arrange
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    EXPECTED_CALL(frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    EXPECTED_CALL(amqp_frame_codec_create(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-        .ValidateArgument(1);
-    EXPECTED_CALL(tickcounter_create());
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqp_frame_codec_create(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(tickcounter_create());
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 
     // act
     CONNECTION_HANDLE connection = connection_create(TEST_IO_HANDLE, "testhost", test_container_id);
@@ -334,11 +333,10 @@ TEST_FUNCTION(connection_create_with_valid_args_succeeds)
 TEST_FUNCTION(connection_create_with_valid_args_but_NULL_host_name_succeeds)
 {
     // arrange
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    EXPECTED_CALL(frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    EXPECTED_CALL(amqp_frame_codec_create(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-        .ValidateArgument(1);
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqp_frame_codec_create(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 
     // act
     CONNECTION_HANDLE connection = connection_create(TEST_IO_HANDLE, NULL, test_container_id);
@@ -355,7 +353,7 @@ TEST_FUNCTION(connection_create_with_valid_args_but_NULL_host_name_succeeds)
 TEST_FUNCTION(when_allocating_memory_fails_then_connection_create_fails)
 {
     // arrange
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
         .SetReturn((void*)NULL);
 
     // act
@@ -370,10 +368,10 @@ TEST_FUNCTION(when_allocating_memory_fails_then_connection_create_fails)
 TEST_FUNCTION(when_frame_codec_create_fails_then_connection_create_fails)
 {
     // arrange
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    EXPECTED_CALL(frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .SetReturn((FRAME_CODEC_HANDLE)NULL);
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
     CONNECTION_HANDLE connection = connection_create(TEST_IO_HANDLE, "testhost", test_container_id);
@@ -387,13 +385,12 @@ TEST_FUNCTION(when_frame_codec_create_fails_then_connection_create_fails)
 TEST_FUNCTION(when_amqp_frame_codec_create_fails_then_connection_create_fails)
 {
     // arrange
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    EXPECTED_CALL(frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    EXPECTED_CALL(amqp_frame_codec_create(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-        .ValidateArgument(1)
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqp_frame_codec_create(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .SetReturn((AMQP_FRAME_CODEC_HANDLE)NULL);
     STRICT_EXPECTED_CALL(frame_codec_destroy(TEST_FRAME_CODEC_HANDLE));
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
     CONNECTION_HANDLE connection = connection_create(TEST_IO_HANDLE, "testhost", test_container_id);
@@ -407,15 +404,14 @@ TEST_FUNCTION(when_amqp_frame_codec_create_fails_then_connection_create_fails)
 TEST_FUNCTION(when_allocating_memory_for_hostname_fails_connection_create_fails)
 {
     // arrange
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    EXPECTED_CALL(frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    EXPECTED_CALL(amqp_frame_codec_create(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-        .ValidateArgument(1);
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqp_frame_codec_create(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
         .SetReturn((void*)NULL);
     STRICT_EXPECTED_CALL(amqp_frame_codec_destroy(TEST_AMQP_FRAME_CODEC_HANDLE));
     STRICT_EXPECTED_CALL(frame_codec_destroy(TEST_FRAME_CODEC_HANDLE));
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
     CONNECTION_HANDLE connection = connection_create(TEST_IO_HANDLE, "testhost", test_container_id);
@@ -429,17 +425,16 @@ TEST_FUNCTION(when_allocating_memory_for_hostname_fails_connection_create_fails)
 TEST_FUNCTION(when_allocating_memory_for_container_id_fails_connection_create_fails)
 {
     // arrange
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    EXPECTED_CALL(frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    EXPECTED_CALL(amqp_frame_codec_create(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-        .ValidateArgument(1);
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqp_frame_codec_create(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
         .SetReturn((void*)NULL);
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(amqp_frame_codec_destroy(TEST_AMQP_FRAME_CODEC_HANDLE));
     STRICT_EXPECTED_CALL(frame_codec_destroy(TEST_FRAME_CODEC_HANDLE));
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
     CONNECTION_HANDLE connection = connection_create(TEST_IO_HANDLE, "testhost", test_container_id);
@@ -486,7 +481,7 @@ TEST_FUNCTION(connection_destroy_frees_resources)
 
     STRICT_EXPECTED_CALL(amqp_frame_codec_destroy(TEST_AMQP_FRAME_CODEC_HANDLE));
     STRICT_EXPECTED_CALL(frame_codec_destroy(TEST_FRAME_CODEC_HANDLE));
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
     connection_destroy(connection);
@@ -951,8 +946,7 @@ TEST_FUNCTION(when_io_state_is_not_open_connection_dowork_opens_the_io)
     CONNECTION_HANDLE connection = connection_create(TEST_IO_HANDLE, "testhost", test_container_id);
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(xio_open(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-        .ValidateArgument(1);
+    STRICT_EXPECTED_CALL(xio_open(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(xio_dowork(TEST_IO_HANDLE));
 
     // act
@@ -973,8 +967,7 @@ TEST_FUNCTION(when_io_open_fails_the_connection_state_shall_be_set_to_END)
     ENDPOINT_HANDLE endpoint = connection_create_endpoint(connection, test_on_frame_received, test_on_connection_state_changed, TEST_CONTEXT);
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(xio_open(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-        .ValidateArgument(1)
+    STRICT_EXPECTED_CALL(xio_open(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .SetReturn(1);
     STRICT_EXPECTED_CALL(xio_dowork(TEST_IO_HANDLE));
     STRICT_EXPECTED_CALL(test_on_connection_state_changed(TEST_CONTEXT, CONNECTION_STATE_END, CONNECTION_STATE_START));
@@ -1005,8 +998,7 @@ TEST_FUNCTION(connection_dowork_when_state_is_start_sends_the_AMQP_header_and_tr
     umock_c_reset_all_calls();
     const unsigned char amqp_header[] = { 'A', 'M', 'Q', 'P', 0, 1, 0, 0 };
 
-    EXPECTED_CALL(xio_open(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-        .ValidateArgument(1);
+    STRICT_EXPECTED_CALL(xio_open(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(xio_send(TEST_IO_HANDLE, amqp_header, sizeof(amqp_header), NULL, NULL))
         .ValidateArgumentBuffer(2, amqp_header, sizeof(amqp_header));
     STRICT_EXPECTED_CALL(xio_dowork(TEST_IO_HANDLE));
@@ -1188,7 +1180,7 @@ TEST_FUNCTION(when_the_header_is_received_an_open_frame_is_sent_out)
     umock_c_reset_all_calls();
     const unsigned char amqp_header[] = { 'A', 'M', 'Q', 'P', 0, 1, 0, 0 };
 
-    EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
 
     STRICT_EXPECTED_CALL(frame_codec_set_max_frame_size(TEST_FRAME_CODEC_HANDLE, 4294967295));
     STRICT_EXPECTED_CALL(open_create("1234"));
@@ -1360,7 +1352,7 @@ TEST_FUNCTION(when_no_hostname_is_specified_no_hostname_is_stamped_on_the_open_f
     umock_c_reset_all_calls();
     const unsigned char amqp_header[] = { 'A', 'M', 'Q', 'P', 0, 1, 0, 0 };
 
-    EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
 
     STRICT_EXPECTED_CALL(frame_codec_set_max_frame_size(TEST_FRAME_CODEC_HANDLE, 4294967295));
     STRICT_EXPECTED_CALL(open_create("1234"));
@@ -1392,7 +1384,7 @@ TEST_FUNCTION(when_max_frame_size_has_been_specified_it_shall_be_set_in_the_open
     umock_c_reset_all_calls();
     const unsigned char amqp_header[] = { 'A', 'M', 'Q', 'P', 0, 1, 0, 0 };
 
-    EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
 
     STRICT_EXPECTED_CALL(frame_codec_set_max_frame_size(TEST_FRAME_CODEC_HANDLE, 1024));
     STRICT_EXPECTED_CALL(open_create("1234"));
@@ -1452,7 +1444,7 @@ TEST_FUNCTION(when_channel_max_has_been_specified_it_shall_be_set_in_the_open_fr
     umock_c_reset_all_calls();
     const unsigned char amqp_header[] = { 'A', 'M', 'Q', 'P', 0, 1, 0, 0 };
 
-    EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
 
     STRICT_EXPECTED_CALL(frame_codec_set_max_frame_size(TEST_FRAME_CODEC_HANDLE, 4294967295));
     STRICT_EXPECTED_CALL(open_create("1234"));
@@ -1513,7 +1505,7 @@ TEST_FUNCTION(when_idle_timeout_has_been_specified_it_shall_be_set_in_the_open_f
     umock_c_reset_all_calls();
     const unsigned char amqp_header[] = { 'A', 'M', 'Q', 'P', 0, 1, 0, 0 };
 
-    EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
 
     STRICT_EXPECTED_CALL(frame_codec_set_max_frame_size(TEST_FRAME_CODEC_HANDLE, 4294967295));
     STRICT_EXPECTED_CALL(open_create("1234"));
@@ -1576,10 +1568,8 @@ TEST_FUNCTION(when_1_byte_is_received_from_the_io_it_is_passed_to_the_frame_code
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header, sizeof(amqp_header));
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(frame_codec_receive_bytes(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
-        .ValidateArgument(1);
-    EXPECTED_CALL(frame_codec_receive_bytes(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
-        .ValidateArgument(1)
+    STRICT_EXPECTED_CALL(frame_codec_receive_bytes(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(frame_codec_receive_bytes(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
         .IgnoreAllCalls();
 
     // act
@@ -1607,10 +1597,8 @@ TEST_FUNCTION(when_2_bytes_are_received_from_the_io_it_is_passed_to_the_frame_co
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header, sizeof(amqp_header));
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(frame_codec_receive_bytes(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
-        .ValidateArgument(1);
-    EXPECTED_CALL(frame_codec_receive_bytes(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
-        .ValidateArgument(1)
+    STRICT_EXPECTED_CALL(frame_codec_receive_bytes(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(frame_codec_receive_bytes(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
         .IgnoreAllCalls();
 
     // act
@@ -1643,10 +1631,9 @@ TEST_FUNCTION(when_giving_the_bytes_to_frame_codec_fails_the_connection_is_close
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header, sizeof(amqp_header));
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
 
-    EXPECTED_CALL(frame_codec_receive_bytes(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
-        .ValidateArgument(1)
+    STRICT_EXPECTED_CALL(frame_codec_receive_bytes(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
         .SetReturn(1);
     STRICT_EXPECTED_CALL(close_create());
     STRICT_EXPECTED_CALL(error_create("amqp:internal-error"));
@@ -1680,8 +1667,7 @@ TEST_FUNCTION(when_creating_a_close_frame_fails_then_connection_is_closed)
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header, sizeof(amqp_header));
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(frame_codec_receive_bytes(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
-        .ValidateArgument(1)
+    STRICT_EXPECTED_CALL(frame_codec_receive_bytes(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
         .SetReturn(1);
     STRICT_EXPECTED_CALL(error_create("amqp:internal-error"));
     STRICT_EXPECTED_CALL(error_set_description(test_error_handle, IGNORED_PTR_ARG));
@@ -1712,8 +1698,7 @@ TEST_FUNCTION(when_creating_the_amqp_value_for_the_close_performative_fails_then
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header, sizeof(amqp_header));
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(frame_codec_receive_bytes(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
-        .ValidateArgument(1)
+    STRICT_EXPECTED_CALL(frame_codec_receive_bytes(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
         .SetReturn(1);
     STRICT_EXPECTED_CALL(error_create("amqp:internal-error"));
     STRICT_EXPECTED_CALL(error_set_description(test_error_handle, IGNORED_PTR_ARG));
@@ -1747,8 +1732,7 @@ TEST_FUNCTION(when_sending_the_close_frame_fails_then_connection_is_closed)
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header, sizeof(amqp_header));
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(frame_codec_receive_bytes(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
-        .ValidateArgument(1)
+    STRICT_EXPECTED_CALL(frame_codec_receive_bytes(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
         .SetReturn(1);
     STRICT_EXPECTED_CALL(error_create("amqp:internal-error"));
     STRICT_EXPECTED_CALL(error_set_description(test_error_handle, IGNORED_PTR_ARG));
@@ -1784,8 +1768,7 @@ TEST_FUNCTION(when_creating_the_error_object_fails_the_connection_is_closed)
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header, sizeof(amqp_header));
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(frame_codec_receive_bytes(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
-        .ValidateArgument(1)
+    STRICT_EXPECTED_CALL(frame_codec_receive_bytes(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
         .SetReturn(1);
     STRICT_EXPECTED_CALL(error_create("amqp:internal-error"))
         .SetReturn((ERROR_HANDLE)NULL);
@@ -1813,8 +1796,7 @@ TEST_FUNCTION(when_setting_the_error_description_on_the_error_handle_fails_the_c
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header, sizeof(amqp_header));
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(frame_codec_receive_bytes(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
-        .ValidateArgument(1)
+    STRICT_EXPECTED_CALL(frame_codec_receive_bytes(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
         .SetReturn(1);
     STRICT_EXPECTED_CALL(error_create("amqp:internal-error"));
     STRICT_EXPECTED_CALL(error_set_description(test_error_handle, IGNORED_PTR_ARG))
@@ -1846,8 +1828,7 @@ TEST_FUNCTION(when_setting_the_error_on_the_close_frame_fails_the_connection_is_
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header, sizeof(amqp_header));
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(frame_codec_receive_bytes(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
-        .ValidateArgument(1)
+    STRICT_EXPECTED_CALL(frame_codec_receive_bytes(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
         .SetReturn(1);
     STRICT_EXPECTED_CALL(error_create("amqp:internal-error"));
     STRICT_EXPECTED_CALL(error_set_description(test_error_handle, IGNORED_PTR_ARG));
@@ -1902,7 +1883,7 @@ TEST_FUNCTION(when_an_open_frame_that_cannot_be_parsed_properly_is_received_the_
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header, sizeof(amqp_header));
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_OPEN_PERFORMATIVE));
     STRICT_EXPECTED_CALL(is_open_type_by_descriptor(TEST_DESCRIPTOR_AMQP_VALUE));
@@ -1942,7 +1923,7 @@ TEST_FUNCTION(when_the_max_frame_size_cannot_be_retrieved_from_the_open_framethe
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header, sizeof(amqp_header));
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_OPEN_PERFORMATIVE));
     STRICT_EXPECTED_CALL(is_open_type_by_descriptor(TEST_DESCRIPTOR_AMQP_VALUE));
@@ -1986,7 +1967,7 @@ TEST_FUNCTION(when_an_open_frame_with_max_frame_size_511_is_received_the_connect
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header, sizeof(amqp_header));
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_OPEN_PERFORMATIVE));
     STRICT_EXPECTED_CALL(is_open_type_by_descriptor(TEST_DESCRIPTOR_AMQP_VALUE));
@@ -2030,7 +2011,7 @@ TEST_FUNCTION(when_an_open_frame_is_received_on_channel_1_the_connection_is_clos
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header, sizeof(amqp_header));
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_OPEN_PERFORMATIVE));
     STRICT_EXPECTED_CALL(is_open_type_by_descriptor(TEST_DESCRIPTOR_AMQP_VALUE));
@@ -2067,7 +2048,7 @@ TEST_FUNCTION(when_the_frame_received_callback_is_called_with_a_NULL_performativ
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header, sizeof(amqp_header));
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
 
     /* we expect to close because of bad OPEN */
     STRICT_EXPECTED_CALL(error_create("amqp:internal-error"));
@@ -2165,7 +2146,7 @@ TEST_FUNCTION(when_a_close_frame_is_received_in_OPEN_SENT_a_CLOSE_is_sent)
     saved_frame_received_callback(saved_amqp_frame_codec_callback_context, 0, TEST_OPEN_PERFORMATIVE, 0, 0);
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_CLOSE_PERFORMATIVE))
         .SetReturn(TEST_CLOSE_DESCRIPTOR_AMQP_VALUE);
@@ -2207,7 +2188,7 @@ TEST_FUNCTION(when_a_close_frame_is_sent_as_response_to_a_close_frame_and_creati
     saved_frame_received_callback(saved_amqp_frame_codec_callback_context, 0, TEST_OPEN_PERFORMATIVE, 0, 0);
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_CLOSE_PERFORMATIVE))
         .SetReturn(TEST_CLOSE_DESCRIPTOR_AMQP_VALUE);
@@ -2246,7 +2227,7 @@ TEST_FUNCTION(when_a_close_frame_is_sent_as_response_to_a_close_frame_and_creati
     saved_frame_received_callback(saved_amqp_frame_codec_callback_context, 0, TEST_OPEN_PERFORMATIVE, 0, 0);
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_CLOSE_PERFORMATIVE))
         .SetReturn(TEST_CLOSE_DESCRIPTOR_AMQP_VALUE);
@@ -2287,7 +2268,7 @@ TEST_FUNCTION(when_a_close_frame_is_sent_as_response_to_a_close_frame_and_sendin
     saved_frame_received_callback(saved_amqp_frame_codec_callback_context, 0, TEST_OPEN_PERFORMATIVE, 0, 0);
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_CLOSE_PERFORMATIVE))
         .SetReturn(TEST_CLOSE_DESCRIPTOR_AMQP_VALUE);
@@ -2330,7 +2311,7 @@ TEST_FUNCTION(when_an_open_frame_is_received_in_open_the_connection_shall_be_clo
     saved_frame_received_callback(saved_amqp_frame_codec_callback_context, 0, TEST_OPEN_PERFORMATIVE, 0, 0);
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_OPEN_PERFORMATIVE));
     STRICT_EXPECTED_CALL(is_open_type_by_descriptor(TEST_DESCRIPTOR_AMQP_VALUE));
@@ -2368,7 +2349,7 @@ TEST_FUNCTION(when_an_open_frame_is_received_in_the_DISCARDING_state_the_connect
     saved_frame_received_callback(saved_amqp_frame_codec_callback_context, 0, TEST_OPEN_PERFORMATIVE, 0, 0);
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_OPEN_PERFORMATIVE));
     STRICT_EXPECTED_CALL(is_open_type_by_descriptor(TEST_DESCRIPTOR_AMQP_VALUE));
@@ -2426,7 +2407,7 @@ TEST_FUNCTION(when_a_CLOSE_frame_is_received_on_channel_1_it_is_still_valid)
     saved_frame_received_callback(saved_amqp_frame_codec_callback_context, 0, TEST_OPEN_PERFORMATIVE, 0, 0);
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_CLOSE_PERFORMATIVE));
     STRICT_EXPECTED_CALL(is_open_type_by_descriptor(TEST_DESCRIPTOR_AMQP_VALUE))
@@ -2466,7 +2447,7 @@ TEST_FUNCTION(when_a_CLOSE_frame_with_1_byte_payload_is_received_it_is_still_val
     saved_frame_received_callback(saved_amqp_frame_codec_callback_context, 0, TEST_OPEN_PERFORMATIVE, 0, 0);
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_CLOSE_PERFORMATIVE));
     STRICT_EXPECTED_CALL(is_open_type_by_descriptor(TEST_DESCRIPTOR_AMQP_VALUE))
@@ -2507,7 +2488,7 @@ TEST_FUNCTION(when_an_OPEN_frame_with_1_byte_payload_is_received_it_is_still_val
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header, sizeof(amqp_header));
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_OPEN_PERFORMATIVE));
     STRICT_EXPECTED_CALL(is_open_type_by_descriptor(TEST_DESCRIPTOR_AMQP_VALUE));
@@ -2544,7 +2525,7 @@ TEST_FUNCTION(when_a_CLOSE_FRAME_is_received_on_a_channel_higher_than_the_max_ne
     saved_frame_received_callback(saved_amqp_frame_codec_callback_context, 0, TEST_OPEN_PERFORMATIVE, 0, 0);
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_CLOSE_PERFORMATIVE));
     STRICT_EXPECTED_CALL(is_open_type_by_descriptor(TEST_DESCRIPTOR_AMQP_VALUE))
@@ -2631,8 +2612,8 @@ TEST_FUNCTION(connection_create_endpoint_with_valid_arguments_succeeds)
     CONNECTION_HANDLE connection = connection_create(TEST_IO_HANDLE, "testhost", test_container_id);
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
 
     // act
     ENDPOINT_HANDLE endpoint = connection_create_endpoint(connection, test_on_frame_received, test_on_connection_state_changed, TEST_CONTEXT);
@@ -2653,7 +2634,7 @@ TEST_FUNCTION(when_allocating_memory_fails_connection_create_endpoint_fails)
     CONNECTION_HANDLE connection = connection_create(TEST_IO_HANDLE, "testhost", test_container_id);
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
         .SetReturn((void*)NULL);
 
     // act
@@ -2674,10 +2655,10 @@ TEST_FUNCTION(when_realloc_for_the_endpoint_list_fails_connection_create_endpoin
     CONNECTION_HANDLE connection = connection_create(TEST_IO_HANDLE, "testhost", test_container_id);
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG))
         .SetReturn((void*)NULL);
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
     ENDPOINT_HANDLE endpoint = connection_create_endpoint(connection, test_on_frame_received, test_on_connection_state_changed, TEST_CONTEXT);
@@ -2697,8 +2678,8 @@ TEST_FUNCTION(connection_create_endpoint_with_valid_arguments_and_NULL_context_s
     CONNECTION_HANDLE connection = connection_create(TEST_IO_HANDLE, "testhost", test_container_id);
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
 
     // act
     ENDPOINT_HANDLE endpoint = connection_create_endpoint(connection, test_on_frame_received, test_on_connection_state_changed, NULL);
@@ -2802,8 +2783,8 @@ TEST_FUNCTION(connection_destroy_endpoint_frees_the_resources_associated_with_th
     ENDPOINT_HANDLE endpoint = connection_create_endpoint(connection, test_on_frame_received, test_on_connection_state_changed, TEST_CONTEXT);
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
     connection_destroy_endpoint(endpoint);
@@ -2825,9 +2806,9 @@ TEST_FUNCTION(when_reallocating_the_endpoints_list_fails_connection_destroy_endp
     ENDPOINT_HANDLE endpoint = connection_create_endpoint(connection, test_on_frame_received, test_on_connection_state_changed, TEST_CONTEXT);
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG))
         .SetReturn((void*)NULL);
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
     connection_destroy_endpoint(endpoint);
@@ -2851,8 +2832,8 @@ TEST_FUNCTION(when_an_endpoint_is_released_another_one_can_be_created_in_its_pla
     connection_destroy_endpoint(endpoint1);
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
 
     // act
     endpoint1 = connection_create_endpoint(connection, test_on_frame_received, test_on_connection_state_changed, TEST_CONTEXT);
@@ -2921,7 +2902,7 @@ TEST_FUNCTION(connection_encode_frame_sends_the_frame)
     saved_frame_received_callback(saved_amqp_frame_codec_callback_context, 0, TEST_OPEN_PERFORMATIVE, 0, 0);
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
 
     STRICT_EXPECTED_CALL(amqp_frame_codec_encode_frame(TEST_AMQP_FRAME_CODEC_HANDLE, 0, TEST_TRANSFER_PERFORMATIVE, NULL, 0, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
 
@@ -2954,7 +2935,7 @@ TEST_FUNCTION(connection_encode_frame_with_1_payload_adds_the_bytes_to_the_frame
     unsigned char test_payload[] = { 0x42 };
     PAYLOAD payload = { test_payload, sizeof(test_payload) };
 
-    EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
 
     STRICT_EXPECTED_CALL(amqp_frame_codec_encode_frame(TEST_AMQP_FRAME_CODEC_HANDLE, 0, TEST_TRANSFER_PERFORMATIVE, &payload, 1, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
 
@@ -2987,7 +2968,7 @@ TEST_FUNCTION(connection_encode_frame_with_1_payload_of_2_bytes_adds_the_bytes_t
     unsigned char test_payload[] = { 0x42, 0x43 };
     PAYLOAD payload = { test_payload, sizeof(test_payload) };
 
-    EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
 
     STRICT_EXPECTED_CALL(amqp_frame_codec_encode_frame(TEST_AMQP_FRAME_CODEC_HANDLE, 0, TEST_TRANSFER_PERFORMATIVE, &payload, 1, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
 
@@ -3021,7 +3002,7 @@ TEST_FUNCTION(connection_encode_frame_with_2_payloads_of_1_byte_rach_adds_the_by
     unsigned char test_payload2[] = { 0x43 };
     PAYLOAD payloads[] = { { test_payload1, sizeof(test_payload1) }, { test_payload2, sizeof(test_payload2) } };
 
-    EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
 
     STRICT_EXPECTED_CALL(amqp_frame_codec_encode_frame(TEST_AMQP_FRAME_CODEC_HANDLE, 0, TEST_TRANSFER_PERFORMATIVE, payloads, 2, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
 
@@ -3054,7 +3035,7 @@ TEST_FUNCTION(when_amqp_frame_codec_begin_encode_frame_fails_then_connection_enc
     unsigned char test_payload2[] = { 0x43 };
     PAYLOAD payloads[] = { { test_payload1, sizeof(test_payload1) }, { test_payload2, sizeof(test_payload2) } };
 
-    EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
 
     STRICT_EXPECTED_CALL(amqp_frame_codec_encode_frame(TEST_AMQP_FRAME_CODEC_HANDLE, 0, TEST_TRANSFER_PERFORMATIVE, payloads, 2, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .SetReturn(1);
@@ -3114,7 +3095,7 @@ TEST_FUNCTION(connection_encode_frame_after_close_has_been_received_fails)
     unsigned char test_payload2[] = { 0x43 };
     PAYLOAD payloads[] = { { test_payload1, sizeof(test_payload1) }, { test_payload2, sizeof(test_payload2) } };
 
-    EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
 
     // act
     int result = connection_encode_frame(endpoint, TEST_TRANSFER_PERFORMATIVE, payloads, 2, test_on_send_complete, (void*)0x4242);
@@ -3143,7 +3124,7 @@ TEST_FUNCTION(connection_encode_frame_with_a_second_endpoint_sends_on_channel_1)
     saved_frame_received_callback(saved_amqp_frame_codec_callback_context, 0, TEST_OPEN_PERFORMATIVE, 0, 0);
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
 
     STRICT_EXPECTED_CALL(amqp_frame_codec_encode_frame(TEST_AMQP_FRAME_CODEC_HANDLE, 1, TEST_TRANSFER_PERFORMATIVE, NULL, 0, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
 
@@ -3177,7 +3158,7 @@ TEST_FUNCTION(when_an_endpoint_is_destroyed_and_a_new_one_is_created_the_channel
     saved_frame_received_callback(saved_amqp_frame_codec_callback_context, 0, TEST_OPEN_PERFORMATIVE, 0, 0);
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
 
     STRICT_EXPECTED_CALL(amqp_frame_codec_encode_frame(TEST_AMQP_FRAME_CODEC_HANDLE, 0, TEST_TRANSFER_PERFORMATIVE, NULL, 0, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
 
@@ -3206,7 +3187,7 @@ TEST_FUNCTION(when_state_changes_to_HDR_SENT_all_endpoints_are_notified)
     connection_dowork(connection);
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(xio_send(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG)).IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(xio_send(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG)).IgnoreAllCalls();
 
     STRICT_EXPECTED_CALL(test_on_connection_state_changed(TEST_CONTEXT, CONNECTION_STATE_HDR_SENT, CONNECTION_STATE_START));
     STRICT_EXPECTED_CALL(test_on_connection_state_changed(NULL, CONNECTION_STATE_HDR_SENT, CONNECTION_STATE_START));
@@ -3236,7 +3217,7 @@ TEST_FUNCTION(when_state_changes_to_HDR_EXCH_and_HDR_OPEN_SENT_all_endpoints_are
     saved_io_state_changed(saved_on_io_open_complete_context, IO_STATE_OPEN, IO_STATE_NOT_OPEN);
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
 
     STRICT_EXPECTED_CALL(frame_codec_set_max_frame_size(TEST_FRAME_CODEC_HANDLE, 4294967295));
     STRICT_EXPECTED_CALL(open_create("1234"));
@@ -3281,7 +3262,7 @@ TEST_FUNCTION(when_state_changes_to_OPENED_all_endpoints_are_notified)
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header, sizeof(amqp_header));
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_OPEN_PERFORMATIVE));
     STRICT_EXPECTED_CALL(is_open_type_by_descriptor(TEST_DESCRIPTOR_AMQP_VALUE));
@@ -3321,7 +3302,7 @@ TEST_FUNCTION(when_state_changes_to_CLOSE_RCVD_and_END_SENT_all_endpoints_are_no
     saved_frame_received_callback(saved_amqp_frame_codec_callback_context, 0, TEST_OPEN_PERFORMATIVE, 0, 0);
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(amqpvalue_to_string(IGNORED_PTR_ARG)).IgnoreAllCalls();
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_CLOSE_PERFORMATIVE))
         .SetReturn(TEST_CLOSE_DESCRIPTOR_AMQP_VALUE);
@@ -3376,13 +3357,12 @@ TEST_FUNCTION(connection_create2_with_valid_args_succeeds)
 {
     // arrange
     CONNECTION_HANDLE connection;
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    EXPECTED_CALL(frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    EXPECTED_CALL(amqp_frame_codec_create(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
-        .ValidateArgument(1);
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    EXPECTED_CALL(tickcounter_create());
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqp_frame_codec_create(TEST_FRAME_CODEC_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(tickcounter_create());
     STRICT_EXPECTED_CALL(tickcounter_get_current_ms(test_tick_counter, IGNORED_PTR_ARG));
 
     // act

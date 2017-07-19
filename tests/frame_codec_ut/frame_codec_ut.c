@@ -250,7 +250,7 @@ TEST_FUNCTION(frame_codec_create_with_valid_args_succeeds)
 {
     // arrange
     FRAME_CODEC_HANDLE frame_codec;
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_create());
 
     // act
@@ -282,7 +282,7 @@ TEST_FUNCTION(frame_codec_create_with_NULL_frame_codec_decode_error_calback_cont
 {
     // arrange
     FRAME_CODEC_HANDLE frame_codec;
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_create());
 
     // act
@@ -301,7 +301,7 @@ TEST_FUNCTION(when_allocating_memory_for_the_frame_codec_fails_frame_code_create
 {
     // arrange
     FRAME_CODEC_HANDLE frame_codec;
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
         .SetReturn(NULL);
 
     // act
@@ -409,13 +409,13 @@ TEST_FUNCTION(receiving_a_frame_with_exactly_512_bytes_of_total_frame_size_immed
 
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame[5], 1);
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 504))
         .ValidateArgumentBuffer(2, &frame[6], 2)
         .ValidateArgumentBuffer(4, &frame[8], 504);
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
     result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
@@ -439,7 +439,7 @@ TEST_FUNCTION(frame_codec_destroy_frees_the_memory_for_frame_codec)
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(singlylinkedlist_destroy(TEST_LIST_HANDLE));
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
     frame_codec_destroy(frame_codec);
@@ -472,8 +472,8 @@ TEST_FUNCTION(frame_codec_destroy_while_receiving_type_specific_data_frees_the_t
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(singlylinkedlist_destroy(TEST_LIST_HANDLE));
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
     frame_codec_destroy(frame_codec);
@@ -534,9 +534,9 @@ TEST_FUNCTION(a_frame_of_exactly_max_frame_size_can_be_sent)
     (void)frame_codec_set_max_frame_size(frame_codec, 1024);
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ExpectedAtLeastTimes(1);
-    EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .IgnoreAllCalls();
 
     // act
@@ -593,13 +593,13 @@ TEST_FUNCTION(receiving_a_frame_with_exactly_max_frame_size_bytes_of_total_frame
 
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame[5], 1);
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 1016))
         .ValidateArgumentBuffer(2, &frame[6], 2)
         .ValidateArgumentBuffer(4, &frame[8], 1016);
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
     result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
@@ -778,12 +778,12 @@ TEST_FUNCTION(frame_codec_receive_bytes_decodes_one_empty_frame)
 
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame[5], 1);
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 0))
         .ValidateArgumentBuffer(2, &frame[6], 2);
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
     result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
@@ -810,9 +810,9 @@ TEST_FUNCTION(frame_codec_receive_bytes_with_not_enough_bytes_for_a_frame_does_n
 
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame[5], 1);
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 
     // act
     result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
@@ -897,12 +897,12 @@ TEST_FUNCTION(when_frame_codec_receive_1_byte_in_one_call_and_the_rest_of_the_fr
 
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame[5], 1);
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 0))
         .ValidateArgumentBuffer(2, &frame[6], 2);
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     (void)frame_codec_receive_bytes(frame_codec, frame, 1);
 
@@ -931,12 +931,12 @@ TEST_FUNCTION(when_frame_codec_receive_the_frame_bytes_in_1_byte_per_call_a_succ
 
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame[5], 1);
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 0))
         .ValidateArgumentBuffer(2, &frame[6], 2);
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     for (i = 0; i < sizeof(frame) - 1; i++)
     {
@@ -967,12 +967,12 @@ TEST_FUNCTION(a_frame_codec_receive_bytes_call_with_bad_args_before_any_real_fra
 
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame[5], 1);
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 0))
         .ValidateArgumentBuffer(2, &frame[6], 2);
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     (void)frame_codec_receive_bytes(frame_codec, NULL, 1);
 
@@ -1000,12 +1000,12 @@ TEST_FUNCTION(a_frame_codec_receive_bytes_call_with_bad_args_in_the_middle_of_th
 
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame[5], 1);
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 0))
         .ValidateArgumentBuffer(2, &frame[6], 2);
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     (void)frame_codec_receive_bytes(frame_codec, frame, 1);
     (void)frame_codec_receive_bytes(frame_codec, NULL, 1);
@@ -1035,20 +1035,20 @@ TEST_FUNCTION(frame_codec_receive_bytes_decodes_2_empty_frames)
 
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame1[5], 1);
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 0))
         .ValidateArgumentBuffer(2, &frame1[6], 2);
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame2[5], 1);
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 0))
         .ValidateArgumentBuffer(2, &frame2[6], 2);
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     (void)frame_codec_receive_bytes(frame_codec, frame1, sizeof(frame1));
 
@@ -1077,20 +1077,20 @@ TEST_FUNCTION(a_call_to_frame_codec_receive_bytes_with_bad_args_between_2_frames
 
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame1[5], 1);
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 0))
         .ValidateArgumentBuffer(2, &frame1[6], 2);
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame2[5], 1);
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 0))
         .ValidateArgumentBuffer(2, &frame2[6], 2);
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     (void)frame_codec_receive_bytes(frame_codec, frame1, sizeof(frame1));
     (void)frame_codec_receive_bytes(frame_codec, NULL, 1);
@@ -1119,7 +1119,7 @@ TEST_FUNCTION(when_getting_the_list_item_value_fails_no_callback_is_invoked)
 
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame[5], 1);
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG))
         .SetReturn(NULL);
 
     // act
@@ -1249,13 +1249,13 @@ TEST_FUNCTION(receiving_a_frame_with_1_byte_frame_body_succeeds)
 
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame[5], 1);
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 1))
         .ValidateArgumentBuffer(2, &frame[6], 2)
         .ValidateArgumentBuffer(4, &frame[8], 1);
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
     result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
@@ -1282,9 +1282,9 @@ TEST_FUNCTION(when_allocating_type_specific_data_fails_frame_codec_receive_bytes
 
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame[5], 1);
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
         .SetReturn(NULL);
 
     STRICT_EXPECTED_CALL(test_frame_codec_decode_error(TEST_ERROR_CONTEXT));
@@ -1312,7 +1312,7 @@ TEST_FUNCTION(when_allocating_type_specific_data_fails_a_subsequent_decode_Call_
     frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
     umock_c_reset_all_calls();
 
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
         .SetReturn(NULL);
 
     (void)frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
@@ -1342,13 +1342,13 @@ TEST_FUNCTION(a_frame_with_2_bytes_received_together_with_the_header_passes_the_
 
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame[5], 1);
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 2))
         .ValidateArgumentBuffer(2, &frame[6], 2)
         .ValidateArgumentBuffer(4, &frame[sizeof(frame) - 2], 2);
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
     result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
@@ -1375,20 +1375,20 @@ TEST_FUNCTION(two_empty_frames_received_in_the_same_call_yields_2_callbacks)
 
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame[5], 1);
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 0))
         .ValidateArgumentBuffer(2, &frame[6], 2);
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame[5], 1);
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 0))
         .ValidateArgumentBuffer(2, &frame[14], 2);
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
     result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
@@ -1415,22 +1415,22 @@ TEST_FUNCTION(two_frames_with_1_byte_each_received_in_the_same_call_yields_2_cal
 
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame[5], 1);
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 1))
         .ValidateArgumentBuffer(2, &frame[6], 2)
         .ValidateArgumentBuffer(4, &frame[8], 1);
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame[5], 1);
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 1))
         .ValidateArgumentBuffer(2, &frame[15], 2)
         .ValidateArgumentBuffer(4, &frame[17], 1);
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
     result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
@@ -1458,7 +1458,7 @@ TEST_FUNCTION(frame_codec_subscribe_with_valid_args_succeeds)
 
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame_type, 1);
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_add(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
 
     // act
@@ -1486,7 +1486,7 @@ TEST_FUNCTION(when_list_find_returns_NULL_a_new_subscription_is_created)
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame_type, 1)
         .SetReturn(NULL);
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_add(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
 
     // act
@@ -1513,8 +1513,8 @@ TEST_FUNCTION(when_list_item_get_value_returns_NULL_subscribe_fails)
 
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame_type, 1);
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG))
         .SetReturn(NULL);
 
     // act
@@ -1572,7 +1572,7 @@ TEST_FUNCTION(when_a_frame_type_that_has_no_subscribers_is_received_no_callback_
 
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame[5], 1);
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
 
     // act
     result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
@@ -1622,13 +1622,13 @@ TEST_FUNCTION(when_2_subscriptions_exist_and_first_one_matches_the_callback_is_i
 
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame[5], 1);
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(on_frame_received_1(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 2))
         .ValidateArgumentBuffer(2, &frame[6], 2)
         .ValidateArgumentBuffer(4, &frame[sizeof(frame) - 2], 2);
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
     result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
@@ -1656,14 +1656,14 @@ TEST_FUNCTION(when_2_subscriptions_exist_and_second_one_matches_the_callback_is_
 
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame[5], 1);
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(on_frame_received_2(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 2))
         .ValidateArgumentBuffer(2, &frame[6], 2)
         .ValidateArgumentBuffer(4, &frame[sizeof(frame) - 2], 2);
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
     result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
@@ -1690,8 +1690,8 @@ TEST_FUNCTION(when_frame_codec_subscribe_is_called_twice_for_the_same_frame_type
 
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame_type, 1);
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
 
     // act
     result = frame_codec_subscribe(frame_codec, 0, on_frame_received_2, frame_codec);
@@ -1718,13 +1718,13 @@ TEST_FUNCTION(the_callbacks_for_the_2nd_frame_codec_subscribe_for_the_same_frame
 
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame[5], 1);
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(on_frame_received_2(frame_codec, IGNORED_PTR_ARG, 2, IGNORED_PTR_ARG, 2))
         .ValidateArgumentBuffer(2, &frame[6], 2)
         .ValidateArgumentBuffer(4, &frame[sizeof(frame) - 2], 2);
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
     result = frame_codec_receive_bytes(frame_codec, frame, sizeof(frame));
@@ -1749,7 +1749,7 @@ TEST_FUNCTION(when_allocating_memory_for_the_subscription_fails_frame_codec_subs
 
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame_type, 1);
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
         .SetReturn(NULL);
 
     // act
@@ -1774,10 +1774,10 @@ TEST_FUNCTION(when_adding_the_subscription_fails_then_frame_codec_subscribe_fail
 
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame_type, 1);
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_add(TEST_LIST_HANDLE, IGNORED_PTR_ARG))
         .SetReturn(NULL);
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
     result = frame_codec_subscribe(frame_codec, 0, on_frame_received_1, frame_codec);
@@ -1918,9 +1918,9 @@ TEST_FUNCTION(unsubscribe_one_of_2_subscriptions_succeeds)
 
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame_type, 1);
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_remove(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
 
     // act
@@ -1948,10 +1948,10 @@ TEST_FUNCTION(unsubscribe_2nd_out_of_2_subscriptions_succeeds)
 
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame_type, 1);
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_remove(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
 
     // act
@@ -1979,7 +1979,7 @@ TEST_FUNCTION(subscribe_unsubscribe_subscribe_succeeds)
 
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame_type, 1);
-    EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_add(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
 
     // act

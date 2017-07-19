@@ -64,6 +64,7 @@ if(NOT ${use_installed_dependencies})
     endif()	
     add_subdirectory(deps/azure-c-shared-utility)
 endif()
+include("dependencies.cmake")
 
 set_platform_files(${CMAKE_CURRENT_LIST_DIR}/deps/azure-c-shared-utility)
 
@@ -120,8 +121,6 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 add_definitions(-DREFCOUNT_ATOMIC_DONTCARE)
 add_definitions(-D__STDC_NO_ATOMICS__=1)
-
-include("dependencies.cmake")
 
 enable_testing()
 #if any compiler has a command line switch called "OFF" then it will need special care

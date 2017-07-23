@@ -42,7 +42,7 @@ extern "C" {
     MOCKABLE_FUNCTION(, void, sasl_server_mechanism_destroy, SASL_SERVER_MECHANISM_HANDLE, sasl_server_mechanism);
     MOCKABLE_FUNCTION(, int, sasl_server_mechanism_handle_initial_response, SASL_SERVER_MECHANISM_HANDLE, sasl_server_mechanism, const SASL_SERVER_MECHANISM_BYTES*, initial_response_bytes, const char*, hostname, bool*, send_challenge, SASL_SERVER_MECHANISM_BYTES*, challenge_bytes);
     MOCKABLE_FUNCTION(, int, sasl_server_mechanism_handle_response, SASL_SERVER_MECHANISM_HANDLE, sasl_server_mechanism, const SASL_SERVER_MECHANISM_BYTES*, response_bytes, bool*, send_next_challenge, SASL_SERVER_MECHANISM_BYTES*, next_challenge_bytes);
-    MOCKABLE_FUNCTION(, const char*, sasl_server_mechanism_get_mechanism_name);
+    MOCKABLE_FUNCTION(, const char*, sasl_server_mechanism_get_mechanism_name, SASL_SERVER_MECHANISM_HANDLE, sasl_server_mechanism);
 
 #ifdef __cplusplus
 }

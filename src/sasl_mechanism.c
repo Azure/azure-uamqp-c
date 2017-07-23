@@ -23,7 +23,7 @@ SASL_MECHANISM_HANDLE saslmechanism_create(const SASL_MECHANISM_INTERFACE_DESCRI
         LogError("NULL sasl_mechanism_interface_description");
         result = NULL;
     }
-    /* Codes_SRS_SASL_MECHANISM_01_005: [If any `sasl_mechanism_interface_description` member is NULL, `sasl_mechanism_create` shall fail and return NULL.] */
+    /* Codes_SRS_SASL_MECHANISM_01_005: [If any `sasl_mechanism_interface_description` member is NULL, `saslmechanism_create` shall fail and return NULL.] */
     else if ((sasl_mechanism_interface_description->concrete_sasl_mechanism_create == NULL) ||
         (sasl_mechanism_interface_description->concrete_sasl_mechanism_destroy == NULL) ||
         (sasl_mechanism_interface_description->concrete_sasl_mechanism_get_init_bytes == NULL) ||

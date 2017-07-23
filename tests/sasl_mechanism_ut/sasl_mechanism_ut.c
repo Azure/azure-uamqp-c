@@ -183,7 +183,7 @@ TEST_FUNCTION(when_the_interface_description_is_NULL_then_saslmechanism_create_f
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
-/* Tests_SRS_SASL_MECHANISM_01_005: [If any `sasl_mechanism_interface_description` member is NULL, `sasl_mechanism_create` shall fail and return NULL.] */
+/* Tests_SRS_SASL_MECHANISM_01_005: [If any `sasl_mechanism_interface_description` member is NULL, `saslmechanism_create` shall fail and return NULL.] */
 TEST_FUNCTION(when_the_concrete_create_is_NULL_then_saslmechanism_create_fails)
 {
     // arrange
@@ -203,7 +203,7 @@ TEST_FUNCTION(when_the_concrete_create_is_NULL_then_saslmechanism_create_fails)
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
-/* Tests_SRS_SASL_MECHANISM_01_005: [If any `sasl_mechanism_interface_description` member is NULL, `sasl_mechanism_create` shall fail and return NULL.] */
+/* Tests_SRS_SASL_MECHANISM_01_005: [If any `sasl_mechanism_interface_description` member is NULL, `saslmechanism_create` shall fail and return NULL.] */
 TEST_FUNCTION(when_the_concrete_destroy_is_NULL_then_saslmechanism_create_fails)
 {
     // arrange
@@ -223,7 +223,7 @@ TEST_FUNCTION(when_the_concrete_destroy_is_NULL_then_saslmechanism_create_fails)
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
-/* Tests_SRS_SASL_MECHANISM_01_005: [If any `sasl_mechanism_interface_description` member is NULL, `sasl_mechanism_create` shall fail and return NULL.] */
+/* Tests_SRS_SASL_MECHANISM_01_005: [If any `sasl_mechanism_interface_description` member is NULL, `saslmechanism_create` shall fail and return NULL.] */
 TEST_FUNCTION(when_the_concrete_get_init_bytes_is_NULL_then_saslmechanism_create_fails)
 {
     // arrange
@@ -243,7 +243,7 @@ TEST_FUNCTION(when_the_concrete_get_init_bytes_is_NULL_then_saslmechanism_create
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
-/* Tests_SRS_SASL_MECHANISM_01_005: [If any `sasl_mechanism_interface_description` member is NULL, `sasl_mechanism_create` shall fail and return NULL.] */
+/* Tests_SRS_SASL_MECHANISM_01_005: [If any `sasl_mechanism_interface_description` member is NULL, `saslmechanism_create` shall fail and return NULL.] */
 TEST_FUNCTION(when_the_concrete_get_mechanism_name_is_NULL_then_saslmechanism_create_fails)
 {
     // arrange

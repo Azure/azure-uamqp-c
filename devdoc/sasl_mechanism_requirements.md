@@ -4,7 +4,7 @@
 
 `sasl_mechanism` is a module that implements a SASL mechanism interface, abstracting from its consumers functionality of providing init bytes, handling the challenge and providing a response for it as part of the SASL negotiation.
 
-##Exposed API
+## Exposed API
 
 ```C
 	typedef struct SASL_MECHANISM_INSTANCE_TAG* SASL_MECHANISM_HANDLE;
@@ -52,7 +52,7 @@ SASL_MECHANISM_HANDLE saslmechanism_create(const SASL_MECHANISM_INTERFACE_DESCRI
 
 **SRS_SASL_MECHANISM_01_004: [**If the argument `sasl_mechanism_interface_description` is NULL, `saslmechanism_create` shall return NULL.**]**
 
-**SRS_SASL_MECHANISM_01_005: [**If any `sasl_mechanism_interface_description` member is NULL, `sasl_mechanism_create` shall fail and return NULL.**]**
+**SRS_SASL_MECHANISM_01_005: [**If any `sasl_mechanism_interface_description` member is NULL, `saslmechanism_create` shall fail and return NULL.**]**
 
 **SRS_SASL_MECHANISM_01_006: [**If allocating the memory needed for the SASL mechanism interface fails then `saslmechanism_create` shall fail and return NULL.**]** 
 

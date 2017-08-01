@@ -184,12 +184,12 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
     else
     {
         // header
-        HEADER_HANDLE header;
-        AMQP_VALUE header_amqp_value;
-        PROPERTIES_HANDLE properties;
-        AMQP_VALUE properties_amqp_value;
-        AMQP_VALUE application_properties;
-        AMQP_VALUE application_properties_value;
+        HEADER_HANDLE header = NULL;
+        AMQP_VALUE header_amqp_value = NULL;
+        PROPERTIES_HANDLE properties = NULL;
+        AMQP_VALUE properties_amqp_value = NULL;
+        AMQP_VALUE application_properties = NULL;
+        AMQP_VALUE application_properties_value = NULL;
         AMQP_VALUE body_amqp_value = NULL;
         size_t body_data_count = 0;
         AMQP_VALUE msg_annotations = NULL;
@@ -445,6 +445,21 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
             {
                 amqpvalue_destroy(body_amqp_value);
             }
+        }
+
+        if (header != NULL)
+        {
+            header_destroy(header);
+        }
+
+        if (header_amqp_value != NULL)
+        {
+            amqpvalue_destroy(header_amqp_value);
+        }
+
+        if (msg_annotations != NULL)
+        {
+            annotations_destroy(msg_annotations);
         }
 
         if (application_properties != NULL)

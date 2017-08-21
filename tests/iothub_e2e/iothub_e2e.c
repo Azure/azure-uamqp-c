@@ -17,18 +17,7 @@
 #include "azure_c_shared_utility/tlsio.h"
 #include "azure_c_shared_utility/strings.h"
 #include "azure_c_shared_utility/sastoken.h"
-#include "azure_uamqp_c/message_sender.h"
-#include "azure_uamqp_c/message_receiver.h"
-#include "azure_uamqp_c/socket_listener.h"
-#include "azure_uamqp_c/header_detect_io.h"
-#include "azure_uamqp_c/connection.h"
-#include "azure_uamqp_c/session.h"
-#include "azure_uamqp_c/link.h"
-#include "azure_uamqp_c/messaging.h"
-#include "azure_uamqp_c/sasl_mechanism.h"
-#include "azure_uamqp_c/sasl_mssbcbs.h"
-#include "azure_uamqp_c/saslclientio.h"
-#include "azure_uamqp_c/cbs.h"
+#include "azure_uamqp_c/uamqp.h"
 
 static TEST_MUTEX_HANDLE g_testByTest;
 static TEST_MUTEX_HANDLE g_dllByDll;

@@ -8,9 +8,7 @@
 #include "azure_c_shared_utility/platform.h"
 #include "azure_c_shared_utility/socketio.h"
 #include "azure_c_shared_utility/tickcounter.h"
-#include "azure_uamqp_c/message_sender.h"
-#include "azure_uamqp_c/message.h"
-#include "azure_uamqp_c/messaging.h"
+#include "azure_uamqp_c/uamqp.h"
 
 #if _WIN32
 #include "windows.h"

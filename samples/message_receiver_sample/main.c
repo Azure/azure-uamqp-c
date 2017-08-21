@@ -7,11 +7,7 @@
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/platform.h"
 #include "azure_c_shared_utility/tlsio.h"
-#include "azure_uamqp_c/message_receiver.h"
-#include "azure_uamqp_c/message.h"
-#include "azure_uamqp_c/messaging.h"
-#include "azure_uamqp_c/saslclientio.h"
-#include "azure_uamqp_c/sasl_plain.h"
+#include "azure_uamqp_c/uamqp.h"
 
 /* This sample connects to an Event Hub, authenticates using SASL PLAIN (key name/key) and then it received all messages for partition 0 */
 /* Replace the below settings with your own.*/

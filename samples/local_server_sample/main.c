@@ -7,14 +7,7 @@
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/platform.h"
 #include "azure_c_shared_utility/xio.h"
-#include "azure_uamqp_c/message_receiver.h"
-#include "azure_uamqp_c/message.h"
-#include "azure_uamqp_c/messaging.h"
-#include "azure_uamqp_c/socket_listener.h"
-#include "azure_uamqp_c/header_detect_io.h"
-#include "azure_uamqp_c/connection.h"
-#include "azure_uamqp_c/session.h"
-#include "azure_uamqp_c/link.h"
+#include "azure_uamqp_c/uamqp.h"
 
 static unsigned int sent_messages = 0;
 static const size_t msg_count = 1;

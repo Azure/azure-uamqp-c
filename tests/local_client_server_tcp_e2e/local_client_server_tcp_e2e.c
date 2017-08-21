@@ -12,14 +12,7 @@
 #include "azure_c_shared_utility/platform.h"
 #include "azure_c_shared_utility/threadapi.h"
 #include "azure_c_shared_utility/socketio.h"
-#include "azure_uamqp_c/message_sender.h"
-#include "azure_uamqp_c/message_receiver.h"
-#include "azure_uamqp_c/socket_listener.h"
-#include "azure_uamqp_c/header_detect_io.h"
-#include "azure_uamqp_c/connection.h"
-#include "azure_uamqp_c/session.h"
-#include "azure_uamqp_c/link.h"
-#include "azure_uamqp_c/messaging.h"
+#include "azure_uamqp_c/uamqp.h"
 
 static TEST_MUTEX_HANDLE g_testByTest;
 static TEST_MUTEX_HANDLE g_dllByDll;

@@ -205,6 +205,7 @@ set(uamqp_h_files
     ./inc/azure_uamqp_c/server_protocol_io.h
     ./inc/azure_uamqp_c/session.h
     ./inc/azure_uamqp_c/socket_listener.h
+    ./inc/azure_uamqp_c/uamqp.h
 )
 
 set(uamqp_c_files

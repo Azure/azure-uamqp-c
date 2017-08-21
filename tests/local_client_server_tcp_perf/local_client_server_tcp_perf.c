@@ -8,14 +8,7 @@
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_c_shared_utility/singlylinkedlist.h"
 #include "azure_c_shared_utility/socketio.h"
-#include "azure_uamqp_c/socket_listener.h"
-#include "azure_uamqp_c/header_detect_io.h"
-#include "azure_uamqp_c/connection.h"
-#include "azure_uamqp_c/session.h"
-#include "azure_uamqp_c/link.h"
-#include "azure_uamqp_c/message_receiver.h"
-#include "azure_uamqp_c/message_sender.h"
-#include "azure_uamqp_c/messaging.h"
+#include "azure_uamqp_c/uamqp.h"
 
 #define CLIENT_COUNT 1
 #define OUTSTANDING_MESSAGE_COUNT 1

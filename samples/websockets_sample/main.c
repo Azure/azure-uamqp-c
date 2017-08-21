@@ -7,14 +7,9 @@
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/platform.h"
 #include "azure_c_shared_utility/sastoken.h"
-#include "azure_uamqp_c/message_sender.h"
-#include "azure_uamqp_c/message.h"
-#include "azure_uamqp_c/messaging.h"
-#include "azure_uamqp_c/saslclientio.h"
-#include "azure_uamqp_c/sasl_mssbcbs.h"
 #include "azure_c_shared_utility/wsio.h"
 #include "azure_c_shared_utility/tlsio.h"
-#include "azure_uamqp_c/cbs.h"
+#include "azure_uamqp_c/uamqp.h"
 #include "iothub_certs.h"
 
 /* Replace the below settings with your own.*/

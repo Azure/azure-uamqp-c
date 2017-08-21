@@ -23,7 +23,7 @@
 /* This sample connects to an Event Hub, authenticates using SASL PLAIN (key name/key) and then it sends 1000 messages */
 /* Replace the below settings with your own.*/
 
-#define EH_HOST "10.91.88.103"
+#define EH_HOST "<<<Replace with your own EH host (like myeventhub.servicebus.windows.net)>>>"
 #define EH_KEY_NAME "<<<Replace with your own key name>>>"
 #define EH_KEY "<<<Replace with your own key>>>"
 #define EH_NAME "<<<Replace with your own EH name (like ingress_eh)>>>"
@@ -46,47 +46,48 @@ int main(int argc, char** argv)
     (void)argc;
     (void)argv;
 
-	if (platform_init() != 0)
-	{
-		result = -1;
-	}
-	else
-	{
-		XIO_HANDLE sasl_io;
-		CONNECTION_HANDLE connection;
-		SESSION_HANDLE session;
-		LINK_HANDLE link;
-		MESSAGE_SENDER_HANDLE message_sender;
-		MESSAGE_HANDLE message;
-		SASL_PLAIN_CONFIG sasl_plain_config = { EH_KEY_NAME, EH_KEY, NULL };
-        SOCKETIO_CONFIG tls_io_config = { EH_HOST, 5672 };
-		const IO_INTERFACE_DESCRIPTION* tlsio_interface;
-		SASLCLIENTIO_CONFIG sasl_io_config;
-		AMQP_VALUE source;
-		AMQP_VALUE target;
+    if (platform_init() != 0)
+    {
+        result = -1;
+    }
+    else
+    {
+        XIO_HANDLE sasl_io;
+        CONNECTION_HANDLE connection;
+        SESSION_HANDLE session;
+        LINK_HANDLE link;
+        MESSAGE_SENDER_HANDLE message_sender;
+        MESSAGE_HANDLE message;
+        SASL_PLAIN_CONFIG sasl_plain_config = { EH_KEY_NAME, EH_KEY, NULL };
+        TLSIO_CONFIG tls_io_config = { EH_HOST, 5671 };
+        const IO_INTERFACE_DESCRIPTION* tlsio_interface;
+        SASLCLIENTIO_CONFIG sasl_io_config;
+        AMQP_VALUE source;
+        AMQP_VALUE target;
 
-		size_t last_memory_used = 0;
-		SASL_MECHANISM_HANDLE sasl_mechanism_handle;
-		XIO_HANDLE tls_io;
-		unsigned char hello[] = { 'H', 'e', 'l', 'l', 'o' };
-		BINARY_DATA binary_data;
+        size_t last_memory_used = 0;
+        SASL_MECHANISM_HANDLE sasl_mechanism_handle;
+        XIO_HANDLE tls_io;
+        unsigned char hello[] = { 'H', 'e', 'l', 'l', 'o' };
+        BINARY_DATA binary_data;
 
         gballoc_init();
 
-		/* create SASL PLAIN handler */
-		sasl_mechanism_handle = saslmechanism_create(saslplain_get_interface(), &sasl_plain_config);
+        /* create SASL PLAIN handler */
+        sasl_mechanism_handle = saslmechanism_create(saslplain_get_interface(), &sasl_plain_config);
 
-		/* create the TLS IO */
-		tlsio_interface = platform_get_default_tlsio();
-		tls_io = xio_create(socketio_get_interface_description(), &tls_io_config);
+        /* create the TLS IO */
+        tlsio_interface = platform_get_default_tlsio();
+        tls_io = xio_create(tlsio_interface, &tls_io_config);
 
-		/* create the SASL client IO using the TLS IO */
+        /* create the SASL client IO using the TLS IO */
         sasl_io_config.underlying_io = tls_io;
         sasl_io_config.sasl_mechanism = sasl_mechanism_handle;
         sasl_io = xio_create(saslclientio_get_interface_description(), &sasl_io_config);
 
         /* create the connection, session and link */
         connection = connection_create(sasl_io, EH_HOST, "some", NULL, NULL);
+        connection_set_trace(connection, true);
         session = session_create(connection, NULL, NULL);
         session_set_incoming_window(session, 2147483647);
         session_set_outgoing_window(session, 65536);

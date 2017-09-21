@@ -542,7 +542,10 @@ static void indicate_all_messages_as_error(MESSAGE_SENDER_INSTANCE* message_send
             message_sender_instance->messages[i]->on_message_send_complete(message_sender_instance->messages[i]->context, MESSAGE_SEND_ERROR);
         }
 
-        message_destroy(message_sender_instance->messages[i]->message);
+        if (message_sender_instance->messages[i]->message != NULL)
+        {
+            message_destroy(message_sender_instance->messages[i]->message);
+        }
         free(message_sender_instance->messages[i]);
     }
 

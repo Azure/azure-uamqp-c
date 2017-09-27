@@ -303,6 +303,9 @@ TEST_SUITE_INITIALIZE(suite_init)
     REGISTER_UMOCK_ALIAS_TYPE(ON_MESSAGE_SEND_COMPLETE, void*);
     REGISTER_UMOCK_ALIAS_TYPE(message_id_ulong, uint64_t);
 
+    /* boo, we need uint_fast32_t in umock */
+    REGISTER_UMOCK_ALIAS_TYPE(tickcounter_ms_t, uint32_t);
+
     REGISTER_UMOCKC_PAIRED_CREATE_DESTROY_CALLS(link_create, link_destroy);
     REGISTER_UMOCKC_PAIRED_CREATE_DESTROY_CALLS(messagesender_create, messagesender_destroy);
     REGISTER_UMOCKC_PAIRED_CREATE_DESTROY_CALLS(messagereceiver_create, messagereceiver_destroy);
@@ -1060,7 +1063,7 @@ TEST_FUNCTION(amqp_management_execute_operation_async_starts_the_operation)
     STRICT_EXPECTED_CALL(properties_destroy(test_properties));
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist_handle, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(messagesender_send(test_message_sender, test_cloned_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(messagesender_send_async(test_message_sender, test_cloned_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG, 0));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_application_properties));
     STRICT_EXPECTED_CALL(message_destroy(test_cloned_message));
 
@@ -1121,7 +1124,7 @@ TEST_FUNCTION(amqp_management_execute_operation_async_with_NULL_context_starts_t
     STRICT_EXPECTED_CALL(properties_destroy(test_properties));
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist_handle, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(messagesender_send(test_message_sender, test_cloned_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(messagesender_send_async(test_message_sender, test_cloned_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG, 0));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_application_properties));
     STRICT_EXPECTED_CALL(message_destroy(test_cloned_message));
 
@@ -1265,7 +1268,7 @@ TEST_FUNCTION(amqp_management_execute_operation_async_with_NULL_message_creates_
     STRICT_EXPECTED_CALL(properties_destroy(test_properties));
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist_handle, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(messagesender_send(test_message_sender, test_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(messagesender_send_async(test_message_sender, test_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG, 0));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_application_properties));
     STRICT_EXPECTED_CALL(message_destroy(test_message));
 
@@ -1397,7 +1400,7 @@ TEST_FUNCTION(when_no_application_properties_were_set_on_the_message_a_new_map_i
     STRICT_EXPECTED_CALL(properties_destroy(test_properties));
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist_handle, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(messagesender_send(test_message_sender, test_cloned_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(messagesender_send_async(test_message_sender, test_cloned_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG, 0));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_application_properties));
     STRICT_EXPECTED_CALL(message_destroy(test_cloned_message));
 
@@ -1451,7 +1454,7 @@ TEST_FUNCTION(amqp_management_execute_operation_async_with_NULL_locales_does_not
     STRICT_EXPECTED_CALL(properties_destroy(test_properties));
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist_handle, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(messagesender_send(test_message_sender, test_cloned_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(messagesender_send_async(test_message_sender, test_cloned_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG, 0));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_application_properties));
     STRICT_EXPECTED_CALL(message_destroy(test_cloned_message));
 
@@ -1514,7 +1517,7 @@ TEST_FUNCTION(when_no_properties_were_set_on_the_message_a_new_properties_instan
     STRICT_EXPECTED_CALL(properties_destroy(test_properties));
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist_handle, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(messagesender_send(test_message_sender, test_cloned_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(messagesender_send_async(test_message_sender, test_cloned_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG, 0));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_application_properties));
     STRICT_EXPECTED_CALL(message_destroy(test_cloned_message));
 
@@ -1594,7 +1597,7 @@ TEST_FUNCTION(when_any_underlying_function_call_fails_amqp_management_execute_op
         .SetFailReturn(NULL);
     STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist_handle, IGNORED_PTR_ARG))
         .SetFailReturn(NULL);
-    STRICT_EXPECTED_CALL(messagesender_send(test_message_sender, test_cloned_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(messagesender_send_async(test_message_sender, test_cloned_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG, 0))
         .SetFailReturn(1);
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_application_properties));
     STRICT_EXPECTED_CALL(message_destroy(test_cloned_message));
@@ -1772,7 +1775,7 @@ TEST_FUNCTION(amqp_management_execute_operation_async_the_2nd_time_uses_the_next
     STRICT_EXPECTED_CALL(properties_destroy(test_properties));
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist_handle, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(messagesender_send(test_message_sender, test_cloned_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(messagesender_send_async(test_message_sender, test_cloned_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG, 0));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_application_properties));
     STRICT_EXPECTED_CALL(message_destroy(test_cloned_message));
 

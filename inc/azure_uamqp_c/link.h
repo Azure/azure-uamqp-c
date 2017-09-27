@@ -5,6 +5,7 @@
 #define LINK_H
 
 #include <stddef.h>
+#include "azure_c_shared_utility/tickcounter.h"
 #include "azure_uamqp_c/session.h"
 #include "azure_uamqp_c/amqpvalue.h"
 #include "azure_uamqp_c/amqp_definitions.h"
@@ -37,7 +38,8 @@ typedef enum LINK_DELIVERY_SETTLE_REASON_TAG
 {
     LINK_DELIVERY_SETTLE_REASON_DISPOSITION_RECEIVED,
     LINK_DELIVERY_SETTLE_REASON_SETTLED,
-    LINK_DELIVERY_SETTLE_REASON_NOT_DELIVERED
+    LINK_DELIVERY_SETTLE_REASON_NOT_DELIVERED,
+    LINK_DELIVERY_SETTLE_REASON_TIMEOUT
 } LINK_DELIVERY_SETTLE_REASON;
 
 typedef void(*ON_DELIVERY_SETTLED)(void* context, delivery_number delivery_no, LINK_DELIVERY_SETTLE_REASON reason, AMQP_VALUE delivery_state);
@@ -63,7 +65,8 @@ MOCKABLE_FUNCTION(, int, link_get_received_message_id, LINK_HANDLE, link, delive
 MOCKABLE_FUNCTION(, int, link_send_disposition, LINK_HANDLE, link, delivery_number, message_number, AMQP_VALUE, delivery_state);
 MOCKABLE_FUNCTION(, int, link_attach, LINK_HANDLE, link, ON_TRANSFER_RECEIVED, on_transfer_received, ON_LINK_STATE_CHANGED, on_link_state_changed, ON_LINK_FLOW_ON, on_link_flow_on, void*, callback_context);
 MOCKABLE_FUNCTION(, int, link_detach, LINK_HANDLE, link, bool, close);
-MOCKABLE_FUNCTION(, LINK_TRANSFER_RESULT, link_transfer, LINK_HANDLE, handle, message_format, message_format, PAYLOAD*, payloads, size_t, payload_count, ON_DELIVERY_SETTLED, on_delivery_settled, void*, callback_context);
+MOCKABLE_FUNCTION(, LINK_TRANSFER_RESULT, link_transfer_async, LINK_HANDLE, handle, message_format, message_format, PAYLOAD*, payloads, size_t, payload_count, ON_DELIVERY_SETTLED, on_delivery_settled, void*, callback_context, tickcounter_ms_t, timeout);
+MOCKABLE_FUNCTION(, void, link_dowork, LINK_HANDLE, link);
 
 #ifdef __cplusplus
 }

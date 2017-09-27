@@ -164,7 +164,7 @@ int main(int argc, char** argv)
 
             for (i = 0; i < msg_count; i++)
             {
-                (void)messagesender_send(message_sender, message, on_message_send_complete, message);
+                (void)messagesender_send_async(message_sender, message, on_message_send_complete, message, 0);
             }
 
             message_destroy(message);

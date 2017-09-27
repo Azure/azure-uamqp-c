@@ -8,6 +8,7 @@
 #include "azure_uamqp_c/link.h"
 #include "azure_uamqp_c/message.h"
 #include "azure_c_shared_utility/xlogging.h"
+#include "azure_c_shared_utility/tickcounter.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,7 +19,8 @@ extern "C" {
     typedef enum MESSAGE_SEND_RESULT_TAG
     {
         MESSAGE_SEND_OK,
-        MESSAGE_SEND_ERROR
+        MESSAGE_SEND_ERROR,
+        MESSAGE_SEND_TIMEOUT
     } MESSAGE_SEND_RESULT;
 
     typedef enum MESSAGE_SENDER_STATE_TAG
@@ -38,7 +40,7 @@ extern "C" {
     MOCKABLE_FUNCTION(, void, messagesender_destroy, MESSAGE_SENDER_HANDLE, message_sender);
     MOCKABLE_FUNCTION(, int, messagesender_open, MESSAGE_SENDER_HANDLE, message_sender);
     MOCKABLE_FUNCTION(, int, messagesender_close, MESSAGE_SENDER_HANDLE, message_sender);
-    MOCKABLE_FUNCTION(, int, messagesender_send, MESSAGE_SENDER_HANDLE, message_sender, MESSAGE_HANDLE, message, ON_MESSAGE_SEND_COMPLETE, on_message_send_complete, void*, callback_context);
+    MOCKABLE_FUNCTION(, int, messagesender_send_async, MESSAGE_SENDER_HANDLE, message_sender, MESSAGE_HANDLE, message, ON_MESSAGE_SEND_COMPLETE, on_message_send_complete, void*, callback_context, tickcounter_ms_t, timeout);
     MOCKABLE_FUNCTION(, void, messagesender_set_trace, MESSAGE_SENDER_HANDLE, message_sender, bool, traceOn);
 
 #ifdef __cplusplus

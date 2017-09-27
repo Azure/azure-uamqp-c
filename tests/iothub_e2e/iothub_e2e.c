@@ -288,7 +288,7 @@ TEST_FUNCTION(send_1_message_to_iothub_unsettled_auth_with_cbs)
     ASSERT_IS_NOT_NULL_WITH_MSG(client_message_sender, "Could not create message sender");
     result = messagesender_open(client_message_sender);
     ASSERT_ARE_EQUAL_WITH_MSG(int, 0, result, "cannot open message sender");
-    result = messagesender_send(client_message_sender, client_send_message, on_message_send_complete, &sent_messages);
+    result = messagesender_send_async(client_message_sender, client_send_message, on_message_send_complete, &sent_messages, 0);
     ASSERT_ARE_EQUAL_WITH_MSG(int, 0, result, "cannot send message");
     message_destroy(client_send_message);
 

@@ -7,6 +7,7 @@
 #include "azure_c_shared_utility/optimize_size.h"
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/xlogging.h"
+#include "azure_c_shared_utility/tickcounter.h"
 #include "azure_uamqp_c/message_sender.h"
 #include "azure_uamqp_c/amqpvalue_to_string.h"
 
@@ -30,6 +31,7 @@ typedef struct MESSAGE_WITH_CALLBACK_TAG
     void* context;
     MESSAGE_SENDER_HANDLE message_sender;
     MESSAGE_SEND_STATE message_send_state;
+    tickcounter_ms_t timeout;
 } MESSAGE_WITH_CALLBACK;
 
 typedef struct MESSAGE_SENDER_INSTANCE_TAG
@@ -127,6 +129,9 @@ static void on_delivery_settled(void* context, delivery_number delivery_no, LINK
             break;
         case LINK_DELIVERY_SETTLE_REASON_SETTLED:
             message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_OK);
+            break;
+        case LINK_DELIVERY_SETTLE_REASON_TIMEOUT:
+            message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_TIMEOUT);
             break;
         case LINK_DELIVERY_SETTLE_REASON_NOT_DELIVERED:
         default:
@@ -421,7 +426,7 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
             if (result == SEND_ONE_MESSAGE_OK)
             {
                 message_with_callback->message_send_state = MESSAGE_SEND_STATE_PENDING;
-                switch (link_transfer(message_sender_instance->link, message_format, &payload, 1, on_delivery_settled, message_with_callback))
+                switch (link_transfer_async(message_sender_instance->link, message_format, &payload, 1, on_delivery_settled, message_with_callback, message_with_callback->timeout))
                 {
                 default:
                 case LINK_TRANSFER_ERROR:
@@ -704,7 +709,7 @@ int messagesender_close(MESSAGE_SENDER_HANDLE message_sender)
     return result;
 }
 
-int messagesender_send(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDLE message, ON_MESSAGE_SEND_COMPLETE on_message_send_complete, void* callback_context)
+int messagesender_send_async(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDLE message, ON_MESSAGE_SEND_COMPLETE on_message_send_complete, void* callback_context, tickcounter_ms_t timeout)
 {
     int result;
 
@@ -739,7 +744,9 @@ int messagesender_send(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDLE mess
                 {
                     result = 0;
 
+                    message_with_callback->timeout = timeout;
                     message_sender_instance->messages = new_messages;
+
                     if (message_sender_instance->message_sender_state != MESSAGE_SENDER_STATE_OPEN)
                     {
                         message_with_callback->message = message_clone(message);

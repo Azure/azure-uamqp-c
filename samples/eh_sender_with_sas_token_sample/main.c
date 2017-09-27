@@ -205,7 +205,8 @@ int main(int argc, char** argv)
             {
                 for (i = 0; i < msg_count; i++)
                 {
-                    (void)messagesender_send(message_sender, message, on_message_send_complete, message);
+                    /* timeout if it takes longer than 10s */
+                    (void)messagesender_send_async(message_sender, message, on_message_send_complete, message, 10000);
                 }
 
                 message_destroy(message);

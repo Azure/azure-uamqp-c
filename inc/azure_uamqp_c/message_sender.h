@@ -9,28 +9,28 @@
 #include "azure_uamqp_c/message.h"
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_c_shared_utility/tickcounter.h"
+#include "azure_c_shared_utility/umock_c_prod.h"
+#include "azure_c_shared_utility/macro_utils.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-#include "azure_c_shared_utility/umock_c_prod.h"
+#define MESSAGE_SEND_RESULT_VALUES \
+    MESSAGE_SEND_OK, \
+    MESSAGE_SEND_ERROR, \
+    MESSAGE_SEND_TIMEOUT
 
-    typedef enum MESSAGE_SEND_RESULT_TAG
-    {
-        MESSAGE_SEND_OK,
-        MESSAGE_SEND_ERROR,
-        MESSAGE_SEND_TIMEOUT
-    } MESSAGE_SEND_RESULT;
+DEFINE_ENUM(MESSAGE_SEND_RESULT, MESSAGE_SEND_RESULT_VALUES)
 
-    typedef enum MESSAGE_SENDER_STATE_TAG
-    {
-        MESSAGE_SENDER_STATE_IDLE,
-        MESSAGE_SENDER_STATE_OPENING,
-        MESSAGE_SENDER_STATE_OPEN,
-        MESSAGE_SENDER_STATE_CLOSING,
-        MESSAGE_SENDER_STATE_ERROR
-    } MESSAGE_SENDER_STATE;
+#define MESSAGE_SENDER_STATE_VALUES \
+    MESSAGE_SENDER_STATE_IDLE, \
+    MESSAGE_SENDER_STATE_OPENING, \
+    MESSAGE_SENDER_STATE_OPEN, \
+    MESSAGE_SENDER_STATE_CLOSING, \
+    MESSAGE_SENDER_STATE_ERROR
+
+DEFINE_ENUM(MESSAGE_SENDER_STATE, MESSAGE_SENDER_STATE_VALUES)
 
     typedef struct MESSAGE_SENDER_INSTANCE_TAG* MESSAGE_SENDER_HANDLE;
     typedef void(*ON_MESSAGE_SEND_COMPLETE)(void* context, MESSAGE_SEND_RESULT send_result);

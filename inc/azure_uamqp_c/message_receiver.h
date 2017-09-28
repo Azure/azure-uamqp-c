@@ -7,6 +7,8 @@
 #include "azure_uamqp_c/link.h"
 #include "azure_uamqp_c/message.h"
 #include "azure_uamqp_c/amqp_definitions.h"
+#include "azure_c_shared_utility/umock_c_prod.h"
+#include "azure_c_shared_utility/macro_utils.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,16 +16,14 @@ extern "C" {
 #include <stdbool.h>
 #endif /* __cplusplus */
 
-#include "azure_c_shared_utility/umock_c_prod.h"
+#define MESSAGE_RECEIVER_STATE_VALUES \
+    MESSAGE_RECEIVER_STATE_IDLE, \
+    MESSAGE_RECEIVER_STATE_OPENING, \
+    MESSAGE_RECEIVER_STATE_OPEN, \
+    MESSAGE_RECEIVER_STATE_CLOSING, \
+    MESSAGE_RECEIVER_STATE_ERROR
 
-    typedef enum MESSAGE_RECEIVER_STATE_TAG
-    {
-        MESSAGE_RECEIVER_STATE_IDLE,
-        MESSAGE_RECEIVER_STATE_OPENING,
-        MESSAGE_RECEIVER_STATE_OPEN,
-        MESSAGE_RECEIVER_STATE_CLOSING,
-        MESSAGE_RECEIVER_STATE_ERROR
-    } MESSAGE_RECEIVER_STATE;
+DEFINE_ENUM(MESSAGE_RECEIVER_STATE, MESSAGE_RECEIVER_STATE_VALUES)
 
     typedef struct MESSAGE_RECEIVER_INSTANCE_TAG* MESSAGE_RECEIVER_HANDLE;
     typedef AMQP_VALUE (*ON_MESSAGE_RECEIVED)(const void* context, MESSAGE_HANDLE message);

@@ -8,34 +8,34 @@
 #include "azure_uamqp_c/amqpvalue.h"
 #include "azure_uamqp_c/amqp_frame_codec.h"
 #include "azure_uamqp_c/connection.h"
+#include "azure_c_shared_utility/umock_c_prod.h"
+#include "azure_c_shared_utility/macro_utils.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-#include "azure_c_shared_utility/umock_c_prod.h"
+typedef struct SESSION_INSTANCE_TAG* SESSION_HANDLE;
+typedef struct LINK_ENDPOINT_INSTANCE_TAG* LINK_ENDPOINT_HANDLE;
 
-    typedef struct SESSION_INSTANCE_TAG* SESSION_HANDLE;
-    typedef struct LINK_ENDPOINT_INSTANCE_TAG* LINK_ENDPOINT_HANDLE;
+#define SESSION_STATE_VALUES \
+    SESSION_STATE_UNMAPPED, \
+    SESSION_STATE_BEGIN_SENT, \
+    SESSION_STATE_BEGIN_RCVD, \
+    SESSION_STATE_MAPPED, \
+    SESSION_STATE_END_SENT, \
+    SESSION_STATE_END_RCVD, \
+    SESSION_STATE_DISCARDING, \
+    SESSION_STATE_ERROR
 
-    typedef enum SESION_STATE_TAG
-    {
-        SESSION_STATE_UNMAPPED,
-        SESSION_STATE_BEGIN_SENT,
-        SESSION_STATE_BEGIN_RCVD,
-        SESSION_STATE_MAPPED,
-        SESSION_STATE_END_SENT,
-        SESSION_STATE_END_RCVD,
-        SESSION_STATE_DISCARDING,
-        SESSION_STATE_ERROR
-    } SESSION_STATE;
+DEFINE_ENUM(SESSION_STATE, SESSION_STATE_VALUES)
 
-    typedef enum SESSION_SEND_TRANSFER_RESULT_TAG
-    {
-        SESSION_SEND_TRANSFER_OK,
-        SESSION_SEND_TRANSFER_ERROR,
-        SESSION_SEND_TRANSFER_BUSY
-    } SESSION_SEND_TRANSFER_RESULT;
+#define SESSION_SEND_TRANSFER_RESULT_VALUES \
+    SESSION_SEND_TRANSFER_OK, \
+    SESSION_SEND_TRANSFER_ERROR, \
+    SESSION_SEND_TRANSFER_BUSY
+
+DEFINE_ENUM(SESSION_SEND_TRANSFER_RESULT, SESSION_SEND_TRANSFER_RESULT_VALUES)
 
     typedef void(*LINK_ENDPOINT_FRAME_RECEIVED_CALLBACK)(void* context, AMQP_VALUE performative, uint32_t frame_payload_size, const unsigned char* payload_bytes);
     typedef void(*ON_SESSION_STATE_CHANGED)(void* context, SESSION_STATE new_session_state, SESSION_STATE previous_session_state);

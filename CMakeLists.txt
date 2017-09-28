@@ -6,44 +6,12 @@ project(uamqp)
 
 set(UAMQP_VERSION 1.0.45)
 
-# Build with -fPIC always
-set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
-
-#making a nice global variable to know if we are on linux or not.
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set(LINUX TRUE)
-    #on Linux, enable valgrind
-    #these commands (MEMORYCHECK...) need to apear BEFORE include(CTest) or they will not have any effect
-    find_program(MEMORYCHECK_COMMAND valgrind)	
-    set(MEMORYCHECK_COMMAND_OPTIONS "--leak-check=full --error-exitcode=1 --track-origins=yes")
-endif()
-
-include (CTest)
-include(CheckIncludeFiles)
-
-if(MSVC)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W4")
-elseif(UNIX)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
-endif()
-
-IF(WIN32)
-    #windows needs this define
-    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-    # Make warning as error
-    add_definitions(/WX)
-ELSE()
-    # Make warning as error
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
-ENDIF(WIN32)
+# Include the common build rules for the C SDK
+include(deps/azure-c-shared-utility/configs/azure_iot_build_rules.cmake)
 
 option(run_e2e_tests "set run_e2e_tests to ON to run e2e tests (default is OFF) [if possible, they are always built]" OFF)
 option(run_unittests "set run_unittests to ON to run unittests (default is OFF)" OFF)
 option(skip_samples "set skip_samples to ON to skip building samples (default is OFF)[if possible, they are always built]" OFF)
-option(compileOption_C "passes a string to the command line of the C compiler" OFF)
-option(compileOption_CXX "passes a string to the command line of the C++ compiler" OFF)
 option(use_installed_dependencies "set use_installed_dependencies to ON to use installed packages instead of building dependencies from submodules" OFF)
 option(memory_trace "set memory_trace to ON if memory usage is to be used, set to OFF to not use it" OFF)
 
@@ -86,93 +54,11 @@ else()
     option(use_wolfssl "set use_wolfssl to ON if wolfssl is to be used, set to OFF to not use wolfssl" OFF)
 endif()
 
-include(CheckSymbolExists)
-function(detect_architecture symbol arch) 
-    if (NOT DEFINED ARCHITECTURE OR ARCHITECTURE STREQUAL "")
-        set(CMAKE_REQUIRED_QUIET 1)
-        check_symbol_exists("${symbol}" "" ARCHITECTURE_${arch}) 
-        unset(CMAKE_REQUIRED_QUIET) 
-  
-        # The output variable needs to be unique across invocations otherwise 
-        # CMake's crazy scope rules will keep it defined 
-        if (ARCHITECTURE_${arch}) 
-            set(ARCHITECTURE "${arch}" PARENT_SCOPE) 
-            set(ARCHITECTURE_${arch} 1 PARENT_SCOPE) 
-            add_definitions(-DARCHITECTURE_${arch}=1) 
-        endif() 
-    endif() 
-endfunction()
-if (MSVC) 
-    detect_architecture("_M_AMD64" x86_64) 
-    detect_architecture("_M_IX86" x86) 
-    detect_architecture("_M_ARM" ARM) 
-else() 
-    detect_architecture("__x86_64__" x86_64) 
-    detect_architecture("__i386__" x86) 
-    detect_architecture("__arm__" ARM) 
-endif() 
-if (NOT DEFINED ARCHITECTURE OR ARCHITECTURE STREQUAL "")
-    set(ARCHITECTURE "GENERIC") 
-endif() 
-message(STATUS "AMQP Target architecture: ${ARCHITECTURE}")
-
-#Use solution folders. 
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-
 add_definitions(-DREFCOUNT_ATOMIC_DONTCARE)
 add_definitions(-D__STDC_NO_ATOMICS__=1)
 
-enable_testing()
-#if any compiler has a command line switch called "OFF" then it will need special care
-if(NOT "${compileOption_C}" STREQUAL "OFF")
-    set(CMAKE_C_FLAGS "${compileOption_C} ${CMAKE_C_FLAGS}")
-endif()
 
-if(NOT "${compileOption_CXX}" STREQUAL "OFF")
-    set(CMAKE_CXX_FLAGS "${compileOption_CXX} ${CMAKE_CXX_FLAGS}")
-endif()
-
-#this project uses several other projects that are build not by these CMakeFiles
-#this project also targets several OSes
-
-#this function takes care of three things:
-#1. copying some shared libraries(.dll or .so) to the location of the output executable
-
-macro(compileAsC99)
-  if (CMAKE_VERSION VERSION_LESS "3.1")
-    if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
-      set (CMAKE_C_FLAGS "--std=c99 ${CMAKE_C_FLAGS}")
-      set (CMAKE_CXX_FLAGS "--std=c++11 ${CMAKE_CXX_FLAGS}")
-    endif()
-  else()
-    set (CMAKE_C_STANDARD 99)
-    set (CMAKE_CXX_STANDARD 11)
-  endif()
-endmacro(compileAsC99)
-
-macro(compileAsC11)
-  if (CMAKE_VERSION VERSION_LESS "3.1")
-    if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
-      set (CMAKE_C_FLAGS "--std=c11 ${CMAKE_C_FLAGS}")
-      set (CMAKE_C_FLAGS "-D_POSIX_C_SOURCE=200112L ${CMAKE_C_FLAGS}")
-      set (CMAKE_CXX_FLAGS "--std=c++11 ${CMAKE_CXX_FLAGS}")
-    endif()
-  else()
-    set (CMAKE_C_STANDARD 11)
-    set (CMAKE_CXX_STANDARD 11)
-  endif()
-endmacro(compileAsC11)
-
-CHECK_INCLUDE_FILES(stdint.h HAVE_STDINT_H)
-CHECK_INCLUDE_FILES(stdbool.h HAVE_STDBOOL_H)
-
-if ((NOT HAVE_STDINT_H) OR (NOT HAVE_STDBOOL_H))
-    include_directories(${SHARED_UTIL_INC_FOLDER}/azure_c_shared_utility/windowsce)
-endif()
-
-include_directories(${CMAKE_CURRENT_LIST_DIR}/inc ${SHARED_UTIL_INC_FOLDER})
-
-add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+include_directories(${CMAKE_CURRENT_LIST_DIR}/inc)
 
 if(WIN32)
     include_directories($ENV{OpenSSLDir}/include)

@@ -45,37 +45,37 @@ typedef struct MESSAGE_SENDER_INSTANCE_TAG
     unsigned int is_trace_on : 1;
 } MESSAGE_SENDER_INSTANCE;
 
-static void remove_pending_message_by_index(MESSAGE_SENDER_INSTANCE* message_sender_instance, size_t index)
+static void remove_pending_message_by_index(MESSAGE_SENDER_HANDLE message_sender, size_t index)
 {
     MESSAGE_WITH_CALLBACK** new_messages;
 
-    if (message_sender_instance->messages[index]->message != NULL)
+    if (message_sender->messages[index]->message != NULL)
     {
-        message_destroy(message_sender_instance->messages[index]->message);
-        message_sender_instance->messages[index]->message = NULL;
+        message_destroy(message_sender->messages[index]->message);
+        message_sender->messages[index]->message = NULL;
     }
 
-    free(message_sender_instance->messages[index]);
+    free(message_sender->messages[index]);
 
-    if (message_sender_instance->message_count - index > 1)
+    if (message_sender->message_count - index > 1)
     {
-        (void)memmove(&message_sender_instance->messages[index], &message_sender_instance->messages[index + 1], sizeof(MESSAGE_WITH_CALLBACK*) * (message_sender_instance->message_count - index - 1));
+        (void)memmove(&message_sender->messages[index], &message_sender->messages[index + 1], sizeof(MESSAGE_WITH_CALLBACK*) * (message_sender->message_count - index - 1));
     }
 
-    message_sender_instance->message_count--;
+    message_sender->message_count--;
 
-    if (message_sender_instance->message_count > 0)
+    if (message_sender->message_count > 0)
     {
-        new_messages = (MESSAGE_WITH_CALLBACK**)realloc(message_sender_instance->messages, sizeof(MESSAGE_WITH_CALLBACK*) * (message_sender_instance->message_count));
+        new_messages = (MESSAGE_WITH_CALLBACK**)realloc(message_sender->messages, sizeof(MESSAGE_WITH_CALLBACK*) * (message_sender->message_count));
         if (new_messages != NULL)
         {
-            message_sender_instance->messages = new_messages;
+            message_sender->messages = new_messages;
         }
     }
     else
     {
-        free(message_sender_instance->messages);
-        message_sender_instance->messages = NULL;
+        free(message_sender->messages);
+        message_sender->messages = NULL;
     }
 }
 
@@ -198,51 +198,112 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
         AMQP_VALUE body_amqp_value = NULL;
         size_t body_data_count = 0;
         AMQP_VALUE msg_annotations = NULL;
+        bool is_error = false;
 
-        message_get_header(message, &header);
-        header_amqp_value = amqpvalue_create_header(header);
-        if (header != NULL)
+        // message header
+        if ((message_get_header(message, &header) == 0) &&
+            (header != NULL))
         {
-            amqpvalue_get_encoded_size(header_amqp_value, &encoded_size);
-            total_encoded_size += encoded_size;
+            header_amqp_value = amqpvalue_create_header(header);
+            if (header_amqp_value == NULL)
+            {
+                LogError("Cannot create header AMQP value");
+                is_error = true;
+            }
+            else
+            {
+                if (amqpvalue_get_encoded_size(header_amqp_value, &encoded_size) != 0)
+                {
+                    LogError("Cannot obtain header encoded size");
+                    is_error = true;
+                }
+                else
+                {
+                    total_encoded_size += encoded_size;
+                }
+            }
+
         }
 
         // message annotations
-        if ((message_get_message_annotations(message, &msg_annotations) == 0) &&
+        if ((!is_error) &&
+            (message_get_message_annotations(message, &msg_annotations) == 0) &&
             (msg_annotations != NULL))
         {
-            amqpvalue_get_encoded_size(msg_annotations, &encoded_size);
-            total_encoded_size += encoded_size;
+            if (amqpvalue_get_encoded_size(msg_annotations, &encoded_size) != 0)
+            {
+                LogError("Cannot obtain message annotations encoded size");
+                is_error = true;
+            }
+            else
+            {
+                total_encoded_size += encoded_size;
+            }
         }
 
         // properties
-        message_get_properties(message, &properties);
-        properties_amqp_value = amqpvalue_create_properties(properties);
-        if (properties != NULL)
+        if ((!is_error) &&
+            (message_get_properties(message, &properties) == 0) &&
+            (properties != NULL))
         {
-            amqpvalue_get_encoded_size(properties_amqp_value, &encoded_size);
-            total_encoded_size += encoded_size;
+            properties_amqp_value = amqpvalue_create_properties(properties);
+            if (properties_amqp_value == NULL)
+            {
+                LogError("Cannot create message properties AMQP value");
+                is_error = true;
+            }
+            else
+            {
+                if (amqpvalue_get_encoded_size(properties_amqp_value, &encoded_size) != 0)
+                {
+                    LogError("Cannot obtain message properties encoded size");
+                    is_error = true;
+                }
+                else
+                {
+                    total_encoded_size += encoded_size;
+                }
+            }
         }
 
         // application properties
-        message_get_application_properties(message, &application_properties);
-        if (application_properties != NULL)
+        if ((!is_error) &&
+            (message_get_application_properties(message, &application_properties) == 0) &&
+            (application_properties != NULL))
         {
             application_properties_value = amqpvalue_create_application_properties(application_properties);
-            amqpvalue_get_encoded_size(application_properties_value, &encoded_size);
-            total_encoded_size += encoded_size;
+            if (application_properties_value == NULL)
+            {
+                LogError("Cannot create application properties AMQP value");
+                is_error = true;
+            }
+            else
+            {
+                if (amqpvalue_get_encoded_size(application_properties_value, &encoded_size) != 0)
+                {
+                    LogError("Cannot obtain application properties encoded size");
+                    is_error = true;
+                }
+                else
+                {
+                    total_encoded_size += encoded_size;
+                }
+            }
+        }
+
+        if (is_error)
+        {
+            result = SEND_ONE_MESSAGE_ERROR;
         }
         else
         {
-            application_properties_value = NULL;
-        }
+            result = SEND_ONE_MESSAGE_OK;
 
-        result = SEND_ONE_MESSAGE_OK;
-
-        // body - amqp data
-        switch (message_body_type)
-        {
+            // body - amqp data
+            switch (message_body_type)
+            {
             default:
+                LogError("Unknown body type");
                 result = SEND_ONE_MESSAGE_ERROR;
                 break;
 
@@ -251,19 +312,28 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
                 AMQP_VALUE message_body_amqp_value;
                 if (message_get_body_amqp_value_in_place(message, &message_body_amqp_value) != 0)
                 {
+                    LogError("Cannot obtain AMQP value from body");
                     result = SEND_ONE_MESSAGE_ERROR;
                 }
                 else
                 {
                     body_amqp_value = amqpvalue_create_amqp_value(message_body_amqp_value);
-                    if ((body_amqp_value == NULL) ||
-                        (amqpvalue_get_encoded_size(body_amqp_value, &encoded_size) != 0))
+                    if (body_amqp_value == NULL)
                     {
+                        LogError("Cannot create body AMQP value");
                         result = SEND_ONE_MESSAGE_ERROR;
                     }
                     else
                     {
-                        total_encoded_size += encoded_size;
+                        if (amqpvalue_get_encoded_size(body_amqp_value, &encoded_size) != 0)
+                        {
+                            LogError("Cannot get body AMQP value encoded size");
+                            result = SEND_ONE_MESSAGE_ERROR;
+                        }
+                        else
+                        {
+                            total_encoded_size += encoded_size;
+                        }
                     }
                 }
 
@@ -277,6 +347,7 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
 
                 if (message_get_body_amqp_data_count(message, &body_data_count) != 0)
                 {
+                    LogError("Cannot get body AMQP data count");
                     result = SEND_ONE_MESSAGE_ERROR;
                 }
                 else
@@ -285,6 +356,7 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
                     {
                         if (message_get_body_amqp_data_in_place(message, i, &binary_data) != 0)
                         {
+                            LogError("Cannot get body AMQP data %u", (unsigned int)i);
                             result = SEND_ONE_MESSAGE_ERROR;
                         }
                         else
@@ -296,12 +368,14 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
                             body_amqp_data = amqpvalue_create_data(binary_value);
                             if (body_amqp_data == NULL)
                             {
+                                LogError("Cannot create body AMQP data");
                                 result = SEND_ONE_MESSAGE_ERROR;
                             }
                             else
                             {
                                 if (amqpvalue_get_encoded_size(body_amqp_data, &encoded_size) != 0)
                                 {
+                                    LogError("Cannot get body AMQP data encoded size");
                                     result = SEND_ONE_MESSAGE_ERROR;
                                 }
                                 else
@@ -316,139 +390,150 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
                 }
                 break;
             }
-        }
-
-        if (result == 0)
-        {
-            void* data_bytes = malloc(total_encoded_size);
-            PAYLOAD payload;
-            payload.bytes = (const unsigned char*)data_bytes;
-            payload.length = 0;
-            result = SEND_ONE_MESSAGE_OK;
-
-            if (header != NULL)
-            {
-                if (amqpvalue_encode(header_amqp_value, encode_bytes, &payload) != 0)
-                {
-                    result = SEND_ONE_MESSAGE_ERROR;
-                }
-
-                log_message_chunk(message_sender_instance, "Header:", header_amqp_value);
             }
 
-            if ((result == SEND_ONE_MESSAGE_OK) && (msg_annotations != NULL))
+            if (result == 0)
             {
-                if (amqpvalue_encode(msg_annotations, encode_bytes, &payload) != 0)
+                void* data_bytes = malloc(total_encoded_size);
+                PAYLOAD payload;
+                payload.bytes = (const unsigned char*)data_bytes;
+                payload.length = 0;
+                result = SEND_ONE_MESSAGE_OK;
+
+                if (header != NULL)
                 {
-                    result = SEND_ONE_MESSAGE_ERROR;
-                }
-
-                log_message_chunk(message_sender_instance, "Message Annotations:", msg_annotations);
-            }
-
-            if ((result == SEND_ONE_MESSAGE_OK) && (properties != NULL))
-            {
-                if (amqpvalue_encode(properties_amqp_value, encode_bytes, &payload) != 0)
-                {
-                    result = SEND_ONE_MESSAGE_ERROR;
-                }
-
-                log_message_chunk(message_sender_instance, "Properties:", properties_amqp_value);
-            }
-
-            if ((result == SEND_ONE_MESSAGE_OK) && (application_properties != NULL))
-            {
-                if (amqpvalue_encode(application_properties_value, encode_bytes, &payload) != 0)
-                {
-                    result = SEND_ONE_MESSAGE_ERROR;
-                }
-
-                log_message_chunk(message_sender_instance, "Application properties:", application_properties_value);
-            }
-
-            if (result == SEND_ONE_MESSAGE_OK)
-            {
-                switch (message_body_type)
-                {
-                default:
-                    result = SEND_ONE_MESSAGE_ERROR;
-                    break;
-
-                case MESSAGE_BODY_TYPE_VALUE:
-                {
-                    if (amqpvalue_encode(body_amqp_value, encode_bytes, &payload) != 0)
+                    if (amqpvalue_encode(header_amqp_value, encode_bytes, &payload) != 0)
                     {
+                        LogError("Cannot encode header value");
                         result = SEND_ONE_MESSAGE_ERROR;
                     }
 
-                    log_message_chunk(message_sender_instance, "Body - amqp value:", body_amqp_value);
-                    break;
+                    log_message_chunk(message_sender_instance, "Header:", header_amqp_value);
                 }
-                case MESSAGE_BODY_TYPE_DATA:
-                {
-                    BINARY_DATA binary_data;
-                    size_t i;
 
-                    for (i = 0; i < body_data_count; i++)
+                if ((result == SEND_ONE_MESSAGE_OK) && (msg_annotations != NULL))
+                {
+                    if (amqpvalue_encode(msg_annotations, encode_bytes, &payload) != 0)
                     {
-                        if (message_get_body_amqp_data_in_place(message, i, &binary_data) != 0)
+                        LogError("Cannot encode message annotations value");
+                        result = SEND_ONE_MESSAGE_ERROR;
+                    }
+
+                    log_message_chunk(message_sender_instance, "Message Annotations:", msg_annotations);
+                }
+
+                if ((result == SEND_ONE_MESSAGE_OK) && (properties != NULL))
+                {
+                    if (amqpvalue_encode(properties_amqp_value, encode_bytes, &payload) != 0)
+                    {
+                        LogError("Cannot encode message properties value");
+                        result = SEND_ONE_MESSAGE_ERROR;
+                    }
+
+                    log_message_chunk(message_sender_instance, "Properties:", properties_amqp_value);
+                }
+
+                if ((result == SEND_ONE_MESSAGE_OK) && (application_properties != NULL))
+                {
+                    if (amqpvalue_encode(application_properties_value, encode_bytes, &payload) != 0)
+                    {
+                        LogError("Cannot encode application properties value");
+                        result = SEND_ONE_MESSAGE_ERROR;
+                    }
+
+                    log_message_chunk(message_sender_instance, "Application properties:", application_properties_value);
+                }
+
+                if (result == SEND_ONE_MESSAGE_OK)
+                {
+                    switch (message_body_type)
+                    {
+                    default:
+                        LogError("Unknown message type");
+                        result = SEND_ONE_MESSAGE_ERROR;
+                        break;
+
+                    case MESSAGE_BODY_TYPE_VALUE:
+                    {
+                        if (amqpvalue_encode(body_amqp_value, encode_bytes, &payload) != 0)
                         {
+                            LogError("Cannot encode body AMQP value");
                             result = SEND_ONE_MESSAGE_ERROR;
                         }
-                        else
+
+                        log_message_chunk(message_sender_instance, "Body - amqp value:", body_amqp_value);
+                        break;
+                    }
+                    case MESSAGE_BODY_TYPE_DATA:
+                    {
+                        BINARY_DATA binary_data;
+                        size_t i;
+
+                        for (i = 0; i < body_data_count; i++)
                         {
-                            AMQP_VALUE body_amqp_data;
-                            amqp_binary binary_value;
-                            binary_value.bytes = binary_data.bytes;
-                            binary_value.length = (uint32_t)binary_data.length;
-                            body_amqp_data = amqpvalue_create_data(binary_value);
-                            if (body_amqp_data == NULL)
+                            if (message_get_body_amqp_data_in_place(message, i, &binary_data) != 0)
                             {
+                                LogError("Cannot get AMQP data %u", (unsigned int)i);
                                 result = SEND_ONE_MESSAGE_ERROR;
                             }
                             else
                             {
-                                if (amqpvalue_encode(body_amqp_data, encode_bytes, &payload) != 0)
+                                AMQP_VALUE body_amqp_data;
+                                amqp_binary binary_value;
+                                binary_value.bytes = binary_data.bytes;
+                                binary_value.length = (uint32_t)binary_data.length;
+                                body_amqp_data = amqpvalue_create_data(binary_value);
+                                if (body_amqp_data == NULL)
                                 {
+                                    LogError("Cannot create body AMQP data %u", (unsigned int)i);
                                     result = SEND_ONE_MESSAGE_ERROR;
-                                    break;
                                 }
+                                else
+                                {
+                                    if (amqpvalue_encode(body_amqp_data, encode_bytes, &payload) != 0)
+                                    {
+                                        LogError("Cannot encode body AMQP data %u", (unsigned int)i);
+                                        result = SEND_ONE_MESSAGE_ERROR;
+                                        break;
+                                    }
 
-                                amqpvalue_destroy(body_amqp_data);
+                                    amqpvalue_destroy(body_amqp_data);
+                                }
                             }
                         }
+                        break;
                     }
-                    break;
+                    }
                 }
-                }
-            }
 
-            if (result == SEND_ONE_MESSAGE_OK)
-            {
-                message_with_callback->message_send_state = MESSAGE_SEND_STATE_PENDING;
-                switch (link_transfer_async(message_sender_instance->link, message_format, &payload, 1, on_delivery_settled, message_with_callback, message_with_callback->timeout))
+                if (result == SEND_ONE_MESSAGE_OK)
                 {
-                default:
-                case LINK_TRANSFER_ERROR:
-                    result = SEND_ONE_MESSAGE_ERROR;
-                    break;
+                    message_with_callback->message_send_state = MESSAGE_SEND_STATE_PENDING;
+                    switch (link_transfer_async(message_sender_instance->link, message_format, &payload, 1, on_delivery_settled, message_with_callback, message_with_callback->timeout))
+                    {
+                    default:
+                    case LINK_TRANSFER_ERROR:
+                        LogError("Error in link transfer");
+                        result = SEND_ONE_MESSAGE_ERROR;
+                        break;
 
-                case LINK_TRANSFER_BUSY:
-                    message_with_callback->message_send_state = MESSAGE_SEND_STATE_NOT_SENT;
-                    result = SEND_ONE_MESSAGE_BUSY;
-                    break;
+                    case LINK_TRANSFER_BUSY:
+                        message_with_callback->message_send_state = MESSAGE_SEND_STATE_NOT_SENT;
+                        result = SEND_ONE_MESSAGE_BUSY;
+                        break;
 
-                case LINK_TRANSFER_OK:
-                    result = SEND_ONE_MESSAGE_OK;
-                    break;
+                    case LINK_TRANSFER_OK:
+                        result = SEND_ONE_MESSAGE_OK;
+                        break;
+                    }
                 }
-            }
 
-            free(data_bytes);
+                free(data_bytes);
 
-            if (body_amqp_value != NULL)
-            {
-                amqpvalue_destroy(body_amqp_value);
+                if (body_amqp_value != NULL)
+                {
+                    amqpvalue_destroy(body_amqp_value);
+                }
             }
         }
 
@@ -471,14 +556,17 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
         {
             amqpvalue_destroy(application_properties);
         }
+
         if (application_properties_value != NULL)
         {
             amqpvalue_destroy(application_properties_value);
         }
+
         if (properties_amqp_value != NULL)
         {
             amqpvalue_destroy(properties_amqp_value);
         }
+
         if (properties != NULL)
         {
             properties_destroy(properties);
@@ -488,33 +576,36 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
     return result;
 }
 
-static void send_all_pending_messages(MESSAGE_SENDER_INSTANCE* message_sender_instance)
+static void send_all_pending_messages(MESSAGE_SENDER_HANDLE message_sender)
 {
     size_t i;
 
-    for (i = 0; i < message_sender_instance->message_count; i++)
+    for (i = 0; i < message_sender->message_count; i++)
     {
-        if (message_sender_instance->messages[i]->message_send_state == MESSAGE_SEND_STATE_NOT_SENT)
+        if (message_sender->messages[i]->message_send_state == MESSAGE_SEND_STATE_NOT_SENT)
         {
-            switch (send_one_message(message_sender_instance, message_sender_instance->messages[i], message_sender_instance->messages[i]->message))
+            switch (send_one_message(message_sender, message_sender->messages[i], message_sender->messages[i]->message))
             {
             default:
+                LogError("Invalid send one message result");
+                break;
+
             case SEND_ONE_MESSAGE_ERROR:
             {
-                ON_MESSAGE_SEND_COMPLETE on_message_send_complete = message_sender_instance->messages[i]->on_message_send_complete;
-                void* context = message_sender_instance->messages[i]->context;
-                remove_pending_message_by_index(message_sender_instance, i);
+                ON_MESSAGE_SEND_COMPLETE on_message_send_complete = message_sender->messages[i]->on_message_send_complete;
+                void* context = message_sender->messages[i]->context;
+                remove_pending_message_by_index(message_sender, i);
 
                 if (on_message_send_complete != NULL)
                 {
                     on_message_send_complete(context, MESSAGE_SEND_ERROR);
                 }
 
-                i = message_sender_instance->message_count;
+                i = message_sender->message_count;
                 break;
             }
             case SEND_ONE_MESSAGE_BUSY:
-                i = message_sender_instance->message_count + 1;
+                i = message_sender->message_count + 1;
                 break;
 
             case SEND_ONE_MESSAGE_OK:
@@ -605,36 +696,41 @@ static void on_link_state_changed(void* context, LINK_STATE new_link_state, LINK
 
 static void on_link_flow_on(void* context)
 {
-    MESSAGE_SENDER_INSTANCE* message_sender_instance = (MESSAGE_SENDER_INSTANCE*)context;
-    send_all_pending_messages(message_sender_instance);
+    MESSAGE_SENDER_HANDLE message_sender = (MESSAGE_SENDER_INSTANCE*)context;
+    send_all_pending_messages(message_sender);
 }
 
 MESSAGE_SENDER_HANDLE messagesender_create(LINK_HANDLE link, ON_MESSAGE_SENDER_STATE_CHANGED on_message_sender_state_changed, void* context)
 {
-    MESSAGE_SENDER_INSTANCE* result = (MESSAGE_SENDER_INSTANCE*)malloc(sizeof(MESSAGE_SENDER_INSTANCE));
-    if (result != NULL)
+    MESSAGE_SENDER_INSTANCE* message_sender = (MESSAGE_SENDER_INSTANCE*)malloc(sizeof(MESSAGE_SENDER_INSTANCE));
+    if (message_sender == NULL)
     {
-        result->messages = NULL;
-        result->message_count = 0;
-        result->link = link;
-        result->on_message_sender_state_changed = on_message_sender_state_changed;
-        result->on_message_sender_state_changed_context = context;
-        result->message_sender_state = MESSAGE_SENDER_STATE_IDLE;
-        result->is_trace_on = 0;
+        LogError("Failed allocating message sender");
+    }
+    else
+    {
+        message_sender->messages = NULL;
+        message_sender->message_count = 0;
+        message_sender->link = link;
+        message_sender->on_message_sender_state_changed = on_message_sender_state_changed;
+        message_sender->on_message_sender_state_changed_context = context;
+        message_sender->message_sender_state = MESSAGE_SENDER_STATE_IDLE;
+        message_sender->is_trace_on = 0;
     }
 
-    return result;
+    return message_sender;
 }
 
 void messagesender_destroy(MESSAGE_SENDER_HANDLE message_sender)
 {
-    if (message_sender != NULL)
+    if (message_sender == NULL)
     {
-        MESSAGE_SENDER_INSTANCE* message_sender_instance = (MESSAGE_SENDER_INSTANCE*)message_sender;
-
-        messagesender_close(message_sender_instance);
-
-        indicate_all_messages_as_error(message_sender_instance);
+        LogError("NULL message_sender");
+    }
+    else
+    {
+        (void)messagesender_close(message_sender);
+        indicate_all_messages_as_error(message_sender);
 
         free(message_sender);
     }
@@ -646,19 +742,19 @@ int messagesender_open(MESSAGE_SENDER_HANDLE message_sender)
 
     if (message_sender == NULL)
     {
+        LogError("NULL message_sender");
         result = __FAILURE__;
     }
     else
     {
-        MESSAGE_SENDER_INSTANCE* message_sender_instance = (MESSAGE_SENDER_INSTANCE*)message_sender;
-
-        if (message_sender_instance->message_sender_state == MESSAGE_SENDER_STATE_IDLE)
+        if (message_sender->message_sender_state == MESSAGE_SENDER_STATE_IDLE)
         {
-            set_message_sender_state(message_sender_instance, MESSAGE_SENDER_STATE_OPENING);
-            if (link_attach(message_sender_instance->link, NULL, on_link_state_changed, on_link_flow_on, message_sender_instance) != 0)
+            set_message_sender_state(message_sender, MESSAGE_SENDER_STATE_OPENING);
+            if (link_attach(message_sender->link, NULL, on_link_state_changed, on_link_flow_on, message_sender) != 0)
             {
+                LogError("attach link failed");
                 result = __FAILURE__;
-                set_message_sender_state(message_sender_instance, MESSAGE_SENDER_STATE_ERROR);
+                set_message_sender_state(message_sender, MESSAGE_SENDER_STATE_ERROR);
             }
             else
             {
@@ -680,20 +776,20 @@ int messagesender_close(MESSAGE_SENDER_HANDLE message_sender)
 
     if (message_sender == NULL)
     {
+        LogError("NULL message_sender");
         result = __FAILURE__;
     }
     else
     {
-        MESSAGE_SENDER_INSTANCE* message_sender_instance = (MESSAGE_SENDER_INSTANCE*)message_sender;
-
-        if ((message_sender_instance->message_sender_state == MESSAGE_SENDER_STATE_OPENING) ||
-            (message_sender_instance->message_sender_state == MESSAGE_SENDER_STATE_OPEN))
+        if ((message_sender->message_sender_state == MESSAGE_SENDER_STATE_OPENING) ||
+            (message_sender->message_sender_state == MESSAGE_SENDER_STATE_OPEN))
         {
-            set_message_sender_state(message_sender_instance, MESSAGE_SENDER_STATE_CLOSING);
-            if (link_detach(message_sender_instance->link, true) != 0)
+            set_message_sender_state(message_sender, MESSAGE_SENDER_STATE_CLOSING);
+            if (link_detach(message_sender->link, true) != 0)
             {
+                LogError("Detaching link failed");
                 result = __FAILURE__;
-                set_message_sender_state(message_sender_instance, MESSAGE_SENDER_STATE_ERROR);
+                set_message_sender_state(message_sender, MESSAGE_SENDER_STATE_ERROR);
             }
             else
             {
@@ -716,6 +812,7 @@ int messagesender_send_async(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDL
     if ((message_sender == NULL) ||
         (message == NULL))
     {
+        LogError("Bad parameters: message_sender = %p, message = %p");
         result = __FAILURE__;
     }
     else
@@ -723,6 +820,7 @@ int messagesender_send_async(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDL
         MESSAGE_SENDER_INSTANCE* message_sender_instance = (MESSAGE_SENDER_INSTANCE*)message_sender;
         if (message_sender_instance->message_sender_state == MESSAGE_SENDER_STATE_ERROR)
         {
+            LogError("Message sender in ERROR state");
             result = __FAILURE__;
         }
         else
@@ -730,6 +828,7 @@ int messagesender_send_async(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDL
             MESSAGE_WITH_CALLBACK* message_with_callback = (MESSAGE_WITH_CALLBACK*)malloc(sizeof(MESSAGE_WITH_CALLBACK));
             if (message_with_callback == NULL)
             {
+                LogError("Failed allocating context for send");
                 result = __FAILURE__;
             }
             else
@@ -737,6 +836,7 @@ int messagesender_send_async(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDL
                 MESSAGE_WITH_CALLBACK** new_messages = (MESSAGE_WITH_CALLBACK**)realloc(message_sender_instance->messages, sizeof(MESSAGE_WITH_CALLBACK*) * (message_sender_instance->message_count + 1));
                 if (new_messages == NULL)
                 {
+                    LogError("Failed allocating memory for pending sends");
                     free(message_with_callback);
                     result = __FAILURE__;
                 }
@@ -752,6 +852,7 @@ int messagesender_send_async(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDL
                         message_with_callback->message = message_clone(message);
                         if (message_with_callback->message == NULL)
                         {
+                            LogError("Cannot clone message for placing it in the pending sends list");
                             free(message_with_callback);
                             result = __FAILURE__;
                         }
@@ -779,7 +880,7 @@ int messagesender_send_async(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDL
                             {
                             default:
                             case SEND_ONE_MESSAGE_ERROR:
-                            
+                                LogError("Error sending message");
                                 remove_pending_message_by_index(message_sender_instance, message_sender_instance->message_count - 1);
                                 result = __FAILURE__;
                                 break;
@@ -788,6 +889,7 @@ int messagesender_send_async(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDL
                                 message_with_callback->message = message_clone(message);
                                 if (message_with_callback->message == NULL)
                                 {
+                                    LogError("Error cloning message for placing it in the pending sends list");
                                     free(message_with_callback);
                                     result = __FAILURE__;
                                 }
@@ -813,9 +915,12 @@ int messagesender_send_async(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDL
 
 void messagesender_set_trace(MESSAGE_SENDER_HANDLE message_sender, bool traceOn)
 {
-    MESSAGE_SENDER_INSTANCE* message_sender_instance = (MESSAGE_SENDER_INSTANCE*)message_sender;
-    if (message_sender_instance != NULL)
+    if (message_sender == NULL)
     {
-        message_sender_instance->is_trace_on = traceOn ? 1 : 0;
+        LogError("NULL message_sender");
+    }
+    else
+    {
+        message_sender->is_trace_on = traceOn ? 1 : 0;
     }
 }

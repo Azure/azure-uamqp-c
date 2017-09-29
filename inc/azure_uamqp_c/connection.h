@@ -8,14 +8,13 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "azure_c_shared_utility/xio.h"
+#include "azure_c_shared_utility/umock_c_prod.h"
 #include "azure_uamqp_c/amqp_frame_codec.h"
 #include "azure_uamqp_c/amqp_definitions.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-
-#include "azure_c_shared_utility/umock_c_prod.h"
 
     typedef struct CONNECTION_INSTANCE_TAG* CONNECTION_HANDLE;
     typedef struct ENDPOINT_INSTANCE_TAG* ENDPOINT_HANDLE;

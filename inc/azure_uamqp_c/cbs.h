@@ -5,6 +5,8 @@
 #define CBS_H
 
 #include "azure_uamqp_c/session.h"
+#include "azure_c_shared_utility/macro_utils.h"
+#include "azure_c_shared_utility/umock_c_prod.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -12,22 +14,20 @@ extern "C" {
 #include <stdbool.h>
 #endif /* __cplusplus */
 
-#include "azure_c_shared_utility/umock_c_prod.h"
+#define CBS_OPERATION_RESULT_VALUES \
+    CBS_OPERATION_RESULT_OK, \
+    CBS_OPERATION_RESULT_CBS_ERROR, \
+    CBS_OPERATION_RESULT_OPERATION_FAILED, \
+    CBS_OPERATION_RESULT_INSTANCE_CLOSED
 
-    typedef enum CBS_OPERATION_RESULT_TAG
-    {
-        CBS_OPERATION_RESULT_OK,
-        CBS_OPERATION_RESULT_CBS_ERROR,
-        CBS_OPERATION_RESULT_OPERATION_FAILED,
-        CBS_OPERATION_RESULT_INSTANCE_CLOSED
-    } CBS_OPERATION_RESULT;
+DEFINE_ENUM(CBS_OPERATION_RESULT, CBS_OPERATION_RESULT_VALUES)
 
-    typedef enum CBS_OPEN_COMPLETE_RESULT_TAG
-    {
-        CBS_OPEN_OK,
-        CBS_OPEN_ERROR,
-        CBS_OPEN_CANCELLED
-    } CBS_OPEN_COMPLETE_RESULT;
+#define CBS_OPEN_COMPLETE_RESULT_VALUES \
+    CBS_OPEN_OK, \
+    CBS_OPEN_ERROR, \
+    CBS_OPEN_CANCELLED
+
+DEFINE_ENUM(CBS_OPEN_COMPLETE_RESULT, CBS_OPEN_COMPLETE_RESULT_VALUES)
 
     typedef struct CBS_INSTANCE_TAG* CBS_HANDLE;
     typedef void(*ON_CBS_OPEN_COMPLETE)(void* context, CBS_OPEN_COMPLETE_RESULT open_complete_result);

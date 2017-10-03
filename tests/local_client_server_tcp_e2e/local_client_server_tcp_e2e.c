@@ -78,6 +78,19 @@ static void on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_res
     }
 }
 
+static void on_message_send_cancelled(void* context, MESSAGE_SEND_RESULT send_result)
+{
+    size_t* cancelled_messages = (size_t*)context;
+    if (send_result == MESSAGE_SEND_CANCELLED)
+    {
+        (*cancelled_messages)++;
+    }
+    else
+    {
+        ASSERT_FAIL("Unexpected message send result");
+    }
+}
+
 static void on_message_receiver_state_changed(const void* context, MESSAGE_RECEIVER_STATE new_state, MESSAGE_RECEIVER_STATE previous_state)
 {
     (void)context;
@@ -184,6 +197,7 @@ TEST_FUNCTION(client_and_server_connect_and_send_one_message_settled)
     SOCKETIO_CONFIG socketio_config = { "localhost", 0, NULL };
     unsigned char hello[] = { 'H', 'e', 'l', 'l', 'o' };
     BINARY_DATA binary_data;
+    ASYNC_OPERATION_HANDLE send_async_operation;
 
     server_instance.connection = NULL;
     server_instance.session = NULL;
@@ -233,8 +247,8 @@ TEST_FUNCTION(client_and_server_connect_and_send_one_message_settled)
     ASSERT_IS_NOT_NULL_WITH_MSG(client_message_sender, "Could not create message sender");
     result = messagesender_open(client_message_sender);
     ASSERT_ARE_EQUAL_WITH_MSG(int, 0, result, "cannot open message sender");
-    result = messagesender_send_async(client_message_sender, client_send_message, on_message_send_complete, &sent_messages, 0);
-    ASSERT_ARE_EQUAL_WITH_MSG(int, 0, result, "cannot send message");
+    send_async_operation = messagesender_send_async(client_message_sender, client_send_message, on_message_send_complete, &sent_messages, 0);
+    ASSERT_IS_NOT_NULL_WITH_MSG(send_async_operation, "cannot send message");
     message_destroy(client_send_message);
 
     start_time = time(NULL);
@@ -297,6 +311,7 @@ TEST_FUNCTION(client_and_server_connect_and_send_one_message_unsettled)
     SOCKETIO_CONFIG socketio_config = { "localhost", 0, NULL };
     unsigned char hello[] = { 'H', 'e', 'l', 'l', 'o' };
     BINARY_DATA binary_data;
+    ASYNC_OPERATION_HANDLE send_async_operation;
 
     server_instance.connection = NULL;
     server_instance.session = NULL;
@@ -346,8 +361,8 @@ TEST_FUNCTION(client_and_server_connect_and_send_one_message_unsettled)
     ASSERT_IS_NOT_NULL_WITH_MSG(client_message_sender, "Could not create message sender");
     result = messagesender_open(client_message_sender);
     ASSERT_ARE_EQUAL_WITH_MSG(int, 0, result, "cannot open message sender");
-    result = messagesender_send_async(client_message_sender, client_send_message, on_message_send_complete, &sent_messages, 0);
-    ASSERT_ARE_EQUAL_WITH_MSG(int, 0, result, "cannot send message");
+    send_async_operation = messagesender_send_async(client_message_sender, client_send_message, on_message_send_complete, &sent_messages, 0);
+    ASSERT_IS_NOT_NULL_WITH_MSG(send_async_operation, "cannot send message");
     message_destroy(client_send_message);
 
     start_time = time(NULL);
@@ -372,6 +387,122 @@ TEST_FUNCTION(client_and_server_connect_and_send_one_message_unsettled)
     // assert
     ASSERT_ARE_EQUAL_WITH_MSG(size_t, 1, sent_messages, "Bad sent messages count");
     ASSERT_ARE_EQUAL_WITH_MSG(size_t, 1, server_instance.received_messages, "Bad received messages count");
+
+    // cleanup
+    socketlistener_stop(socket_listener);
+    messagesender_destroy(client_message_sender);
+    link_destroy(client_link);
+    session_destroy(client_session);
+    connection_destroy(client_connection);
+    xio_destroy(socket_io);
+
+    messagereceiver_destroy(server_instance.message_receiver);
+    link_destroy(server_instance.link);
+    session_destroy(server_instance.session);
+    connection_destroy(server_instance.connection);
+    xio_destroy(server_instance.header_detect_io);
+    xio_destroy(server_instance.underlying_io);
+    socketlistener_destroy(socket_listener);
+}
+
+TEST_FUNCTION(cancelling_a_send_works)
+{
+    // arrange
+    int port_number = generate_port_number();
+    SERVER_INSTANCE server_instance;
+    SOCKET_LISTENER_HANDLE socket_listener = socketlistener_create(port_number);
+    int result;
+    XIO_HANDLE socket_io;
+    CONNECTION_HANDLE client_connection;
+    SESSION_HANDLE client_session;
+    LINK_HANDLE client_link;
+    MESSAGE_HANDLE client_send_message;
+    MESSAGE_SENDER_HANDLE client_message_sender;
+    size_t cancelled_messages;
+    AMQP_VALUE source;
+    AMQP_VALUE target;
+    time_t now_time;
+    time_t start_time;
+    SOCKETIO_CONFIG socketio_config = { "localhost", 0, NULL };
+    unsigned char hello[] = { 'H', 'e', 'l', 'l', 'o' };
+    BINARY_DATA binary_data;
+    ASYNC_OPERATION_HANDLE send_async_operation;
+
+    server_instance.connection = NULL;
+    server_instance.session = NULL;
+    server_instance.link = NULL;
+    server_instance.message_receiver = NULL;
+    server_instance.received_messages = 0;
+
+    cancelled_messages = 0;
+
+    result = socketlistener_start(socket_listener, on_socket_accepted, &server_instance);
+    ASSERT_ARE_EQUAL_WITH_MSG(int, 0, result, "socketlistener_start failed");
+
+    // start the client
+    socketio_config.port = port_number;
+    socket_io = xio_create(socketio_get_interface_description(), &socketio_config);
+    ASSERT_IS_NOT_NULL_WITH_MSG(socket_io, "Could not create socket IO");
+
+    /* create the connection, session and link */
+    client_connection = connection_create(socket_io, "localhost", "some", NULL, NULL);
+    ASSERT_IS_NOT_NULL_WITH_MSG(client_connection, "Could not create client connection");
+
+    (void)connection_set_trace(client_connection, true);
+    client_session = session_create(client_connection, NULL, NULL);
+    ASSERT_IS_NOT_NULL_WITH_MSG(client_session, "Could not create client session");
+
+    source = messaging_create_source("ingress");
+    ASSERT_IS_NOT_NULL_WITH_MSG(source, "Could not create source");
+    target = messaging_create_target("localhost/ingress");
+    ASSERT_IS_NOT_NULL_WITH_MSG(target, "Could not create target");
+    client_link = link_create(client_session, "sender-link", role_sender, source, target);
+    ASSERT_IS_NOT_NULL_WITH_MSG(client_link, "Could not create client link");
+    result = link_set_snd_settle_mode(client_link, sender_settle_mode_unsettled);
+    ASSERT_ARE_EQUAL_WITH_MSG(int, 0, result, "cannot set sender settle mode");
+
+    amqpvalue_destroy(source);
+    amqpvalue_destroy(target);
+
+    client_send_message = message_create();
+    ASSERT_IS_NOT_NULL_WITH_MSG(client_send_message, "Could not create message");
+    binary_data.bytes = hello;
+    binary_data.length = sizeof(hello);
+    result = message_add_body_amqp_data(client_send_message, binary_data);
+    ASSERT_ARE_EQUAL_WITH_MSG(int, 0, result, "cannot set message body");
+
+    /* create a message sender */
+    client_message_sender = messagesender_create(client_link, NULL, NULL);
+    ASSERT_IS_NOT_NULL_WITH_MSG(client_message_sender, "Could not create message sender");
+    result = messagesender_open(client_message_sender);
+    ASSERT_ARE_EQUAL_WITH_MSG(int, 0, result, "cannot open message sender");
+    send_async_operation = messagesender_send_async(client_message_sender, client_send_message, on_message_send_cancelled, &cancelled_messages, 0);
+    ASSERT_IS_NOT_NULL_WITH_MSG(send_async_operation, "cannot send message");
+    result = async_operation_cancel(send_async_operation);
+    ASSERT_ARE_EQUAL_WITH_MSG(int, 0, result, "async operation cancel failed");
+    message_destroy(client_send_message);
+
+    start_time = time(NULL);
+    while ((now_time = time(NULL)),
+        (difftime(now_time, start_time) < TEST_TIMEOUT))
+    {
+        // schedule work for all components
+        socketlistener_dowork(socket_listener);
+        connection_dowork(client_connection);
+        connection_dowork(server_instance.connection);
+
+        // if we received the message, break
+        if (cancelled_messages == 1)
+        {
+            break;
+        }
+
+        ThreadAPI_Sleep(1);
+    }
+
+    // assert
+    ASSERT_ARE_EQUAL_WITH_MSG(size_t, 1, cancelled_messages, "Bad sent messages count");
+    ASSERT_ARE_EQUAL_WITH_MSG(size_t, 0, server_instance.received_messages, "Bad received messages count");
 
     // cleanup
     socketlistener_stop(socket_listener);

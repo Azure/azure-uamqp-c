@@ -42,6 +42,7 @@ static void my_gballoc_free(void* ptr)
 #include "azure_uamqp_c/message_receiver.h"
 #include "azure_uamqp_c/messaging.h"
 #include "azure_uamqp_c/amqpvalue_to_string.h"
+#include "azure_uamqp_c/async_operation.h"
 
 #undef ENABLE_MOCKS
 
@@ -69,6 +70,7 @@ static AMQP_VALUE test_string_value = (AMQP_VALUE)0x4309;
 static AMQP_VALUE test_correlation_id_value = (AMQP_VALUE)0x430A;
 static AMQP_VALUE test_application_properties_map = (AMQP_VALUE)0x430B;
 static PROPERTIES_HANDLE test_properties = (PROPERTIES_HANDLE)0x430C;
+static ASYNC_OPERATION_HANDLE test_send_operation = (ASYNC_OPERATION_HANDLE)0x430D;
 
 static AMQP_VALUE test_status_code_key = (AMQP_VALUE)0x4400;
 static AMQP_VALUE test_status_code_value = (AMQP_VALUE)0x4401;
@@ -269,6 +271,7 @@ TEST_SUITE_INITIALIZE(suite_init)
     REGISTER_GLOBAL_MOCK_HOOK(messagesender_create, my_messagesender_create);
     REGISTER_GLOBAL_MOCK_HOOK(messagereceiver_create, my_messagereceiver_create);
     REGISTER_GLOBAL_MOCK_HOOK(messagereceiver_open, my_messagereceiver_open);
+    REGISTER_GLOBAL_MOCK_RETURN(messagesender_send_async, test_send_operation);
     REGISTER_GLOBAL_MOCK_RETURN(link_create, test_sender_link);
     REGISTER_GLOBAL_MOCK_RETURN(amqpvalue_create_message_id_ulong, test_message_id_value);
     REGISTER_GLOBAL_MOCK_RETURN(message_get_application_properties, 0);
@@ -302,6 +305,7 @@ TEST_SUITE_INITIALIZE(suite_init)
     REGISTER_UMOCK_ALIAS_TYPE(LIST_ITEM_HANDLE, void*);
     REGISTER_UMOCK_ALIAS_TYPE(ON_MESSAGE_SEND_COMPLETE, void*);
     REGISTER_UMOCK_ALIAS_TYPE(message_id_ulong, uint64_t);
+    REGISTER_UMOCK_ALIAS_TYPE(ASYNC_OPERATION_HANDLE, void*);
 
     /* boo, we need uint_fast32_t in umock */
     REGISTER_UMOCK_ALIAS_TYPE(tickcounter_ms_t, uint32_t);
@@ -1598,7 +1602,7 @@ TEST_FUNCTION(when_any_underlying_function_call_fails_amqp_management_execute_op
     STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist_handle, IGNORED_PTR_ARG))
         .SetFailReturn(NULL);
     STRICT_EXPECTED_CALL(messagesender_send_async(test_message_sender, test_cloned_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG, 0))
-        .SetFailReturn(1);
+        .SetFailReturn(NULL);
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_application_properties));
     STRICT_EXPECTED_CALL(message_destroy(test_cloned_message));
 

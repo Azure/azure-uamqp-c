@@ -6,6 +6,7 @@ set(mbed_exported_project_files
 		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqpalloc.h
 		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqpvalue.h
 		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqpvalue_to_string.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/async_operation.h
 		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/cbs.h
 		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/connection.h
 		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/frame_codec.h
@@ -37,6 +38,7 @@ set(mbed_project_files
 		${CMAKE_CURRENT_SOURCE_DIR}/../../src/amqpalloc.c
 		${CMAKE_CURRENT_SOURCE_DIR}/../../src/amqpvalue.c
 		${CMAKE_CURRENT_SOURCE_DIR}/../../src/amqpvalue_to_string.c
+		${CMAKE_CURRENT_SOURCE_DIR}/../../src/async_operation.c
 		${CMAKE_CURRENT_SOURCE_DIR}/../../src/cbs.c
 		${CMAKE_CURRENT_SOURCE_DIR}/../../src/connection.c
 		${CMAKE_CURRENT_SOURCE_DIR}/../../src/frame_codec.c

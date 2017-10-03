@@ -408,7 +408,7 @@ int main(void)
                                         binary_data.length = sizeof(hello);
                                         message_add_body_amqp_data(message, binary_data);
 
-                                        if (messagesender_send_async(clients[i].message_sender, message, on_message_send_complete, &clients[i], 0) != 0)
+                                        if (messagesender_send_async(clients[i].message_sender, message, on_message_send_complete, &clients[i], 0) == NULL)
                                         {
                                             message_destroy(message);
                                             LogError("Error sending message");

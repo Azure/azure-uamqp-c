@@ -8,6 +8,7 @@
 #include "azure_uamqp_c/link.h"
 #include "azure_uamqp_c/message.h"
 #include "azure_c_shared_utility/xlogging.h"
+#include "azure_uamqp_c/async_operation.h"
 #include "azure_c_shared_utility/tickcounter.h"
 #include "azure_c_shared_utility/umock_c_prod.h"
 #include "azure_c_shared_utility/macro_utils.h"
@@ -19,7 +20,8 @@ extern "C" {
 #define MESSAGE_SEND_RESULT_VALUES \
     MESSAGE_SEND_OK, \
     MESSAGE_SEND_ERROR, \
-    MESSAGE_SEND_TIMEOUT
+    MESSAGE_SEND_TIMEOUT, \
+    MESSAGE_SEND_CANCELLED
 
 DEFINE_ENUM(MESSAGE_SEND_RESULT, MESSAGE_SEND_RESULT_VALUES)
 
@@ -40,7 +42,7 @@ DEFINE_ENUM(MESSAGE_SENDER_STATE, MESSAGE_SENDER_STATE_VALUES)
     MOCKABLE_FUNCTION(, void, messagesender_destroy, MESSAGE_SENDER_HANDLE, message_sender);
     MOCKABLE_FUNCTION(, int, messagesender_open, MESSAGE_SENDER_HANDLE, message_sender);
     MOCKABLE_FUNCTION(, int, messagesender_close, MESSAGE_SENDER_HANDLE, message_sender);
-    MOCKABLE_FUNCTION(, int, messagesender_send_async, MESSAGE_SENDER_HANDLE, message_sender, MESSAGE_HANDLE, message, ON_MESSAGE_SEND_COMPLETE, on_message_send_complete, void*, callback_context, tickcounter_ms_t, timeout);
+    MOCKABLE_FUNCTION(, ASYNC_OPERATION_HANDLE, messagesender_send_async, MESSAGE_SENDER_HANDLE, message_sender, MESSAGE_HANDLE, message, ON_MESSAGE_SEND_COMPLETE, on_message_send_complete, void*, callback_context, tickcounter_ms_t, timeout);
     MOCKABLE_FUNCTION(, void, messagesender_set_trace, MESSAGE_SENDER_HANDLE, message_sender, bool, traceOn);
 
 #ifdef __cplusplus

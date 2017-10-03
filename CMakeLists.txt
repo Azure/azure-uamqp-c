@@ -185,6 +185,7 @@ set(uamqp_h_files
     ./inc/azure_uamqp_c/amqp_types.h
     ./inc/azure_uamqp_c/amqpvalue.h
     ./inc/azure_uamqp_c/amqpvalue_to_string.h
+    ./inc/azure_uamqp_c/async_operation.h
     ./inc/azure_uamqp_c/cbs.h
     ./inc/azure_uamqp_c/connection.h
     ./inc/azure_uamqp_c/frame_codec.h
@@ -214,6 +215,7 @@ set(uamqp_c_files
     ./src/amqp_management.c
     ./src/amqpvalue.c
     ./src/amqpvalue_to_string.c
+    ./src/async_operation.c
     ./src/cbs.c
     ./src/connection.c
     ./src/frame_codec.c

@@ -10,6 +10,7 @@
 #include "azure_c_shared_utility/tickcounter.h"
 #include "azure_uamqp_c/message_sender.h"
 #include "azure_uamqp_c/amqpvalue_to_string.h"
+#include "azure_uamqp_c/async_operation.h"
 
 typedef enum MESSAGE_SEND_STATE_TAG
 {
@@ -34,11 +35,13 @@ typedef struct MESSAGE_WITH_CALLBACK_TAG
     tickcounter_ms_t timeout;
 } MESSAGE_WITH_CALLBACK;
 
+DEFINE_ASYNC_OPERATION_CONTEXT(MESSAGE_WITH_CALLBACK);
+
 typedef struct MESSAGE_SENDER_INSTANCE_TAG
 {
     LINK_HANDLE link;
     size_t message_count;
-    MESSAGE_WITH_CALLBACK** messages;
+    ASYNC_OPERATION_HANDLE* messages;
     MESSAGE_SENDER_STATE message_sender_state;
     ON_MESSAGE_SENDER_STATE_CHANGED on_message_sender_state_changed;
     void* on_message_sender_state_changed_context;
@@ -47,26 +50,27 @@ typedef struct MESSAGE_SENDER_INSTANCE_TAG
 
 static void remove_pending_message_by_index(MESSAGE_SENDER_HANDLE message_sender, size_t index)
 {
-    MESSAGE_WITH_CALLBACK** new_messages;
+    ASYNC_OPERATION_HANDLE* new_messages;
+    MESSAGE_WITH_CALLBACK* message_with_callback = GET_ASYNC_OPERATION_CONTEXT(MESSAGE_WITH_CALLBACK, message_sender->messages[index]);
 
-    if (message_sender->messages[index]->message != NULL)
+    if (message_with_callback->message != NULL)
     {
-        message_destroy(message_sender->messages[index]->message);
-        message_sender->messages[index]->message = NULL;
+        message_destroy(message_with_callback->message);
+        message_with_callback->message = NULL;
     }
 
-    free(message_sender->messages[index]);
+    async_operation_destroy(message_sender->messages[index]);
 
     if (message_sender->message_count - index > 1)
     {
-        (void)memmove(&message_sender->messages[index], &message_sender->messages[index + 1], sizeof(MESSAGE_WITH_CALLBACK*) * (message_sender->message_count - index - 1));
+        (void)memmove(&message_sender->messages[index], &message_sender->messages[index + 1], sizeof(ASYNC_OPERATION_HANDLE) * (message_sender->message_count - index - 1));
     }
 
     message_sender->message_count--;
 
     if (message_sender->message_count > 0)
     {
-        new_messages = (MESSAGE_WITH_CALLBACK**)realloc(message_sender->messages, sizeof(MESSAGE_WITH_CALLBACK*) * (message_sender->message_count));
+        new_messages = (ASYNC_OPERATION_HANDLE*)realloc(message_sender->messages, sizeof(ASYNC_OPERATION_HANDLE) * (message_sender->message_count));
         if (new_messages != NULL)
         {
             message_sender->messages = new_messages;
@@ -79,15 +83,15 @@ static void remove_pending_message_by_index(MESSAGE_SENDER_HANDLE message_sender
     }
 }
 
-static void remove_pending_message(MESSAGE_SENDER_INSTANCE* message_sender_instance, MESSAGE_WITH_CALLBACK* message_with_callback)
+static void remove_pending_message(MESSAGE_SENDER_INSTANCE* message_sender, ASYNC_OPERATION_HANDLE pending_send)
 {
     size_t i;
 
-    for (i = 0; i < message_sender_instance->message_count; i++)
+    for (i = 0; i < message_sender->message_count; i++)
     {
-        if (message_sender_instance->messages[i] == message_with_callback)
+        if (message_sender->messages[i] == pending_send)
         {
-            remove_pending_message_by_index(message_sender_instance, i);
+            remove_pending_message_by_index(message_sender, i);
             break;
         }
     }
@@ -95,8 +99,9 @@ static void remove_pending_message(MESSAGE_SENDER_INSTANCE* message_sender_insta
 
 static void on_delivery_settled(void* context, delivery_number delivery_no, LINK_DELIVERY_SETTLE_REASON reason, AMQP_VALUE delivery_state)
 {
-    MESSAGE_WITH_CALLBACK* message_with_callback = (MESSAGE_WITH_CALLBACK*)context;
-    MESSAGE_SENDER_INSTANCE* message_sender_instance = (MESSAGE_SENDER_INSTANCE*)message_with_callback->message_sender;
+    ASYNC_OPERATION_HANDLE pending_send = (ASYNC_OPERATION_HANDLE)context;
+    MESSAGE_WITH_CALLBACK* message_with_callback = GET_ASYNC_OPERATION_CONTEXT(MESSAGE_WITH_CALLBACK, pending_send);
+    MESSAGE_SENDER_INSTANCE* message_sender = (MESSAGE_SENDER_INSTANCE*)message_with_callback->message_sender;
     (void)delivery_no;
 
     if (message_with_callback->on_message_send_complete != NULL)
@@ -140,7 +145,7 @@ static void on_delivery_settled(void* context, delivery_number delivery_no, LINK
         }
     }
 
-    remove_pending_message(message_sender_instance, message_with_callback);
+    remove_pending_message(message_sender, pending_send);
 }
 
 static int encode_bytes(void* context, const unsigned char* bytes, size_t length)
@@ -151,18 +156,18 @@ static int encode_bytes(void* context, const unsigned char* bytes, size_t length
     return 0;
 }
 
-static void log_message_chunk(MESSAGE_SENDER_INSTANCE* message_sender_instance, const char* name, AMQP_VALUE value)
+static void log_message_chunk(MESSAGE_SENDER_INSTANCE* message_sender, const char* name, AMQP_VALUE value)
 {
 #ifdef NO_LOGGING
-    UNUSED(message_sender_instance);
+    UNUSED(message_sender);
     UNUSED(name);
     UNUSED(value);
 #else
-    if (xlogging_get_log_function() != NULL && message_sender_instance->is_trace_on == 1)
+    if (xlogging_get_log_function() != NULL && message_sender->is_trace_on == 1)
     {
         char* value_as_string = NULL;
-        LOG(AZ_LOG_TRACE, 0, "%s", name);
-        LOG(AZ_LOG_TRACE, 0, "%s", (value_as_string = amqpvalue_to_string(value)));
+        LOG(AZ_LOG_TRACE, 0, "%s", P_OR_NULL(name));
+        LOG(AZ_LOG_TRACE, 0, "%s", P_OR_NULL((value_as_string = amqpvalue_to_string(value))));
         if (value_as_string != NULL)
         {
             free(value_as_string);
@@ -171,7 +176,7 @@ static void log_message_chunk(MESSAGE_SENDER_INSTANCE* message_sender_instance, 
 #endif
 }
 
-static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message_sender_instance, MESSAGE_WITH_CALLBACK* message_with_callback, MESSAGE_HANDLE message)
+static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message_sender, ASYNC_OPERATION_HANDLE pending_send, MESSAGE_HANDLE message)
 {
     SEND_ONE_MESSAGE_RESULT result;
 
@@ -408,7 +413,7 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
                         result = SEND_ONE_MESSAGE_ERROR;
                     }
 
-                    log_message_chunk(message_sender_instance, "Header:", header_amqp_value);
+                    log_message_chunk(message_sender, "Header:", header_amqp_value);
                 }
 
                 if ((result == SEND_ONE_MESSAGE_OK) && (msg_annotations != NULL))
@@ -419,7 +424,7 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
                         result = SEND_ONE_MESSAGE_ERROR;
                     }
 
-                    log_message_chunk(message_sender_instance, "Message Annotations:", msg_annotations);
+                    log_message_chunk(message_sender, "Message Annotations:", msg_annotations);
                 }
 
                 if ((result == SEND_ONE_MESSAGE_OK) && (properties != NULL))
@@ -430,7 +435,7 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
                         result = SEND_ONE_MESSAGE_ERROR;
                     }
 
-                    log_message_chunk(message_sender_instance, "Properties:", properties_amqp_value);
+                    log_message_chunk(message_sender, "Properties:", properties_amqp_value);
                 }
 
                 if ((result == SEND_ONE_MESSAGE_OK) && (application_properties != NULL))
@@ -441,7 +446,7 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
                         result = SEND_ONE_MESSAGE_ERROR;
                     }
 
-                    log_message_chunk(message_sender_instance, "Application properties:", application_properties_value);
+                    log_message_chunk(message_sender, "Application properties:", application_properties_value);
                 }
 
                 if (result == SEND_ONE_MESSAGE_OK)
@@ -461,7 +466,7 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
                             result = SEND_ONE_MESSAGE_ERROR;
                         }
 
-                        log_message_chunk(message_sender_instance, "Body - amqp value:", body_amqp_value);
+                        log_message_chunk(message_sender, "Body - amqp value:", body_amqp_value);
                         break;
                     }
                     case MESSAGE_BODY_TYPE_DATA:
@@ -508,8 +513,9 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
 
                 if (result == SEND_ONE_MESSAGE_OK)
                 {
+                    MESSAGE_WITH_CALLBACK* message_with_callback = GET_ASYNC_OPERATION_CONTEXT(MESSAGE_WITH_CALLBACK, pending_send);
                     message_with_callback->message_send_state = MESSAGE_SEND_STATE_PENDING;
-                    switch (link_transfer_async(message_sender_instance->link, message_format, &payload, 1, on_delivery_settled, message_with_callback, message_with_callback->timeout))
+                    switch (link_transfer_async(message_sender->link, message_format, &payload, 1, on_delivery_settled, pending_send, message_with_callback->timeout))
                     {
                     default:
                     case LINK_TRANSFER_ERROR:
@@ -582,9 +588,10 @@ static void send_all_pending_messages(MESSAGE_SENDER_HANDLE message_sender)
 
     for (i = 0; i < message_sender->message_count; i++)
     {
-        if (message_sender->messages[i]->message_send_state == MESSAGE_SEND_STATE_NOT_SENT)
+        MESSAGE_WITH_CALLBACK* message_with_callback = GET_ASYNC_OPERATION_CONTEXT(MESSAGE_WITH_CALLBACK, message_sender->messages[i]);
+        if (message_with_callback->message_send_state == MESSAGE_SEND_STATE_NOT_SENT)
         {
-            switch (send_one_message(message_sender, message_sender->messages[i], message_sender->messages[i]->message))
+            switch (send_one_message(message_sender, message_sender->messages[i], message_with_callback->message))
             {
             default:
                 LogError("Invalid send one message result");
@@ -592,8 +599,8 @@ static void send_all_pending_messages(MESSAGE_SENDER_HANDLE message_sender)
 
             case SEND_ONE_MESSAGE_ERROR:
             {
-                ON_MESSAGE_SEND_COMPLETE on_message_send_complete = message_sender->messages[i]->on_message_send_complete;
-                void* context = message_sender->messages[i]->context;
+                ON_MESSAGE_SEND_COMPLETE on_message_send_complete = message_with_callback->on_message_send_complete;
+                void* context = message_with_callback->context;
                 remove_pending_message_by_index(message_sender, i);
 
                 if (on_message_send_complete != NULL)
@@ -617,46 +624,47 @@ static void send_all_pending_messages(MESSAGE_SENDER_HANDLE message_sender)
     }
 }
 
-static void set_message_sender_state(MESSAGE_SENDER_INSTANCE* message_sender_instance, MESSAGE_SENDER_STATE new_state)
+static void set_message_sender_state(MESSAGE_SENDER_INSTANCE* message_sender, MESSAGE_SENDER_STATE new_state)
 {
-    MESSAGE_SENDER_STATE previous_state = message_sender_instance->message_sender_state;
-    message_sender_instance->message_sender_state = new_state;
-    if (message_sender_instance->on_message_sender_state_changed != NULL)
+    MESSAGE_SENDER_STATE previous_state = message_sender->message_sender_state;
+    message_sender->message_sender_state = new_state;
+    if (message_sender->on_message_sender_state_changed != NULL)
     {
-        message_sender_instance->on_message_sender_state_changed(message_sender_instance->on_message_sender_state_changed_context, new_state, previous_state);
+        message_sender->on_message_sender_state_changed(message_sender->on_message_sender_state_changed_context, new_state, previous_state);
     }
 }
 
-static void indicate_all_messages_as_error(MESSAGE_SENDER_INSTANCE* message_sender_instance)
+static void indicate_all_messages_as_error(MESSAGE_SENDER_INSTANCE* message_sender)
 {
     size_t i;
 
-    for (i = 0; i < message_sender_instance->message_count; i++)
+    for (i = 0; i < message_sender->message_count; i++)
     {
-        if (message_sender_instance->messages[i]->on_message_send_complete != NULL)
+        MESSAGE_WITH_CALLBACK* message_with_callback = GET_ASYNC_OPERATION_CONTEXT(MESSAGE_WITH_CALLBACK, message_sender->messages[i]);
+        if (message_with_callback->on_message_send_complete != NULL)
         {
-            message_sender_instance->messages[i]->on_message_send_complete(message_sender_instance->messages[i]->context, MESSAGE_SEND_ERROR);
+            message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_ERROR);
         }
 
-        if (message_sender_instance->messages[i]->message != NULL)
+        if (message_with_callback->message != NULL)
         {
-            message_destroy(message_sender_instance->messages[i]->message);
+            message_destroy(message_with_callback->message);
         }
-        free(message_sender_instance->messages[i]);
+        async_operation_destroy(message_sender->messages[i]);
     }
 
-    if (message_sender_instance->messages != NULL)
+    if (message_sender->messages != NULL)
     {
-        message_sender_instance->message_count = 0;
+        message_sender->message_count = 0;
 
-        free(message_sender_instance->messages);
-        message_sender_instance->messages = NULL;
+        free(message_sender->messages);
+        message_sender->messages = NULL;
     }
 }
 
 static void on_link_state_changed(void* context, LINK_STATE new_link_state, LINK_STATE previous_link_state)
 {
-    MESSAGE_SENDER_INSTANCE* message_sender_instance = (MESSAGE_SENDER_INSTANCE*)context;
+    MESSAGE_SENDER_INSTANCE* message_sender = (MESSAGE_SENDER_INSTANCE*)context;
     (void)previous_link_state;
 
     switch (new_link_state)
@@ -665,30 +673,30 @@ static void on_link_state_changed(void* context, LINK_STATE new_link_state, LINK
         break;
 
     case LINK_STATE_ATTACHED:
-        if (message_sender_instance->message_sender_state == MESSAGE_SENDER_STATE_OPENING)
+        if (message_sender->message_sender_state == MESSAGE_SENDER_STATE_OPENING)
         {
-            set_message_sender_state(message_sender_instance, MESSAGE_SENDER_STATE_OPEN);
+            set_message_sender_state(message_sender, MESSAGE_SENDER_STATE_OPEN);
         }
         break;
     case LINK_STATE_DETACHED:
-        if ((message_sender_instance->message_sender_state == MESSAGE_SENDER_STATE_OPEN) ||
-            (message_sender_instance->message_sender_state == MESSAGE_SENDER_STATE_CLOSING))
+        if ((message_sender->message_sender_state == MESSAGE_SENDER_STATE_OPEN) ||
+            (message_sender->message_sender_state == MESSAGE_SENDER_STATE_CLOSING))
         {
             /* User initiated transition, we should be good */
-            set_message_sender_state(message_sender_instance, MESSAGE_SENDER_STATE_IDLE);
-            indicate_all_messages_as_error(message_sender_instance);
+            set_message_sender_state(message_sender, MESSAGE_SENDER_STATE_IDLE);
+            indicate_all_messages_as_error(message_sender);
         }
-        else if (message_sender_instance->message_sender_state != MESSAGE_SENDER_STATE_IDLE)
+        else if (message_sender->message_sender_state != MESSAGE_SENDER_STATE_IDLE)
         {
             /* Any other transition must be an error */
-            set_message_sender_state(message_sender_instance, MESSAGE_SENDER_STATE_ERROR);
+            set_message_sender_state(message_sender, MESSAGE_SENDER_STATE_ERROR);
         }
         break;
     case LINK_STATE_ERROR:
-        if (message_sender_instance->message_sender_state != MESSAGE_SENDER_STATE_ERROR)
+        if (message_sender->message_sender_state != MESSAGE_SENDER_STATE_ERROR)
         {
-            set_message_sender_state(message_sender_instance, MESSAGE_SENDER_STATE_ERROR);
-            indicate_all_messages_as_error(message_sender_instance);
+            set_message_sender_state(message_sender, MESSAGE_SENDER_STATE_ERROR);
+            indicate_all_messages_as_error(message_sender);
         }
         break;
     }
@@ -805,56 +813,63 @@ int messagesender_close(MESSAGE_SENDER_HANDLE message_sender)
     return result;
 }
 
-int messagesender_send_async(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDLE message, ON_MESSAGE_SEND_COMPLETE on_message_send_complete, void* callback_context, tickcounter_ms_t timeout)
+static void messagesender_send_cancel_handler(ASYNC_OPERATION_HANDLE send_operation)
 {
-    int result;
+    MESSAGE_WITH_CALLBACK* message_with_callback = GET_ASYNC_OPERATION_CONTEXT(MESSAGE_WITH_CALLBACK, send_operation);
+    if (message_with_callback->on_message_send_complete != NULL)
+    {
+        message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_CANCELLED);
+    }
+
+    remove_pending_message(message_with_callback->message_sender, send_operation);
+}
+
+ASYNC_OPERATION_HANDLE messagesender_send_async(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDLE message, ON_MESSAGE_SEND_COMPLETE on_message_send_complete, void* callback_context, tickcounter_ms_t timeout)
+{
+    ASYNC_OPERATION_HANDLE result;
 
     if ((message_sender == NULL) ||
         (message == NULL))
     {
         LogError("Bad parameters: message_sender = %p, message = %p");
-        result = __FAILURE__;
+        result = NULL;
     }
     else
     {
-        MESSAGE_SENDER_INSTANCE* message_sender_instance = (MESSAGE_SENDER_INSTANCE*)message_sender;
-        if (message_sender_instance->message_sender_state == MESSAGE_SENDER_STATE_ERROR)
+        if (message_sender->message_sender_state == MESSAGE_SENDER_STATE_ERROR)
         {
             LogError("Message sender in ERROR state");
-            result = __FAILURE__;
+            result = NULL;
         }
         else
         {
-            MESSAGE_WITH_CALLBACK* message_with_callback = (MESSAGE_WITH_CALLBACK*)malloc(sizeof(MESSAGE_WITH_CALLBACK));
-            if (message_with_callback == NULL)
+            result = CREATE_ASYNC_OPERATION(MESSAGE_WITH_CALLBACK, messagesender_send_cancel_handler);
+            if (result == NULL)
             {
                 LogError("Failed allocating context for send");
-                result = __FAILURE__;
             }
             else
             {
-                MESSAGE_WITH_CALLBACK** new_messages = (MESSAGE_WITH_CALLBACK**)realloc(message_sender_instance->messages, sizeof(MESSAGE_WITH_CALLBACK*) * (message_sender_instance->message_count + 1));
+                MESSAGE_WITH_CALLBACK* message_with_callback = GET_ASYNC_OPERATION_CONTEXT(MESSAGE_WITH_CALLBACK, result);
+                ASYNC_OPERATION_HANDLE* new_messages = (ASYNC_OPERATION_HANDLE*)realloc(message_sender->messages, sizeof(ASYNC_OPERATION_HANDLE) * (message_sender->message_count + 1));
                 if (new_messages == NULL)
                 {
                     LogError("Failed allocating memory for pending sends");
-                    free(message_with_callback);
-                    result = __FAILURE__;
+                    async_operation_destroy(result);
+                    result = NULL;
                 }
                 else
                 {
-                    result = 0;
-
                     message_with_callback->timeout = timeout;
-                    message_sender_instance->messages = new_messages;
-
-                    if (message_sender_instance->message_sender_state != MESSAGE_SENDER_STATE_OPEN)
+                    message_sender->messages = new_messages;
+                    if (message_sender->message_sender_state != MESSAGE_SENDER_STATE_OPEN)
                     {
                         message_with_callback->message = message_clone(message);
                         if (message_with_callback->message == NULL)
                         {
                             LogError("Cannot clone message for placing it in the pending sends list");
-                            free(message_with_callback);
-                            result = __FAILURE__;
+                            async_operation_destroy(result);
+                            result = NULL;
                         }
 
                         message_with_callback->message_send_state = MESSAGE_SEND_STATE_NOT_SENT;
@@ -865,24 +880,25 @@ int messagesender_send_async(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDL
                         message_with_callback->message_send_state = MESSAGE_SEND_STATE_PENDING;
                     }
 
-                    if (result == 0)
+                    if (result != NULL)
                     {
                         message_with_callback->on_message_send_complete = on_message_send_complete;
                         message_with_callback->context = callback_context;
-                        message_with_callback->message_sender = message_sender_instance;
+                        message_with_callback->message_sender = message_sender;
 
-                        message_sender_instance->messages[message_sender_instance->message_count] = message_with_callback;
-                        message_sender_instance->message_count++;
+                        message_sender->messages[message_sender->message_count] = result;
+                        message_sender->message_count++;
 
-                        if (message_sender_instance->message_sender_state == MESSAGE_SENDER_STATE_OPEN)
+                        if (message_sender->message_sender_state == MESSAGE_SENDER_STATE_OPEN)
                         {
-                            switch (send_one_message(message_sender_instance, message_with_callback, message))
+                            switch (send_one_message(message_sender, result, message))
                             {
                             default:
                             case SEND_ONE_MESSAGE_ERROR:
                                 LogError("Error sending message");
-                                remove_pending_message_by_index(message_sender_instance, message_sender_instance->message_count - 1);
-                                result = __FAILURE__;
+                                remove_pending_message_by_index(message_sender, message_sender->message_count - 1);
+                                async_operation_destroy(result);
+                                result = NULL;
                                 break;
 
                             case SEND_ONE_MESSAGE_BUSY:
@@ -890,18 +906,16 @@ int messagesender_send_async(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDL
                                 if (message_with_callback->message == NULL)
                                 {
                                     LogError("Error cloning message for placing it in the pending sends list");
-                                    free(message_with_callback);
-                                    result = __FAILURE__;
+                                    async_operation_destroy(result);
+                                    result = NULL;
                                 }
                                 else
                                 {
                                     message_with_callback->message_send_state = MESSAGE_SEND_STATE_NOT_SENT;
-                                    result = 0;
                                 }
                                 break;
 
                             case SEND_ONE_MESSAGE_OK:
-                                result = 0;
                                 break;
                             }
                         }
@@ -910,6 +924,7 @@ int messagesender_send_async(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDL
             }
         }
     }
+
     return result;
 }
 

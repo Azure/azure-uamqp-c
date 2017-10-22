@@ -10,6 +10,7 @@
 #include "azure_uamqp_c/session.h"
 #include "azure_uamqp_c/amqpvalue.h"
 #include "azure_uamqp_c/amqp_definitions.h"
+#include "azure_uamqp_c/async_operation.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,7 +30,6 @@ typedef struct LINK_INSTANCE_TAG* LINK_HANDLE;
 DEFINE_ENUM(LINK_STATE, LINK_STATE_VALUES)
 
 #define LINK_TRANSFER_RESULT_VALUES \
-    LINK_TRANSFER_OK, \
     LINK_TRANSFER_ERROR, \
     LINK_TRANSFER_BUSY
 
@@ -39,7 +39,8 @@ DEFINE_ENUM(LINK_TRANSFER_RESULT, LINK_TRANSFER_RESULT_VALUES)
     LINK_DELIVERY_SETTLE_REASON_DISPOSITION_RECEIVED, \
     LINK_DELIVERY_SETTLE_REASON_SETTLED, \
     LINK_DELIVERY_SETTLE_REASON_NOT_DELIVERED, \
-    LINK_DELIVERY_SETTLE_REASON_TIMEOUT
+    LINK_DELIVERY_SETTLE_REASON_TIMEOUT, \
+    LINK_DELIVERY_SETTLE_REASON_CANCELLED
 
 DEFINE_ENUM(LINK_DELIVERY_SETTLE_REASON, LINK_DELIVERY_SETTLE_REASON_VALUES)
 
@@ -66,7 +67,7 @@ MOCKABLE_FUNCTION(, int, link_get_received_message_id, LINK_HANDLE, link, delive
 MOCKABLE_FUNCTION(, int, link_send_disposition, LINK_HANDLE, link, delivery_number, message_number, AMQP_VALUE, delivery_state);
 MOCKABLE_FUNCTION(, int, link_attach, LINK_HANDLE, link, ON_TRANSFER_RECEIVED, on_transfer_received, ON_LINK_STATE_CHANGED, on_link_state_changed, ON_LINK_FLOW_ON, on_link_flow_on, void*, callback_context);
 MOCKABLE_FUNCTION(, int, link_detach, LINK_HANDLE, link, bool, close);
-MOCKABLE_FUNCTION(, LINK_TRANSFER_RESULT, link_transfer_async, LINK_HANDLE, handle, message_format, message_format, PAYLOAD*, payloads, size_t, payload_count, ON_DELIVERY_SETTLED, on_delivery_settled, void*, callback_context, tickcounter_ms_t, timeout);
+MOCKABLE_FUNCTION(, ASYNC_OPERATION_HANDLE, link_transfer_async, LINK_HANDLE, handle, message_format, message_format, PAYLOAD*, payloads, size_t, payload_count, ON_DELIVERY_SETTLED, on_delivery_settled, void*, callback_context, LINK_TRANSFER_RESULT*, link_transfer_result,tickcounter_ms_t, timeout);
 MOCKABLE_FUNCTION(, void, link_dowork, LINK_HANDLE, link);
 
 #ifdef __cplusplus

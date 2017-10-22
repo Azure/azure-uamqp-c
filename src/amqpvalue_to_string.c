@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include "azure_c_shared_utility/optimize_size.h"
 #include "azure_c_shared_utility/gballoc.h"
+#include "azure_c_shared_utility/xlogging.h"
+#include "azure_c_shared_utility/uuid.h"
 #include "azure_uamqp_c/amqpvalue_to_string.h"
 #include "azure_uamqp_c/amqpvalue.h"
 
@@ -20,41 +22,30 @@
 static int string_concat(char** string, const char* to_concat)
 {
     int result;
+    char* new_string;
+    size_t length = strlen(to_concat) + 1;
+    size_t src_length;
 
-    if ((string == NULL) ||
-        (to_concat == NULL))
+    if (*string != NULL)
     {
+        src_length = strlen(*string);
+    }
+    else
+    {
+        src_length = 0;
+    }
+
+    new_string = (char*)realloc(*string, src_length + length);
+    if (new_string == NULL)
+    {
+        LogError("Cannot allocate memory for the new string");
         result = __FAILURE__;
     }
     else
     {
-        char* new_string;
-
-        size_t length = strlen(to_concat) + 1;
-        size_t src_length;
-
-        if (*string != NULL)
-        {
-            src_length = strlen(*string);
-        }
-        else
-        {
-            src_length = 0;
-        }
-
-        length += src_length;
-
-        new_string = (char*)realloc(*string, length);
-        if (new_string == NULL)
-        {
-            result = __FAILURE__;
-        }
-        else
-        {
-            *string = new_string;
-            (void)strcpy(*string + src_length, to_concat);
-            result = 0;
-        }
+        *string = new_string;
+        (void)memcpy(*string + src_length, to_concat, length);
+        result = 0;
     }
 
     return result;
@@ -70,12 +61,14 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
         switch (amqp_type)
         {
         default:
+            LogError("Unknown AMQP type");
             result = NULL;
             break;
 
         case AMQP_TYPE_NULL:
             if (string_concat(&result, "NULL") != 0)
             {
+                LogError("Failure building amqp value string");
                 free(result);
                 result = NULL;
             }
@@ -83,9 +76,15 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
         case AMQP_TYPE_BOOL:
         {
             bool value;
-            if ((amqpvalue_get_boolean(amqp_value, &value) != 0) ||
-                (string_concat(&result, (value == true) ? "true" : "false") != 0))
+            if (amqpvalue_get_boolean(amqp_value, &value) != 0)
             {
+                LogError("Failure getting bool value");
+                free(result);
+                result = NULL;
+            }
+            else if (string_concat(&result, (value == true) ? "true" : "false") != 0)
+            {
+                LogError("Failure building amqp value string");
                 free(result);
                 result = NULL;
             }
@@ -97,17 +96,16 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
             uint8_t value;
             if (amqpvalue_get_ubyte(amqp_value, &value) != 0)
             {
+                LogError("Failure getting ubyte value");
                 free(result);
                 result = NULL;
             }
-            else
+            else if ((sprintf(str_value, "%" PRIu8, value) < 0) ||
+                     (string_concat(&result, str_value) != 0))
             {
-                if ((sprintf(str_value, "%" PRIu8, value) < 0) ||
-                    (string_concat(&result, str_value) != 0))
-                {
-                    free(result);
-                    result = NULL;
-                }
+                LogError("Failure building amqp value string");
+                free(result);
+                result = NULL;
             }
             break;
         }
@@ -117,17 +115,16 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
             uint16_t value;
             if (amqpvalue_get_ushort(amqp_value, &value) != 0)
             {
+                LogError("Failure getting ushort value");
                 free(result);
                 result = NULL;
             }
-            else
+            else if ((sprintf(str_value, "%" PRIu16, value) < 0) ||
+                     (string_concat(&result, str_value) != 0))
             {
-                if ((sprintf(str_value, "%" PRIu16, value) < 0) ||
-                    (string_concat(&result, str_value) != 0))
-                {
-                    free(result);
-                    result = NULL;
-                }
+                LogError("Failure building amqp value string");
+                free(result);
+                result = NULL;
             }
             break;
         }
@@ -137,17 +134,16 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
             uint32_t value;
             if (amqpvalue_get_uint(amqp_value, &value) != 0)
             {
+                LogError("Failure getting uint value");
                 free(result);
                 result = NULL;
             }
-            else
+            else if ((sprintf(str_value, "%" PRIu32, value) < 0) ||
+                     (string_concat(&result, str_value) != 0))
             {
-                if ((sprintf(str_value, "%" PRIu32, value) < 0) ||
-                    (string_concat(&result, str_value) != 0))
-                {
-                    free(result);
-                    result = NULL;
-                }
+                LogError("Failure building amqp value string");
+                free(result);
+                result = NULL;
             }
             break;
         }
@@ -157,17 +153,16 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
             uint64_t value;
             if (amqpvalue_get_ulong(amqp_value, &value) != 0)
             {
+                LogError("Failure getting ulong value");
                 free(result);
                 result = NULL;
             }
-            else
+            else if ((sprintf(str_value, "%" PRIu64, value) < 0) ||
+                     (string_concat(&result, str_value) != 0))
             {
-                if ((sprintf(str_value, "%" PRIu64, value) < 0) ||
-                    (string_concat(&result, str_value) != 0))
-                {
-                    free(result);
-                    result = NULL;
-                }
+                LogError("Failure building amqp value string");
+                free(result);
+                result = NULL;
             }
             break;
         }
@@ -177,17 +172,16 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
             char value;
             if (amqpvalue_get_byte(amqp_value, &value) != 0)
             {
+                LogError("Failure getting byte value");
                 free(result);
                 result = NULL;
             }
-            else
+            else if ((sprintf(str_value, "%" PRId8, value) < 0) ||
+                     (string_concat(&result, str_value) != 0))
             {
-                if ((sprintf(str_value, "%" PRId8, value) < 0) ||
-                    (string_concat(&result, str_value) != 0))
-                {
-                    free(result);
-                    result = NULL;
-                }
+                LogError("Failure building amqp value string");
+                free(result);
+                result = NULL;
             }
             break;
         }
@@ -197,17 +191,16 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
             int16_t value;
             if (amqpvalue_get_short(amqp_value, &value) != 0)
             {
+                LogError("Failure getting short value");
                 free(result);
                 result = NULL;
             }
-            else
+            else if ((sprintf(str_value, "%" PRId16, value) < 0) ||
+                     (string_concat(&result, str_value) != 0))
             {
-                if ((sprintf(str_value, "%" PRId16, value) < 0) ||
-                    (string_concat(&result, str_value) != 0))
-                {
-                    free(result);
-                    result = NULL;
-                }
+                LogError("Failure building amqp value string");
+                free(result);
+                result = NULL;
             }
             break;
         }
@@ -217,17 +210,16 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
             int32_t value;
             if (amqpvalue_get_int(amqp_value, &value) != 0)
             {
+                LogError("Failure getting int value");
                 free(result);
                 result = NULL;
             }
-            else
+            else if ((sprintf(str_value, "%" PRId32, value) < 0) ||
+                     (string_concat(&result, str_value) != 0))
             {
-                if ((sprintf(str_value, "%" PRId32, value) < 0) ||
-                    (string_concat(&result, str_value) != 0))
-                {
-                    free(result);
-                    result = NULL;
-                }
+                LogError("Failure building amqp value string");
+                free(result);
+                result = NULL;
             }
             break;
         }
@@ -237,17 +229,16 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
             int64_t value;
             if (amqpvalue_get_long(amqp_value, &value) != 0)
             {
+                LogError("Failure getting long value");
                 free(result);
                 result = NULL;
             }
-            else
+            else if ((sprintf(str_value, "%" PRId64, value) < 0) ||
+                     (string_concat(&result, str_value) != 0))
             {
-                if ((sprintf(str_value, "%" PRId64, value) < 0) ||
-                    (string_concat(&result, str_value) != 0))
-                {
-                    free(result);
-                    result = NULL;
-                }
+                LogError("Failure building amqp value string");
+                free(result);
+                result = NULL;
             }
             break;
         }
@@ -256,6 +247,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
             float float_value;
             if (amqpvalue_get_float(amqp_value, &float_value) != 0)
             {
+                LogError("Failure getting float value");
                 free(result);
                 result = NULL;
             }
@@ -265,11 +257,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
                 if ((snprintf(str_value, sizeof(str_value), "%.02f", float_value) < 0) ||
                     (string_concat(&result, str_value) != 0))
                 {
-                    free(result);
-                    result = NULL;
-                }
-                if (string_concat(&result, str_value) != 0)
-                {
+                    LogError("Failure building amqp value string");
                     free(result);
                     result = NULL;
                 }
@@ -281,6 +269,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
             double double_value;
             if (amqpvalue_get_double(amqp_value, &double_value) != 0)
             {
+                LogError("Failure getting double value");
                 free(result);
                 result = NULL;
             }
@@ -290,11 +279,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
                 if ((snprintf(str_value, sizeof(str_value), "%.02lf", double_value) < 0) ||
                     (string_concat(&result, str_value) != 0))
                 {
-                    free(result);
-                    result = NULL;
-                }
-                if (string_concat(&result, str_value) != 0)
-                {
+                    LogError("Failure building amqp value string");
                     free(result);
                     result = NULL;
                 }
@@ -306,6 +291,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
             uint32_t char_code;
             if (amqpvalue_get_char(amqp_value, &char_code) != 0)
             {
+                LogError("Failure getting char value");
                 free(result);
                 result = NULL;
             }
@@ -315,11 +301,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
                 if ((snprintf(str_value, sizeof(str_value), "U%02X%02X%02X%02X", char_code >> 24, (char_code >> 16) & 0xFF, (char_code >> 8) & 0xFF, char_code & 0xFF) < 0) ||
                     (string_concat(&result, str_value) != 0))
                 {
-                    free(result);
-                    result = NULL;
-                }
-                if (string_concat(&result, str_value) != 0)
-                {
+                    LogError("Failure building amqp value string");
                     free(result);
                     result = NULL;
                 }
@@ -332,28 +314,59 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
             int64_t value;
             if (amqpvalue_get_timestamp(amqp_value, &value) != 0)
             {
+                LogError("Failure getting timestamp value");
+                free(result);
+                result = NULL;
+            }
+            else if ((sprintf(str_value, "%" PRId64, value) < 0) ||
+                     (string_concat(&result, str_value) != 0))
+            {
+                LogError("Failure building amqp value string");
+                free(result);
+                result = NULL;
+            }
+            break;
+        }
+        case AMQP_TYPE_UUID:
+        {
+            uuid uuid_value;
+            if (amqpvalue_get_uuid(amqp_value, &uuid_value) != 0)
+            {
+                LogError("Failure getting uuid value");
                 free(result);
                 result = NULL;
             }
             else
             {
-                long long int_value = value;
-                if ((sprintf(str_value, "%lld", int_value) < 0) ||
-                    (string_concat(&result, str_value) != 0))
+                char* uuid_string_value = UUID_to_string(&uuid_value);
+                if (uuid_string_value == NULL)
                 {
+                    LogError("Failure getting UUID stringified value");
                     free(result);
                     result = NULL;
                 }
+                else
+                {
+                    if (string_concat(&result, uuid_string_value) != 0)
+                    {
+                        LogError("Failure building amqp value string");
+                        free(result);
+                        result = NULL;
+                    }
+
+                    free(uuid_string_value);
+                }
             }
+
             break;
         }
-        case AMQP_TYPE_UUID:
-            break;
+
         case AMQP_TYPE_BINARY:
         {
             amqp_binary binary_value;
             if (amqpvalue_get_binary(amqp_value, &binary_value) != 0)
             {
+                LogError("Failure getting binary value");
                 free(result);
                 result = NULL;
             }
@@ -361,6 +374,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
             {
                 if (string_concat(&result, "<") != 0)
                 {
+                    LogError("Failure building amqp value string");
                     free(result);
                     result = NULL;
                 }
@@ -378,13 +392,10 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
                         }
                     }
 
-                    if (i < binary_value.length)
+                    if ((i < binary_value.length) ||
+                        (string_concat(&result, ">") != 0))
                     {
-                        free(result);
-                        result = NULL;
-                    }
-                    else if (string_concat(&result, ">") != 0)
-                    {
+                        LogError("Failure building amqp value string");
                         free(result);
                         result = NULL;
                     }
@@ -397,6 +408,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
             const char* string_value;
             if (amqpvalue_get_string(amqp_value, &string_value) != 0)
             {
+                LogError("Failure getting string value");
                 free(result);
                 result = NULL;
             }
@@ -404,6 +416,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
             {
                 if (string_concat(&result, string_value) != 0)
                 {
+                    LogError("Failure building amqp value string");
                     free(result);
                     result = NULL;
                 }
@@ -415,6 +428,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
             const char* string_value;
             if (amqpvalue_get_symbol(amqp_value, &string_value) != 0)
             {
+                LogError("Failure getting symbol value");
                 free(result);
                 result = NULL;
             }
@@ -422,6 +436,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
             {
                 if (string_concat(&result, string_value) != 0)
                 {
+                    LogError("Failure building amqp value string");
                     free(result);
                     result = NULL;
                 }
@@ -431,9 +446,15 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
         case AMQP_TYPE_LIST:
         {
             uint32_t count;
-            if ((amqpvalue_get_list_item_count(amqp_value, &count) != 0) ||
-                (string_concat(&result, "{") != 0))
+            if (amqpvalue_get_list_item_count(amqp_value, &count) != 0)
             {
+                LogError("Failure getting list item count value");
+                free(result);
+                result = NULL;
+            }
+            else if (string_concat(&result, "{") != 0)
+            {
+                LogError("Failure building amqp value string");
                 free(result);
                 result = NULL;
             }
@@ -445,6 +466,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
                     AMQP_VALUE item = amqpvalue_get_list_item(amqp_value, i);
                     if (item == NULL)
                     {
+                        LogError("Failure getting item %u from list", (unsigned int)i);
                         break;
                     }
                     else
@@ -452,19 +474,16 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
                         char* item_string = amqpvalue_to_string(item);
                         if (item_string == NULL)
                         {
+                            LogError("Failure converting item %u to string", (unsigned int)i);
                             amqpvalue_destroy(item);
                             break;
                         }
                         else
                         {
-                            if ((i > 0) && (string_concat(&result, ",") != 0))
+                            if (((i > 0) && (string_concat(&result, ",") != 0)) ||
+                                 (string_concat(&result, item_string) != 0))
                             {
-                                free(result);
-                                result = NULL;
-                                break;
-                            }
-                            else if (string_concat(&result, item_string) != 0)
-                            {
+                                LogError("Failure building amqp value string");
                                 free(result);
                                 result = NULL;
                                 break;
@@ -477,9 +496,15 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
                     }
                 }
 
-                if ((i < count) ||
-                    (string_concat(&result, "}") != 0))
+                if (i < count)
                 {
+                    // no log here, we already logged the error
+                    free(result);
+                    result = NULL;
+                }
+                else if (string_concat(&result, "}") != 0)
+                {
+                    LogError("Failure building amqp value string");
                     free(result);
                     result = NULL;
                 }
@@ -489,9 +514,15 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
         case AMQP_TYPE_MAP:
         {
             uint32_t count;
-            if ((amqpvalue_get_map_pair_count(amqp_value, &count) != 0) ||
-                (string_concat(&result, "{") != 0))
+            if (amqpvalue_get_map_pair_count(amqp_value, &count) != 0)
             {
+                LogError("Failure getting map pair count");
+                free(result);
+                result = NULL;
+            }
+            else if (string_concat(&result, "{") != 0)
+            {
+                LogError("Failure building amqp value string");
                 free(result);
                 result = NULL;
             }
@@ -504,6 +535,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
                     AMQP_VALUE value;
                     if (amqpvalue_get_map_key_value_pair(amqp_value, i, &key, &value) != 0)
                     {
+                        LogError("Failure getting key/value pair index %u", (unsigned int)i);
                         break;
                     }
                     else
@@ -511,6 +543,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
                         char* key_string = amqpvalue_to_string(key);
                         if (key_string == NULL)
                         {
+                            LogError("Failure getting stringified key value for index %u", (unsigned int)i);
                             amqpvalue_destroy(key);
                             amqpvalue_destroy(value);
                             break;
@@ -520,6 +553,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
                             char* value_string = amqpvalue_to_string(value);
                             if (key_string == NULL)
                             {
+                                LogError("Failure getting stringified value for index %u", (unsigned int)i);
                                 free(key_string);
                                 amqpvalue_destroy(key);
                                 amqpvalue_destroy(value);
@@ -534,6 +568,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
                                     (string_concat(&result, value_string) != 0) ||
                                     (string_concat(&result, "]") != 0))
                                 {
+                                    LogError("Failure building amqp value string");
                                     free(key_string);
                                     free(value_string);
                                     amqpvalue_destroy(key);
@@ -552,9 +587,15 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
                     }
                 }
 
-                if ((i < count) ||
-                    (string_concat(&result, "}") != 0))
+                if (i < count)
                 {
+                    // no log here, we already logged the error
+                    free(result);
+                    result = NULL;
+                }
+                else if (string_concat(&result, "}") != 0)
+                {
+                    LogError("Failure building amqp value string");
                     free(result);
                     result = NULL;
                 }
@@ -564,9 +605,15 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
         case AMQP_TYPE_ARRAY:
         {
             uint32_t count;
-            if ((amqpvalue_get_array_item_count(amqp_value, &count) != 0) ||
-                (string_concat(&result, "{") != 0))
+            if (amqpvalue_get_array_item_count(amqp_value, &count) != 0)
             {
+                LogError("Failure getting array item count");
+                free(result);
+                result = NULL;
+            }
+            else if (string_concat(&result, "{") != 0)
+            {
+                LogError("Failure building amqp value string");
                 free(result);
                 result = NULL;
             }
@@ -578,6 +625,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
                     AMQP_VALUE item = amqpvalue_get_array_item(amqp_value, i);
                     if (item == NULL)
                     {
+                        LogError("Failure getting array item for index %u", (unsigned int)i);
                         break;
                     }
                     else
@@ -585,19 +633,16 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
                         char* item_string = amqpvalue_to_string(item);
                         if (item_string == NULL)
                         {
+                            LogError("Failure getting stringified array item value for index %u", (unsigned int)i);
                             amqpvalue_destroy(item);
                             break;
                         }
                         else
                         {
-                            if ((i > 0) && (string_concat(&result, ",") != 0))
+                            if (((i > 0) && (string_concat(&result, ",") != 0)) ||
+                                 (string_concat(&result, item_string) != 0))
                             {
-                                free(result);
-                                result = NULL;
-                                break;
-                            }
-                            else if (string_concat(&result, item_string) != 0)
-                            {
+                                LogError("Failure building amqp value string");
                                 free(result);
                                 result = NULL;
                                 break;
@@ -610,9 +655,15 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
                     }
                 }
 
-                if ((i < count) ||
-                    (string_concat(&result, "}") != 0))
+                if (i < count)
                 {
+                    // no log here, we already logged the error
+                    free(result);
+                    result = NULL;
+                }
+                else if (string_concat(&result, "}") != 0)
+                {
+                    LogError("Failure building amqp value string");
                     free(result);
                     result = NULL;
                 }
@@ -625,6 +676,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
             AMQP_VALUE described_value = amqpvalue_get_inplace_described_value(amqp_value);
             if (described_value == NULL)
             {
+                LogError("Failure getting described value");
                 free(result);
                 result = NULL;
             }
@@ -632,6 +684,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
             {
                 if (string_concat(&result, "* ") != 0)
                 {
+                    LogError("Failure building amqp value string");
                     free(result);
                     result = NULL;
                 }
@@ -640,6 +693,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
                     char* described_value_string = amqpvalue_to_string(described_value);
                     if (described_value_string == NULL)
                     {
+                        LogError("Failure getting stringified described value");
                         free(result);
                         result = NULL;
                     }
@@ -647,6 +701,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
                     {
                         if (string_concat(&result, described_value_string) != 0)
                         {
+                            LogError("Failure building amqp value string");
                             free(result);
                             result = NULL;
                         }

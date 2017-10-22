@@ -41,7 +41,6 @@ static void my_gballoc_free(void* ptr)
 #include "azure_uamqp_c/message_sender.h"
 #include "azure_uamqp_c/message_receiver.h"
 #include "azure_uamqp_c/messaging.h"
-#include "azure_uamqp_c/amqpvalue_to_string.h"
 #include "azure_uamqp_c/async_operation.h"
 
 #undef ENABLE_MOCKS

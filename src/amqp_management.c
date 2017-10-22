@@ -14,7 +14,6 @@
 #include "azure_uamqp_c/message_sender.h"
 #include "azure_uamqp_c/message_receiver.h"
 #include "azure_uamqp_c/messaging.h"
-#include "azure_uamqp_c/amqpvalue_to_string.h"
 
 static const char sender_suffix[] = "-sender";
 static const char receiver_suffix[] = "-receiver";

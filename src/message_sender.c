@@ -897,7 +897,6 @@ ASYNC_OPERATION_HANDLE messagesender_send_async(MESSAGE_SENDER_HANDLE message_se
                             case SEND_ONE_MESSAGE_ERROR:
                                 LogError("Error sending message");
                                 remove_pending_message_by_index(message_sender, message_sender->message_count - 1);
-                                async_operation_destroy(result);
                                 result = NULL;
                                 break;
 

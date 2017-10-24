@@ -10370,7 +10370,6 @@ int sasl_mechanisms_get_sasl_server_mechanisms(SASL_MECHANISMS_HANDLE sasl_mecha
 
                                     amqpvalue_destroy(single_amqp_value);
                                 }
-
                                 amqpvalue_destroy(*sasl_server_mechanisms_value);
                             }
                         }

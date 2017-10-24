@@ -45,7 +45,6 @@ namespace amqplib_generator
 
 #ifdef __cplusplus
 #include <cstdint>
-#include <cstdbool>
 extern ""C"" {
 #else
 #include <stdint.h>

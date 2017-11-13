@@ -174,7 +174,7 @@ int main(int argc, char** argv)
         STRING_delete(encoded_resource_uri);
 
         source = messaging_create_source("ingress");
-        target = messaging_create_target("amqps://" EH_HOST "/" EH_NAME);
+        target = messaging_create_target("amqps://" EH_HOST "/" EH_NAME "/publishers/" EH_PUBLISHER);
         link = link_create(session, "sender-link", role_sender, source, target);
         link_set_snd_settle_mode(link, sender_settle_mode_settled);
         (void)link_set_max_message_size(link, 65536);
@@ -246,6 +246,7 @@ int main(int argc, char** argv)
             }
         }
 
+        cbs_destroy(cbs);
         messagesender_destroy(message_sender);
         link_destroy(link);
         session_destroy(session);

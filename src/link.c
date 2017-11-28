@@ -1124,9 +1124,10 @@ static void link_transfer_cancel_handler(ASYNC_OPERATION_HANDLE link_transfer_op
     {
         pending_delivery->on_delivery_settled(pending_delivery->callback_context, pending_delivery->delivery_id, LINK_DELIVERY_SETTLE_REASON_CANCELLED, NULL);
     }
-    free(pending_delivery);
     
     (void)singlylinkedlist_remove_if(((LINK_HANDLE)pending_delivery->link)->pending_deliveries, remove_pending_delivery_condition_function, pending_delivery);
+
+    async_operation_destroy(link_transfer_operation);
 }
 
 ASYNC_OPERATION_HANDLE link_transfer_async(LINK_HANDLE link, message_format message_format, PAYLOAD* payloads, size_t payload_count, ON_DELIVERY_SETTLED on_delivery_settled, void* callback_context, LINK_TRANSFER_RESULT* link_transfer_error, tickcounter_ms_t timeout)
@@ -1220,7 +1221,6 @@ ASYNC_OPERATION_HANDLE link_transfer_async(LINK_HANDLE link, message_format mess
                             {
                                 if (tickcounter_get_current_ms(link->tick_counter, &pending_delivery->start_tick) != 0)
                                 {
-                                    free(pending_delivery);
                                     *link_transfer_error = LINK_TRANSFER_ERROR;
                                     async_operation_destroy(result);
                                     result = NULL;
@@ -1236,7 +1236,6 @@ ASYNC_OPERATION_HANDLE link_transfer_async(LINK_HANDLE link, message_format mess
 
                                     if (delivery_instance_list_item == NULL)
                                     {
-                                        free(pending_delivery);
                                         *link_transfer_error = LINK_TRANSFER_ERROR;
                                         async_operation_destroy(result);
                                         result = NULL;
@@ -1249,7 +1248,6 @@ ASYNC_OPERATION_HANDLE link_transfer_async(LINK_HANDLE link, message_format mess
                                         default:
                                         case SESSION_SEND_TRANSFER_ERROR:
                                             singlylinkedlist_remove(link->pending_deliveries, delivery_instance_list_item);
-                                            free(pending_delivery);
                                             *link_transfer_error = LINK_TRANSFER_ERROR;
                                             async_operation_destroy(result);
                                             result = NULL;
@@ -1258,7 +1256,6 @@ ASYNC_OPERATION_HANDLE link_transfer_async(LINK_HANDLE link, message_format mess
                                         case SESSION_SEND_TRANSFER_BUSY:
                                             /* Ensure we remove from list again since sender will attempt to transfer again on flow on */
                                             singlylinkedlist_remove(link->pending_deliveries, delivery_instance_list_item);
-                                            free(pending_delivery);
                                             *link_transfer_error = LINK_TRANSFER_BUSY;
                                             async_operation_destroy(result);
                                             result = NULL;

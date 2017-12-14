@@ -4,7 +4,7 @@
 cmake_minimum_required(VERSION 2.8.11)
 project(uamqp)
 
-set(UAMQP_VERSION 1.0.48)
+set(UAMQP_VERSION 1.0.49)
 
 # Include the common build rules for the C SDK
 include(deps/azure-c-shared-utility/configs/azure_iot_build_rules.cmake)

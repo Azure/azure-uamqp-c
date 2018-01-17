@@ -999,7 +999,7 @@ TEST_FUNCTION(connection_dowork_when_state_is_start_sends_the_AMQP_header_and_tr
     const unsigned char amqp_header[] = { 'A', 'M', 'Q', 'P', 0, 1, 0, 0 };
 
     STRICT_EXPECTED_CALL(xio_open(TEST_IO_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(xio_send(TEST_IO_HANDLE, amqp_header, sizeof(amqp_header), NULL, NULL))
+    STRICT_EXPECTED_CALL(xio_send(TEST_IO_HANDLE, amqp_header, sizeof(amqp_header), IGNORED_PTR_ARG, NULL))
         .ValidateArgumentBuffer(2, amqp_header, sizeof(amqp_header));
     STRICT_EXPECTED_CALL(xio_dowork(TEST_IO_HANDLE));
 
@@ -1049,7 +1049,7 @@ TEST_FUNCTION(when_sending_the_header_fails_the_io_is_closed)
     umock_c_reset_all_calls();
     const unsigned char amqp_header[] = { 'A', 'M', 'Q', 'P', 0, 1, 0, 0 };
 
-    STRICT_EXPECTED_CALL(xio_send(TEST_IO_HANDLE, amqp_header, sizeof(amqp_header), NULL, NULL))
+    STRICT_EXPECTED_CALL(xio_send(TEST_IO_HANDLE, amqp_header, sizeof(amqp_header), IGNORED_PTR_ARG, NULL))
         .ValidateArgumentBuffer(2, amqp_header, sizeof(amqp_header))
         .SetReturn(1);
     STRICT_EXPECTED_CALL(xio_close(TEST_IO_HANDLE));

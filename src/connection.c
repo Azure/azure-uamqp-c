@@ -102,13 +102,21 @@ static void connection_set_state(CONNECTION_HANDLE connection, CONNECTION_STATE 
     }
 }
 
+// This callback usage needs to be either verified and commented or integrated into 
+// the state machine.
+static void unchecked_on_send_complete(void* context, IO_SEND_RESULT send_result)
+{
+    (void)context;
+    (void)send_result;
+}
+
 static int send_header(CONNECTION_HANDLE connection)
 {
     int result;
 
     /* Codes_SRS_CONNECTION_01_093: [_ When the client opens a new socket connection to a server, it MUST send a protocol header with the client's preferred protocol version.] */
     /* Codes_SRS_CONNECTION_01_104: [Sending the protocol header shall be done by using xio_send.] */
-    if (xio_send(connection->io, amqp_header, sizeof(amqp_header), NULL, NULL) != 0)
+    if (xio_send(connection->io, amqp_header, sizeof(amqp_header), unchecked_on_send_complete, NULL) != 0)
     {
         /* Codes_SRS_CONNECTION_01_106: [When sending the protocol header fails, the connection shall be immediately closed.] */
         if (xio_close(connection->io, NULL, NULL) != 0)

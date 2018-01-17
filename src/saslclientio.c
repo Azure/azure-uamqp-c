@@ -144,13 +144,21 @@ static void handle_error(SASL_CLIENT_IO_INSTANCE* sasl_client_io_instance)
     }
 }
 
+// This callback usage needs to be either verified and commented or integrated into 
+// the state machine.
+static void unchecked_on_send_complete(void* context, IO_SEND_RESULT send_result)
+{
+    (void)context;
+    (void)send_result;
+}
+
 static int send_sasl_header(SASL_CLIENT_IO_INSTANCE* sasl_client_io_instance)
 {
     int result;
 
     /* Codes_SRS_SASLCLIENTIO_01_078: [SASL client IO shall start the header exchange by sending the SASL header.] */
     /* Codes_SRS_SASLCLIENTIO_01_095: [Sending the header shall be done by using `xio_send`.]*/
-    if (xio_send(sasl_client_io_instance->underlying_io, sasl_header, sizeof(sasl_header), NULL, NULL) != 0)
+    if (xio_send(sasl_client_io_instance->underlying_io, sasl_header, sizeof(sasl_header), unchecked_on_send_complete, NULL) != 0)
     {
         LogError("Sending SASL header failed");
         result = __FAILURE__;
@@ -488,7 +496,7 @@ static void on_bytes_encoded(void* context, const unsigned char* bytes, size_t l
     (void)encode_complete;
 
     /* Codes_SRS_SASLCLIENTIO_01_120: [When SASL client IO is notified by `sasl_frame_codec` of bytes that have been encoded via the `on_bytes_encoded` callback and SASL client IO is in the state OPENING, SASL client IO shall send these bytes by using `xio_send`.]*/
-    if (xio_send(sasl_client_io_instance->underlying_io, bytes, length, NULL, NULL) != 0)
+    if (xio_send(sasl_client_io_instance->underlying_io, bytes, length, unchecked_on_send_complete, NULL) != 0)
     {
         /* Codes_SRS_SASLCLIENTIO_01_121: [If `xio_send` fails, the `on_io_error` callback shall be triggered.]*/
         LogError("xio_send failed");

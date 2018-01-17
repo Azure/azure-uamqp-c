@@ -132,6 +132,14 @@ static void on_send_complete(void* context, IO_SEND_RESULT send_result)
     }
 }
 
+// This callback usage needs to be either verified and commented or integrated into 
+// the state machine.
+static void unchecked_on_send_complete(void* context, IO_SEND_RESULT send_result)
+{
+    (void)context;
+    (void)send_result;
+}
+
 static void on_underlying_io_bytes_received(void* context, const unsigned char* buffer, size_t size)
 {
     if (context == NULL)
@@ -317,7 +325,7 @@ static void on_underlying_io_bytes_received(void* context, const unsigned char* 
                     {
                         /* all header matches failed, we can't proceed, send back to the peer the first header we know of, */
                         /* then close as per spec.  We do not care if we fail sending */
-                        if (xio_send(header_detect_io_instance->underlying_io, header_detect_io_instance->header_detect_entries[0].header_bytes, header_detect_io_instance->header_detect_entries[0].header_size, NULL, NULL) != 0)
+                        if (xio_send(header_detect_io_instance->underlying_io, header_detect_io_instance->header_detect_entries[0].header_bytes, header_detect_io_instance->header_detect_entries[0].header_size, unchecked_on_send_complete, NULL) != 0)
                         {
                             LogError("Failed sending header");
                         }

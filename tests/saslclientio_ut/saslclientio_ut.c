@@ -4013,7 +4013,7 @@ TEST_FUNCTION(when_encoded_bytes_are_received_they_are_given_to_xio_send)
     saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_send(test_underlying_io, encoded_bytes, sizeof(encoded_bytes), NULL, NULL))
+    STRICT_EXPECTED_CALL(xio_send(test_underlying_io, encoded_bytes, sizeof(encoded_bytes), IGNORED_PTR_ARG, NULL))
         .ValidateArgumentBuffer(2, &encoded_bytes, sizeof(encoded_bytes));
 
     // act
@@ -4047,7 +4047,7 @@ TEST_FUNCTION(when_encoded_bytes_are_received_with_encoded_complete_flag_set_to_
     saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_send(test_underlying_io, encoded_bytes, sizeof(encoded_bytes), NULL, NULL))
+    STRICT_EXPECTED_CALL(xio_send(test_underlying_io, encoded_bytes, sizeof(encoded_bytes), IGNORED_PTR_ARG, NULL))
         .ValidateArgumentBuffer(2, &encoded_bytes, sizeof(encoded_bytes));
 
     // act
@@ -4081,7 +4081,7 @@ TEST_FUNCTION(when_xio_send_fails_when_sending_encoded_bytes_the_IO_is_closed_pe
     saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_send(test_underlying_io, encoded_bytes, sizeof(encoded_bytes), NULL, NULL))
+    STRICT_EXPECTED_CALL(xio_send(test_underlying_io, encoded_bytes, sizeof(encoded_bytes), IGNORED_PTR_ARG, NULL))
         .ValidateArgumentBuffer(2, &encoded_bytes, sizeof(encoded_bytes))
         .SetReturn(1);
     STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));

@@ -464,6 +464,14 @@ static int internal_send(TLS_IO_INSTANCE* tls_io_instance, const void* buffer, s
     return result;
 }
 
+// This callback usage needs to be either verified and commented or integrated into 
+// the state machine.
+static void unchecked_on_send_complete(void* context, IO_SEND_RESULT send_result)
+{
+    (void)context;
+    (void)send_result;
+}
+
 static void on_underlying_io_bytes_received(void* context, const unsigned char* buffer, size_t size)
 {
     TLS_IO_INSTANCE* tls_io_instance = (TLS_IO_INSTANCE*)context;
@@ -545,7 +553,7 @@ static void on_underlying_io_bytes_received(void* context, const unsigned char* 
 
                     break;
                 case SEC_E_OK:
-                    if ((output_buffers[0].cbBuffer > 0) && xio_send(tls_io_instance->socket_io, output_buffers[0].pvBuffer, output_buffers[0].cbBuffer, NULL, NULL) != 0)
+                    if ((output_buffers[0].cbBuffer > 0) && xio_send(tls_io_instance->socket_io, output_buffers[0].pvBuffer, output_buffers[0].cbBuffer, unchecked_on_send_complete, NULL) != 0)
                     {
                         tls_io_instance->tlsio_state = TLS_SERVER_IO_STATE_ERROR;
                         if (tls_io_instance->on_io_open_complete != NULL)
@@ -589,7 +597,7 @@ static void on_underlying_io_bytes_received(void* context, const unsigned char* 
                 case SEC_I_COMPLETE_NEEDED:
                 case SEC_I_CONTINUE_NEEDED:
                 case SEC_I_COMPLETE_AND_CONTINUE:
-                    if ((output_buffers[0].cbBuffer > 0) && xio_send(tls_io_instance->socket_io, output_buffers[0].pvBuffer, output_buffers[0].cbBuffer, NULL, NULL) != 0)
+                    if ((output_buffers[0].cbBuffer > 0) && xio_send(tls_io_instance->socket_io, output_buffers[0].pvBuffer, output_buffers[0].cbBuffer, unchecked_on_send_complete, NULL) != 0)
                     {
                         tls_io_instance->tlsio_state = TLS_SERVER_IO_STATE_ERROR;
                         if (tls_io_instance->on_io_open_complete != NULL)

@@ -246,7 +246,9 @@ static void log_outgoing_frame(AMQP_VALUE performative)
 static void on_bytes_encoded(void* context, const unsigned char* bytes, size_t length, bool encode_complete)
 {
     CONNECTION_HANDLE connection = (CONNECTION_HANDLE)context;
-    if (xio_send(connection->io, bytes, length, encode_complete ? connection->on_send_complete : NULL, connection->on_send_complete_callback_context) != 0)
+    if (xio_send(connection->io, bytes, length, 
+        (encode_complete && connection->on_send_complete != NULL) ? connection->on_send_complete : unchecked_on_send_complete,
+        connection->on_send_complete_callback_context) != 0)
     {
         LogError("Cannot send encoded bytes");
 

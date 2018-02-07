@@ -15,6 +15,10 @@ option(skip_samples "set skip_samples to ON to skip building samples (default is
 option(use_installed_dependencies "set use_installed_dependencies to ON to use installed packages instead of building dependencies from submodules" OFF)
 option(memory_trace "set memory_trace to ON if memory usage is to be used, set to OFF to not use it" OFF)
 
+if(${no_logging})
+    add_definitions(-DNO_LOGGING)
+endif()
+
 #do not add or build any tests of the dependencies
 set(original_run_e2e_tests ${run_e2e_tests})
 set(original_run_int_tests ${run_int_tests})
@@ -202,12 +206,12 @@ if(${use_installed_dependencies})
             ${package_location}
     )
 else()
-	set(install_staticlibs
-		uamqp
-	)
-	install(FILES ${uamqp_h_files}
-		DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azure_uamqp_c) 
-	install(TARGETS ${install_staticlibs} 
-		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    set(install_staticlibs
+        uamqp
+    )
+    install(FILES ${uamqp_h_files}
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azure_uamqp_c) 
+    install(TARGETS ${install_staticlibs} 
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()

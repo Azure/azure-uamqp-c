@@ -242,7 +242,8 @@ static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE messag
                                                         }
 
                                                         /* Codes_SRS_AMQP_MANAGEMENT_01_126: [ If a corresponding correlation Id is found in the pending operations list, the callback associated with the pending operation shall be called. ]*/
-                                                        operation_message->on_execute_operation_complete(operation_message->callback_context, execute_operation_result, status_code, status_description);
+                                                        /* Codes_SRS_AMQP_MANAGEMENT_01_166: [ The `message` shall be passed as argument to the callback. ]*/
+                                                        operation_message->on_execute_operation_complete(operation_message->callback_context, execute_operation_result, status_code, status_description, message);
 
                                                         free(operation_message);
 
@@ -917,7 +918,7 @@ int amqp_management_close(AMQP_MANAGEMENT_HANDLE amqp_management)
                 else
                 {
                     /* Codes_SRS_AMQP_MANAGEMENT_01_054: [ All pending operations shall be indicated complete with the code `AMQP_MANAGEMENT_EXECUTE_OPERATION_INSTANCE_CLOSED`. ]*/
-                    operation_message->on_execute_operation_complete(operation_message->callback_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_INSTANCE_CLOSED, 0, NULL);
+                    operation_message->on_execute_operation_complete(operation_message->callback_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_INSTANCE_CLOSED, 0, NULL, NULL);
                     free(operation_message);
                 }
                 

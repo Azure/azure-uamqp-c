@@ -183,7 +183,7 @@ static void on_underlying_amqp_management_error(void* context)
     }
 }
 
-static void on_amqp_management_execute_operation_complete(void* context, AMQP_MANAGEMENT_EXECUTE_OPERATION_RESULT execute_operation_result, unsigned int status_code, const char* status_description)
+static void on_amqp_management_execute_operation_complete(void* context, AMQP_MANAGEMENT_EXECUTE_OPERATION_RESULT execute_operation_result, unsigned int status_code, const char* status_description, MESSAGE_HANDLE message)
 {
     if (context == NULL)
     {
@@ -195,6 +195,8 @@ static void on_amqp_management_execute_operation_complete(void* context, AMQP_MA
         /* Codes_SRS_CBS_01_103: [ The `context` shall be used to obtain the pending operation information stored in the pending operations linked list by calling `singlylinkedlist_item_get_value`. ]*/
         CBS_OPERATION* cbs_operation = (CBS_OPERATION*)singlylinkedlist_item_get_value((LIST_ITEM_HANDLE)context);
         CBS_OPERATION_RESULT cbs_operation_result;
+
+        (void)message;
 
         if (cbs_operation == NULL)
         {

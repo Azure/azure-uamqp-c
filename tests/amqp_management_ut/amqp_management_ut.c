@@ -105,7 +105,7 @@ MOCK_FUNCTION_WITH_CODE(, void, test_on_amqp_management_open_complete, void*, co
 MOCK_FUNCTION_END();
 MOCK_FUNCTION_WITH_CODE(, void, test_on_amqp_management_error, void*, context);
 MOCK_FUNCTION_END();
-MOCK_FUNCTION_WITH_CODE(, void, test_on_amqp_management_execute_operation_complete, void*, context, AMQP_MANAGEMENT_EXECUTE_OPERATION_RESULT, execute_operation_result, unsigned int, status_code, const char*, status_description)
+MOCK_FUNCTION_WITH_CODE(, void, test_on_amqp_management_execute_operation_complete, void*, context, AMQP_MANAGEMENT_EXECUTE_OPERATION_RESULT, execute_operation_result, unsigned int, status_code, const char*, status_description, MESSAGE_HANDLE, message)
 MOCK_FUNCTION_END();
 
 static const void** list_items = NULL;
@@ -933,14 +933,14 @@ TEST_FUNCTION(amqp_management_close_indicates_pending_operations_as_error_due_to
     // first pending operation
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinkedlist_handle));
     STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(test_on_amqp_management_execute_operation_complete((void*)0x4244, AMQP_MANAGEMENT_EXECUTE_OPERATION_INSTANCE_CLOSED, 0, NULL));
+    STRICT_EXPECTED_CALL(test_on_amqp_management_execute_operation_complete((void*)0x4244, AMQP_MANAGEMENT_EXECUTE_OPERATION_INSTANCE_CLOSED, 0, NULL, NULL));
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist_handle, IGNORED_PTR_ARG));
 
     // second pending operation
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinkedlist_handle));
     STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(test_on_amqp_management_execute_operation_complete((void*)0x4245, AMQP_MANAGEMENT_EXECUTE_OPERATION_INSTANCE_CLOSED, 0, NULL));
+    STRICT_EXPECTED_CALL(test_on_amqp_management_execute_operation_complete((void*)0x4245, AMQP_MANAGEMENT_EXECUTE_OPERATION_INSTANCE_CLOSED, 0, NULL, NULL));
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist_handle, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinkedlist_handle));
@@ -980,7 +980,7 @@ TEST_FUNCTION(when_removing_the_pending_operation_fails_the_instance_is_still_cl
     // first pending operation
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinkedlist_handle));
     STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(test_on_amqp_management_execute_operation_complete((void*)0x4244, AMQP_MANAGEMENT_EXECUTE_OPERATION_INSTANCE_CLOSED, 0, NULL));
+    STRICT_EXPECTED_CALL(test_on_amqp_management_execute_operation_complete((void*)0x4244, AMQP_MANAGEMENT_EXECUTE_OPERATION_INSTANCE_CLOSED, 0, NULL, NULL));
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist_handle, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinkedlist_handle));
@@ -1843,6 +1843,7 @@ TEST_FUNCTION(on_message_received_with_NULL_context_does_nothing)
 /* Tests_SRS_AMQP_MANAGEMENT_01_071: [ statusCode integer Yes HTTP response code [RFC2616] ]*/
 /* Tests_SRS_AMQP_MANAGEMENT_01_072: [ statusDescription string No Description of the status. ]*/
 /* Tests_SRS_AMQP_MANAGEMENT_01_074: [ Successful operations MUST result in a statusCode in the 2xx range as defined in Section 10.2 of [RFC2616]. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_166: [ The `message` shall be passed as argument to the callback. ]*/
 TEST_FUNCTION(on_message_received_with_a_valid_message_indicates_the_operation_complete)
 {
     // arrange
@@ -1885,7 +1886,7 @@ TEST_FUNCTION(on_message_received_with_a_valid_message_indicates_the_operation_c
         .CopyOutArgumentBuffer_string_value(&test_status_description, sizeof(test_status_description));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinkedlist_handle));
     STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(test_on_amqp_management_execute_operation_complete((void*)0x4244, AMQP_MANAGEMENT_EXECUTE_OPERATION_OK, 200, "my error ..."));
+    STRICT_EXPECTED_CALL(test_on_amqp_management_execute_operation_complete((void*)0x4244, AMQP_MANAGEMENT_EXECUTE_OPERATION_OK, 200, "my error ...", test_message));
     
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist_handle, IGNORED_PTR_ARG));
@@ -1959,7 +1960,7 @@ TEST_FUNCTION(on_message_received_for_the_second_pending_operation_with_a_valid_
     STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_next_item(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(test_on_amqp_management_execute_operation_complete((void*)0x4245, AMQP_MANAGEMENT_EXECUTE_OPERATION_OK, 200, "my error ..."));
+    STRICT_EXPECTED_CALL(test_on_amqp_management_execute_operation_complete((void*)0x4245, AMQP_MANAGEMENT_EXECUTE_OPERATION_OK, 200, "my error ...", test_message));
 
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist_handle, IGNORED_PTR_ARG));
@@ -2419,7 +2420,7 @@ TEST_FUNCTION(when_no_description_is_found_NULL_is_indicated_as_description)
         .SetReturn(NULL);
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinkedlist_handle));
     STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(test_on_amqp_management_execute_operation_complete((void*)0x4244, AMQP_MANAGEMENT_EXECUTE_OPERATION_OK, 200, NULL));
+    STRICT_EXPECTED_CALL(test_on_amqp_management_execute_operation_complete((void*)0x4244, AMQP_MANAGEMENT_EXECUTE_OPERATION_OK, 200, NULL, test_message));
 
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist_handle, IGNORED_PTR_ARG));
@@ -2484,7 +2485,7 @@ TEST_FUNCTION(when_getting_the_string_for_the_description_fails_NULL_is_indicate
         .SetReturn(1);
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinkedlist_handle));
     STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(test_on_amqp_management_execute_operation_complete((void*)0x4244, AMQP_MANAGEMENT_EXECUTE_OPERATION_OK, 200, NULL));
+    STRICT_EXPECTED_CALL(test_on_amqp_management_execute_operation_complete((void*)0x4244, AMQP_MANAGEMENT_EXECUTE_OPERATION_OK, 200, NULL, test_message));
 
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist_handle, IGNORED_PTR_ARG));
@@ -2817,7 +2818,7 @@ TEST_FUNCTION(on_message_received_with_300_indicates_failure)
 
     setup_calls_for_response_with_status_code_and_correlation_id(300, 0);
 
-    STRICT_EXPECTED_CALL(test_on_amqp_management_execute_operation_complete((void*)0x4244, AMQP_MANAGEMENT_EXECUTE_OPERATION_FAILED_BAD_STATUS, 300, "my error ..."));
+    STRICT_EXPECTED_CALL(test_on_amqp_management_execute_operation_complete((void*)0x4244, AMQP_MANAGEMENT_EXECUTE_OPERATION_FAILED_BAD_STATUS, 300, "my error ...", test_message));
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist_handle, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(messaging_delivery_accepted());
@@ -2858,7 +2859,7 @@ TEST_FUNCTION(on_message_received_with_199_indicates_failure)
 
     setup_calls_for_response_with_status_code_and_correlation_id(199, 0);
 
-    STRICT_EXPECTED_CALL(test_on_amqp_management_execute_operation_complete((void*)0x4244, AMQP_MANAGEMENT_EXECUTE_OPERATION_FAILED_BAD_STATUS, 199, "my error ..."));
+    STRICT_EXPECTED_CALL(test_on_amqp_management_execute_operation_complete((void*)0x4244, AMQP_MANAGEMENT_EXECUTE_OPERATION_FAILED_BAD_STATUS, 199, "my error ...", test_message));
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist_handle, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(messaging_delivery_accepted());
@@ -2902,7 +2903,7 @@ TEST_FUNCTION(on_message_received_with_all_valid_codes_indicates_failure)
 
         setup_calls_for_response_with_status_code_and_correlation_id(i, i - 201);
 
-        STRICT_EXPECTED_CALL(test_on_amqp_management_execute_operation_complete((void*)0x4244, AMQP_MANAGEMENT_EXECUTE_OPERATION_OK, i, "my error ..."));
+        STRICT_EXPECTED_CALL(test_on_amqp_management_execute_operation_complete((void*)0x4244, AMQP_MANAGEMENT_EXECUTE_OPERATION_OK, i, "my error ...", test_message));
         STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
         STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist_handle, IGNORED_PTR_ARG));
         STRICT_EXPECTED_CALL(messaging_delivery_accepted());

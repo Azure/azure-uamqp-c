@@ -25,7 +25,7 @@ DEFINE_ENUM(AMQP_MANAGEMENT_OPEN_RESULT, AMQP_MANAGEMENT_OPEN_RESULT_VALUES)
     typedef struct AMQP_MANAGEMENT_INSTANCE_TAG* AMQP_MANAGEMENT_HANDLE;
     typedef void(*ON_AMQP_MANAGEMENT_OPEN_COMPLETE)(void* context, AMQP_MANAGEMENT_OPEN_RESULT open_result);
     typedef void(*ON_AMQP_MANAGEMENT_ERROR)(void* context);
-    typedef void(*ON_AMQP_MANAGEMENT_EXECUTE_OPERATION_COMPLETE)(void* context, AMQP_MANAGEMENT_EXECUTE_OPERATION_RESULT execute_operation_result, unsigned int status_code, const char* status_description);
+    typedef void(*ON_AMQP_MANAGEMENT_EXECUTE_OPERATION_COMPLETE)(void* context, AMQP_MANAGEMENT_EXECUTE_OPERATION_RESULT execute_operation_result, unsigned int status_code, const char* status_description, MESSAGE_HANDLE message);
 
     MOCKABLE_FUNCTION(, AMQP_MANAGEMENT_HANDLE, amqp_management_create, SESSION_HANDLE, session, const char*, management_node);
     MOCKABLE_FUNCTION(, void, amqp_management_destroy, AMQP_MANAGEMENT_HANDLE, amqp_management);
@@ -181,6 +181,7 @@ XX**SRS_AMQP_MANAGEMENT_01_125: [** If status description is not found, NULL sha
 XX**SRS_AMQP_MANAGEMENT_01_134: [** The status description value shall be extracted from the value found in the map by using `amqpvalue_get_string`. **]**
 XX**SRS_AMQP_MANAGEMENT_01_132: [** If any functions manipulating AMQP values, application properties, etc., fail, an error shall be indicated to the consumer by calling the `on_amqp_management_error` and passing the `on_amqp_management_error_context` to it. **]**
 XX**SRS_AMQP_MANAGEMENT_01_126: [** If a corresponding correlation Id is found in the pending operations list, the callback associated with the pending operation shall be called. **]**
+XX**SRS_AMQP_MANAGEMENT_01_166: [** The `message` shall be passed as argument to the callback. **]**
 XX**SRS_AMQP_MANAGEMENT_01_127: [** If the operation succeeded the result callback argument shall be `AMQP_MANAGEMENT_EXECUTE_OPERATION_OK`. **]**
 XX**SRS_AMQP_MANAGEMENT_01_128: [** If the status indicates that the operation failed, the result callback argument shall be `AMQP_MANAGEMENT_EXECUTE_OPERATION_FAILED_BAD_STATUS`. **]**
 XX**SRS_AMQP_MANAGEMENT_01_129: [** After calling the callback, the pending operation shall be removed from the pending operations list by calling `singlylinkedlist_remove`. **]**

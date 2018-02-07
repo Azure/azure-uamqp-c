@@ -54,6 +54,7 @@ static AMQP_VALUE test_name_propery_key = (AMQP_VALUE)0x4303;
 static AMQP_VALUE test_name_propery_value = (AMQP_VALUE)0x4304;
 static SINGLYLINKEDLIST_HANDLE test_singlylinkedlist = (SINGLYLINKEDLIST_HANDLE)0x4305;
 static AMQP_VALUE test_default_amqp_value = (AMQP_VALUE)0x4306;
+static MESSAGE_HANDLE test_response_message = (MESSAGE_HANDLE)0x4307;
 static ON_AMQP_MANAGEMENT_OPEN_COMPLETE saved_on_amqp_management_open_complete;
 static void* saved_on_amqp_management_open_complete_context;
 static ON_AMQP_MANAGEMENT_ERROR saved_on_amqp_management_error;
@@ -1765,7 +1766,7 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_NULL_context_does_nothi
     umock_c_reset_all_calls();
 
     // act
-    saved_on_execute_operation_complete(NULL, AMQP_MANAGEMENT_EXECUTE_OPERATION_OK, 200, "blah");
+    saved_on_execute_operation_complete(NULL, AMQP_MANAGEMENT_EXECUTE_OPERATION_OK, 200, "blah", test_response_message);
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
@@ -1789,7 +1790,7 @@ TEST_FUNCTION(when_singlylinkedlist_item_get_value_fails_then_on_amqp_management
         .SetReturn(NULL);
 
     // act
-    saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_OK, 200, "blah");
+    saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_OK, 200, "blah", test_response_message);
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
@@ -1823,7 +1824,7 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_OK_triggers_the_cbs_ope
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
-    saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_OK, 200, "blah");
+    saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_OK, 200, "blah", test_response_message);
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
@@ -1853,7 +1854,7 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_ERROR_triggers_the_cbs_
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
-    saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_ERROR, 401, "blah");
+    saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_ERROR, 401, "blah", test_response_message);
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
@@ -1883,7 +1884,7 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_OPERATION_FAILED_BAD_ST
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
-    saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_FAILED_BAD_STATUS, 0, "blah");
+    saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_FAILED_BAD_STATUS, 0, "blah", test_response_message);
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
@@ -1913,7 +1914,7 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_INSTANCE_CLOSED_trigger
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
-    saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_INSTANCE_CLOSED, 0, "blah");
+    saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_INSTANCE_CLOSED, 0, "blah", test_response_message);
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
@@ -1947,7 +1948,7 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_OK_for_delete_token_tri
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
-    saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_OK, 200, "blah");
+    saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_OK, 200, "blah", test_response_message);
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
@@ -1977,7 +1978,7 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_ERROR_for_delete_token_
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
-    saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_ERROR, 401, "blah");
+    saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_ERROR, 401, "blah", test_response_message);
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
@@ -2007,7 +2008,7 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_OPERATION_FAILED_BAD_ST
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
-    saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_FAILED_BAD_STATUS, 0, "blah");
+    saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_FAILED_BAD_STATUS, 0, "blah", test_response_message);
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
@@ -2037,7 +2038,7 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_INSTANCE_CLOSED_for_del
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
-    saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_INSTANCE_CLOSED, 0, "blah");
+    saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_INSTANCE_CLOSED, 0, "blah", test_response_message);
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());

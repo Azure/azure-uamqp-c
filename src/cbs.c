@@ -256,18 +256,18 @@ static void on_amqp_management_execute_operation_complete(void* context, AMQP_MA
 
 CBS_HANDLE cbs_create(SESSION_HANDLE session)
 {
-    CBS_INSTANCE* result;
+    CBS_INSTANCE* cbs;
 
     if (session == NULL)
     {
         /* Codes_SRS_CBS_01_033: [** If `session` is NULL then `cbs_create` shall fail and return NULL. ]*/
         LogError("NULL session handle");
-        result = NULL;
+        cbs = NULL;
     }
     else
     {
-        result = (CBS_INSTANCE*)malloc(sizeof(CBS_INSTANCE));
-        if (result == NULL)
+        cbs = (CBS_INSTANCE*)malloc(sizeof(CBS_INSTANCE));
+        if (cbs == NULL)
         {
             /* Codes_SRS_CBS_01_076: [ If allocating memory for the new handle fails, `cbs_create` shall fail and return NULL. ]*/
             LogError("Cannot allocate memory for cbs instance.");
@@ -275,35 +275,60 @@ CBS_HANDLE cbs_create(SESSION_HANDLE session)
         else
         {
             /* Codes_SRS_CBS_01_097: [ `cbs_create` shall create a singly linked list for pending operations by calling `singlylinkedlist_create`. ]*/
-            result->pending_operations = singlylinkedlist_create();
-            if (result->pending_operations == NULL)
+            cbs->pending_operations = singlylinkedlist_create();
+            if (cbs->pending_operations == NULL)
             {
                 /* Codes_SRS_CBS_01_101: [ If `singlylinkedlist_create` fails, `cbs_create` shall fail and return NULL. ]*/
                 LogError("Cannot allocate pending operations list.");
-                free(result);
-                result = NULL;
             }
             else
             {
                 /* Codes_SRS_CBS_01_034: [ `cbs_create` shall create an AMQP management handle by calling `amqp_management_create`. ]*/
                 /* Codes_SRS_CBS_01_002: [ Tokens are communicated between AMQP peers by sending specially-formatted AMQP messages to the Claims-based Security Node. ]*/
                 /* Codes_SRS_CBS_01_003: [ The mechanism follows the scheme defined in the AMQP Management specification [AMQPMAN]. ]*/
-                result->amqp_management = amqp_management_create(session, "$cbs");
-                if (result->amqp_management == NULL)
+                cbs->amqp_management = amqp_management_create(session, "$cbs");
+                if (cbs->amqp_management == NULL)
                 {
-                    free(result);
-                    result = NULL;
+                    LogError("Cannot create AMQP management instance for the $cbs node.");
                 }
                 else
                 {
-                    result->cbs_state = CBS_STATE_CLOSED;
+                    /* Codes_SRS_CBS_01_116: [ If setting the override key names fails, then `cbs_create` shall fail and return NULL. ]*/
+                    if (amqp_management_set_override_status_code_key_name(cbs->amqp_management, "status-code") != 0)
+                    {
+                        /* Codes_SRS_CBS_01_116: [ If setting the override key names fails, then `cbs_create` shall fail and return NULL. ]*/
+                        LogError("Cannot set the override status code key name");
+                    }
+                    else
+                    {
+                        /* Codes_SRS_CBS_01_118: [ `cbs_create` shall set the override status description key name on the AMQP management handle to `status-description` by calling `amqp_management_set_override_status_description_key_name`. ]*/
+                        if (amqp_management_set_override_status_description_key_name(cbs->amqp_management, "status-description") != 0)
+                        {
+                            /* Codes_SRS_CBS_01_116: [ If setting the override key names fails, then `cbs_create` shall fail and return NULL. ]*/
+                            LogError("Cannot set the override status description key name");
+                        }
+                        else
+                        {
+                            /* Codes_SRS_CBS_01_001: [ `cbs_create` shall create a new CBS instance and on success return a non-NULL handle to it. ]*/
+                            cbs->cbs_state = CBS_STATE_CLOSED;
+
+                            goto all_ok;
+                        }
+                    }
+
+                    amqp_management_destroy(cbs->amqp_management);
                 }
+
+                singlylinkedlist_destroy(cbs->pending_operations);
             }
+
+            free(cbs);
+            cbs = NULL;
         }
     }
     
-    /* Codes_SRS_CBS_01_001: [ `cbs_create` shall create a new CBS instance and on success return a non-NULL handle to it. ]*/
-    return result;
+all_ok:
+    return cbs;
 }
 
 void cbs_destroy(CBS_HANDLE cbs)

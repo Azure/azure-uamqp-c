@@ -264,6 +264,8 @@ TEST_FUNCTION_CLEANUP(test_cleanup)
 /* Tests_SRS_CBS_01_097: [ `cbs_create` shall create a singly linked list for pending operations by calling `singlylinkedlist_create`. ]*/
 /* Tests_SRS_CBS_01_002: [ Tokens are communicated between AMQP peers by sending specially-formatted AMQP messages to the Claims-based Security Node. ]*/
 /* Tests_SRS_CBS_01_003: [ The mechanism follows the scheme defined in the AMQP Management specification [AMQPMAN]. ]*/
+/* Tests_SRS_CBS_01_117: [ `cbs_create` shall set the override status code key name on the AMQP management handle to `status-code` by calling `amqp_management_set_override_status_code_key_name`. ]*/
+/* Tests_SRS_CBS_01_118: [ `cbs_create` shall set the override status description key name on the AMQP management handle to `status-description` by calling `amqp_management_set_override_status_description_key_name`. ]*/
 TEST_FUNCTION(cbs_create_returns_a_valid_handle)
 {
     // arrange
@@ -271,6 +273,8 @@ TEST_FUNCTION(cbs_create_returns_a_valid_handle)
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_create());
     STRICT_EXPECTED_CALL(amqp_management_create(test_session_handle, "$cbs"));
+    STRICT_EXPECTED_CALL(amqp_management_set_override_status_code_key_name(test_amqp_management_handle, "status-code"));
+    STRICT_EXPECTED_CALL(amqp_management_set_override_status_description_key_name(test_amqp_management_handle, "status-description"));
 
     // act
     cbs = cbs_create(test_session_handle);
@@ -300,6 +304,7 @@ TEST_FUNCTION(cbs_create_with_NULL_session_handle_fails)
 /* Tests_SRS_CBS_01_035: [ If `amqp_management_create` fails then `cbs_create` shall fail and return NULL. ]*/
 /* Tests_SRS_CBS_01_076: [ If allocating memory for the new handle fails, `cbs_create` shall fail and return NULL. ]*/
 /* Tests_SRS_CBS_01_101: [ If `singlylinkedlist_create` fails, `cbs_create` shall fail and return NULL. ]*/
+/* Tests_SRS_CBS_01_116: [ If setting the override key names fails, then `cbs_create` shall fail and return NULL. ]*/
 TEST_FUNCTION(when_one_of_the_functions_called_by_cbs_create_fails_then_cbs_create_fails)
 {
     // arrange
@@ -314,6 +319,10 @@ TEST_FUNCTION(when_one_of_the_functions_called_by_cbs_create_fails_then_cbs_crea
         .SetReturn(NULL);
     STRICT_EXPECTED_CALL(amqp_management_create(test_session_handle, "$cbs"))
         .SetFailReturn(NULL);
+    STRICT_EXPECTED_CALL(amqp_management_set_override_status_code_key_name(test_amqp_management_handle, "status-code"))
+        .SetFailReturn(1);
+    STRICT_EXPECTED_CALL(amqp_management_set_override_status_description_key_name(test_amqp_management_handle, "status-description"))
+        .SetFailReturn(1);
     umock_c_negative_tests_snapshot();
 
     count = umock_c_negative_tests_call_count();

@@ -49,6 +49,9 @@ MOCKABLE_FUNCTION(, CBS_HANDLE, cbs_create, SESSION_HANDLE, session);
 **SRS_CBS_01_076: [** If allocating memory for the new handle fails, `cbs_create` shall fail and return NULL. **]**
 **SRS_CBS_01_034: [** `cbs_create` shall create an AMQP management handle by calling `amqp_management_create`. **]**
 **SRS_CBS_01_035: [** If `amqp_management_create` fails then `cbs_create` shall fail and return NULL. **]**
+**SRS_CBS_01_117: [** `cbs_create` shall set the override status code key name on the AMQP management handle to `status-code` by calling `amqp_management_set_override_status_code_key_name`. **]**
+**SRS_CBS_01_118: [** `cbs_create` shall set the override status description key name on the AMQP management handle to `status-description` by calling `amqp_management_set_override_status_description_key_name`. **]**
+**SRS_CBS_01_116: [** If setting the override key names fails, then `cbs_create` shall fail and return NULL. **]**
 
 ### cbs_destroy
 

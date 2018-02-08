@@ -31,10 +31,19 @@ static void my_gballoc_free(void* ptr)
     free(ptr);
 }
 
+static int my_mallocAndStrcpy_s(char** destination, const char* source)
+{
+    size_t len = strlen(source);
+    *destination = (char*)my_gballoc_malloc(len + 1);
+    (void)strcpy(*destination, source);
+    return 0;
+}
+
 #define ENABLE_MOCKS
 
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/singlylinkedlist.h"
+#include "azure_c_shared_utility/crt_abstractions.h"
 #include "azure_uamqp_c/message.h"
 #include "azure_uamqp_c/session.h"
 #include "azure_uamqp_c/link.h"
@@ -288,6 +297,7 @@ TEST_SUITE_INITIALIZE(suite_init)
     REGISTER_GLOBAL_MOCK_RETURN(messaging_delivery_accepted, test_delivery_accepted);
     REGISTER_GLOBAL_MOCK_RETURN(messaging_delivery_rejected, test_delivery_rejected);
     REGISTER_GLOBAL_MOCK_RETURN(messaging_delivery_released, test_delivery_released);
+    REGISTER_GLOBAL_MOCK_HOOK(mallocAndStrcpy_s, my_mallocAndStrcpy_s);
 
     REGISTER_UMOCK_ALIAS_TYPE(AMQP_MANAGEMENT_HANDLE, void*);
     REGISTER_UMOCK_ALIAS_TYPE(SINGLYLINKEDLIST_HANDLE, void*);
@@ -308,11 +318,6 @@ TEST_SUITE_INITIALIZE(suite_init)
 
     /* boo, we need uint_fast32_t in umock */
     REGISTER_UMOCK_ALIAS_TYPE(tickcounter_ms_t, uint32_t);
-
-    REGISTER_UMOCKC_PAIRED_CREATE_DESTROY_CALLS(link_create, link_destroy);
-    REGISTER_UMOCKC_PAIRED_CREATE_DESTROY_CALLS(messagesender_create, messagesender_destroy);
-    REGISTER_UMOCKC_PAIRED_CREATE_DESTROY_CALLS(messagereceiver_create, messagereceiver_destroy);
-//    REGISTER_UMOCKC_PAIRED_CREATE_DESTROY_CALLS(singlylinkedlist_create, singlylinkedlist_destroy);
 }
 
 TEST_SUITE_CLEANUP(suite_cleanup)
@@ -364,6 +369,8 @@ TEST_FUNCTION_CLEANUP(test_cleanup)
 /* Tests_SRS_AMQP_MANAGEMENT_01_018: [ The `role` argument shall be `role_receiver`. ]*/
 /* Tests_SRS_AMQP_MANAGEMENT_01_019: [ The `source` argument shall be the value created by calling `messaging_create_source`. ]*/
 /* Tests_SRS_AMQP_MANAGEMENT_01_020: [ The `target` argument shall be the value created by calling `messaging_create_target`. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_181: [ `amqp_management_create` shall set the status code key name to be used for parsing the status code to `statusCode`. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_182: [ `amqp_management_create` shall set the status description key name to be used for parsing the status description to `statusDescription`. ]*/
 TEST_FUNCTION(amqp_management_create_returns_a_valid_handle)
 {
     // arrange
@@ -371,6 +378,8 @@ TEST_FUNCTION(amqp_management_create_returns_a_valid_handle)
 
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_create());
+    STRICT_EXPECTED_CALL(mallocAndStrcpy_s(IGNORED_PTR_ARG, "statusCode"));
+    STRICT_EXPECTED_CALL(mallocAndStrcpy_s(IGNORED_PTR_ARG, "statusDescription"));
     STRICT_EXPECTED_CALL(messaging_create_source("test_node"));
     STRICT_EXPECTED_CALL(messaging_create_target("test_node"));
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
@@ -460,6 +469,10 @@ TEST_FUNCTION(when_any_underlying_function_call_fails_amqp_management_create_fai
         .SetFailReturn(NULL);
     STRICT_EXPECTED_CALL(singlylinkedlist_create())
         .SetFailReturn(NULL);
+    STRICT_EXPECTED_CALL(mallocAndStrcpy_s(IGNORED_PTR_ARG, "statusCode"))
+        .SetFailReturn(1);
+    STRICT_EXPECTED_CALL(mallocAndStrcpy_s(IGNORED_PTR_ARG, "statusDescription"))
+        .SetFailReturn(1);
     STRICT_EXPECTED_CALL(messaging_create_source("test_node"))
         .SetFailReturn(NULL);
     STRICT_EXPECTED_CALL(messaging_create_target("test_node"))
@@ -478,14 +491,10 @@ TEST_FUNCTION(when_any_underlying_function_call_fails_amqp_management_create_fai
         .SetFailReturn(NULL);
     STRICT_EXPECTED_CALL(messagereceiver_create(test_receiver_link, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .SetFailReturn(NULL);
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_PTR_ARG));
     umock_c_negative_tests_snapshot();
 
     count = umock_c_negative_tests_call_count();
-    for (index = 0; index < count - 4; index++)
+    for (index = 0; index < count; index++)
     {
         char tmp_msg[128];
         AMQP_MANAGEMENT_HANDLE amqp_management;
@@ -519,6 +528,8 @@ TEST_FUNCTION(amqp_management_destroy_frees_all_the_allocated_resources)
 
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_create());
+    STRICT_EXPECTED_CALL(mallocAndStrcpy_s(IGNORED_PTR_ARG, "statusCode"));
+    STRICT_EXPECTED_CALL(mallocAndStrcpy_s(IGNORED_PTR_ARG, "statusDescription"));
     STRICT_EXPECTED_CALL(messaging_create_source("test_node"));
     STRICT_EXPECTED_CALL(messaging_create_target("test_node"));
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
@@ -534,6 +545,8 @@ TEST_FUNCTION(amqp_management_destroy_frees_all_the_allocated_resources)
     STRICT_EXPECTED_CALL(messagereceiver_destroy(test_message_receiver));
     STRICT_EXPECTED_CALL(link_destroy(test_sender_link));
     STRICT_EXPECTED_CALL(link_destroy(test_receiver_link));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG)); // status description key name
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG)); // status code key name
     STRICT_EXPECTED_CALL(singlylinkedlist_destroy(test_singlylinkedlist_handle));
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
@@ -1825,10 +1838,10 @@ TEST_FUNCTION(on_message_received_with_NULL_context_does_nothing)
 /* Tests_SRS_AMQP_MANAGEMENT_01_110: [ `on_message_received` shall obtain the message properties from the message by calling `message_get_properties`. ]*/
 /* Tests_SRS_AMQP_MANAGEMENT_01_111: [ `on_message_received` shall obtain the correlation Id from the message properties by using `properties_get_correlation_id`. ]*/
 /* Tests_SRS_AMQP_MANAGEMENT_01_119: [ `on_message_received` shall obtain the application properties map by calling `amqpvalue_get_inplace_described_value`. ]*/
-/* Tests_SRS_AMQP_MANAGEMENT_01_120: [ An AMQP value used to lookup the status code shall be created by calling `amqpvalue_create_string` with `status-code` as argument. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_120: [ An AMQP value used to lookup the status code shall be created by calling `amqpvalue_create_string` with the status code key name (`statusCode`) as argument. ]*/
 /* Tests_SRS_AMQP_MANAGEMENT_01_121: [ The status code shall be looked up in the application properties by using `amqpvalue_get_map_value`. ]*/
 /* Tests_SRS_AMQP_MANAGEMENT_01_133: [ The status code value shall be extracted from the value found in the map by using `amqpvalue_get_int`. ]*/
-/* Tests_SRS_AMQP_MANAGEMENT_01_123: [ An AMQP value used to lookup the status description shall be created by calling `amqpvalue_create_string` with `status-description` as argument. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_123: [ An AMQP value used to lookup the status description shall be created by calling `amqpvalue_create_string` with the status description key name (`statusDescription`) as argument. ]*/
 /* Tests_SRS_AMQP_MANAGEMENT_01_124: [ The status description shall be looked up in the application properties by using `amqpvalue_get_map_value`. ]*/
 /* Tests_SRS_AMQP_MANAGEMENT_01_126: [ If a corresponding correlation Id is found in the pending operations list, the callback associated with the pending operation shall be called. ]*/
 /* Tests_SRS_AMQP_MANAGEMENT_01_134: [ The status description value shall be extracted from the value found in the map by using `amqpvalue_get_string`. ]*/
@@ -1872,13 +1885,13 @@ TEST_FUNCTION(on_message_received_with_a_valid_message_indicates_the_operation_c
         .CopyOutArgumentBuffer_ulong_value(&correlation_id, sizeof(correlation_id));
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_described_value(test_application_properties))
         .SetReturn(test_application_properties_map);
-    STRICT_EXPECTED_CALL(amqpvalue_create_string("status-code"))
+    STRICT_EXPECTED_CALL(amqpvalue_create_string("statusCode"))
         .SetReturn(test_status_code_key);
     STRICT_EXPECTED_CALL(amqpvalue_get_map_value(test_application_properties_map, test_status_code_key))
         .SetReturn(test_status_code_value);
     STRICT_EXPECTED_CALL(amqpvalue_get_int(test_status_code_value, IGNORED_PTR_ARG))
         .CopyOutArgumentBuffer_int_value(&status_code, sizeof(status_code));
-    STRICT_EXPECTED_CALL(amqpvalue_create_string("status-description"))
+    STRICT_EXPECTED_CALL(amqpvalue_create_string("statusDescription"))
         .SetReturn(test_status_description_key);
     STRICT_EXPECTED_CALL(amqpvalue_get_map_value(test_application_properties_map, test_status_description_key))
         .SetReturn(test_status_description_value);
@@ -1944,13 +1957,13 @@ TEST_FUNCTION(on_message_received_for_the_second_pending_operation_with_a_valid_
         .CopyOutArgumentBuffer_ulong_value(&correlation_id, sizeof(correlation_id));
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_described_value(test_application_properties))
         .SetReturn(test_application_properties_map);
-    STRICT_EXPECTED_CALL(amqpvalue_create_string("status-code"))
+    STRICT_EXPECTED_CALL(amqpvalue_create_string("statusCode"))
         .SetReturn(test_status_code_key);
     STRICT_EXPECTED_CALL(amqpvalue_get_map_value(test_application_properties_map, test_status_code_key))
         .SetReturn(test_status_code_value);
     STRICT_EXPECTED_CALL(amqpvalue_get_int(test_status_code_value, IGNORED_PTR_ARG))
         .CopyOutArgumentBuffer_int_value(&status_code, sizeof(status_code));
-    STRICT_EXPECTED_CALL(amqpvalue_create_string("status-description"))
+    STRICT_EXPECTED_CALL(amqpvalue_create_string("statusDescription"))
         .SetReturn(test_status_description_key);
     STRICT_EXPECTED_CALL(amqpvalue_get_map_value(test_application_properties_map, test_status_description_key))
         .SetReturn(test_status_description_value);
@@ -2206,7 +2219,7 @@ TEST_FUNCTION(when_creating_the_status_code_string_amqp_value_fails_an_error_is_
         .CopyOutArgumentBuffer_ulong_value(&correlation_id, sizeof(correlation_id));
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_described_value(test_application_properties))
         .SetReturn(test_application_properties_map);
-    STRICT_EXPECTED_CALL(amqpvalue_create_string("status-code"))
+    STRICT_EXPECTED_CALL(amqpvalue_create_string("statusCode"))
         .SetReturn(NULL);
     STRICT_EXPECTED_CALL(test_on_amqp_management_error((void*)0x4243));
     STRICT_EXPECTED_CALL(messaging_delivery_released());
@@ -2252,7 +2265,7 @@ TEST_FUNCTION(when_getting_the_map_value_for_status_code_fails_an_error_is_indic
         .CopyOutArgumentBuffer_ulong_value(&correlation_id, sizeof(correlation_id));
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_described_value(test_application_properties))
         .SetReturn(test_application_properties_map);
-    STRICT_EXPECTED_CALL(amqpvalue_create_string("status-code"))
+    STRICT_EXPECTED_CALL(amqpvalue_create_string("statusCode"))
         .SetReturn(test_status_code_key);
     STRICT_EXPECTED_CALL(amqpvalue_get_map_value(test_application_properties_map, test_status_code_key))
         .SetReturn(NULL);
@@ -2302,7 +2315,7 @@ TEST_FUNCTION(when_getting_status_code_int_value_fails_an_error_is_indicated)
         .CopyOutArgumentBuffer_ulong_value(&correlation_id, sizeof(correlation_id));
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_described_value(test_application_properties))
         .SetReturn(test_application_properties_map);
-    STRICT_EXPECTED_CALL(amqpvalue_create_string("status-code"))
+    STRICT_EXPECTED_CALL(amqpvalue_create_string("statusCode"))
         .SetReturn(test_status_code_key);
     STRICT_EXPECTED_CALL(amqpvalue_get_map_value(test_application_properties_map, test_status_code_key))
         .SetReturn(test_status_code_value);
@@ -2355,13 +2368,13 @@ TEST_FUNCTION(when_creating_the_status_description_amqp_value_fails_an_error_is_
         .CopyOutArgumentBuffer_ulong_value(&correlation_id, sizeof(correlation_id));
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_described_value(test_application_properties))
         .SetReturn(test_application_properties_map);
-    STRICT_EXPECTED_CALL(amqpvalue_create_string("status-code"))
+    STRICT_EXPECTED_CALL(amqpvalue_create_string("statusCode"))
         .SetReturn(test_status_code_key);
     STRICT_EXPECTED_CALL(amqpvalue_get_map_value(test_application_properties_map, test_status_code_key))
         .SetReturn(test_status_code_value);
     STRICT_EXPECTED_CALL(amqpvalue_get_int(test_status_code_value, IGNORED_PTR_ARG))
         .CopyOutArgumentBuffer_int_value(&status_code, sizeof(status_code));
-    STRICT_EXPECTED_CALL(amqpvalue_create_string("status-description"))
+    STRICT_EXPECTED_CALL(amqpvalue_create_string("statusDescription"))
         .SetReturn(NULL);
     STRICT_EXPECTED_CALL(test_on_amqp_management_error((void*)0x4243));
     STRICT_EXPECTED_CALL(messaging_delivery_released());
@@ -2408,13 +2421,13 @@ TEST_FUNCTION(when_no_description_is_found_NULL_is_indicated_as_description)
         .CopyOutArgumentBuffer_ulong_value(&correlation_id, sizeof(correlation_id));
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_described_value(test_application_properties))
         .SetReturn(test_application_properties_map);
-    STRICT_EXPECTED_CALL(amqpvalue_create_string("status-code"))
+    STRICT_EXPECTED_CALL(amqpvalue_create_string("statusCode"))
         .SetReturn(test_status_code_key);
     STRICT_EXPECTED_CALL(amqpvalue_get_map_value(test_application_properties_map, test_status_code_key))
         .SetReturn(test_status_code_value);
     STRICT_EXPECTED_CALL(amqpvalue_get_int(test_status_code_value, IGNORED_PTR_ARG))
         .CopyOutArgumentBuffer_int_value(&status_code, sizeof(status_code));
-    STRICT_EXPECTED_CALL(amqpvalue_create_string("status-description"))
+    STRICT_EXPECTED_CALL(amqpvalue_create_string("statusDescription"))
         .SetReturn(test_status_description_key);
     STRICT_EXPECTED_CALL(amqpvalue_get_map_value(test_application_properties_map, test_status_description_key))
         .SetReturn(NULL);
@@ -2470,13 +2483,13 @@ TEST_FUNCTION(when_getting_the_string_for_the_description_fails_NULL_is_indicate
         .CopyOutArgumentBuffer_ulong_value(&correlation_id, sizeof(correlation_id));
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_described_value(test_application_properties))
         .SetReturn(test_application_properties_map);
-    STRICT_EXPECTED_CALL(amqpvalue_create_string("status-code"))
+    STRICT_EXPECTED_CALL(amqpvalue_create_string("statusCode"))
         .SetReturn(test_status_code_key);
     STRICT_EXPECTED_CALL(amqpvalue_get_map_value(test_application_properties_map, test_status_code_key))
         .SetReturn(test_status_code_value);
     STRICT_EXPECTED_CALL(amqpvalue_get_int(test_status_code_value, IGNORED_PTR_ARG))
         .CopyOutArgumentBuffer_int_value(&status_code, sizeof(status_code));
-    STRICT_EXPECTED_CALL(amqpvalue_create_string("status-description"))
+    STRICT_EXPECTED_CALL(amqpvalue_create_string("statusDescription"))
         .SetReturn(test_status_description_key);
     STRICT_EXPECTED_CALL(amqpvalue_get_map_value(test_application_properties_map, test_status_description_key))
         .SetReturn(test_status_description_value);
@@ -2536,13 +2549,13 @@ TEST_FUNCTION(when_getting_the_head_item_in_the_list_fails_an_error_is_indicated
         .CopyOutArgumentBuffer_ulong_value(&correlation_id, sizeof(correlation_id));
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_described_value(test_application_properties))
         .SetReturn(test_application_properties_map);
-    STRICT_EXPECTED_CALL(amqpvalue_create_string("status-code"))
+    STRICT_EXPECTED_CALL(amqpvalue_create_string("statusCode"))
         .SetReturn(test_status_code_key);
     STRICT_EXPECTED_CALL(amqpvalue_get_map_value(test_application_properties_map, test_status_code_key))
         .SetReturn(test_status_code_value);
     STRICT_EXPECTED_CALL(amqpvalue_get_int(test_status_code_value, IGNORED_PTR_ARG))
         .CopyOutArgumentBuffer_int_value(&status_code, sizeof(status_code));
-    STRICT_EXPECTED_CALL(amqpvalue_create_string("status-description"))
+    STRICT_EXPECTED_CALL(amqpvalue_create_string("statusDescription"))
         .SetReturn(test_status_description_key);
     STRICT_EXPECTED_CALL(amqpvalue_get_map_value(test_application_properties_map, test_status_description_key))
         .SetReturn(test_status_description_value);
@@ -2599,13 +2612,13 @@ TEST_FUNCTION(when_getting_the_list_item_content_fails_an_error_is_indicated)
         .CopyOutArgumentBuffer_ulong_value(&correlation_id, sizeof(correlation_id));
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_described_value(test_application_properties))
         .SetReturn(test_application_properties_map);
-    STRICT_EXPECTED_CALL(amqpvalue_create_string("status-code"))
+    STRICT_EXPECTED_CALL(amqpvalue_create_string("statusCode"))
         .SetReturn(test_status_code_key);
     STRICT_EXPECTED_CALL(amqpvalue_get_map_value(test_application_properties_map, test_status_code_key))
         .SetReturn(test_status_code_value);
     STRICT_EXPECTED_CALL(amqpvalue_get_int(test_status_code_value, IGNORED_PTR_ARG))
         .CopyOutArgumentBuffer_int_value(&status_code, sizeof(status_code));
-    STRICT_EXPECTED_CALL(amqpvalue_create_string("status-description"))
+    STRICT_EXPECTED_CALL(amqpvalue_create_string("statusDescription"))
         .SetReturn(test_status_description_key);
     STRICT_EXPECTED_CALL(amqpvalue_get_map_value(test_application_properties_map, test_status_description_key))
         .SetReturn(test_status_description_value);
@@ -2664,13 +2677,13 @@ TEST_FUNCTION(when_getting_the_next_element_in_the_list_yields_NULL_an_error_is_
         .CopyOutArgumentBuffer_ulong_value(&correlation_id, sizeof(correlation_id));
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_described_value(test_application_properties))
         .SetReturn(test_application_properties_map);
-    STRICT_EXPECTED_CALL(amqpvalue_create_string("status-code"))
+    STRICT_EXPECTED_CALL(amqpvalue_create_string("statusCode"))
         .SetReturn(test_status_code_key);
     STRICT_EXPECTED_CALL(amqpvalue_get_map_value(test_application_properties_map, test_status_code_key))
         .SetReturn(test_status_code_value);
     STRICT_EXPECTED_CALL(amqpvalue_get_int(test_status_code_value, IGNORED_PTR_ARG))
         .CopyOutArgumentBuffer_int_value(&status_code, sizeof(status_code));
-    STRICT_EXPECTED_CALL(amqpvalue_create_string("status-description"))
+    STRICT_EXPECTED_CALL(amqpvalue_create_string("statusDescription"))
         .SetReturn(test_status_description_key);
     STRICT_EXPECTED_CALL(amqpvalue_get_map_value(test_application_properties_map, test_status_description_key))
         .SetReturn(test_status_description_value);
@@ -2731,13 +2744,13 @@ TEST_FUNCTION(when_removing_the_item_fails_an_error_is_indicated)
         .CopyOutArgumentBuffer_ulong_value(&correlation_id, sizeof(correlation_id));
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_described_value(test_application_properties))
         .SetReturn(test_application_properties_map);
-    STRICT_EXPECTED_CALL(amqpvalue_create_string("status-code"))
+    STRICT_EXPECTED_CALL(amqpvalue_create_string("statusCode"))
         .SetReturn(test_status_code_key);
     STRICT_EXPECTED_CALL(amqpvalue_get_map_value(test_application_properties_map, test_status_code_key))
         .SetReturn(test_status_code_value);
     STRICT_EXPECTED_CALL(amqpvalue_get_int(test_status_code_value, IGNORED_PTR_ARG))
         .CopyOutArgumentBuffer_int_value(&status_code, sizeof(status_code));
-    STRICT_EXPECTED_CALL(amqpvalue_create_string("status-description"))
+    STRICT_EXPECTED_CALL(amqpvalue_create_string("statusDescription"))
         .SetReturn(test_status_description_key);
     STRICT_EXPECTED_CALL(amqpvalue_get_map_value(test_application_properties_map, test_status_description_key))
         .SetReturn(test_status_description_value);
@@ -2783,13 +2796,13 @@ static void setup_calls_for_response_with_status_code_and_correlation_id(int sta
         .CopyOutArgumentBuffer_ulong_value(&correlation_id, sizeof(correlation_id));
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_described_value(test_application_properties))
         .SetReturn(test_application_properties_map);
-    STRICT_EXPECTED_CALL(amqpvalue_create_string("status-code"))
+    STRICT_EXPECTED_CALL(amqpvalue_create_string("statusCode"))
         .SetReturn(test_status_code_key);
     STRICT_EXPECTED_CALL(amqpvalue_get_map_value(test_application_properties_map, test_status_code_key))
         .SetReturn(test_status_code_value);
     STRICT_EXPECTED_CALL(amqpvalue_get_int(test_status_code_value, IGNORED_PTR_ARG))
         .CopyOutArgumentBuffer_int_value(&status_code, sizeof(status_code));
-    STRICT_EXPECTED_CALL(amqpvalue_create_string("status-description"))
+    STRICT_EXPECTED_CALL(amqpvalue_create_string("statusDescription"))
         .SetReturn(test_status_description_key);
     STRICT_EXPECTED_CALL(amqpvalue_get_map_value(test_application_properties_map, test_status_description_key))
         .SetReturn(test_status_description_value);
@@ -3729,6 +3742,316 @@ TEST_FUNCTION(amqp_management_set_trace_with_NULL_handle_does_nothing)
     amqp_management_set_trace(NULL, false);
 
     // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqp_management_destroy(amqp_management);
+}
+
+/* amqp_management_set_override_status_code_key_name */
+
+/* Tests_SRS_AMQP_MANAGEMENT_01_167: [ `amqp_management_set_override_status_code_key_name` shall set the status code key name used to parse the status code from the reply messages to `override_status_code_key_name`. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_170: [ On success, `amqp_management_set_override_status_code_key_name` shall return 0. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_168: [ `amqp_management_set_override_status_code_key_name` shall copy the `override_status_code_key_name` string. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_169: [ `amqp_management_set_override_status_code_key_name` shall free any string previously used for the status code key name. ]*/
+TEST_FUNCTION(amqp_management_set_override_status_code_key_name_succeeds)
+{
+    // arrange
+    AMQP_MANAGEMENT_HANDLE amqp_management;
+    int result;
+
+    amqp_management = amqp_management_create(test_session_handle, "test_node");
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(mallocAndStrcpy_s(IGNORED_PTR_ARG, "xxx"));
+    STRICT_EXPECTED_CALL(free(IGNORED_PTR_ARG));
+
+    // act
+    result = amqp_management_set_override_status_code_key_name(amqp_management, "xxx");
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_EQUAL(int, 0, result);
+
+    // cleanup
+    amqp_management_destroy(amqp_management);
+}
+
+/* Tests_SRS_AMQP_MANAGEMENT_01_171: [ If `amqp_management` is NULL, `amqp_management_set_override_status_code_key_name` shall fail and return a non-zero value. ]*/
+TEST_FUNCTION(amqp_management_set_override_status_code_key_name_with_NULL_handle_fails)
+{
+    // arrange
+    int result;
+
+    // act
+    result = amqp_management_set_override_status_code_key_name(NULL, "xxx");
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+}
+
+/* Tests_SRS_AMQP_MANAGEMENT_01_172: [ If `override_status_code_key_name` is NULL, `amqp_management_set_override_status_code_key_name` shall fail and return a non-zero value. ]*/
+TEST_FUNCTION(amqp_management_set_override_status_code_key_name_with_NULL_string_fails)
+{
+    // arrange
+    AMQP_MANAGEMENT_HANDLE amqp_management;
+    int result;
+
+    amqp_management = amqp_management_create(test_session_handle, "test_node");
+    umock_c_reset_all_calls();
+
+    // act
+    result = amqp_management_set_override_status_code_key_name(amqp_management, NULL);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+
+    // cleanup
+    amqp_management_destroy(amqp_management);
+}
+
+/* Tests_SRS_AMQP_MANAGEMENT_01_173: [ If any error occurs in copying the `override_status_code_key_name` string, `amqp_management_set_override_status_code_key_name` shall fail and return a non-zero value. ]*/
+TEST_FUNCTION(when_copying_the_string_fails_amqp_management_set_override_status_code_key_name_fails)
+{
+    // arrange
+    AMQP_MANAGEMENT_HANDLE amqp_management;
+    int result;
+
+    amqp_management = amqp_management_create(test_session_handle, "test_node");
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(mallocAndStrcpy_s(IGNORED_PTR_ARG, "xxx"))
+        .SetReturn(1);
+
+    // act
+    result = amqp_management_set_override_status_code_key_name(amqp_management, "xxx");
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+
+    // cleanup
+    amqp_management_destroy(amqp_management);
+}
+
+/* Tests_SRS_AMQP_MANAGEMENT_01_167: [ `amqp_management_set_override_status_code_key_name` shall set the status code key name used to parse the status code from the reply messages to `override_status_code_key_name`. ]*/
+TEST_FUNCTION(when_amqp_management_set_override_status_code_key_name_is_called_the_override_status_code_key_name_is_used)
+{
+    // arrange
+    AMQP_MANAGEMENT_HANDLE amqp_management;
+    AMQP_VALUE result;
+    int32_t status_code = 200;
+    const char* test_status_description = "my error ...";
+    uint64_t correlation_id = 0;
+
+    amqp_management = amqp_management_create(test_session_handle, "test_node");
+    (void)amqp_management_set_override_status_code_key_name(amqp_management, "xxx");
+    (void)amqp_management_open_async(amqp_management, test_on_amqp_management_open_complete, (void*)0x4242, test_on_amqp_management_error, (void*)0x4243);
+    saved_on_message_sender_state_changed(saved_on_message_sender_state_changed_context, MESSAGE_SENDER_STATE_OPEN, MESSAGE_SENDER_STATE_OPENING);
+    saved_on_message_receiver_state_changed(saved_on_message_receiver_state_changed_context, MESSAGE_RECEIVER_STATE_OPEN, MESSAGE_RECEIVER_STATE_OPENING);
+    umock_c_reset_all_calls();
+    setup_calls_for_pending_operation_with_correlation_id(0);
+    (void)amqp_management_execute_operation_async(amqp_management, "some_operation", "some_type", "en-US", test_message, test_on_amqp_management_execute_operation_complete, (void*)0x4244);
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(message_get_application_properties(test_message, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer_application_properties(&test_application_properties, sizeof(test_application_properties));
+    STRICT_EXPECTED_CALL(message_get_properties(test_message, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer_properties(&test_properties, sizeof(test_properties));
+    STRICT_EXPECTED_CALL(properties_get_correlation_id(test_properties, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer_correlation_id_value(&test_correlation_id_value, sizeof(test_correlation_id_value));
+    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(test_correlation_id_value, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer_ulong_value(&correlation_id, sizeof(correlation_id));
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_described_value(test_application_properties))
+        .SetReturn(test_application_properties_map);
+    STRICT_EXPECTED_CALL(amqpvalue_create_string("xxx"))
+        .SetReturn(test_status_code_key);
+    STRICT_EXPECTED_CALL(amqpvalue_get_map_value(test_application_properties_map, test_status_code_key))
+        .SetReturn(test_status_code_value);
+    STRICT_EXPECTED_CALL(amqpvalue_get_int(test_status_code_value, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer_int_value(&status_code, sizeof(status_code));
+    STRICT_EXPECTED_CALL(amqpvalue_create_string("statusDescription"))
+        .SetReturn(test_status_description_key);
+    STRICT_EXPECTED_CALL(amqpvalue_get_map_value(test_application_properties_map, test_status_description_key))
+        .SetReturn(test_status_description_value);
+    STRICT_EXPECTED_CALL(amqpvalue_get_string(test_status_description_value, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer_string_value(&test_status_description, sizeof(test_status_description));
+    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinkedlist_handle));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(test_on_amqp_management_execute_operation_complete((void*)0x4244, AMQP_MANAGEMENT_EXECUTE_OPERATION_OK, 200, "my error ...", test_message));
+
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist_handle, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(messaging_delivery_accepted());
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(test_status_description_value));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(test_status_description_key));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(test_status_code_value));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(test_status_code_key));
+    STRICT_EXPECTED_CALL(properties_destroy(test_properties));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(test_application_properties));
+
+    // act
+    result = saved_on_message_received(saved_on_message_received_context, test_message);
+
+    // assert
+    ASSERT_ARE_EQUAL(void_ptr, test_delivery_accepted, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqp_management_destroy(amqp_management);
+}
+
+/* amqp_management_set_override_status_description_key_name */
+
+/* Tests_SRS_AMQP_MANAGEMENT_01_174: [ `amqp_management_set_override_status_description_key_name` shall set the status description key name used to parse the status description from the reply messages to `over ride_status_description_key_name`.]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_175: [ `amqp_management_set_override_status_description_key_name` shall copy the `override_status_description_key_name` string. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_176: [ `amqp_management_set_override_status_description_key_name` shall free any string previously used for the status description key name. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_177: [ On success, `amqp_management_set_override_status_description_key_name` shall return 0. ]*/
+TEST_FUNCTION(amqp_management_set_override_status_description_key_name_succeeds)
+{
+    // arrange
+    AMQP_MANAGEMENT_HANDLE amqp_management;
+    int result;
+
+    amqp_management = amqp_management_create(test_session_handle, "test_node");
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(mallocAndStrcpy_s(IGNORED_PTR_ARG, "xxx"));
+    STRICT_EXPECTED_CALL(free(IGNORED_PTR_ARG));
+
+    // act
+    result = amqp_management_set_override_status_description_key_name(amqp_management, "xxx");
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_EQUAL(int, 0, result);
+
+    // cleanup
+    amqp_management_destroy(amqp_management);
+}
+
+/* Tests_SRS_AMQP_MANAGEMENT_01_178: [ If `amqp_management` is NULL, `amqp_management_set_override_status_description_key_name` shall fail and return a non-zero value. ]*/
+TEST_FUNCTION(amqp_management_set_override_status_description_key_name_with_NULL_handle_fails)
+{
+    // arrange
+    int result;
+
+    // act
+    result = amqp_management_set_override_status_description_key_name(NULL, "xxx");
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+}
+
+/* Tests_SRS_AMQP_MANAGEMENT_01_179: [ If `override_status_description_key_name` is NULL, `amqp_management_set_override_status_description_key_name` shall fail and return a non-zero value. ]*/
+TEST_FUNCTION(amqp_management_set_override_status_description_key_name_with_NULL_string_fails)
+{
+    // arrange
+    AMQP_MANAGEMENT_HANDLE amqp_management;
+    int result;
+
+    amqp_management = amqp_management_create(test_session_handle, "test_node");
+    umock_c_reset_all_calls();
+
+    // act
+    result = amqp_management_set_override_status_description_key_name(amqp_management, NULL);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+
+    // cleanup
+    amqp_management_destroy(amqp_management);
+}
+
+/* Tests_SRS_AMQP_MANAGEMENT_01_180: [ If any error occurs in copying the `override_status_description_key_name` string, `amqp_management_set_override_status_description_key_name` shall fail and return a non-zero value. ]*/
+TEST_FUNCTION(when_copying_the_string_fails_amqp_management_set_override_status_description_key_name_fails)
+{
+    // arrange
+    AMQP_MANAGEMENT_HANDLE amqp_management;
+    int result;
+
+    amqp_management = amqp_management_create(test_session_handle, "test_node");
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(mallocAndStrcpy_s(IGNORED_PTR_ARG, "xxx"))
+        .SetReturn(1);
+
+    // act
+    result = amqp_management_set_override_status_description_key_name(amqp_management, "xxx");
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+
+    // cleanup
+    amqp_management_destroy(amqp_management);
+}
+
+/* Tests_SRS_AMQP_MANAGEMENT_01_174: [ `amqp_management_set_override_status_description_key_name` shall set the status description key name used to parse the status description from the reply messages to `over ride_status_description_key_name`.]*/
+TEST_FUNCTION(when_amqp_management_set_override_status_description_key_name_is_called_the_override_status_code_key_name_is_used)
+{
+    // arrange
+    AMQP_MANAGEMENT_HANDLE amqp_management;
+    AMQP_VALUE result;
+    int32_t status_code = 200;
+    const char* test_status_description = "my error ...";
+    uint64_t correlation_id = 0;
+
+    amqp_management = amqp_management_create(test_session_handle, "test_node");
+    (void)amqp_management_set_override_status_description_key_name(amqp_management, "xxx");
+    (void)amqp_management_open_async(amqp_management, test_on_amqp_management_open_complete, (void*)0x4242, test_on_amqp_management_error, (void*)0x4243);
+    saved_on_message_sender_state_changed(saved_on_message_sender_state_changed_context, MESSAGE_SENDER_STATE_OPEN, MESSAGE_SENDER_STATE_OPENING);
+    saved_on_message_receiver_state_changed(saved_on_message_receiver_state_changed_context, MESSAGE_RECEIVER_STATE_OPEN, MESSAGE_RECEIVER_STATE_OPENING);
+    umock_c_reset_all_calls();
+    setup_calls_for_pending_operation_with_correlation_id(0);
+    (void)amqp_management_execute_operation_async(amqp_management, "some_operation", "some_type", "en-US", test_message, test_on_amqp_management_execute_operation_complete, (void*)0x4244);
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(message_get_application_properties(test_message, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer_application_properties(&test_application_properties, sizeof(test_application_properties));
+    STRICT_EXPECTED_CALL(message_get_properties(test_message, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer_properties(&test_properties, sizeof(test_properties));
+    STRICT_EXPECTED_CALL(properties_get_correlation_id(test_properties, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer_correlation_id_value(&test_correlation_id_value, sizeof(test_correlation_id_value));
+    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(test_correlation_id_value, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer_ulong_value(&correlation_id, sizeof(correlation_id));
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_described_value(test_application_properties))
+        .SetReturn(test_application_properties_map);
+    STRICT_EXPECTED_CALL(amqpvalue_create_string("statusCode"))
+        .SetReturn(test_status_code_key);
+    STRICT_EXPECTED_CALL(amqpvalue_get_map_value(test_application_properties_map, test_status_code_key))
+        .SetReturn(test_status_code_value);
+    STRICT_EXPECTED_CALL(amqpvalue_get_int(test_status_code_value, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer_int_value(&status_code, sizeof(status_code));
+    STRICT_EXPECTED_CALL(amqpvalue_create_string("xxx"))
+        .SetReturn(test_status_description_key);
+    STRICT_EXPECTED_CALL(amqpvalue_get_map_value(test_application_properties_map, test_status_description_key))
+        .SetReturn(test_status_description_value);
+    STRICT_EXPECTED_CALL(amqpvalue_get_string(test_status_description_value, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer_string_value(&test_status_description, sizeof(test_status_description));
+    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinkedlist_handle));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(test_on_amqp_management_execute_operation_complete((void*)0x4244, AMQP_MANAGEMENT_EXECUTE_OPERATION_OK, 200, "my error ...", test_message));
+
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist_handle, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(messaging_delivery_accepted());
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(test_status_description_value));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(test_status_description_key));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(test_status_code_value));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(test_status_code_key));
+    STRICT_EXPECTED_CALL(properties_destroy(test_properties));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(test_application_properties));
+
+    // act
+    result = saved_on_message_received(saved_on_message_received_context, test_message);
+
+    // assert
+    ASSERT_ARE_EQUAL(void_ptr, test_delivery_accepted, result);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
     // cleanup

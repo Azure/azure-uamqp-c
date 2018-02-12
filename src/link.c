@@ -52,6 +52,7 @@ typedef struct LINK_INSTANCE_TAG
     uint64_t max_message_size;
     uint64_t peer_max_message_size;
     uint32_t link_credit;
+    uint32_t max_link_credit;
     uint32_t available;
     fields attach_properties;
     bool is_underlying_session_begun;
@@ -301,7 +302,7 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                 {
                     if (link_instance->role == role_receiver)
                     {
-                        link_instance->link_credit = DEFAULT_LINK_CREDIT;
+                        link_instance->link_credit = link_instance->max_link_credit;
                         send_flow(link_instance);
                     }
                     else
@@ -368,7 +369,7 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                 link_instance->delivery_count++;
                 if (link_instance->link_credit == 0)
                 {
-                    link_instance->link_credit = DEFAULT_LINK_CREDIT;
+                    link_instance->link_credit = link_instance->max_link_credit;
                     send_flow(link_instance);
                 }
 
@@ -643,6 +644,7 @@ LINK_HANDLE link_create(SESSION_HANDLE session, const char* name, role role, AMQ
         result->delivery_count = 0;
         result->initial_delivery_count = 0;
         result->max_message_size = 0;
+        result->max_link_credit = DEFAULT_LINK_CREDIT;
         result->peer_max_message_size = 0;
         result->is_underlying_session_begun = false;
         result->is_closed = false;
@@ -715,6 +717,7 @@ LINK_HANDLE link_create_from_endpoint(SESSION_HANDLE session, LINK_ENDPOINT_HAND
         result->delivery_count = 0;
         result->initial_delivery_count = 0;
         result->max_message_size = 0;
+        result->max_link_credit = DEFAULT_LINK_CREDIT;
         result->peer_max_message_size = 0;
         result->is_underlying_session_begun = false;
         result->is_closed = false;
@@ -991,6 +994,23 @@ int link_set_attach_properties(LINK_HANDLE link, fields attach_properties)
         {
             result = 0;
         }
+    }
+
+    return result;
+}
+
+int link_set_max_link_credit(LINK_HANDLE link, uint32_t max_link_credit)
+{
+    int result;
+
+    if (link == NULL)
+    {
+        result = __FAILURE__;
+    }
+    else
+    {
+        link->max_link_credit = max_link_credit;
+        result = 0;
     }
 
     return result;

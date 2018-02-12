@@ -64,6 +64,7 @@ MOCKABLE_FUNCTION(, int, link_set_max_message_size, LINK_HANDLE, link, uint64_t,
 MOCKABLE_FUNCTION(, int, link_get_max_message_size, LINK_HANDLE, link, uint64_t*, max_message_size);
 MOCKABLE_FUNCTION(, int, link_get_peer_max_message_size, LINK_HANDLE, link, uint64_t*, peer_max_message_size);
 MOCKABLE_FUNCTION(, int, link_set_attach_properties, LINK_HANDLE, link, fields, attach_properties);
+MOCKABLE_FUNCTION(, int, link_set_max_link_credit, LINK_HANDLE, link, uint32_t, max_link_credit);
 MOCKABLE_FUNCTION(, int, link_get_name, LINK_HANDLE, link, const char**, link_name);
 MOCKABLE_FUNCTION(, int, link_get_received_message_id, LINK_HANDLE, link, delivery_number*, message_id);
 MOCKABLE_FUNCTION(, int, link_send_disposition, LINK_HANDLE, link, delivery_number, message_number, AMQP_VALUE, delivery_state);

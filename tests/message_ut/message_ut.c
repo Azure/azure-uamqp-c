@@ -2709,7 +2709,6 @@ TEST_FUNCTION(message_add_body_amqp_data_with_NULL_buffer_and_zero_size_succeeds
     amqp_data.length = 0;
 
     STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    //STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 
     // act
     result = message_add_body_amqp_data(message, amqp_data);
@@ -2736,7 +2735,6 @@ TEST_FUNCTION(message_add_body_amqp_data_with_non_NULL_buffer_and_zero_size_succ
     amqp_data.length = 0;
 
     STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    //STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
 
     // act
     result = message_add_body_amqp_data(message, amqp_data);

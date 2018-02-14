@@ -1023,6 +1023,14 @@ int message_add_body_amqp_data(MESSAGE_HANDLE message, BINARY_DATA amqp_data)
                 LogError("Cannot allocate memory for body AMQP data items");
                 result = __FAILURE__;
             }
+            else if (amqp_data.length == 0)
+            {
+                message->body_amqp_data_items = new_body_amqp_data_items;
+                message->body_amqp_data_items[message->body_amqp_data_count].body_data_section_bytes = NULL;
+                message->body_amqp_data_items[message->body_amqp_data_count].body_data_section_length = 0;
+                message->body_amqp_data_count++;
+                result = 0;
+            }
             else
             {
                 message->body_amqp_data_items = new_body_amqp_data_items;

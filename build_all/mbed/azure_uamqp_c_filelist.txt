@@ -1,5 +1,64 @@
 set(mbed_exported_project_files
 		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_definitions.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_accepted.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_address_string.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_amqp_error.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_amqp_sequence.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_amqp_value.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_annotations.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_application_properties.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_attach.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_begin.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_close.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_connection_error.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_data.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_delivery_annotations.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_delivery_number.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_delivery_tag.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_detach.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_disposition.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_end.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_error.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_fields.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_filter_set.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_flow.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_footer.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_handle.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_header.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_ietf_language_tag.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_link_error.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_message_annotations.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_message_format.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_message_id_binary.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_message_id_string.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_message_id_ulong.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_message_id_uuid.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_milliseconds.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_modified.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_node_properties.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_open.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_properties.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_received.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_receiver_settle_mode.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_rejected.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_released.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_role.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_sasl_challenge.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_sasl_code.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_sasl_init.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_sasl_mechanisms.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_sasl_outcome.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_sasl_response.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_seconds.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_sender_settle_mode.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_sequence_no.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_session_error.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_source.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_target.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_terminus_durability.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_terminus_expiry_policy.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_transfer.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_generated_types/amqp_transfer_number.h
 		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_frame_codec.h
 		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_management.h
 		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/amqp_types.h
@@ -23,7 +82,7 @@ set(mbed_exported_project_files
 		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/sasl_mssbcbs.h
 		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/sasl_plain.h
 		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/sasl_server_mechanism.h
-                ${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/sasl_server_io.h
+		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/sasl_server_io.h
 		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/saslclientio.h
 		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/server_protocol_io.h
 		${CMAKE_CURRENT_SOURCE_DIR}/../../inc/azure_uamqp_c/session.h

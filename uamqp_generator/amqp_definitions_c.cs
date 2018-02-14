@@ -19,7 +19,7 @@ namespace amqplib_generator
     /// Class to produce the template output
     /// </summary>
     
-    #line 1 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+    #line 1 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "15.0.0.0")]
     public partial class amqp_definitions_c : amqp_definitions_cBase
     {
@@ -31,7 +31,7 @@ namespace amqplib_generator
         {
             this.Write("\r\n");
             
-            #line 8 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 8 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
  amqp amqp = Program.LoadAMQPTypes(); 
             
             #line default
@@ -50,414 +50,414 @@ namespace amqplib_generator
 
 ");
             
-            #line 21 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 21 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
   foreach (section section in amqp.Items.Where(item => item is section)) 
             
             #line default
             #line hidden
             
-            #line 22 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 22 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
   { 
             
             #line default
             #line hidden
             
-            #line 23 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 23 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
       List<type> types = new List<type>(); 
             
             #line default
             #line hidden
             
-            #line 24 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 24 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
       types.AddRange(section.Items.Where(item => item is type).Cast<type>()); 
             
             #line default
             #line hidden
             
-            #line 25 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 25 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
       foreach (type type in types) 
             
             #line default
             #line hidden
             
-            #line 26 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 26 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
       { 
             
             #line default
             #line hidden
             
-            #line 27 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 27 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
           string type_name = type.name.ToLower().Replace('-', '_'); 
             
             #line default
             #line hidden
             
-            #line 28 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 28 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
           if (type.@class == typeClass.composite) 
             
             #line default
             #line hidden
             
-            #line 29 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 29 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
           { 
             
             #line default
             #line hidden
             
-            #line 30 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 30 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
               var descriptor = type.Items.Where(item => item is descriptor).First() as descriptor; 
             
             #line default
             #line hidden
             this.Write("/* ");
             
-            #line 31 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 31 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type.name));
             
             #line default
             #line hidden
             this.Write(" */\r\n\r\ntypedef struct ");
             
-            #line 33 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 33 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
             
             #line default
             #line hidden
             this.Write("_INSTANCE_TAG\r\n{\r\n    AMQP_VALUE composite_value;\r\n} ");
             
-            #line 36 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 36 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
             
             #line default
             #line hidden
             this.Write("_INSTANCE;\r\n\r\n");
             
-            #line 38 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 38 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
               string arg_list = Program.GetMandatoryArgList(type); 
             
             #line default
             #line hidden
             
-            #line 39 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 39 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
               KeyValuePair<field, int>[] mandatory_args = Program.GetMandatoryArgs(type).ToArray(); 
             
             #line default
             #line hidden
             this.Write("static ");
             
-            #line 40 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 40 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
             
             #line default
             #line hidden
             this.Write("_HANDLE ");
             
-            #line 40 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 40 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_create_internal(void)\r\n{\r\n    ");
             
-            #line 42 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 42 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
             
             #line default
             #line hidden
             this.Write("_INSTANCE* ");
             
-            #line 42 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 42 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_instance = (");
             
-            #line 42 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 42 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
             
             #line default
             #line hidden
             this.Write("_INSTANCE*)malloc(sizeof(");
             
-            #line 42 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 42 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
             
             #line default
             #line hidden
             this.Write("_INSTANCE));\r\n    if (");
             
-            #line 43 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 43 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_instance != NULL)\r\n    {\r\n        ");
             
-            #line 45 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 45 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_instance->composite_value = NULL;\r\n    }\r\n\r\n    return ");
             
-            #line 48 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 48 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_instance;\r\n}\r\n\r\n");
             
-            #line 51 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 51 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
             
             #line default
             #line hidden
             this.Write("_HANDLE ");
             
-            #line 51 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 51 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_create(");
             
-            #line 51 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 51 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(arg_list));
             
             #line default
             #line hidden
             this.Write(")\r\n{\r\n    ");
             
-            #line 53 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 53 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
             
             #line default
             #line hidden
             this.Write("_INSTANCE* ");
             
-            #line 53 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 53 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_instance = (");
             
-            #line 53 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 53 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
             
             #line default
             #line hidden
             this.Write("_INSTANCE*)malloc(sizeof(");
             
-            #line 53 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 53 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
             
             #line default
             #line hidden
             this.Write("_INSTANCE));\r\n    if (");
             
-            #line 54 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 54 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_instance != NULL)\r\n    {\r\n        ");
             
-            #line 56 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 56 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_instance->composite_value = amqpvalue_create_composite_with_ulong_descriptor(");
             
-            #line 56 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 56 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(Program.GetDescriptorCode(Program.GetDescriptor(type))));
             
             #line default
             #line hidden
             this.Write(");\r\n        if (");
             
-            #line 57 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 57 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_instance->composite_value == NULL)\r\n        {\r\n            free(");
             
-            #line 59 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 59 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_instance);\r\n            ");
             
-            #line 60 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 60 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_instance = NULL;\r\n        }\r\n");
             
-            #line 62 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 62 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
               if (mandatory_args.Count() > 0) 
             
             #line default
             #line hidden
             
-            #line 63 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 63 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
               { 
             
             #line default
             #line hidden
             this.Write("        else\r\n        {\r\n");
             
-            #line 66 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 66 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                   for (int i = 0; i < mandatory_args.Count(); i++) 
             
             #line default
             #line hidden
             
-            #line 67 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 67 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                   { 
             
             #line default
             #line hidden
             
-            #line 68 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 68 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       string mandatory_arg_name = mandatory_args[i].Key.name.ToLower().Replace('-', '_').Replace(':', '_'); 
             
             #line default
             #line hidden
             this.Write("            AMQP_VALUE ");
             
-            #line 69 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 69 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(mandatory_arg_name));
             
             #line default
             #line hidden
             this.Write("_amqp_value;\r\n");
             
-            #line 70 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 70 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                   } 
             
             #line default
             #line hidden
             this.Write("            int result = 0;\r\n\r\n");
             
-            #line 73 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 73 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                   for (int i = 0; i < mandatory_args.Count(); i++) 
             
             #line default
             #line hidden
             
-            #line 74 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 74 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                   { 
             
             #line default
             #line hidden
             
-            #line 75 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 75 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       string mandatory_arg_type = Program.GetCType(mandatory_args[i].Key.type.ToLower(), mandatory_args[i].Key.multiple == "true").Replace('-', '_').Replace(':', '_'); 
             
             #line default
             #line hidden
             
-            #line 76 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 76 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       string mandatory_arg_name = mandatory_args[i].Key.name.ToLower().Replace('-', '_').Replace(':', '_'); 
             
             #line default
             #line hidden
             
-            #line 77 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 77 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       if (mandatory_args[i].Key.multiple != "true") 
             
             #line default
             #line hidden
             
-            #line 78 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 78 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       { 
             
             #line default
             #line hidden
             this.Write("            ");
             
-            #line 79 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 79 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(mandatory_arg_name));
             
             #line default
             #line hidden
             this.Write("_amqp_value = amqpvalue_create_");
             
-            #line 79 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 79 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(mandatory_args[i].Key.type.ToLower().Replace('-', '_').Replace(':', '_')));
             
             #line default
             #line hidden
             this.Write("(");
             
-            #line 79 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 79 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(mandatory_args[i].Key.name.ToLower().Replace('-', '_').Replace(':', '_')));
             
             #line default
             #line hidden
             this.Write("_value);\r\n");
             
-            #line 80 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 80 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       } 
             
             #line default
             #line hidden
             
-            #line 81 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 81 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       else 
             
             #line default
             #line hidden
             
-            #line 82 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 82 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       { 
             
             #line default
             #line hidden
             this.Write("            ");
             
-            #line 83 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 83 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(mandatory_arg_name));
             
             #line default
             #line hidden
             this.Write("_amqp_value = ");
             
-            #line 83 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 83 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(mandatory_args[i].Key.name.ToLower().Replace('-', '_').Replace(':', '_')));
             
             #line default
             #line hidden
             this.Write("_value;\r\n");
             
-            #line 84 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 84 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       } 
             
             #line default
             #line hidden
             this.Write("            if ((result == 0) && (amqpvalue_set_composite_item(");
             
-            #line 85 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 85 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_instance->composite_value, ");
             
-            #line 85 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 85 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(mandatory_args[i].Value));
             
             #line default
             #line hidden
             this.Write(", ");
             
-            #line 85 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 85 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(mandatory_arg_name));
             
             #line default
@@ -465,292 +465,292 @@ namespace amqplib_generator
             this.Write("_amqp_value) != 0))\r\n            {\r\n                result = __FAILURE__;\r\n      " +
                     "      }\r\n");
             
-            #line 89 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 89 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                   } 
             
             #line default
             #line hidden
             this.Write("\r\n");
             
-            #line 91 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 91 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                   for (int i = 0; i < mandatory_args.Count(); i++) 
             
             #line default
             #line hidden
             
-            #line 92 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 92 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                   { 
             
             #line default
             #line hidden
             
-            #line 93 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 93 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       string mandatory_arg_name = mandatory_args[i].Key.name.ToLower().Replace('-', '_').Replace(':', '_'); 
             
             #line default
             #line hidden
             this.Write("            amqpvalue_destroy(");
             
-            #line 94 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 94 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(mandatory_arg_name));
             
             #line default
             #line hidden
             this.Write("_amqp_value);\r\n");
             
-            #line 95 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 95 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                   } 
             
             #line default
             #line hidden
             this.Write("        }\r\n");
             
-            #line 97 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 97 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
               } 
             
             #line default
             #line hidden
             this.Write("    }\r\n\r\n    return ");
             
-            #line 100 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 100 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_instance;\r\n}\r\n\r\n");
             
-            #line 103 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 103 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
             
             #line default
             #line hidden
             this.Write("_HANDLE ");
             
-            #line 103 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 103 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_clone(");
             
-            #line 103 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 103 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
             
             #line default
             #line hidden
             this.Write("_HANDLE value)\r\n{\r\n    ");
             
-            #line 105 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 105 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
             
             #line default
             #line hidden
             this.Write("_INSTANCE* ");
             
-            #line 105 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 105 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_instance = (");
             
-            #line 105 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 105 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
             
             #line default
             #line hidden
             this.Write("_INSTANCE*)malloc(sizeof(");
             
-            #line 105 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 105 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
             
             #line default
             #line hidden
             this.Write("_INSTANCE));\r\n    if (");
             
-            #line 106 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 106 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_instance != NULL)\r\n    {\r\n        ");
             
-            #line 108 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 108 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_instance->composite_value = amqpvalue_clone(((");
             
-            #line 108 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 108 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
             
             #line default
             #line hidden
             this.Write("_INSTANCE*)value)->composite_value);\r\n        if (");
             
-            #line 109 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 109 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_instance->composite_value == NULL)\r\n        {\r\n            free(");
             
-            #line 111 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 111 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_instance);\r\n            ");
             
-            #line 112 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 112 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_instance = NULL;\r\n        }\r\n    }\r\n\r\n    return ");
             
-            #line 116 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 116 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_instance;\r\n}\r\n\r\nvoid ");
             
-            #line 119 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 119 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_destroy(");
             
-            #line 119 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 119 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
             
             #line default
             #line hidden
             this.Write("_HANDLE ");
             
-            #line 119 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 119 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write(")\r\n{\r\n    if (");
             
-            #line 121 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 121 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write(" != NULL)\r\n    {\r\n        ");
             
-            #line 123 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 123 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
             
             #line default
             #line hidden
             this.Write("_INSTANCE* ");
             
-            #line 123 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 123 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_instance = (");
             
-            #line 123 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 123 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
             
             #line default
             #line hidden
             this.Write("_INSTANCE*)");
             
-            #line 123 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 123 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write(";\r\n        amqpvalue_destroy(");
             
-            #line 124 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 124 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_instance->composite_value);\r\n        free(");
             
-            #line 125 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 125 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_instance);\r\n    }\r\n}\r\n\r\nAMQP_VALUE amqpvalue_create_");
             
-            #line 129 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 129 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("(");
             
-            #line 129 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 129 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
             
             #line default
             #line hidden
             this.Write("_HANDLE ");
             
-            #line 129 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 129 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write(")\r\n{\r\n    AMQP_VALUE result;\r\n\r\n    if (");
             
-            #line 133 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 133 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write(" == NULL)\r\n    {\r\n        result = NULL;\r\n    }\r\n    else\r\n    {\r\n        ");
             
-            #line 139 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 139 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
             
             #line default
             #line hidden
             this.Write("_INSTANCE* ");
             
-            #line 139 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 139 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_instance = (");
             
-            #line 139 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 139 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
             
             #line default
             #line hidden
             this.Write("_INSTANCE*)");
             
-            #line 139 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 139 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write(";\r\n        result = amqpvalue_clone(");
             
-            #line 140 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 140 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_instance->composite_value);\r\n    }\r\n\r\n    return result;\r\n}\r\n\r\nbool is_");
             
-            #line 146 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 146 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
@@ -759,7 +759,7 @@ namespace amqplib_generator
                     "escriptor_ulong;\r\n    if ((amqpvalue_get_ulong(descriptor, &descriptor_ulong) ==" +
                     " 0) &&\r\n        (descriptor_ulong == ");
             
-            #line 152 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 152 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(Program.GetDescriptorCode(descriptor).ToString()));
             
             #line default
@@ -767,70 +767,70 @@ namespace amqplib_generator
             this.Write("))\r\n    {\r\n        result = true;\r\n    }\r\n    else\r\n    {\r\n        result = false" +
                     ";\r\n    }\r\n\r\n    return result;\r\n}\r\n\r\n\r\nint amqpvalue_get_");
             
-            #line 165 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 165 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("(AMQP_VALUE value, ");
             
-            #line 165 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 165 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
             
             #line default
             #line hidden
             this.Write("_HANDLE* ");
             
-            #line 165 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 165 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToLower()));
             
             #line default
             #line hidden
             this.Write("_handle)\r\n{\r\n    int result;\r\n    ");
             
-            #line 168 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 168 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
             
             #line default
             #line hidden
             this.Write("_INSTANCE* ");
             
-            #line 168 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 168 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToLower()));
             
             #line default
             #line hidden
             this.Write("_instance = (");
             
-            #line 168 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 168 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
             
             #line default
             #line hidden
             this.Write("_INSTANCE*)");
             
-            #line 168 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 168 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_create_internal();\r\n    *");
             
-            #line 169 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 169 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToLower()));
             
             #line default
             #line hidden
             this.Write("_handle = ");
             
-            #line 169 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 169 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToLower()));
             
             #line default
             #line hidden
             this.Write("_instance;\r\n    if (*");
             
-            #line 170 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 170 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToLower()));
             
             #line default
@@ -839,14 +839,14 @@ namespace amqplib_generator
                     "       AMQP_VALUE list_value = amqpvalue_get_inplace_described_value(value);\r\n  " +
                     "      if (list_value == NULL)\r\n        {\r\n            ");
             
-            #line 179 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 179 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_destroy(*");
             
-            #line 179 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 179 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToLower()));
             
             #line default
@@ -867,88 +867,88 @@ namespace amqplib_generator
                 {
 ");
             
-            #line 193 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 193 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
               int k = 0; 
             
             #line default
             #line hidden
             
-            #line 194 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 194 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
               bool first_one = true; 
             
             #line default
             #line hidden
             
-            #line 195 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 195 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
               foreach (field field in type.Items.Where(item => item is field)) 
             
             #line default
             #line hidden
             
-            #line 196 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 196 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
               { 
             
             #line default
             #line hidden
             
-            #line 197 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 197 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                   string field_name = field.name.ToLower().Replace('-', '_'); 
             
             #line default
             #line hidden
             
-            #line 198 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 198 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                   string c_type = Program.GetCType(field.type, false).Replace('-', '_').Replace(':', '_'); 
             
             #line default
             #line hidden
             
-            #line 199 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
-                  type field_type = Program.GetTypeByName(types, field.type); 
+            #line 199 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
+                  type field_type = Program.GetTypeByName(field.type); 
             
             #line default
             #line hidden
             
-            #line 200 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 200 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                   if ((field_type != null) && (field_type.@class == typeClass.composite)) c_type = field_type.name.ToUpper().Replace('-', '_').Replace(':', '_') + "_HANDLE"; 
             
             #line default
             #line hidden
             
-            #line 201 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 201 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                   if (first_one) 
             
             #line default
             #line hidden
             
-            #line 202 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 202 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                   { 
             
             #line default
             #line hidden
             
-            #line 203 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 203 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       first_one = false; 
             
             #line default
             #line hidden
             this.Write("                    AMQP_VALUE item_value;\r\n");
             
-            #line 205 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 205 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                   } 
             
             #line default
             #line hidden
             this.Write("                    /* ");
             
-            #line 206 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 206 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field.name));
             
             #line default
             #line hidden
             this.Write(" */\r\n                    if (list_item_count > ");
             
-            #line 207 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 207 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(k));
             
             #line default
@@ -956,34 +956,34 @@ namespace amqplib_generator
             this.Write(")\r\n                    {\r\n                        item_value = amqpvalue_get_list" +
                     "_item(list_value, ");
             
-            #line 209 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 209 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(k));
             
             #line default
             #line hidden
             this.Write(");\r\n                        if (item_value == NULL)\r\n                        {\r\n");
             
-            #line 212 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 212 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                      if (field.mandatory == "true") 
             
             #line default
             #line hidden
             
-            #line 213 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 213 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                      { 
             
             #line default
             #line hidden
             this.Write("                            {\r\n                                ");
             
-            #line 215 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 215 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_destroy(*");
             
-            #line 215 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 215 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToLower()));
             
             #line default
@@ -991,26 +991,26 @@ namespace amqplib_generator
             this.Write("_handle);\r\n                                result = __FAILURE__;\r\n               " +
                     "                 break;\r\n                            }\r\n");
             
-            #line 219 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 219 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                      } 
             
             #line default
             #line hidden
             
-            #line 220 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 220 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                      else 
             
             #line default
             #line hidden
             
-            #line 221 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 221 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                      { 
             
             #line default
             #line hidden
             this.Write("                            /* do nothing */\r\n");
             
-            #line 223 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 223 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                      } 
             
             #line default
@@ -1018,13 +1018,13 @@ namespace amqplib_generator
             this.Write("                        }\r\n                        else\r\n                        " +
                     "{\r\n");
             
-            #line 227 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 227 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
  if (field.type != "*") 
             
             #line default
             #line hidden
             
-            #line 228 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 228 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
  { 
             
             #line default
@@ -1032,13 +1032,13 @@ namespace amqplib_generator
             this.Write("                            if (amqpvalue_get_type(item_value) == AMQP_TYPE_NULL)" +
                     "\r\n                            {\r\n");
             
-            #line 231 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 231 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                      if (field.mandatory == "true") 
             
             #line default
             #line hidden
             
-            #line 232 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 232 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                      { 
             
             #line default
@@ -1046,14 +1046,14 @@ namespace amqplib_generator
             this.Write("                                amqpvalue_destroy(item_value);\r\n                 " +
                     "               ");
             
-            #line 234 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 234 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_destroy(*");
             
-            #line 234 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 234 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToLower()));
             
             #line default
@@ -1061,26 +1061,26 @@ namespace amqplib_generator
             this.Write("_handle);\r\n                                result = __FAILURE__;\r\n               " +
                     "                 break;\r\n");
             
-            #line 237 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 237 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                      } 
             
             #line default
             #line hidden
             
-            #line 238 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 238 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                      else 
             
             #line default
             #line hidden
             
-            #line 239 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 239 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                      { 
             
             #line default
             #line hidden
             this.Write("                                /* no error, field is not mandatory */\r\n");
             
-            #line 241 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 241 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                      } 
             
             #line default
@@ -1088,81 +1088,81 @@ namespace amqplib_generator
             this.Write("                            }\r\n                            else\r\n                " +
                     "            {\r\n");
             
-            #line 245 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 245 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
       if (field.multiple != "true") 
             
             #line default
             #line hidden
             
-            #line 246 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 246 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
       { 
             
             #line default
             #line hidden
             this.Write("                                ");
             
-            #line 247 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 247 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(c_type));
             
             #line default
             #line hidden
             this.Write(" ");
             
-            #line 247 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 247 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
             #line hidden
             this.Write(";\r\n                                if (amqpvalue_get_");
             
-            #line 248 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 248 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field.type.ToLower().Replace('-', '_').Replace(':', '_')));
             
             #line default
             #line hidden
             this.Write("(item_value, &");
             
-            #line 248 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 248 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
             #line hidden
             this.Write(") != 0)\r\n");
             
-            #line 249 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 249 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
       } 
             
             #line default
             #line hidden
             
-            #line 250 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 250 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
       else 
             
             #line default
             #line hidden
             
-            #line 251 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 251 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
       { 
             
             #line default
             #line hidden
             this.Write("                                ");
             
-            #line 252 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 252 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(c_type));
             
             #line default
             #line hidden
             this.Write(" ");
             
-            #line 252 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 252 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
             #line hidden
             this.Write(" = NULL;\r\n                                AMQP_VALUE ");
             
-            #line 253 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 253 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
@@ -1170,28 +1170,28 @@ namespace amqplib_generator
             this.Write("_array;\r\n                                if (((amqpvalue_get_type(item_value) != " +
                     "AMQP_TYPE_ARRAY) || (amqpvalue_get_array(item_value, &");
             
-            #line 254 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 254 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
             #line hidden
             this.Write("_array) != 0)) &&\r\n                                    (amqpvalue_get_");
             
-            #line 255 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 255 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field.type.ToLower().Replace('-', '_').Replace(':', '_')));
             
             #line default
             #line hidden
             this.Write("(item_value, &");
             
-            #line 255 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 255 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
             #line hidden
             this.Write(") != 0))\r\n");
             
-            #line 256 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 256 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
       } 
             
             #line default
@@ -1199,14 +1199,14 @@ namespace amqplib_generator
             this.Write("                                {\r\n                                    amqpvalue_" +
                     "destroy(item_value);\r\n                                    ");
             
-            #line 259 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 259 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_destroy(*");
             
-            #line 259 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 259 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToLower()));
             
             #line default
@@ -1214,13 +1214,13 @@ namespace amqplib_generator
             this.Write("_handle);\r\n                                    result = __FAILURE__;\r\n           " +
                     "                         break;\r\n                                }\r\n");
             
-            #line 263 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 263 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
       if (c_type == "ERROR_HANDLE") 
             
             #line default
             #line hidden
             
-            #line 264 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 264 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
       { 
             
             #line default
@@ -1228,39 +1228,39 @@ namespace amqplib_generator
             this.Write("                                else\r\n                                {\r\n        " +
                     "                            error_destroy(");
             
-            #line 267 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 267 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name.ToLower()));
             
             #line default
             #line hidden
             this.Write(");\r\n                                }\r\n");
             
-            #line 269 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 269 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
       } 
             
             #line default
             #line hidden
             this.Write("                            }\r\n\r\n");
             
-            #line 272 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 272 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
  } 
             
             #line default
             #line hidden
             
-            #line 273 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 273 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
  else 
             
             #line default
             #line hidden
             
-            #line 274 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 274 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
  { 
             
             #line default
             #line hidden
             
-            #line 275 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 275 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
  } 
             
             #line default
@@ -1268,13 +1268,13 @@ namespace amqplib_generator
             this.Write("                            amqpvalue_destroy(item_value);\r\n                     " +
                     "   }\r\n                    }\r\n");
             
-            #line 279 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 279 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                      if (field.mandatory == "true") 
             
             #line default
             #line hidden
             
-            #line 280 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 280 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                      { 
             
             #line default
@@ -1282,26 +1282,26 @@ namespace amqplib_generator
             this.Write("                    else\r\n                    {\r\n                        result =" +
                     " __FAILURE__;\r\n                    }\r\n");
             
-            #line 285 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 285 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                      } 
             
             #line default
             #line hidden
             
-            #line 286 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 286 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                   k++; 
             
             #line default
             #line hidden
             
-            #line 287 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 287 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
               } 
             
             #line default
             #line hidden
             this.Write("\r\n                    ");
             
-            #line 289 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 289 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToLower()));
             
             #line default
@@ -1310,98 +1310,98 @@ namespace amqplib_generator
                     "t = 0;\r\n                } while((void)0,0);\r\n            }\r\n        }\r\n    }\r\n\r\n" +
                     "    return result;\r\n}\r\n\r\n");
             
-            #line 300 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 300 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
               int j = 0; 
             
             #line default
             #line hidden
             
-            #line 301 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 301 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
               foreach (field field in type.Items.Where(item => item is field)) 
             
             #line default
             #line hidden
             
-            #line 302 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 302 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
               { 
             
             #line default
             #line hidden
             
-            #line 303 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 303 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                   string field_name = field.name.ToLower().Replace('-', '_'); 
             
             #line default
             #line hidden
             
-            #line 304 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 304 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                   string c_type = Program.GetCType(field.type, field.multiple == "true").Replace('-', '_').Replace(':', '_'); 
             
             #line default
             #line hidden
             
-            #line 305 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 305 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                   string single_value_c_type = Program.GetCType(field.type, false).Replace('-', '_').Replace(':', '_'); 
             
             #line default
             #line hidden
             
-            #line 306 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
-                  type field_type = Program.GetTypeByName(types, field.type); 
+            #line 306 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
+                  type field_type = Program.GetTypeByName(field.type); 
             
             #line default
             #line hidden
             
-            #line 307 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 307 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                   if ((field_type != null) && (field_type.@class == typeClass.composite)) c_type = field_type.name.ToUpper().Replace('-', '_').Replace(':', '_') + "_HANDLE"; 
             
             #line default
             #line hidden
             this.Write("int ");
             
-            #line 308 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 308 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_get_");
             
-            #line 308 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 308 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
             #line hidden
             this.Write("(");
             
-            #line 308 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 308 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
             
             #line default
             #line hidden
             this.Write("_HANDLE ");
             
-            #line 308 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 308 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write(", ");
             
-            #line 308 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 308 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(c_type));
             
             #line default
             #line hidden
             this.Write("* ");
             
-            #line 308 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 308 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
             #line hidden
             this.Write("_value)\r\n{\r\n    int result;\r\n\r\n    if (");
             
-            #line 312 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 312 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
@@ -1409,35 +1409,35 @@ namespace amqplib_generator
             this.Write(" == NULL)\r\n    {\r\n        result = __FAILURE__;\r\n    }\r\n    else\r\n    {\r\n        " +
                     "uint32_t item_count;\r\n        ");
             
-            #line 319 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 319 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
             
             #line default
             #line hidden
             this.Write("_INSTANCE* ");
             
-            #line 319 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 319 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_instance = (");
             
-            #line 319 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 319 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
             
             #line default
             #line hidden
             this.Write("_INSTANCE*)");
             
-            #line 319 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 319 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write(";\r\n        if (amqpvalue_get_composite_item_count(");
             
-            #line 320 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 320 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
@@ -1445,119 +1445,119 @@ namespace amqplib_generator
             this.Write("_instance->composite_value, &item_count) != 0)\r\n        {\r\n            result = _" +
                     "_FAILURE__;\r\n        }\r\n        else\r\n        {\r\n            if (item_count <= ");
             
-            #line 326 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 326 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(j));
             
             #line default
             #line hidden
             this.Write(")\r\n            {\r\n");
             
-            #line 328 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 328 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       if (field.@default != null) 
             
             #line default
             #line hidden
             
-            #line 329 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 329 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       { 
             
             #line default
             #line hidden
             
-            #line 330 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 330 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                           if ((field_type != null) && (field_type.@class == typeClass.restricted) && (field_type.Items != null)) 
             
             #line default
             #line hidden
             
-            #line 331 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 331 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                           { 
             
             #line default
             #line hidden
             this.Write("                *");
             
-            #line 332 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 332 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
             #line hidden
             this.Write("_value = ");
             
-            #line 332 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 332 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_type.@name.Replace('-', '_').Replace(':', '_')));
             
             #line default
             #line hidden
             this.Write("_");
             
-            #line 332 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 332 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field.@default.Replace('-', '_').Replace(':', '_')));
             
             #line default
             #line hidden
             this.Write(";\r\n");
             
-            #line 333 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 333 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                           } 
             
             #line default
             #line hidden
             
-            #line 334 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 334 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                           else 
             
             #line default
             #line hidden
             
-            #line 335 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 335 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                           { 
             
             #line default
             #line hidden
             this.Write("                *");
             
-            #line 336 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 336 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
             #line hidden
             this.Write("_value = ");
             
-            #line 336 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 336 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field.@default));
             
             #line default
             #line hidden
             this.Write(";\r\n");
             
-            #line 337 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 337 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                           } 
             
             #line default
             #line hidden
             this.Write("                result = 0;\r\n");
             
-            #line 339 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 339 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       } 
             
             #line default
             #line hidden
             
-            #line 340 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 340 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       else 
             
             #line default
             #line hidden
             
-            #line 341 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 341 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       { 
             
             #line default
             #line hidden
             this.Write("                result = __FAILURE__;\r\n");
             
-            #line 343 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 343 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       } 
             
             #line default
@@ -1565,14 +1565,14 @@ namespace amqplib_generator
             this.Write("            }\r\n            else\r\n            {\r\n                AMQP_VALUE item_v" +
                     "alue = amqpvalue_get_composite_item_in_place(");
             
-            #line 347 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 347 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_instance->composite_value, ");
             
-            #line 347 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 347 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(j));
             
             #line default
@@ -1580,230 +1580,230 @@ namespace amqplib_generator
             this.Write(");\r\n                if ((item_value == NULL) ||\r\n                    (amqpvalue_g" +
                     "et_type(item_value) == AMQP_TYPE_NULL))\r\n                {\r\n");
             
-            #line 351 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 351 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       if (field.@default != null) 
             
             #line default
             #line hidden
             
-            #line 352 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 352 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       { 
             
             #line default
             #line hidden
             
-            #line 353 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 353 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                           if ((field_type != null) && (field_type.@class == typeClass.restricted) && (field_type.Items != null)) 
             
             #line default
             #line hidden
             
-            #line 354 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 354 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                           { 
             
             #line default
             #line hidden
             this.Write("                    *");
             
-            #line 355 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 355 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
             #line hidden
             this.Write("_value = ");
             
-            #line 355 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 355 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_type.@name.Replace('-', '_').Replace(':', '_')));
             
             #line default
             #line hidden
             this.Write("_");
             
-            #line 355 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 355 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field.@default.Replace('-', '_').Replace(':', '_')));
             
             #line default
             #line hidden
             this.Write(";\r\n");
             
-            #line 356 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 356 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                           } 
             
             #line default
             #line hidden
             
-            #line 357 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 357 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                           else 
             
             #line default
             #line hidden
             
-            #line 358 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 358 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                           { 
             
             #line default
             #line hidden
             this.Write("                    *");
             
-            #line 359 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 359 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
             #line hidden
             this.Write("_value = ");
             
-            #line 359 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 359 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field.@default));
             
             #line default
             #line hidden
             this.Write(";\r\n");
             
-            #line 360 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 360 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                           } 
             
             #line default
             #line hidden
             this.Write("                    result = 0;\r\n");
             
-            #line 362 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 362 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       } 
             
             #line default
             #line hidden
             
-            #line 363 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 363 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       else 
             
             #line default
             #line hidden
             
-            #line 364 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 364 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       { 
             
             #line default
             #line hidden
             this.Write("                    result = __FAILURE__;\r\n");
             
-            #line 366 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 366 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       } 
             
             #line default
             #line hidden
             this.Write("                }\r\n                else\r\n                {\r\n");
             
-            #line 370 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 370 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       if (field.multiple == "true") 
             
             #line default
             #line hidden
             
-            #line 371 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 371 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       { 
             
             #line default
             #line hidden
             this.Write("                    ");
             
-            #line 372 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 372 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(single_value_c_type));
             
             #line default
             #line hidden
             this.Write(" ");
             
-            #line 372 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 372 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
             #line hidden
             this.Write("_single_value;\r\n");
             
-            #line 373 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 373 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       } 
             
             #line default
             #line hidden
             
-            #line 374 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 374 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       if (field.type.Replace('-', '_').Replace(':', '_') == "*") 
             
             #line default
             #line hidden
             
-            #line 375 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 375 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       { 
             
             #line default
             #line hidden
             this.Write("                    *");
             
-            #line 376 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 376 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
             #line hidden
             this.Write("_value = item_value;\r\n                    result = 0;\r\n");
             
-            #line 378 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 378 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       } 
             
             #line default
             #line hidden
             
-            #line 379 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 379 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       else 
             
             #line default
             #line hidden
             
-            #line 380 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 380 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       { 
             
             #line default
             #line hidden
             this.Write("                    int get_single_value_result;\r\n");
             
-            #line 382 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 382 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                           if (field.multiple != "true") 
             
             #line default
             #line hidden
             
-            #line 383 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 383 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                           { 
             
             #line default
             #line hidden
             this.Write("                    if ((get_single_value_result = amqpvalue_get_");
             
-            #line 384 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 384 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field.type.Replace('-', '_').Replace(':', '_')));
             
             #line default
             #line hidden
             this.Write("(item_value, ");
             
-            #line 384 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 384 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
             #line hidden
             this.Write("_value)) != 0)\r\n");
             
-            #line 385 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 385 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                           } 
             
             #line default
             #line hidden
             
-            #line 386 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 386 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                           else 
             
             #line default
             #line hidden
             
-            #line 387 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 387 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                           { 
             
             #line default
@@ -1812,14 +1812,14 @@ namespace amqplib_generator
                     "               {\r\n                        get_single_value_result = amqpvalue_ge" +
                     "t_");
             
-            #line 390 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 390 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field.type.ToLower().Replace('-', '_').Replace(':', '_')));
             
             #line default
             #line hidden
             this.Write("(item_value, &");
             
-            #line 390 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 390 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
@@ -1827,14 +1827,14 @@ namespace amqplib_generator
             this.Write("_single_value);\r\n                    }\r\n                    else\r\n               " +
                     "     {\r\n                        (void)memset((void*)&");
             
-            #line 394 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 394 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
             #line hidden
             this.Write("_single_value, 0, sizeof(");
             
-            #line 394 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 394 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
@@ -1843,27 +1843,27 @@ namespace amqplib_generator
                     "           }\r\n\r\n                    if (((amqpvalue_get_type(item_value) != AMQP" +
                     "_TYPE_ARRAY) || (amqpvalue_get_array(item_value, ");
             
-            #line 398 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 398 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
             #line hidden
             this.Write("_value) != 0)) &&\r\n                        (get_single_value_result != 0))\r\n");
             
-            #line 400 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 400 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                           } 
             
             #line default
             #line hidden
             this.Write("                    {\r\n");
             
-            #line 402 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 402 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       if (field.@default != null) 
             
             #line default
             #line hidden
             
-            #line 403 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 403 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       { 
             
             #line default
@@ -1873,113 +1873,113 @@ namespace amqplib_generator
                     "                    }\r\n                        else\r\n                        {\r\n" +
                     "");
             
-            #line 410 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 410 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                           if ((field_type != null) && (field_type.@class == typeClass.restricted) && (field_type.Items != null)) 
             
             #line default
             #line hidden
             
-            #line 411 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 411 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                           { 
             
             #line default
             #line hidden
             this.Write("                            *");
             
-            #line 412 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 412 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
             #line hidden
             this.Write("_value = ");
             
-            #line 412 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 412 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_type.@name.Replace('-', '_').Replace(':', '_')));
             
             #line default
             #line hidden
             this.Write("_");
             
-            #line 412 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 412 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field.@default.Replace('-', '_').Replace(':', '_')));
             
             #line default
             #line hidden
             this.Write(";\r\n");
             
-            #line 413 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 413 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                           } 
             
             #line default
             #line hidden
             
-            #line 414 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 414 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                           else 
             
             #line default
             #line hidden
             
-            #line 415 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 415 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                           { 
             
             #line default
             #line hidden
             this.Write("                            *");
             
-            #line 416 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 416 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
             #line hidden
             this.Write("_value = ");
             
-            #line 416 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 416 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field.@default));
             
             #line default
             #line hidden
             this.Write(";\r\n");
             
-            #line 417 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 417 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                           } 
             
             #line default
             #line hidden
             this.Write("                            result = 0;\r\n                        }\r\n");
             
-            #line 420 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 420 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       } 
             
             #line default
             #line hidden
             
-            #line 421 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 421 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       else 
             
             #line default
             #line hidden
             
-            #line 422 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 422 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       { 
             
             #line default
             #line hidden
             this.Write("                        result = __FAILURE__;\r\n");
             
-            #line 424 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 424 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       } 
             
             #line default
             #line hidden
             this.Write("                    }\r\n                    else\r\n                    {\r\n");
             
-            #line 428 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 428 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                           if (field.multiple == "true") 
             
             #line default
             #line hidden
             
-            #line 429 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 429 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                           { 
             
             #line default
@@ -1987,14 +1987,14 @@ namespace amqplib_generator
             this.Write("                        if (amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY)\r\n " +
                     "                       {\r\n                            *");
             
-            #line 432 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 432 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
             #line hidden
             this.Write("_value = amqpvalue_create_array();\r\n                            if (*");
             
-            #line 433 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 433 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
@@ -2007,14 +2007,14 @@ namespace amqplib_generator
                             {
                                 AMQP_VALUE single_amqp_value = amqpvalue_create_");
             
-            #line 439 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 439 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field.type.ToLower().Replace('-', '_').Replace(':', '_')));
             
             #line default
             #line hidden
             this.Write("(");
             
-            #line 439 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 439 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
@@ -2023,7 +2023,7 @@ namespace amqplib_generator
                     "                                {\r\n                                    amqpvalue" +
                     "_destroy(*");
             
-            #line 442 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 442 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
@@ -2033,7 +2033,7 @@ namespace amqplib_generator
                     "             {\r\n                                    if (amqpvalue_add_array_item" +
                     "(*");
             
-            #line 447 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 447 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
@@ -2041,7 +2041,7 @@ namespace amqplib_generator
             this.Write("_value, single_amqp_value) != 0)\r\n                                    {\r\n        " +
                     "                                amqpvalue_destroy(*");
             
-            #line 449 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 449 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
@@ -2054,21 +2054,21 @@ namespace amqplib_generator
                                     {
                                         if (amqpvalue_set_composite_item(");
             
-            #line 455 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 455 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_instance->composite_value, ");
             
-            #line 455 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 455 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(j));
             
             #line default
             #line hidden
             this.Write(", *");
             
-            #line 455 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 455 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
@@ -2076,7 +2076,7 @@ namespace amqplib_generator
             this.Write("_value) != 0)\r\n                                        {\r\n                       " +
                     "                     amqpvalue_destroy(*");
             
-            #line 457 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 457 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
@@ -2094,7 +2094,7 @@ namespace amqplib_generator
                                 }
                                 amqpvalue_destroy(*");
             
-            #line 468 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 468 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
@@ -2103,33 +2103,33 @@ namespace amqplib_generator
                     "           else\r\n                        {\r\n                            result =" +
                     " 0;\r\n                        }\r\n");
             
-            #line 475 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 475 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                           } 
             
             #line default
             #line hidden
             
-            #line 476 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 476 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                           else 
             
             #line default
             #line hidden
             
-            #line 477 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 477 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                           { 
             
             #line default
             #line hidden
             this.Write("                        result = 0;\r\n");
             
-            #line 479 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 479 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                           } 
             
             #line default
             #line hidden
             this.Write("                    }\r\n");
             
-            #line 481 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 481 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                       } 
             
             #line default
@@ -2137,49 +2137,49 @@ namespace amqplib_generator
             this.Write("                }\r\n            }\r\n        }\r\n    }\r\n\r\n    return result;\r\n}\r\n\r\nin" +
                     "t ");
             
-            #line 490 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 490 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_set_");
             
-            #line 490 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 490 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
             #line hidden
             this.Write("(");
             
-            #line 490 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 490 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
             
             #line default
             #line hidden
             this.Write("_HANDLE ");
             
-            #line 490 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 490 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write(", ");
             
-            #line 490 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 490 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(c_type));
             
             #line default
             #line hidden
             this.Write(" ");
             
-            #line 490 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 490 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
             #line hidden
             this.Write("_value)\r\n{\r\n    int result;\r\n\r\n    if (");
             
-            #line 494 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 494 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
@@ -2187,130 +2187,130 @@ namespace amqplib_generator
             this.Write(" == NULL)\r\n    {\r\n        result = __FAILURE__;\r\n    }\r\n    else\r\n    {\r\n        " +
                     "");
             
-            #line 500 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 500 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
             
             #line default
             #line hidden
             this.Write("_INSTANCE* ");
             
-            #line 500 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 500 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_instance = (");
             
-            #line 500 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 500 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToUpper()));
             
             #line default
             #line hidden
             this.Write("_INSTANCE*)");
             
-            #line 500 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 500 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write(";\r\n");
             
-            #line 501 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 501 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
  if (c_type != "AMQP_VALUE") 
             
             #line default
             #line hidden
             
-            #line 502 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 502 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
  { 
             
             #line default
             #line hidden
             this.Write("        AMQP_VALUE ");
             
-            #line 503 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 503 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
             #line hidden
             this.Write("_amqp_value = amqpvalue_create_");
             
-            #line 503 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 503 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field.type.ToLower().Replace('-', '_').Replace(':', '_')));
             
             #line default
             #line hidden
             this.Write("(");
             
-            #line 503 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 503 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
             #line hidden
             this.Write("_value);\r\n");
             
-            #line 504 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 504 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
  } 
             
             #line default
             #line hidden
             
-            #line 505 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 505 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
  else 
             
             #line default
             #line hidden
             
-            #line 506 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 506 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
  { 
             
             #line default
             #line hidden
             this.Write("        AMQP_VALUE ");
             
-            #line 507 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 507 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
             #line hidden
             this.Write("_amqp_value;\r\n        if (");
             
-            #line 508 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 508 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
             #line hidden
             this.Write("_value == NULL)\r\n        {\r\n            ");
             
-            #line 510 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 510 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
             #line hidden
             this.Write("_amqp_value = NULL;\r\n        }\r\n        else\r\n        {\r\n            ");
             
-            #line 514 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 514 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
             #line hidden
             this.Write("_amqp_value = amqpvalue_clone(");
             
-            #line 514 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 514 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
             #line hidden
             this.Write("_value);\r\n        }\r\n");
             
-            #line 516 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 516 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
  } 
             
             #line default
             #line hidden
             this.Write("        if (");
             
-            #line 517 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 517 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
@@ -2318,21 +2318,21 @@ namespace amqplib_generator
             this.Write("_amqp_value == NULL)\r\n        {\r\n            result = __FAILURE__;\r\n        }\r\n  " +
                     "      else\r\n        {\r\n            if (amqpvalue_set_composite_item(");
             
-            #line 523 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 523 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name));
             
             #line default
             #line hidden
             this.Write("_instance->composite_value, ");
             
-            #line 523 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 523 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(j));
             
             #line default
             #line hidden
             this.Write(", ");
             
-            #line 523 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 523 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
@@ -2341,137 +2341,137 @@ namespace amqplib_generator
                     "     }\r\n            else\r\n            {\r\n                result = 0;\r\n          " +
                     "  }\r\n\r\n            amqpvalue_destroy(");
             
-            #line 532 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 532 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(field_name));
             
             #line default
             #line hidden
             this.Write("_amqp_value);\r\n        }\r\n    }\r\n\r\n    return result;\r\n}\r\n\r\n");
             
-            #line 539 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 539 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                   j++; 
             
             #line default
             #line hidden
             
-            #line 540 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 540 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
               } 
             
             #line default
             #line hidden
             this.Write("\r\n");
             
-            #line 542 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 542 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
           } 
             
             #line default
             #line hidden
             
-            #line 543 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 543 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
           else if (type.@class == typeClass.restricted) 
             
             #line default
             #line hidden
             
-            #line 544 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 544 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
           { 
             
             #line default
             #line hidden
             
-            #line 545 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 545 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
               string c_type = Program.GetCType(type.source, false).Replace('-', '_').Replace(':', '_'); 
             
             #line default
             #line hidden
             
-            #line 546 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 546 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
               bool hasDescriptor = (type.Items != null) && (type.Items.Where(item => item is descriptor).Count() > 0); 
             
             #line default
             #line hidden
             this.Write("/* ");
             
-            #line 547 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 547 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type.name));
             
             #line default
             #line hidden
             this.Write(" */\r\n\r\n");
             
-            #line 549 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 549 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
               if (c_type != "AMQP_VALUE") 
             
             #line default
             #line hidden
             
-            #line 550 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 550 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
               { 
             
             #line default
             #line hidden
             
-            #line 551 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 551 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                   if (!hasDescriptor) 
             
             #line default
             #line hidden
             
-            #line 552 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 552 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                   { 
             
             #line default
             #line hidden
             this.Write("AMQP_VALUE amqpvalue_create_");
             
-            #line 553 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 553 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToLower()));
             
             #line default
             #line hidden
             this.Write("(");
             
-            #line 553 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 553 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToLower()));
             
             #line default
             #line hidden
             this.Write(" value)\r\n{\r\n    return amqpvalue_create_");
             
-            #line 555 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 555 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type.source.ToLower().Replace('-', '_').Replace(':', '_')));
             
             #line default
             #line hidden
             this.Write("(value);\r\n}\r\n");
             
-            #line 557 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 557 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                   } 
             
             #line default
             #line hidden
             
-            #line 558 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 558 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                   else 
             
             #line default
             #line hidden
             
-            #line 559 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 559 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                   { 
             
             #line default
             #line hidden
             this.Write("AMQP_VALUE amqpvalue_create_");
             
-            #line 560 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 560 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToLower()));
             
             #line default
             #line hidden
             this.Write("(");
             
-            #line 560 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 560 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToLower()));
             
             #line default
@@ -2479,7 +2479,7 @@ namespace amqplib_generator
             this.Write(" value)\r\n{\r\n    AMQP_VALUE result;\r\n    AMQP_VALUE described_value = amqpvalue_cr" +
                     "eate_");
             
-            #line 563 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 563 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type.source.ToLower().Replace('-', '_').Replace(':', '_')));
             
             #line default
@@ -2487,7 +2487,7 @@ namespace amqplib_generator
             this.Write("(value);\r\n    if (described_value == NULL)\r\n    {\r\n        result = NULL;\r\n    }\r" +
                     "\n    else\r\n    {\r\n        AMQP_VALUE descriptor = amqpvalue_create_ulong(");
             
-            #line 570 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 570 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(Program.GetDescriptorCode(Program.GetDescriptor(type))));
             
             #line default
@@ -2512,7 +2512,7 @@ namespace amqplib_generator
 
 bool is_");
             
-            #line 588 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 588 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToLower()));
             
             #line default
@@ -2521,7 +2521,7 @@ bool is_");
                     "escriptor_ulong;\r\n    if ((amqpvalue_get_ulong(descriptor, &descriptor_ulong) ==" +
                     " 0) &&\r\n        (descriptor_ulong == ");
             
-            #line 594 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 594 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(Program.GetDescriptorCode(Program.GetDescriptor(type)).ToString()));
             
             #line default
@@ -2529,70 +2529,70 @@ bool is_");
             this.Write("))\r\n    {\r\n        result = true;\r\n    }\r\n    else\r\n    {\r\n        result = false" +
                     ";\r\n    }\r\n\r\n    return result;\r\n}\r\n");
             
-            #line 605 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 605 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                   } 
             
             #line default
             #line hidden
             
-            #line 606 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 606 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
               } 
             
             #line default
             #line hidden
             
-            #line 607 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 607 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
               else 
             
             #line default
             #line hidden
             
-            #line 608 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 608 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
               { 
             
             #line default
             #line hidden
             
-            #line 609 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 609 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                   if (!hasDescriptor) 
             
             #line default
             #line hidden
             
-            #line 610 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 610 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                   { 
             
             #line default
             #line hidden
             this.Write("AMQP_VALUE amqpvalue_create_");
             
-            #line 611 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 611 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToLower()));
             
             #line default
             #line hidden
             this.Write("(AMQP_VALUE value)\r\n{\r\n    return amqpvalue_clone(value);\r\n}\r\n");
             
-            #line 615 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 615 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                   } 
             
             #line default
             #line hidden
             
-            #line 616 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 616 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                   else 
             
             #line default
             #line hidden
             
-            #line 617 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 617 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                   { 
             
             #line default
             #line hidden
             this.Write("AMQP_VALUE amqpvalue_create_");
             
-            #line 618 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 618 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToLower()));
             
             #line default
@@ -2602,7 +2602,7 @@ bool is_");
                     "= NULL;\r\n    }\r\n    else\r\n    {\r\n        AMQP_VALUE descriptor = amqpvalue_creat" +
                     "e_ulong(");
             
-            #line 628 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 628 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(Program.GetDescriptorCode(Program.GetDescriptor(type))));
             
             #line default
@@ -2627,7 +2627,7 @@ bool is_");
 
 bool is_");
             
-            #line 646 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 646 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToLower()));
             
             #line default
@@ -2636,7 +2636,7 @@ bool is_");
                     "escriptor_ulong;\r\n    if ((amqpvalue_get_ulong(descriptor, &descriptor_ulong) ==" +
                     " 0) &&\r\n        (descriptor_ulong == ");
             
-            #line 652 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 652 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(Program.GetDescriptorCode(Program.GetDescriptor(type)).ToString()));
             
             #line default
@@ -2644,32 +2644,32 @@ bool is_");
             this.Write("))\r\n    {\r\n        result = true;\r\n    }\r\n    else\r\n    {\r\n        result = false" +
                     ";\r\n    }\r\n\r\n    return result;\r\n}\r\n");
             
-            #line 663 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 663 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
                   } 
             
             #line default
             #line hidden
             
-            #line 664 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 664 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
               } 
             
             #line default
             #line hidden
             this.Write("\r\n");
             
-            #line 666 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 666 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
           } 
             
             #line default
             #line hidden
             
-            #line 667 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 667 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
       } 
             
             #line default
             #line hidden
             
-            #line 668 "G:\Enlistment\azure-iot-device-auth\uamqp\uamqp_generator\amqp_definitions_c.tt"
+            #line 668 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_c.tt"
   } 
             
             #line default

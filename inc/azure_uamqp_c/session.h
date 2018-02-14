@@ -8,8 +8,28 @@
 #include "azure_uamqp_c/amqpvalue.h"
 #include "azure_uamqp_c/amqp_frame_codec.h"
 #include "azure_uamqp_c/connection.h"
+
+#include "azure_uamqp_c/amqp_generated_types/amqp_role.h"
+#include "azure_uamqp_c/amqp_generated_types/amqp_handle.h"
+#include "azure_uamqp_c/amqp_generated_types/amqp_fields.h"
+#include "azure_uamqp_c/amqp_generated_types/amqp_sender_settle_mode.h"
+#include "azure_uamqp_c/amqp_generated_types/amqp_receiver_settle_mode.h"
+#include "azure_uamqp_c/amqp_generated_types/amqp_sequence_no.h"
+#include "azure_uamqp_c/amqp_generated_types/amqp_delivery_number.h"
+#include "azure_uamqp_c/amqp_generated_types/amqp_disposition.h"
+#include "azure_uamqp_c/amqp_generated_types/amqp_transfer_number.h"
+#include "azure_uamqp_c/amqp_generated_types/amqp_flow.h"
+#include "azure_uamqp_c/amqp_generated_types/amqp_attach.h"
+#include "azure_uamqp_c/amqp_generated_types/amqp_error.h"
+#include "azure_uamqp_c/amqp_generated_types/amqp_detach.h"
+#include "azure_uamqp_c/amqp_generated_types/amqp_delivery_tag.h"
+#include "azure_uamqp_c/amqp_generated_types/amqp_message_format.h"
+#include "azure_uamqp_c/amqp_generated_types/amqp_transfer.h"
+
+
 #include "azure_c_shared_utility/umock_c_prod.h"
 #include "azure_c_shared_utility/macro_utils.h"
+
 
 #ifdef __cplusplus
 extern "C" {

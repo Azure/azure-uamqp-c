@@ -6,7 +6,7 @@
 
 #include "azure_uamqp_c/link.h"
 #include "azure_uamqp_c/message.h"
-#include "azure_uamqp_c/amqp_definitions.h"
+#include "azure_uamqp_c/amqp_generated_types/amqp_delivery_number.h"
 #include "azure_c_shared_utility/umock_c_prod.h"
 #include "azure_c_shared_utility/macro_utils.h"
 

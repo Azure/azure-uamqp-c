@@ -5,7 +5,6 @@
 #define MESSAGING_H
 
 #include "azure_uamqp_c/amqpvalue.h"
-#include "azure_uamqp_c/amqp_definitions.h"
 
 #ifdef __cplusplus
 #include <cstdint>

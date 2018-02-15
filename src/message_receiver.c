@@ -6,9 +6,11 @@
 #include "azure_c_shared_utility/optimize_size.h"
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/xlogging.h"
+#include "azure_uamqp_c/link.h"
+#include "azure_uamqp_c/amqp_definitions.h"
+#include "azure_uamqp_c/message.h"
 #include "azure_uamqp_c/message_receiver.h"
 #include "azure_uamqp_c/amqpvalue.h"
-#include "azure_uamqp_c/amqp_definitions.h"
 
 typedef struct MESSAGE_RECEIVER_INSTANCE_TAG
 {

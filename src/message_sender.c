@@ -8,9 +8,12 @@
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_c_shared_utility/tickcounter.h"
+#include "azure_uamqp_c/link.h"
+#include "azure_uamqp_c/message.h"
 #include "azure_uamqp_c/message_sender.h"
 #include "azure_uamqp_c/amqpvalue_to_string.h"
 #include "azure_uamqp_c/async_operation.h"
+#include "azure_uamqp_c/amqp_definitions.h"
 
 typedef enum MESSAGE_SEND_STATE_TAG
 {

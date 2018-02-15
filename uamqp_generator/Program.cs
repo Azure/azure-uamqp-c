@@ -14,6 +14,14 @@ namespace amqplib_generator
 {
     class Program
     {
+        private static type _currentTypeObject;
+        public static type CurrentTypeObject
+        {
+            get { return _currentTypeObject;  }
+        }
+
+        private static List<type> types;
+
         public static amqp LoadAMQPTypes()
         {
             XmlSerializer serializer = new XmlSerializer(typeof(amqp));
@@ -88,7 +96,7 @@ namespace amqplib_generator
             return result;
         }
 
-        public static type GetTypeByName(ICollection<type> types, string type_name)
+        public static type GetTypeByName(string type_name)
         {
             type result;
             IEnumerable<type> result_query = types.Where(t => t.name == type_name);
@@ -185,9 +193,25 @@ namespace amqplib_generator
 
         static void Main(string[] args)
         {
-            LoadAMQPTypes();
+            amqp amqp = LoadAMQPTypes();
+            
+            foreach (section section in amqp.Items.Where(item => item is section))
+            {
+                types = new List<type>();
+                types.AddRange(section.Items.Where(item => item is type).Cast<type>());
+                foreach (type type in types)
+                {
+                    amqp_definitions_type_h amqp_definitions_type_h = new amqp_definitions_type_h();
+
+                    _currentTypeObject = type;
+                    System.IO.File.WriteAllText($"../../../inc/azure_uamqp_c/amqp_definitions_{type.name.Replace("-","_")}.h", amqp_definitions_type_h.TransformText());
+                    
+                }
+            }
+
             amqp_definitions_h amqp_definitions_h = new amqp_definitions_h();
             System.IO.File.WriteAllText("../../../inc/azure_uamqp_c/amqp_definitions.h", amqp_definitions_h.TransformText());
+            
             amqp_definitions_c amqp_definitions_c = new amqp_definitions_c();
             System.IO.File.WriteAllText("../../../src/amqp_definitions.c", amqp_definitions_c.TransformText());
         }

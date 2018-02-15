@@ -8,8 +8,28 @@
 #include "azure_uamqp_c/amqpvalue.h"
 #include "azure_uamqp_c/amqp_frame_codec.h"
 #include "azure_uamqp_c/connection.h"
+
+#include "azure_uamqp_c/amqp_definitions_role.h"
+#include "azure_uamqp_c/amqp_definitions_handle.h"
+#include "azure_uamqp_c/amqp_definitions_fields.h"
+#include "azure_uamqp_c/amqp_definitions_sender_settle_mode.h"
+#include "azure_uamqp_c/amqp_definitions_receiver_settle_mode.h"
+#include "azure_uamqp_c/amqp_definitions_sequence_no.h"
+#include "azure_uamqp_c/amqp_definitions_delivery_number.h"
+#include "azure_uamqp_c/amqp_definitions_disposition.h"
+#include "azure_uamqp_c/amqp_definitions_transfer_number.h"
+#include "azure_uamqp_c/amqp_definitions_flow.h"
+#include "azure_uamqp_c/amqp_definitions_attach.h"
+#include "azure_uamqp_c/amqp_definitions_error.h"
+#include "azure_uamqp_c/amqp_definitions_detach.h"
+#include "azure_uamqp_c/amqp_definitions_delivery_tag.h"
+#include "azure_uamqp_c/amqp_definitions_message_format.h"
+#include "azure_uamqp_c/amqp_definitions_transfer.h"
+
+
 #include "azure_c_shared_utility/umock_c_prod.h"
 #include "azure_c_shared_utility/macro_utils.h"
+
 
 #ifdef __cplusplus
 extern "C" {

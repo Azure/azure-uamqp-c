@@ -10,9 +10,9 @@
 #include "azure_uamqp_c/session.h"
 #include "azure_uamqp_c/amqpvalue.h"
 #include "azure_uamqp_c/async_operation.h"
-#include "azure_uamqp_c/amqp_generated_types/amqp_sender_settle_mode.h"
-#include "azure_uamqp_c/amqp_generated_types/amqp_receiver_settle_mode.h"
-#include "azure_uamqp_c/amqp_generated_types/amqp_fields.h"
+#include "azure_uamqp_c/amqp_definitions_sender_settle_mode.h"
+#include "azure_uamqp_c/amqp_definitions_receiver_settle_mode.h"
+#include "azure_uamqp_c/amqp_definitions_fields.h"
 
 #ifdef __cplusplus
 extern "C" {

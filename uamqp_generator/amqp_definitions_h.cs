@@ -100,7 +100,7 @@ extern ""C"" {
             this.Write("#include \"");
             
             #line 34 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_h.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture($"azure_uamqp_c/amqp_generated_types/amqp_{type_name}.h"));
+            this.Write(this.ToStringHelper.ToStringWithCulture($"azure_uamqp_c/amqp_definitions_{type_name}.h"));
             
             #line default
             #line hidden

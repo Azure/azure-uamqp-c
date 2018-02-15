@@ -5,13 +5,13 @@
 #define MESSAGE_H
 
 #include "azure_uamqp_c/amqpvalue.h"
-#include "azure_uamqp_c/amqp_generated_types/amqp_annotations.h"
-#include "azure_uamqp_c/amqp_generated_types/amqp_message_annotations.h"
-#include "azure_uamqp_c/amqp_generated_types/amqp_sequence_no.h"
-#include "azure_uamqp_c/amqp_generated_types/amqp_properties.h"
-#include "azure_uamqp_c/amqp_generated_types/amqp_milliseconds.h"
-#include "azure_uamqp_c/amqp_generated_types/amqp_header.h"
-#include "azure_uamqp_c/amqp_generated_types/amqp_delivery_annotations.h"
+#include "azure_uamqp_c/amqp_definitions_annotations.h"
+#include "azure_uamqp_c/amqp_definitions_message_annotations.h"
+#include "azure_uamqp_c/amqp_definitions_sequence_no.h"
+#include "azure_uamqp_c/amqp_definitions_properties.h"
+#include "azure_uamqp_c/amqp_definitions_milliseconds.h"
+#include "azure_uamqp_c/amqp_definitions_header.h"
+#include "azure_uamqp_c/amqp_definitions_delivery_annotations.h"
 
 
 #ifdef __cplusplus

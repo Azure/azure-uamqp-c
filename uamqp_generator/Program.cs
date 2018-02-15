@@ -204,7 +204,7 @@ namespace amqplib_generator
                     amqp_definitions_type_h amqp_definitions_type_h = new amqp_definitions_type_h();
 
                     _currentTypeObject = type;
-                    System.IO.File.WriteAllText($"../../../inc/azure_uamqp_c/amqp_generated_types/amqp_{type.name.Replace("-","_")}.h", amqp_definitions_type_h.TransformText());
+                    System.IO.File.WriteAllText($"../../../inc/azure_uamqp_c/amqp_definitions_{type.name.Replace("-","_")}.h", amqp_definitions_type_h.TransformText());
                     
                 }
             }

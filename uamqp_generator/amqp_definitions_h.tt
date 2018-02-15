@@ -31,7 +31,7 @@ extern "C" {
 <#      foreach (type type in types) #>
 <#      { #>
 <#          string type_name = type.name.ToLower().Replace('-', '_'); #>
-#include "<#=$"azure_uamqp_c/amqp_generated_types/amqp_{type_name}.h"  #>"
+#include "<#=$"azure_uamqp_c/amqp_definitions_{type_name}.h"  #>"
 <#      } #>
 <#  } #>
 

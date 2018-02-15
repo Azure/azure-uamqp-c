@@ -52,7 +52,7 @@ static int my_mallocAndStrcpy_s(char** destination, const char* source)
 #include "azure_uamqp_c/messaging.h"
 #include "azure_uamqp_c/message.h"
 #include "azure_uamqp_c/async_operation.h"
-#include "azure_uamqp_c/amqp_generated_types/amqp_message_id_ulong.h"
+#include "azure_uamqp_c/amqp_definitions_message_id_ulong.h"
 
 #undef ENABLE_MOCKS
 

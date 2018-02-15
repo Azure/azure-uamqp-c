@@ -1023,33 +1023,37 @@ int message_add_body_amqp_data(MESSAGE_HANDLE message, BINARY_DATA amqp_data)
                 LogError("Cannot allocate memory for body AMQP data items");
                 result = __FAILURE__;
             }
-            else if (amqp_data.length == 0)
-            {
-                message->body_amqp_data_items = new_body_amqp_data_items;
-                message->body_amqp_data_items[message->body_amqp_data_count].body_data_section_bytes = NULL;
-                message->body_amqp_data_items[message->body_amqp_data_count].body_data_section_length = 0;
-                message->body_amqp_data_count++;
-                result = 0;
-            }
             else
             {
                 message->body_amqp_data_items = new_body_amqp_data_items;
 
-                message->body_amqp_data_items[message->body_amqp_data_count].body_data_section_bytes = (unsigned char*)malloc(amqp_data.length);
-                if (message->body_amqp_data_items[message->body_amqp_data_count].body_data_section_bytes == NULL)
+                if (amqp_data.length == 0)
                 {
-                    /* Codes_SRS_MESSAGE_01_153: [ If allocating memory to store the added AMQP data fails, `message_add_body_amqp_data` shall fail and return a non-zero value. ]*/
-                    LogError("Cannot allocate memory for body AMQP data to be added");
-                    result = __FAILURE__;
-                }
-                else
-                {
-                    message->body_amqp_data_items[message->body_amqp_data_count].body_data_section_length = amqp_data.length;
-                    (void)memcpy(message->body_amqp_data_items[message->body_amqp_data_count].body_data_section_bytes, amqp_data.bytes, amqp_data.length);
+                    message->body_amqp_data_items[message->body_amqp_data_count].body_data_section_bytes = NULL;
+                    message->body_amqp_data_items[message->body_amqp_data_count].body_data_section_length = 0;
                     message->body_amqp_data_count++;
 
                     /* Codes_SRS_MESSAGE_01_087: [ On success it shall return 0. ]*/
                     result = 0;
+                }
+                else
+                {
+                    message->body_amqp_data_items[message->body_amqp_data_count].body_data_section_bytes = (unsigned char*)malloc(amqp_data.length);
+                    if (message->body_amqp_data_items[message->body_amqp_data_count].body_data_section_bytes == NULL)
+                    {
+                        /* Codes_SRS_MESSAGE_01_153: [ If allocating memory to store the added AMQP data fails, `message_add_body_amqp_data` shall fail and return a non-zero value. ]*/
+                        LogError("Cannot allocate memory for body AMQP data to be added");
+                        result = __FAILURE__;
+                    }
+                    else
+                    {
+                        message->body_amqp_data_items[message->body_amqp_data_count].body_data_section_length = amqp_data.length;
+                        (void)memcpy(message->body_amqp_data_items[message->body_amqp_data_count].body_data_section_bytes, amqp_data.bytes, amqp_data.length);
+                        message->body_amqp_data_count++;
+
+                        /* Codes_SRS_MESSAGE_01_087: [ On success it shall return 0. ]*/
+                        result = 0;
+                    }
                 }
             }
         }

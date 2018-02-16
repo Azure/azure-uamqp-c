@@ -27,6 +27,7 @@ typedef struct OPERATION_MESSAGE_INSTANCE_TAG
     ON_AMQP_MANAGEMENT_EXECUTE_OPERATION_COMPLETE on_execute_operation_complete;
     void* callback_context;
     uint64_t message_id;
+    AMQP_MANAGEMENT_HANDLE amqp_management;
 } OPERATION_MESSAGE_INSTANCE;
 
 typedef enum AMQP_MANAGEMENT_STATE_TAG
@@ -328,6 +329,46 @@ static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE messag
     }
 
     return result;
+}
+
+static void on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_result)
+{
+    if (context == NULL)
+    {
+        /* Codes_SRS_AMQP_MANAGEMENT_01_167: [ When `on_message_send_complete` is called with a NULL context it shall return. ]*/
+        LogError("NULL context");
+    }
+    else
+    {
+        if (send_result == MESSAGE_SEND_OK)
+        {
+            /* Codes_SRS_AMQP_MANAGEMENT_01_170: [ If `send_result` is `MESSAGE_SEND_OK`, `on_message_send_complete` shall return. ]*/
+        }
+        else
+        {
+            /* Codes_SRS_AMQP_MANAGEMENT_01_172: [ If `send_result` is different then `MESSAGE_SEND_OK`: ]*/
+            /* Codes_SRS_AMQP_MANAGEMENT_01_168: [ - `context` shall be used as a LIST_ITEM_HANDLE containing the pending operation. ]*/
+            LIST_ITEM_HANDLE pending_operation_list_item_handle = (LIST_ITEM_HANDLE)context;
+
+            /* Codes_SRS_AMQP_MANAGEMENT_01_169: [ - `on_message_send_complete` shall obtain the pending operation by calling `singlylinkedlist_item_get_value`. ]*/
+            OPERATION_MESSAGE_INSTANCE* pending_operation_message = (OPERATION_MESSAGE_INSTANCE*)singlylinkedlist_item_get_value(pending_operation_list_item_handle);
+            AMQP_MANAGEMENT_HANDLE amqp_management = pending_operation_message->amqp_management;
+
+            /* Codes_SRS_AMQP_MANAGEMENT_01_171: [ - `on_message_send_complete` shall removed the pending operation from the pending operations list. ]*/
+            if (singlylinkedlist_remove(amqp_management->pending_operations, pending_operation_list_item_handle) != 0)
+            {
+                /* Tests_SRS_AMQP_MANAGEMENT_01_174: [ If any error occurs in removing the pending operation from the list `on_amqp_management_error` callback shall be invoked while passing the `on_amqp_management_error_context` as argument. ]*/
+                amqp_management->on_amqp_management_error(amqp_management->on_amqp_management_error_context);
+                LogError("Cannot remove pending operation");
+            }
+            else
+            {
+                /* Codes_SRS_AMQP_MANAGEMENT_01_173: [ - The callback associated with the pending operation shall be called with `AMQP_MANAGEMENT_EXECUTE_OPERATION_ERROR`. ]*/
+                pending_operation_message->on_execute_operation_complete(pending_operation_message->callback_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_ERROR, 0, NULL);
+                free(pending_operation_message);
+            }
+        }
+    }
 }
 
 static void on_message_sender_state_changed(void* context, MESSAGE_SENDER_STATE new_state, MESSAGE_SENDER_STATE previous_state)
@@ -1126,6 +1167,7 @@ int amqp_management_execute_operation_async(AMQP_MANAGEMENT_HANDLE amqp_manageme
                                 pending_operation_message->callback_context = on_execute_operation_complete_context;
                                 pending_operation_message->on_execute_operation_complete = on_execute_operation_complete;
                                 pending_operation_message->message_id = amqp_management->next_message_id;
+                                pending_operation_message->amqp_management = amqp_management;
 
                                 /* Codes_SRS_AMQP_MANAGEMENT_01_091: [ Once the request message has been sent, an entry shall be stored in the pending operations list by calling `singlylinkedlist_add`. ]*/
                                 added_item = singlylinkedlist_add(amqp_management->pending_operations, pending_operation_message);
@@ -1138,8 +1180,9 @@ int amqp_management_execute_operation_async(AMQP_MANAGEMENT_HANDLE amqp_manageme
                                 }
                                 else
                                 {
-                                    /* Codes_SRS_AMQP_MANAGEMENT_01_088: [ `amqp_management_execute_operation_async` shall send the message by calling `messagesender_send`. ]*/
-                                    if (messagesender_send_async(amqp_management->message_sender, cloned_message, NULL, NULL, 0) == NULL)
+                                    /* Codes_SRS_AMQP_MANAGEMENT_01_088: [ `amqp_management_execute_operation_async` shall send the message by calling `messagesender_send_async`. ]*/
+                                    /* Codes_SRS_AMQP_MANAGEMENT_01_166: [ The `on_message_send_complete` callback shall be passed to the `messagesender_send_async` call. ]*/
+                                    if (messagesender_send_async(amqp_management->message_sender, cloned_message, on_message_send_complete, added_item, 0) == NULL)
                                     {
                                         /* Codes_SRS_AMQP_MANAGEMENT_01_089: [ If `messagesender_send_async` fails, `amqp_management_execute_operation_async` shall fail and return a non-zero value. ]*/
                                         LogError("Could not send request message");

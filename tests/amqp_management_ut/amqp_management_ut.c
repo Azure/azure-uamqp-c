@@ -209,9 +209,11 @@ static void* saved_on_message_sender_state_changed_context;
 static ON_MESSAGE_RECEIVER_STATE_CHANGED saved_on_message_receiver_state_changed;
 static void* saved_on_message_receiver_state_changed_context;
 static ON_MESSAGE_RECEIVED saved_on_message_received;
-static const void* saved_on_message_received_context;
+static void* saved_on_message_received_context;
+static ON_MESSAGE_SEND_COMPLETE saved_on_message_send_complete;
+static void* saved_on_message_send_complete_context;
 
-MESSAGE_SENDER_HANDLE my_messagesender_create(LINK_HANDLE link, ON_MESSAGE_SENDER_STATE_CHANGED on_message_sender_state_changed, void* context)
+static MESSAGE_SENDER_HANDLE my_messagesender_create(LINK_HANDLE link, ON_MESSAGE_SENDER_STATE_CHANGED on_message_sender_state_changed, void* context)
 {
     (void)link;
     saved_on_message_sender_state_changed = on_message_sender_state_changed;
@@ -219,7 +221,7 @@ MESSAGE_SENDER_HANDLE my_messagesender_create(LINK_HANDLE link, ON_MESSAGE_SENDE
     return test_message_sender;
 }
 
-MESSAGE_RECEIVER_HANDLE my_messagereceiver_create(LINK_HANDLE link, ON_MESSAGE_RECEIVER_STATE_CHANGED on_message_receiver_state_changed, void* context)
+static MESSAGE_RECEIVER_HANDLE my_messagereceiver_create(LINK_HANDLE link, ON_MESSAGE_RECEIVER_STATE_CHANGED on_message_receiver_state_changed, void* context)
 {
     (void)link;
     saved_on_message_receiver_state_changed = on_message_receiver_state_changed;
@@ -227,12 +229,22 @@ MESSAGE_RECEIVER_HANDLE my_messagereceiver_create(LINK_HANDLE link, ON_MESSAGE_R
     return test_message_receiver;
 }
 
-int my_messagereceiver_open(MESSAGE_RECEIVER_HANDLE message_receiver, ON_MESSAGE_RECEIVED on_message_received, void* callback_context)
+static int my_messagereceiver_open(MESSAGE_RECEIVER_HANDLE message_receiver, ON_MESSAGE_RECEIVED on_message_received, void* callback_context)
 {
     (void)message_receiver;
     saved_on_message_received = on_message_received;
     saved_on_message_received_context = callback_context;
     return 0;
+}
+
+static ASYNC_OPERATION_HANDLE my_messagesender_send_async(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDLE message, ON_MESSAGE_SEND_COMPLETE on_message_send_complete, void* callback_context, tickcounter_ms_t timeout)
+{
+    (void)message_sender;
+    (void)message;
+    (void)timeout;
+    saved_on_message_send_complete = on_message_send_complete;
+    saved_on_message_send_complete_context = callback_context;
+    return test_send_operation;
 }
 
 static void on_umock_c_error(UMOCK_C_ERROR_CODE error_code)
@@ -281,7 +293,7 @@ TEST_SUITE_INITIALIZE(suite_init)
     REGISTER_GLOBAL_MOCK_HOOK(messagesender_create, my_messagesender_create);
     REGISTER_GLOBAL_MOCK_HOOK(messagereceiver_create, my_messagereceiver_create);
     REGISTER_GLOBAL_MOCK_HOOK(messagereceiver_open, my_messagereceiver_open);
-    REGISTER_GLOBAL_MOCK_RETURN(messagesender_send_async, test_send_operation);
+    REGISTER_GLOBAL_MOCK_HOOK(messagesender_send_async, my_messagesender_send_async);
     REGISTER_GLOBAL_MOCK_RETURN(link_create, test_sender_link);
     REGISTER_GLOBAL_MOCK_RETURN(amqpvalue_create_message_id_ulong, test_message_id_value);
     REGISTER_GLOBAL_MOCK_RETURN(message_get_application_properties, 0);
@@ -1023,7 +1035,7 @@ TEST_FUNCTION(when_removing_the_pending_operation_fails_the_instance_is_still_cl
 /* Tests_SRS_AMQP_MANAGEMENT_01_085: [ For each of the arguments `operation`, `type` and `locales` an AMQP value of type string containing the argument value shall be created by calling `amqpvalue_create_string` in order to be used as value in the application properties map. ]*/
 /* Tests_SRS_AMQP_MANAGEMENT_01_086: [ The key/value pairs for `operation`, `type` and `locales` shall be added to the application properties map by calling `amqpvalue_set_map_value`. ]*/
 /* Tests_SRS_AMQP_MANAGEMENT_01_087: [ The application properties obtained after adding the key/value pairs shall be set on the message by calling `message_set_application_properties`. ]*/
-/* Tests_SRS_AMQP_MANAGEMENT_01_088: [ `amqp_management_execute_operation_async` shall send the message by calling `messagesender_send`. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_088: [ `amqp_management_execute_operation_async` shall send the message by calling `messagesender_send_async`. ]*/
 /* Tests_SRS_AMQP_MANAGEMENT_01_094: [ In order to set the message Id on the message, the properties shall be obtained by calling `message_get_properties`. ]*/
 /* Tests_SRS_AMQP_MANAGEMENT_01_095: [ A message Id with the next ulong value to be used shall be created by calling `amqpvalue_create_message_id_ulong`. ]*/
 /* Tests_SRS_AMQP_MANAGEMENT_01_096: [ The message Id value shall be set on the properties by calling `properties_set_message_id`. ]*/
@@ -1036,6 +1048,7 @@ TEST_FUNCTION(when_removing_the_pending_operation_fails_the_instance_is_still_cl
 /* Tests_SRS_AMQP_MANAGEMENT_01_059: [ operation string Yes The management operation to be performed. ] */
 /* Tests_SRS_AMQP_MANAGEMENT_01_061: [ type string Yes The Manageable Entity Type of the Manageable Entity to be managed. ]*/
 /* Tests_SRS_AMQP_MANAGEMENT_01_063: [ locales string No A list of locales that the sending peer permits for incoming informational text in response messages. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_166: [ The `on_message_send_complete` callback shall be passed to the `messagesender_send_async` call. ]*/
 TEST_FUNCTION(amqp_management_execute_operation_async_starts_the_operation)
 {
     // arrange
@@ -1553,7 +1566,7 @@ TEST_FUNCTION(when_no_properties_were_set_on_the_message_a_new_properties_instan
 /* Tests_SRS_AMQP_MANAGEMENT_01_090: [ If any APIs used to create and set the application properties on the message fails, `amqp_management_execute_operation_async` shall fail and return a non-zero value. ]*/
 /* Tests_SRS_AMQP_MANAGEMENT_01_098: [ If any API fails while setting the message Id, `amqp_management_execute_operation_async` shall fail and return a non-zero value. ]*/
 /* Tests_SRS_AMQP_MANAGEMENT_01_092: [ If `singlylinkedlist_add` fails then `amqp_management_execute_operation_async` shall fail and return a non-zero value. ]*/
-/* Tests_SRS_AMQP_MANAGEMENT_01_089: [ If `messagesender_send` fails, `amqp_management_execute_operation_async` shall fail and return a non-zero value. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_089: [ If `messagesender_send_async` fails, `amqp_management_execute_operation_async` shall fail and return a non-zero value. ]*/
 TEST_FUNCTION(when_any_underlying_function_call_fails_amqp_management_execute_operation_async_fails)
 {
     // arrange
@@ -1802,6 +1815,155 @@ TEST_FUNCTION(amqp_management_execute_operation_async_the_2nd_time_uses_the_next
 
     // assert
     ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqp_management_destroy(amqp_management);
+}
+
+/* on_message_send_complete */
+
+/* Tests_SRS_AMQP_MANAGEMENT_01_167: [ When `on_message_send_complete` is called with a NULL context it shall return. ]*/
+TEST_FUNCTION(on_message_send_complete_with_NULL_context_does_nothing)
+{
+    // arrange
+    AMQP_MANAGEMENT_HANDLE amqp_management;
+    amqp_management = amqp_management_create(test_session_handle, "test_node");
+    (void)amqp_management_open_async(amqp_management, test_on_amqp_management_open_complete, (void*)0x4242, test_on_amqp_management_error, (void*)0x4243);
+    saved_on_message_sender_state_changed(saved_on_message_sender_state_changed_context, MESSAGE_SENDER_STATE_OPEN, MESSAGE_SENDER_STATE_OPENING);
+    saved_on_message_receiver_state_changed(saved_on_message_receiver_state_changed_context, MESSAGE_RECEIVER_STATE_OPEN, MESSAGE_RECEIVER_STATE_OPENING);
+    umock_c_reset_all_calls();
+    setup_calls_for_pending_operation_with_correlation_id(0);
+    (void)amqp_management_execute_operation_async(amqp_management, "some_operation", "some_type", "en-US", test_message, test_on_amqp_management_execute_operation_complete, (void*)0x4244);
+    umock_c_reset_all_calls();
+
+    // act
+    saved_on_message_send_complete(NULL, MESSAGE_SEND_OK);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqp_management_destroy(amqp_management);
+}
+
+/* Tests_SRS_AMQP_MANAGEMENT_01_172: [ If `send_result` is different then `MESSAGE_SEND_OK`: ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_168: [ - `context` shall be used as a LIST_ITEM_HANDLE containing the pending operation. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_169: [ - `on_message_send_complete` shall obtain the pending operation by calling `singlylinkedlist_item_get_value`. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_171: [ - `on_message_send_complete` shall removed the pending operation from the pending operations list. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_173: [ - The callback associated with the pending operation shall be called with `AMQP_MANAGEMENT_EXECUTE_OPERATION_ERROR`. ]*/
+TEST_FUNCTION(when_on_message_send_complete_indicates_ERROR_the_pending_operation_is_indicated_as_complete_with_ERROR)
+{
+    // arrange
+    AMQP_MANAGEMENT_HANDLE amqp_management;
+
+    amqp_management = amqp_management_create(test_session_handle, "test_node");
+    (void)amqp_management_open_async(amqp_management, test_on_amqp_management_open_complete, (void*)0x4242, test_on_amqp_management_error, (void*)0x4243);
+    saved_on_message_sender_state_changed(saved_on_message_sender_state_changed_context, MESSAGE_SENDER_STATE_OPEN, MESSAGE_SENDER_STATE_OPENING);
+    saved_on_message_receiver_state_changed(saved_on_message_receiver_state_changed_context, MESSAGE_RECEIVER_STATE_OPEN, MESSAGE_RECEIVER_STATE_OPENING);
+    umock_c_reset_all_calls();
+    setup_calls_for_pending_operation_with_correlation_id(0);
+    (void)amqp_management_execute_operation_async(amqp_management, "some_operation", "some_type", "en-US", test_message, test_on_amqp_management_execute_operation_complete, (void*)0x4244);
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist_handle, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(test_on_amqp_management_execute_operation_complete((void*)0x4244, AMQP_MANAGEMENT_EXECUTE_OPERATION_ERROR, 0, NULL));
+    STRICT_EXPECTED_CALL(free(IGNORED_PTR_ARG));
+
+    // act
+    saved_on_message_send_complete(saved_on_message_send_complete_context, MESSAGE_SEND_ERROR);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqp_management_destroy(amqp_management);
+}
+
+/* Tests_SRS_AMQP_MANAGEMENT_01_172: [ If `send_result` is different then `MESSAGE_SEND_OK`: ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_168: [ - `context` shall be used as a LIST_ITEM_HANDLE containing the pending operation. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_169: [ - `on_message_send_complete` shall obtain the pending operation by calling `singlylinkedlist_item_get_value`. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_171: [ - `on_message_send_complete` shall removed the pending operation from the pending operations list. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_173: [ - The callback associated with the pending operation shall be called with `AMQP_MANAGEMENT_EXECUTE_OPERATION_ERROR`. ]*/
+TEST_FUNCTION(when_on_message_send_complete_indicates_CANCELLED_the_pending_operation_is_indicated_as_complete_with_ERROR)
+{
+    // arrange
+    AMQP_MANAGEMENT_HANDLE amqp_management;
+
+    amqp_management = amqp_management_create(test_session_handle, "test_node");
+    (void)amqp_management_open_async(amqp_management, test_on_amqp_management_open_complete, (void*)0x4242, test_on_amqp_management_error, (void*)0x4243);
+    saved_on_message_sender_state_changed(saved_on_message_sender_state_changed_context, MESSAGE_SENDER_STATE_OPEN, MESSAGE_SENDER_STATE_OPENING);
+    saved_on_message_receiver_state_changed(saved_on_message_receiver_state_changed_context, MESSAGE_RECEIVER_STATE_OPEN, MESSAGE_RECEIVER_STATE_OPENING);
+    umock_c_reset_all_calls();
+    setup_calls_for_pending_operation_with_correlation_id(0);
+    (void)amqp_management_execute_operation_async(amqp_management, "some_operation", "some_type", "en-US", test_message, test_on_amqp_management_execute_operation_complete, (void*)0x4244);
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist_handle, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(test_on_amqp_management_execute_operation_complete((void*)0x4244, AMQP_MANAGEMENT_EXECUTE_OPERATION_ERROR, 0, NULL));
+    STRICT_EXPECTED_CALL(free(IGNORED_PTR_ARG));
+
+    // act
+    saved_on_message_send_complete(saved_on_message_send_complete_context, MESSAGE_SEND_CANCELLED);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqp_management_destroy(amqp_management);
+}
+
+/* Tests_SRS_AMQP_MANAGEMENT_01_174: [ If any error occurs in removing the pending operation from the list `on_amqp_management_error` callback shall be invoked while passing the `on_amqp_management_error_context` as argument. ]*/
+TEST_FUNCTION(when_obtaining_the_list_item_payload_fails_an_error_is_indicated_to_the_user)
+{
+    // arrange
+    AMQP_MANAGEMENT_HANDLE amqp_management;
+
+    amqp_management = amqp_management_create(test_session_handle, "test_node");
+    (void)amqp_management_open_async(amqp_management, test_on_amqp_management_open_complete, (void*)0x4242, test_on_amqp_management_error, (void*)0x4243);
+    saved_on_message_sender_state_changed(saved_on_message_sender_state_changed_context, MESSAGE_SENDER_STATE_OPEN, MESSAGE_SENDER_STATE_OPENING);
+    saved_on_message_receiver_state_changed(saved_on_message_receiver_state_changed_context, MESSAGE_RECEIVER_STATE_OPEN, MESSAGE_RECEIVER_STATE_OPENING);
+    umock_c_reset_all_calls();
+    setup_calls_for_pending_operation_with_correlation_id(0);
+    (void)amqp_management_execute_operation_async(amqp_management, "some_operation", "some_type", "en-US", test_message, test_on_amqp_management_execute_operation_complete, (void*)0x4244);
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist_handle, IGNORED_PTR_ARG))
+        .SetReturn(1);
+    STRICT_EXPECTED_CALL(test_on_amqp_management_error((void*)0x4243));
+
+    // act
+    saved_on_message_send_complete(saved_on_message_send_complete_context, MESSAGE_SEND_CANCELLED);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqp_management_destroy(amqp_management);
+}
+
+/* Tests_SRS_AMQP_MANAGEMENT_01_170: [ If `send_result` is `MESSAGE_SEND_OK`, `on_message_send_complete` shall return. ]*/
+TEST_FUNCTION(when_on_send_message_complete_indicates_success_it_returns)
+{
+    // arrange
+    AMQP_MANAGEMENT_HANDLE amqp_management;
+
+    amqp_management = amqp_management_create(test_session_handle, "test_node");
+    (void)amqp_management_open_async(amqp_management, test_on_amqp_management_open_complete, (void*)0x4242, test_on_amqp_management_error, (void*)0x4243);
+    saved_on_message_sender_state_changed(saved_on_message_sender_state_changed_context, MESSAGE_SENDER_STATE_OPEN, MESSAGE_SENDER_STATE_OPENING);
+    saved_on_message_receiver_state_changed(saved_on_message_receiver_state_changed_context, MESSAGE_RECEIVER_STATE_OPEN, MESSAGE_RECEIVER_STATE_OPENING);
+    umock_c_reset_all_calls();
+    setup_calls_for_pending_operation_with_correlation_id(0);
+    (void)amqp_management_execute_operation_async(amqp_management, "some_operation", "some_type", "en-US", test_message, test_on_amqp_management_execute_operation_complete, (void*)0x4244);
+    umock_c_reset_all_calls();
+
+    // act
+    saved_on_message_send_complete(saved_on_message_send_complete_context, MESSAGE_SEND_OK);
+
+    // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
     // cleanup

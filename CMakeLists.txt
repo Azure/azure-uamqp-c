@@ -48,6 +48,7 @@ if(${memory_trace})
     add_definitions(-DGB_MEASURE_MEMORY_FOR_THIS -DGB_DEBUG_ALLOC)
 endif()
 
+option(use_socketio "set use_socketio to ON if socketio is to be included in the library, set to OFF if a different implementation will be provided" ON)
 if(WIN32)
     option(use_schannel "set use_schannel to ON if schannel is to be used, set to OFF to not use schannel" ON)
     option(use_openssl "set use_openssl to ON if openssl is to be used, set to OFF to not use openssl" OFF)
@@ -56,6 +57,11 @@ else()
     option(use_schannel "set use_schannel to ON if schannel is to be used, set to OFF to not use schannel" OFF)
     option(use_openssl "set use_openssl to ON if openssl is to be used, set to OFF to not use openssl" ON)
     option(use_wolfssl "set use_wolfssl to ON if wolfssl is to be used, set to OFF to not use wolfssl" OFF)
+endif()
+
+# The native apple tlsio does not support socket_io
+if(MACOSX AND NOT ${use_openssl})
+    set(use_socketio OFF)
 endif()
 
 add_definitions(-DREFCOUNT_ATOMIC_DONTCARE)

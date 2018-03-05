@@ -51,7 +51,7 @@ typedef struct LINK_INSTANCE_TAG
     sequence_no initial_delivery_count;
     uint64_t max_message_size;
     uint64_t peer_max_message_size;
-    uint32_t link_credit;
+    uint32_t current_link_credit;
     uint32_t max_link_credit;
     uint32_t available;
     fields attach_properties;
@@ -115,7 +115,7 @@ static int send_flow(LINK_INSTANCE* link)
     }
     else
     {
-        if ((flow_set_link_credit(flow, link->link_credit) != 0) ||
+        if ((flow_set_link_credit(flow, link->current_link_credit) != 0) ||
             (flow_set_handle(flow, link->handle) != 0) ||
             (flow_set_delivery_count(flow, link->delivery_count) != 0))
         {
@@ -302,12 +302,12 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                 {
                     if (link_instance->role == role_receiver)
                     {
-                        link_instance->link_credit = link_instance->max_link_credit;
+                        link_instance->current_link_credit = link_instance->max_link_credit;
                         send_flow(link_instance);
                     }
                     else
                     {
-                        link_instance->link_credit = 0;
+                        link_instance->current_link_credit = 0;
                     }
 
                     if (link_instance->link_state == LINK_STATE_DETACHED)
@@ -343,8 +343,8 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                 }
                 else
                 {
-                    link_instance->link_credit = rcv_delivery_count + rcv_link_credit - link_instance->delivery_count;
-                    if (link_instance->link_credit > 0)
+                    link_instance->current_link_credit = rcv_delivery_count + rcv_link_credit - link_instance->delivery_count;
+                    if (link_instance->current_link_credit > 0)
                     {
                         link_instance->on_link_flow_on(link_instance->callback_context);
                     }
@@ -365,11 +365,11 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                 bool more;
                 bool is_error;
 
-                link_instance->link_credit--;
+                link_instance->current_link_credit--;
                 link_instance->delivery_count++;
-                if (link_instance->link_credit == 0)
+                if (link_instance->current_link_credit == 0)
                 {
-                    link_instance->link_credit = link_instance->max_link_credit;
+                    link_instance->current_link_credit = link_instance->max_link_credit;
                     send_flow(link_instance);
                 }
 
@@ -1172,7 +1172,7 @@ ASYNC_OPERATION_HANDLE link_transfer_async(LINK_HANDLE link, message_format mess
             *link_transfer_error = LINK_TRANSFER_ERROR;
             result = NULL;
         }
-        else if (link->link_credit == 0)
+        else if (link->current_link_credit == 0)
         {
             *link_transfer_error = LINK_TRANSFER_BUSY;
             result = NULL;
@@ -1283,7 +1283,7 @@ ASYNC_OPERATION_HANDLE link_transfer_async(LINK_HANDLE link, message_format mess
 
                                         case SESSION_SEND_TRANSFER_OK:
                                             link->delivery_count = delivery_count;
-                                            link->link_credit--;
+                                            link->current_link_credit--;
                                             break;
                                         }
                                     }

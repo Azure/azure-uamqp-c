@@ -12,6 +12,7 @@
 
 #include "azure_uamqp_c/connection.h"
 #include "azure_uamqp_c/frame_codec.h"
+#include "azure_uamqp_c/amqpvalue.h"
 #include "azure_uamqp_c/amqp_frame_codec.h"
 #include "azure_uamqp_c/amqp_definitions.h"
 #include "azure_uamqp_c/amqpvalue_to_string.h"
@@ -73,6 +74,7 @@ typedef struct CONNECTION_INSTANCE_TAG
     double idle_timeout_empty_frame_send_ratio;
     tickcounter_ms_t last_frame_received_time;
     tickcounter_ms_t last_frame_sent_time;
+    fields properties;
 
     unsigned int is_underlying_io_open : 1;
     unsigned int idle_timeout_specified : 1;
@@ -346,6 +348,21 @@ static int send_open_frame(CONNECTION_HANDLE connection)
                 (open_set_hostname(open_performative, connection->host_name) != 0))
             {
                 LogError("Cannot set hostname");
+
+                /* Codes_SRS_CONNECTION_01_208: [If the open frame cannot be constructed, the connection shall be closed and set to the END state.] */
+                if (xio_close(connection->io, NULL, NULL) != 0)
+                {
+                    LogError("xio_close failed");
+                }
+
+                connection_set_state(connection, CONNECTION_STATE_END);
+                result = __FAILURE__;
+            }
+            else if ((connection->properties != NULL) &&
+                /* Codes_SRS_CONNECTION_01_135: [If properties has been specified by a call to connection_set_properties, then that value shall be stamped in the open frame.] */
+                (open_set_properties(open_performative, connection->properties) != 0))
+            {
+                LogError("Cannot set properties");
 
                 /* Codes_SRS_CONNECTION_01_208: [If the open frame cannot be constructed, the connection shall be closed and set to the END state.] */
                 if (xio_close(connection->io, NULL, NULL) != 0)
@@ -1182,6 +1199,7 @@ CONNECTION_HANDLE connection_create2(XIO_HANDLE xio, const char* hostname, const
                                 connection->endpoints = NULL;
                                 connection->header_bytes_received = 0;
                                 connection->is_remote_frame_received = 0;
+                                connection->properties = NULL;
 
                                 connection->is_underlying_io_open = 0;
                                 connection->remote_max_frame_size = 512;
@@ -1245,6 +1263,10 @@ void connection_destroy(CONNECTION_HANDLE connection)
         amqp_frame_codec_destroy(connection->amqp_frame_codec);
         frame_codec_destroy(connection->frame_codec);
         tickcounter_destroy(connection->tick_counter);
+        if (connection->properties != NULL)
+        {
+            amqpvalue_destroy(connection->properties);
+        }
 
         free(connection->host_name);
         free(connection->container_id);
@@ -1536,6 +1558,61 @@ int connection_get_idle_timeout(CONNECTION_HANDLE connection, milliseconds* idle
         *idle_timeout = connection->idle_timeout;
 
         /* Codes_SRS_CONNECTION_01_189: [On success, connection_get_idle_timeout shall return 0.] */
+        result = 0;
+    }
+
+    return result;
+}
+
+int connection_set_properties(CONNECTION_HANDLE connection, fields properties)
+{
+    int result;
+
+    /* Codes_SRS_CONNECTION_01_191: [If connection is NULL, connection_set_properties shall fail and return a non-zero value.] */
+    if (connection == NULL)
+    {
+        LogError("NULL connection");
+        result = __FAILURE__;
+    }
+    else
+    {
+        /* Codes_SRS_CONNECTION_01_158: [If connection_set_properties is called after the initial Open frame has been sent, it shall fail and return a non-zero value.] */
+        if (connection->connection_state != CONNECTION_STATE_START)
+        {
+            LogError("Connection already open");
+            result = __FAILURE__;
+        }
+        else
+        {
+            /* Codes_SRS_CONNECTION_01_159: [connection_set_properties shall set the properties associated with a connection.] */
+            connection->properties = amqpvalue_clone(properties);
+
+            /* Codes_SRS_CONNECTION_01_160: [On success connection_set_properties shall return 0.] */
+            result = 0;
+        }
+    }
+
+    return result;
+}
+
+int connection_get_properties(CONNECTION_HANDLE connection, fields* properties)
+{
+    int result;
+
+    /* Codes_SRS_CONNECTION_01_190: [If connection or properties is NULL, connection_get_properties shall fail and return a non-zero value.] */
+    if ((connection == NULL) ||
+        (properties == NULL))
+    {
+        LogError("Bad arguments: connection = %p, properties = %p",
+            connection, properties);
+        result = __FAILURE__;
+    }
+    else
+    {
+        /* Codes_SRS_CONNECTION_01_188: [connection_get_properties shall return in the properties argument the current properties setting.] */
+        *properties = connection->properties;
+
+        /* Codes_SRS_CONNECTION_01_189: [On success, connection_get_properties shall return 0.] */
         result = 0;
     }
 

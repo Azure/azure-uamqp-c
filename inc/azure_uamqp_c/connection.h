@@ -10,6 +10,7 @@
 #include "azure_c_shared_utility/xio.h"
 #include "azure_c_shared_utility/umock_c_prod.h"
 #include "azure_uamqp_c/amqp_frame_codec.h"
+#include "azure_uamqp_c/amqp_definitions_fields.h"
 #include "azure_uamqp_c/amqp_definitions_milliseconds.h"
 
 #ifdef __cplusplus
@@ -83,6 +84,8 @@ extern "C" {
     MOCKABLE_FUNCTION(, int, connection_get_channel_max, CONNECTION_HANDLE, connection, uint16_t*, channel_max);
     MOCKABLE_FUNCTION(, int, connection_set_idle_timeout, CONNECTION_HANDLE, connection, milliseconds, idle_timeout);
     MOCKABLE_FUNCTION(, int, connection_get_idle_timeout, CONNECTION_HANDLE, connection, milliseconds*, idle_timeout);
+    MOCKABLE_FUNCTION(, int, connection_set_properties, CONNECTION_HANDLE, connection, fields, properties);
+    MOCKABLE_FUNCTION(, int, connection_get_properties, CONNECTION_HANDLE, connection, fields*, properties);
     MOCKABLE_FUNCTION(, int, connection_get_remote_max_frame_size, CONNECTION_HANDLE, connection, uint32_t*, remote_max_frame_size);
     MOCKABLE_FUNCTION(, int, connection_set_remote_idle_timeout_empty_frame_send_ratio, CONNECTION_HANDLE, connection, double, idle_timeout_empty_frame_send_ratio);
     MOCKABLE_FUNCTION(, uint64_t, connection_handle_deadlines, CONNECTION_HANDLE, connection);

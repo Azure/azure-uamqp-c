@@ -358,8 +358,9 @@ static int send_open_frame(CONNECTION_HANDLE connection)
                 connection_set_state(connection, CONNECTION_STATE_END);
                 result = __FAILURE__;
             }
+            /* Codes_SRS_CONNECTION_01_243: [If no properties value has been specified, no value shall be stamped in the open frame (no call to open_set_properties shall be made).] */
             else if ((connection->properties != NULL) &&
-                /* Codes_SRS_CONNECTION_01_135: [If properties has been specified by a call to connection_set_properties, then that value shall be stamped in the open frame.] */
+                /* Codes_SRS_CONNECTION_01_244: [If properties has been specified by a call to connection_set_properties, then that value shall be stamped in the open frame.] */
                 (open_set_properties(open_performative, connection->properties) != 0))
             {
                 LogError("Cannot set properties");
@@ -1568,7 +1569,7 @@ int connection_set_properties(CONNECTION_HANDLE connection, fields properties)
 {
     int result;
 
-    /* Codes_SRS_CONNECTION_01_191: [If connection is NULL, connection_set_properties shall fail and return a non-zero value.] */
+    /* Codes_SRS_CONNECTION_01_245: [If connection is NULL, connection_set_properties shall fail and return a non-zero value.] */
     if (connection == NULL)
     {
         LogError("NULL connection");
@@ -1576,7 +1577,7 @@ int connection_set_properties(CONNECTION_HANDLE connection, fields properties)
     }
     else
     {
-        /* Codes_SRS_CONNECTION_01_158: [If connection_set_properties is called after the initial Open frame has been sent, it shall fail and return a non-zero value.] */
+        /* Codes_SRS_CONNECTION_01_246: [If connection_set_properties is called after the initial Open frame has been sent, it shall fail and return a non-zero value.] */
         if (connection->connection_state != CONNECTION_STATE_START)
         {
             LogError("Connection already open");
@@ -1584,10 +1585,10 @@ int connection_set_properties(CONNECTION_HANDLE connection, fields properties)
         }
         else
         {
-            /* Codes_SRS_CONNECTION_01_159: [connection_set_properties shall set the properties associated with a connection.] */
+            /* Codes_SRS_CONNECTION_01_247: [connection_set_properties shall set the properties associated with a connection.] */
             connection->properties = amqpvalue_clone(properties);
 
-            /* Codes_SRS_CONNECTION_01_160: [On success connection_set_properties shall return 0.] */
+            /* Codes_SRS_CONNECTION_01_248: [On success connection_set_properties shall return 0.] */
             result = 0;
         }
     }
@@ -1599,7 +1600,7 @@ int connection_get_properties(CONNECTION_HANDLE connection, fields* properties)
 {
     int result;
 
-    /* Codes_SRS_CONNECTION_01_190: [If connection or properties is NULL, connection_get_properties shall fail and return a non-zero value.] */
+    /* Codes_SRS_CONNECTION_01_249: [If connection or properties is NULL, connection_get_properties shall fail and return a non-zero value.] */
     if ((connection == NULL) ||
         (properties == NULL))
     {
@@ -1609,10 +1610,10 @@ int connection_get_properties(CONNECTION_HANDLE connection, fields* properties)
     }
     else
     {
-        /* Codes_SRS_CONNECTION_01_188: [connection_get_properties shall return in the properties argument the current properties setting.] */
+        /* Codes_SRS_CONNECTION_01_250: [connection_get_properties shall return in the properties argument the current properties setting.] */
         *properties = connection->properties;
 
-        /* Codes_SRS_CONNECTION_01_189: [On success, connection_get_properties shall return 0.] */
+        /* Codes_SRS_CONNECTION_01_251: [On success, connection_get_properties shall return 0.] */
         result = 0;
     }
 

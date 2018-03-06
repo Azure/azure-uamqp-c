@@ -144,10 +144,14 @@ extern int connection_get_idle_timeout(CONNECTION_HANDLE connection, millisecond
 extern int connection_set_properties(CONNECTION_HANDLE connection, fields properties);
 ```
 
-**SRS_CONNECTION_01_247: [**connection_set_properties shall set the properties associated with a connection.**]** 
-**SRS_CONNECTION_01_248: [**On success connection_set_properties shall return 0.**]** 
-**SRS_CONNECTION_01_245: [**If connection is NULL, connection_set_properties shall fail and return a non-zero value.**]** 
-**SRS_CONNECTION_01_246: [**If connection_set_properties is called after the initial Open frame has been sent, it shall fail and return a non-zero value.**]** 
+**SRS_CONNECTION_01_261: [**If connection is NULL, connection_set_properties shall fail and return a non-zero value.**]**
+**SRS_CONNECTION_01_262: [**If connection_set_properties is called after the initial Open frame has been sent, it shall fail and return a non-zero value.**]**
+**SRS_CONNECTION_01_263: [**If `properties` is NULL, the previously stored properties associated with `connection` shall be freed.**]**
+**SRS_CONNECTION_01_264: [**On success it shall return 0.**]**
+**SRS_CONNECTION_01_265: [**`connection_set_properties` shall copy the contents of `properties` as the properties contents for the connection instance identified by `connection`.**]**
+**SRS_CONNECTION_01_266: [**Cloning the properties shall be done by calling `fields_clone`.**]**
+**SRS_CONNECTION_01_267: [**If `fields_clone` fails, `connection_set_properties` shall fail and return a non-zero value.**]**
+**SRS_CONNECTION_01_268: [**If setting the properties fails, the previous value shall be preserved.**]**
 
 ###connection_get_properties
 
@@ -155,9 +159,12 @@ extern int connection_set_properties(CONNECTION_HANDLE connection, fields proper
 extern int connection_get_properties(CONNECTION_HANDLE connection, fields* properties);
 ```
 
-**SRS_CONNECTION_01_250: [**connection_get_properties shall return in the properties argument the current properties setting.**]** 
-**SRS_CONNECTION_01_251: [**On success, connection_get_properties shall return 0.**]** 
-**SRS_CONNECTION_01_249: [**If connection or properties is NULL, connection_get_properties shall fail and return a non-zero value.**]** 
+**SRS_CONNECTION_01_269: [**If connection or properties is NULL, connection_get_properties shall fail and return a non-zero value.**]**
+**SRS_CONNECTION_01_270: [**If no properties have been set, `connection_get_properties` shall set `properties` to NULL.**]**
+**SRS_CONNECTION_01_271: [**On success, connection_get_properties shall return 0.**]**
+**SRS_CONNECTION_01_272: [**connection_get_properties shall return in the properties argument the current properties setting.**]**
+**SRS_CONNECTION_01_273: [**Cloning the properties shall be done by calling `fields_clone`.**]**
+**SRS_CONNECTION_01_274: [**If `fields_clone` fails, `connection_get_properties` shall fail and return a non-zero value.**]**
 
 ###connection_get_remote_max_frame_size
 

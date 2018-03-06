@@ -1569,7 +1569,7 @@ int connection_set_properties(CONNECTION_HANDLE connection, fields properties)
 {
     int result;
 
-    /* Codes_SRS_CONNECTION_01_245: [If connection is NULL, connection_set_properties shall fail and return a non-zero value.] */
+    /* Codes_SRS_CONNECTION_01_261: [If connection is NULL, connection_set_properties shall fail and return a non-zero value.] */
     if (connection == NULL)
     {
         LogError("NULL connection");
@@ -1577,7 +1577,7 @@ int connection_set_properties(CONNECTION_HANDLE connection, fields properties)
     }
     else
     {
-        /* Codes_SRS_CONNECTION_01_246: [If connection_set_properties is called after the initial Open frame has been sent, it shall fail and return a non-zero value.] */
+        /* Codes_SRS_CONNECTION_01_262: [If connection_set_properties is called after the initial Open frame has been sent, it shall fail and return a non-zero value.] */
         if (connection->connection_state != CONNECTION_STATE_START)
         {
             LogError("Connection already open");
@@ -1585,11 +1585,46 @@ int connection_set_properties(CONNECTION_HANDLE connection, fields properties)
         }
         else
         {
-            /* Codes_SRS_CONNECTION_01_247: [connection_set_properties shall set the properties associated with a connection.] */
-            connection->properties = amqpvalue_clone(properties);
+            if (properties == NULL)
+            {
+                /* Codes_SRS_CONNECTION_01_263: [ If `properties` is NULL, the previously stored properties associated with `connection` shall be freed. ]*/
+                if (connection->properties != NULL)
+                {
+                    fields_destroy(connection->properties);
+                    connection->properties = NULL;
+                }
 
-            /* Codes_SRS_CONNECTION_01_248: [On success connection_set_properties shall return 0.] */
-            result = 0;
+                /* Codes_SRS_CONNECTION_01_264: [ On success it shall return 0. ]*/
+                result = 0;
+            }
+            else
+            {
+                fields new_properties;
+
+                /* Codes_SRS_CONNECTION_01_265: [ `connection_set_properties` shall copy the contents of `properties` as the properties contents for the connection instance identified by `connection`. ]*/
+                /* Codes_SRS_CONNECTION_01_266: [ Cloning the properties shall be done by calling `fields_clone`. ]*/
+                new_properties = fields_clone(properties);
+                if (new_properties == NULL)
+                {
+                    /* Codes_SRS_CONNECTION_01_267: [ If `fields_clone` fails, `connection_set_properties` shall fail and return a non-zero value. ]*/
+                    LogError("Cannot clone connection properties");
+                    result = __FAILURE__;
+                }
+                else
+                {
+                    /* Codes_SRS_CONNECTION_01_268: [ If setting the properties fails, the previous value shall be preserved. ]*/
+                    /* Only do the free of the previous value if we could clone the new one*/
+                    if (connection->properties != NULL)
+                    {
+                        fields_destroy(connection->properties);
+                    }
+
+                    connection->properties = new_properties;
+
+                    /* Codes_SRS_CONNECTION_01_264: [ On success it shall return 0. ]*/
+                    result = 0;
+                }
+            }
         }
     }
 
@@ -1600,7 +1635,7 @@ int connection_get_properties(CONNECTION_HANDLE connection, fields* properties)
 {
     int result;
 
-    /* Codes_SRS_CONNECTION_01_249: [If connection or properties is NULL, connection_get_properties shall fail and return a non-zero value.] */
+    /* Codes_SRS_CONNECTION_01_269: [If connection or properties is NULL, connection_get_properties shall fail and return a non-zero value.] */
     if ((connection == NULL) ||
         (properties == NULL))
     {
@@ -1610,11 +1645,31 @@ int connection_get_properties(CONNECTION_HANDLE connection, fields* properties)
     }
     else
     {
-        /* Codes_SRS_CONNECTION_01_250: [connection_get_properties shall return in the properties argument the current properties setting.] */
-        *properties = connection->properties;
+        if (connection->properties == NULL)
+        {
+            /* Codes_SRS_CONNECTION_01_270: [ If no properties have been set, `connection_get_properties` shall set `properties` to NULL. ]*/
+            *properties = NULL;
 
-        /* Codes_SRS_CONNECTION_01_251: [On success, connection_get_properties shall return 0.] */
-        result = 0;
+            /* Codes_SRS_CONNECTION_01_271: [On success, connection_get_properties shall return 0.] */
+            result = 0;
+        }
+        else
+        {
+            /* Codes_SRS_CONNECTION_01_272: [connection_get_properties shall return in the properties argument the current properties setting.] */
+            /* Codes_SRS_CONNECTION_01_273: [ Cloning the properties shall be done by calling `fields_clone`. ]*/
+            *properties = fields_clone(connection->properties);
+            if (*properties == NULL)
+            {
+                /* Codes_SRS_CONNECTION_01_274: [ If `fields_clone` fails, `connection_get_properties` shall fail and return a non-zero value. ]*/
+                LogError("Cannot clone properties");
+                result = __FAILURE__;
+            }
+            else
+            {
+                /* Codes_SRS_CONNECTION_01_271: [On success, connection_get_properties shall return 0.] */
+                result = 0;
+            }
+        }
     }
 
     return result;

@@ -38,10 +38,12 @@ connection is module that implements the connection layer in the AMQP ISO.
 	extern int connection_get_channel_max(CONNECTION_HANDLE connection, uint16_t* channel_max);
 	extern int connection_set_idle_timeout(CONNECTION_HANDLE connection, milliseconds idle_timeout);
 	extern int connection_get_idle_timeout(CONNECTION_HANDLE connection, milliseconds* idle_timeout);
+	extern int connection_set_properties(CONNECTION_HANDLE connection, fields properties);
+	extern int connection_get_properties(CONNECTION_HANDLE connection, fields* properties);
 	extern int connection_get_remote_max_frame_size(CONNECTION_HANDLE connection, uint32_t* remote_max_frame_size);
 	extern void connection_destroy(CONNECTION_HANDLE connection);
 	extern void connection_dowork(CONNECTION_HANDLE connection);
-        extern uint64_t connection_handle_deadlines(CONNECTION_HANDLE connection);
+	extern uint64_t connection_handle_deadlines(CONNECTION_HANDLE connection);
 
 	extern ENDPOINT_HANDLE connection_create_endpoint(CONNECTION_HANDLE connection, ON_ENDPOINT_FRAME_RECEIVED on_frame_received, ON_CONNECTION_STATE_CHANGED on_connection_state_changed, void* context);
 	extern void connection_destroy_endpoint(ENDPOINT_HANDLE endpoint);
@@ -135,6 +137,34 @@ extern int connection_get_idle_timeout(CONNECTION_HANDLE connection, millisecond
 **SRS_CONNECTION_01_188: [**connection_get_idle_timeout shall return in the idle_timeout argument the current idle_timeout setting.**]** 
 **SRS_CONNECTION_01_189: [**On success, connection_get_idle_timeout shall return 0.**]** 
 **SRS_CONNECTION_01_190: [**If connection or idle_timeout is NULL, connection_get_idle_timeout shall fail and return a non-zero value.**]** 
+
+###connection_set_properties
+
+```C
+extern int connection_set_properties(CONNECTION_HANDLE connection, fields properties);
+```
+
+**SRS_CONNECTION_01_261: [**If connection is NULL, connection_set_properties shall fail and return a non-zero value.**]**
+**SRS_CONNECTION_01_262: [**If connection_set_properties is called after the initial Open frame has been sent, it shall fail and return a non-zero value.**]**
+**SRS_CONNECTION_01_263: [**If `properties` is NULL, the previously stored properties associated with `connection` shall be freed.**]**
+**SRS_CONNECTION_01_264: [**On success it shall return 0.**]**
+**SRS_CONNECTION_01_265: [**`connection_set_properties` shall copy the contents of `properties` as the properties contents for the connection instance identified by `connection`.**]**
+**SRS_CONNECTION_01_266: [**Cloning the properties shall be done by calling `fields_clone`.**]**
+**SRS_CONNECTION_01_267: [**If `fields_clone` fails, `connection_set_properties` shall fail and return a non-zero value.**]**
+**SRS_CONNECTION_01_268: [**If setting the properties fails, the previous value shall be preserved.**]**
+
+###connection_get_properties
+
+```C
+extern int connection_get_properties(CONNECTION_HANDLE connection, fields* properties);
+```
+
+**SRS_CONNECTION_01_269: [**If connection or properties is NULL, connection_get_properties shall fail and return a non-zero value.**]**
+**SRS_CONNECTION_01_270: [**If no properties have been set, `connection_get_properties` shall set `properties` to NULL.**]**
+**SRS_CONNECTION_01_271: [**On success, connection_get_properties shall return 0.**]**
+**SRS_CONNECTION_01_272: [**connection_get_properties shall return in the properties argument the current properties setting.**]**
+**SRS_CONNECTION_01_273: [**Cloning the properties shall be done by calling `fields_clone`.**]**
+**SRS_CONNECTION_01_274: [**If `fields_clone` fails, `connection_get_properties` shall fail and return a non-zero value.**]**
 
 ###connection_get_remote_max_frame_size
 
@@ -232,6 +262,8 @@ extern int connection_encode_frame(ENDPOINT_HANDLE endpoint, const AMQP_VALUE pe
 **SRS_CONNECTION_01_134: [**The container id field shall be filled with the container id specified in connection_create.**]** 
 **SRS_CONNECTION_01_135: [**If hostname has been specified by a call to connection_set_hostname, then that value shall be stamped in the open frame.**]** 
 **SRS_CONNECTION_01_136: [**If no hostname value has been specified, no value shall be stamped in the open frame (no call to open_set_hostname shall be made).**]** 
+**SRS_CONNECTION_01_243: [**If no properties value has been specified, no value shall be stamped in the open frame (no call to open_set_properties shall be made).**]** 
+**SRS_CONNECTION_01_244: [**If properties has been specified by a call to connection_set_properties, then that value shall be stamped in the open frame.**]** 
 **SRS_CONNECTION_01_137: [**If max_frame_size has been specified by a call to connection_set_max_frame, then that value shall be stamped in the open frame.**]** 
 **SRS_CONNECTION_01_139: [**If channel_max has been specified by a call to connection_set_channel_max, then that value shall be stamped in the open frame.**]** 
 **SRS_CONNECTION_01_141: [**If idle_timeout has been specified by a call to connection_set_idle_timeout, then that value shall be stamped in the open frame.**]** 

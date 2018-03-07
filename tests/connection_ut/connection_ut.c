@@ -68,6 +68,8 @@ static void my_gballoc_free(void* ptr)
 #define TEST_CLOSE_PERFORMATIVE                (AMQP_VALUE)0x4302
 #define TEST_CLOSE_DESCRIPTOR_AMQP_VALUE    (AMQP_VALUE)0x4303
 #define TEST_TRANSFER_PERFORMATIVE            (AMQP_VALUE)0x4304
+#define TEST_PROPERTIES                   (fields)0x4255
+#define TEST_CLONED_PROPERTIES            (fields)0x4256
 
 #define TEST_CONTEXT                    (void*)(0x4242)
 
@@ -258,6 +260,8 @@ TEST_SUITE_INITIALIZE(suite_init)
     REGISTER_GLOBAL_MOCK_HOOK(singlylinkedlist_item_get_value, my_singlylinkedlist_item_get_value);
     REGISTER_GLOBAL_MOCK_RETURN(tickcounter_create, test_tick_counter);
     REGISTER_GLOBAL_MOCK_RETURN(tickcounter_get_current_ms, 0);
+    REGISTER_GLOBAL_MOCK_RETURN(fields_clone, TEST_CLONED_PROPERTIES);
+    REGISTER_GLOBAL_MOCK_RETURN(amqpvalue_clone, TEST_CLONED_PROPERTIES);
 
     REGISTER_UMOCK_ALIAS_TYPE(CONNECTION_HANDLE, void*);
     REGISTER_UMOCK_ALIAS_TYPE(ON_FRAME_CODEC_ERROR, void*);
@@ -267,6 +271,8 @@ TEST_SUITE_INITIALIZE(suite_init)
     REGISTER_UMOCK_ALIAS_TYPE(AMQP_FRAME_CODEC_ERROR_CALLBACK, void*);
     REGISTER_UMOCK_ALIAS_TYPE(TICK_COUNTER_HANDLE, void*);
     REGISTER_UMOCK_ALIAS_TYPE(AMQP_FRAME_CODEC_HANDLE, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(AMQP_VALUE, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(XIO_HANDLE, void*);
 }
 
 TEST_SUITE_CLEANUP(suite_cleanup)
@@ -3339,6 +3345,122 @@ TEST_FUNCTION(when_state_changes_to_CLOSE_RCVD_and_END_SENT_all_endpoints_are_no
     connection_destroy(connection);
 }
 #endif
+
+/* connection_set_properties */
+
+/* Tests_SRS_CONNECTION_01_265: [If connection is NULL, connection_set_properties shall fail and return a non-zero value.] */
+TEST_FUNCTION(connection_set_properties_with_NULL_connection_fails)
+{
+    // arrange
+
+    // act
+    int result = connection_set_properties(NULL, TEST_PROPERTIES);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+}
+
+/* Tests_SRS_CONNECTION_01_266: [connection_set_properties shall set the properties associated with a connection.] */
+/* Tests_SRS_CONNECTION_01_267: [On success connection_set_properties shall return 0.] */
+TEST_FUNCTION(connection_set_properties_with_valid_connection_succeeds)
+{
+    // arrange
+    CONNECTION_HANDLE connection = connection_create(TEST_IO_HANDLE, "testhost", test_container_id, NULL, NULL);
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(fields_clone(TEST_PROPERTIES))
+        .SetReturn(TEST_CLONED_PROPERTIES);
+    // act
+    int result = connection_set_properties(connection, TEST_PROPERTIES);
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    connection_destroy(connection);
+}
+
+/* connection_get_properties */
+
+/* Tests_SRS_CONNECTION_01_261: [If connection or properties is NULL, connection_properties_timeout shall fail and return a non-zero value.]  */
+TEST_FUNCTION(connection_get_properties_with_NULL_connection_fails)
+{
+    // arrange
+    fields properties;
+
+    // act
+    int result = connection_get_properties(NULL, &properties);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+}
+
+/* Tests_SRS_CONNECTION_01_261: [If connection or properties is NULL, connection_get_properties shall fail and return a non-zero value.]  */
+TEST_FUNCTION(connection_get_properties_with_NULL_properties_argument_fails)
+{
+    // arrange
+    CONNECTION_HANDLE connection = connection_create(TEST_IO_HANDLE, "testhost", test_container_id, NULL, NULL);
+    umock_c_reset_all_calls();
+
+    // act
+    int result = connection_get_properties(connection, NULL);
+
+    // assert
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    connection_destroy(connection);
+}
+
+/* Tests_SRS_CONNECTION_01_262: [connection_get_properties shall return in the properties argument the current properties setting.] */
+/* Tests_SRS_CONNECTION_01_263: [On success, connection_get_properties shall return 0.] */
+TEST_FUNCTION(connection_get_properties_with_valid_argument_succeeds)
+{
+    // arrange
+    CONNECTION_HANDLE connection = connection_create(TEST_IO_HANDLE, "testhost", test_container_id, NULL, NULL);
+    (void)connection_set_properties(connection, TEST_PROPERTIES);
+    umock_c_reset_all_calls();
+    fields properties;
+
+    STRICT_EXPECTED_CALL(fields_clone(TEST_CLONED_PROPERTIES))
+        .SetReturn(TEST_CLONED_PROPERTIES);
+    // act
+    int result = connection_get_properties(connection, &properties);
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(void_ptr, TEST_CLONED_PROPERTIES, properties);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    connection_destroy(connection);
+}
+
+/* Tests_SRS_CONNECTION_01_262: [connection_get_properties shall return in the properties argument the current properties setting.] */
+/* Tests_SRS_CONNECTION_01_263: [On success, connection_get_properties shall return 0.] */
+/* Tests_SRS_CONNECTION_01_264: [A value will be NULL if unset.] */
+TEST_FUNCTION(connection_get_properties_default_value_succeeds)
+{
+    // arrange
+    CONNECTION_HANDLE connection = connection_create(TEST_IO_HANDLE, "testhost", test_container_id, NULL, NULL);
+    umock_c_reset_all_calls();
+    fields properties;
+
+    // act
+    int result = connection_get_properties(connection, &properties);
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(void_ptr, NULL, properties);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    connection_destroy(connection);
+}
 
 static void TEST_on_connection_state_changed(void* context, CONNECTION_STATE new_connection_state, CONNECTION_STATE previous_connection_state)
 {

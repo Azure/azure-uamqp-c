@@ -226,9 +226,11 @@ XX**SRS_AMQP_MANAGEMENT_01_100: [** After setting the properties, the properties
 
 XX**SRS_AMQP_MANAGEMENT_01_098: [** If any API fails while setting the message Id, `amqp_management_execute_operation_async` shall fail and return a non-zero value. **]**
 
-XX**SRS_AMQP_MANAGEMENT_01_088: [** `amqp_management_execute_operation_async` shall send the message by calling `messagesender_send`. **]**
+XX**SRS_AMQP_MANAGEMENT_01_088: [** `amqp_management_execute_operation_async` shall send the message by calling `messagesender_send_async`. **]**
 
-XX**SRS_AMQP_MANAGEMENT_01_089: [** If `messagesender_send` fails, `amqp_management_execute_operation_async` shall fail and return a non-zero value. **]**
+XX**SRS_AMQP_MANAGEMENT_01_166: [** The `on_message_send_complete` callback shall be passed to the `messagesender_send_async` call. **]**
+
+XX**SRS_AMQP_MANAGEMENT_01_089: [** If `messagesender_send_async` fails, `amqp_management_execute_operation_async` shall fail and return a non-zero value. **]**
 
 XX**SRS_AMQP_MANAGEMENT_01_091: [** Once the request message has been sent, an entry shall be stored in the pending operations list by calling `singlylinkedlist_add`. **]**
 
@@ -303,6 +305,28 @@ XX**SRS_AMQP_MANAGEMENT_01_131: [** All temporary values like AMQP values used a
 XX**SRS_AMQP_MANAGEMENT_01_135: [** When an error occurs in creating AMQP values (for status code, etc.) `on_message_received` shall call `messaging_delivery_released` and return the created delivery AMQP value. **]**
 
 XX**SRS_AMQP_MANAGEMENT_01_136: [** When `on_message_received` fails due to errors in parsing the response message `on_message_received` shall call `messaging_delivery_rejected` and return the created delivery AMQP value. **]**
+
+### on_message_send_complete
+
+```c
+void on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_result)
+```
+
+XX**SRS_AMQP_MANAGEMENT_01_167: [** When `on_message_send_complete` is called with a NULL context it shall return. **]**
+
+XX**SRS_AMQP_MANAGEMENT_01_170: [** If `send_result` is `MESSAGE_SEND_OK`, `on_message_send_complete` shall return. **]**
+
+XX**SRS_AMQP_MANAGEMENT_01_172: [** If `send_result` is different then `MESSAGE_SEND_OK`: **]**
+
+XX**SRS_AMQP_MANAGEMENT_01_168: [** - `context` shall be used as a LIST_ITEM_HANDLE containing the pending operation. **]**
+
+XX**SRS_AMQP_MANAGEMENT_01_169: [** - `on_message_send_complete` shall obtain the pending operation by calling `singlylinkedlist_item_get_value`. **]**
+
+XX**SRS_AMQP_MANAGEMENT_01_171: [** - `on_message_send_complete` shall removed the pending operation from the pending operations list. **]**
+
+XX**SRS_AMQP_MANAGEMENT_01_173: [** - The callback associated with the pending operation shall be called with `AMQP_MANAGEMENT_EXECUTE_OPERATION_ERROR`. **]**
+
+XX**SRS_AMQP_MANAGEMENT_01_174: [** If any error occurs in removing the pending operation from the list `on_amqp_management_error` callback shall be invoked while passing the `on_amqp_management_error_context` as argument. **]**
 
 ### on_message_sender_state_changed
 

@@ -69,6 +69,7 @@ static void my_gballoc_free(void* ptr)
 #define TEST_CLOSE_DESCRIPTOR_AMQP_VALUE    (AMQP_VALUE)0x4303
 #define TEST_TRANSFER_PERFORMATIVE            (AMQP_VALUE)0x4304
 #define TEST_PROPERTIES                   (fields)0x4255
+#define TEST_CLONED_PROPERTIES            (fields)0x4256
 
 #define TEST_CONTEXT                    (void*)(0x4242)
 
@@ -259,6 +260,8 @@ TEST_SUITE_INITIALIZE(suite_init)
     REGISTER_GLOBAL_MOCK_HOOK(singlylinkedlist_item_get_value, my_singlylinkedlist_item_get_value);
     REGISTER_GLOBAL_MOCK_RETURN(tickcounter_create, test_tick_counter);
     REGISTER_GLOBAL_MOCK_RETURN(tickcounter_get_current_ms, 0);
+    REGISTER_GLOBAL_MOCK_RETURN(fields_clone, TEST_CLONED_PROPERTIES);
+    REGISTER_GLOBAL_MOCK_RETURN(amqpvalue_clone, TEST_CLONED_PROPERTIES);
 
     REGISTER_UMOCK_ALIAS_TYPE(CONNECTION_HANDLE, void*);
     REGISTER_UMOCK_ALIAS_TYPE(ON_FRAME_CODEC_ERROR, void*);
@@ -3366,33 +3369,13 @@ TEST_FUNCTION(connection_set_properties_with_valid_connection_succeeds)
     CONNECTION_HANDLE connection = connection_create(TEST_IO_HANDLE, "testhost", test_container_id, NULL, NULL);
     umock_c_reset_all_calls();
 
+    STRICT_EXPECTED_CALL(fields_clone(TEST_PROPERTIES))
+        .SetReturn(TEST_CLONED_PROPERTIES);
     // act
     int result = connection_set_properties(connection, TEST_PROPERTIES);
 
     // assert
     ASSERT_ARE_EQUAL(int, 0, result);
-    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-
-    // cleanup
-    connection_destroy(connection);
-}
-
-/* Tests_SRS_CONNECTION_01_268: [If connection_set_properties is called after the initial Open frame has been sent, it shall fail and return a non-zero value.] */
-TEST_FUNCTION(connection_set_properties_after_open_is_sent_fails)
-{
-    // arrange
-    CONNECTION_HANDLE connection = connection_create(TEST_IO_HANDLE, "testhost", test_container_id, NULL, NULL);
-    connection_dowork(connection);
-    //saved_io_state_changed(saved_on_io_open_complete_context, 3, 0);  // 3=IO_STATE_OPEN, 0=IO_STATE_NOT_OPEN
-    const unsigned char amqp_header[] = { 'A', 'M', 'Q', 'P', 0, 1, 0, 0 };
-    saved_on_bytes_received(saved_on_bytes_received_context, amqp_header, sizeof(amqp_header));
-    umock_c_reset_all_calls();
-
-    // act
-    int result = connection_set_properties(connection, TEST_PROPERTIES);
-
-    // assert
-    ASSERT_ARE_NOT_EQUAL(int, 0, result);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
     // cleanup
@@ -3443,12 +3426,14 @@ TEST_FUNCTION(connection_get_properties_with_valid_argument_succeeds)
     umock_c_reset_all_calls();
     fields properties;
 
+    STRICT_EXPECTED_CALL(fields_clone(TEST_CLONED_PROPERTIES))
+        .SetReturn(TEST_CLONED_PROPERTIES);
     // act
     int result = connection_get_properties(connection, &properties);
 
     // assert
     ASSERT_ARE_EQUAL(int, 0, result);
-    ASSERT_ARE_EQUAL(void_ptr, TEST_PROPERTIES, properties);
+    ASSERT_ARE_EQUAL(void_ptr, TEST_CLONED_PROPERTIES, properties);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
     // cleanup

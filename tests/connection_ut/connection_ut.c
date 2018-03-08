@@ -3367,12 +3367,13 @@ TEST_FUNCTION(connection_set_properties_with_valid_connection_succeeds)
 {
     // arrange
     CONNECTION_HANDLE connection = connection_create(TEST_IO_HANDLE, "testhost", test_container_id, NULL, NULL);
+    int result;
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(fields_clone(TEST_PROPERTIES))
         .SetReturn(TEST_CLONED_PROPERTIES);
     // act
-    int result = connection_set_properties(connection, TEST_PROPERTIES);
+    result = connection_set_properties(connection, TEST_PROPERTIES);
 
     // assert
     ASSERT_ARE_EQUAL(int, 0, result);
@@ -3403,10 +3404,11 @@ TEST_FUNCTION(connection_get_properties_with_NULL_properties_argument_fails)
 {
     // arrange
     CONNECTION_HANDLE connection = connection_create(TEST_IO_HANDLE, "testhost", test_container_id, NULL, NULL);
+    int result;
     umock_c_reset_all_calls();
 
     // act
-    int result = connection_get_properties(connection, NULL);
+    result = connection_get_properties(connection, NULL);
 
     // assert
     ASSERT_ARE_NOT_EQUAL(int, 0, result);
@@ -3422,14 +3424,15 @@ TEST_FUNCTION(connection_get_properties_with_valid_argument_succeeds)
 {
     // arrange
     CONNECTION_HANDLE connection = connection_create(TEST_IO_HANDLE, "testhost", test_container_id, NULL, NULL);
+    fields properties;
+    int result;
     (void)connection_set_properties(connection, TEST_PROPERTIES);
     umock_c_reset_all_calls();
-    fields properties;
 
     STRICT_EXPECTED_CALL(fields_clone(TEST_CLONED_PROPERTIES))
         .SetReturn(TEST_CLONED_PROPERTIES);
     // act
-    int result = connection_get_properties(connection, &properties);
+    result = connection_get_properties(connection, &properties);
 
     // assert
     ASSERT_ARE_EQUAL(int, 0, result);
@@ -3447,11 +3450,12 @@ TEST_FUNCTION(connection_get_properties_default_value_succeeds)
 {
     // arrange
     CONNECTION_HANDLE connection = connection_create(TEST_IO_HANDLE, "testhost", test_container_id, NULL, NULL);
-    umock_c_reset_all_calls();
     fields properties;
+    int result;
+    umock_c_reset_all_calls();
 
     // act
-    int result = connection_get_properties(connection, &properties);
+    result = connection_get_properties(connection, &properties);
 
     // assert
     ASSERT_ARE_EQUAL(int, 0, result);

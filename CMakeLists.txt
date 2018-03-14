@@ -149,6 +149,7 @@ add_library(uamqp
     ${uamqp_h_files}
     ${socketlistener_c_files}
     )
+setTargetBuildProperties(uamqp)
 
 target_link_libraries(uamqp aziotsharedutil)
 

@@ -212,6 +212,8 @@ static ON_MESSAGE_RECEIVED saved_on_message_received;
 static void* saved_on_message_received_context;
 static ON_MESSAGE_SEND_COMPLETE saved_on_message_send_complete;
 static void* saved_on_message_send_complete_context;
+static MESSAGE_SENDER_STATE messagesender_close_on_message_sender_state_changed_new_state;
+static MESSAGE_SENDER_STATE messagesender_close_on_message_sender_state_changed_previous_state;
 
 static MESSAGE_SENDER_HANDLE my_messagesender_create(LINK_HANDLE link, ON_MESSAGE_SENDER_STATE_CHANGED on_message_sender_state_changed, void* context)
 {
@@ -234,6 +236,21 @@ static int my_messagereceiver_open(MESSAGE_RECEIVER_HANDLE message_receiver, ON_
     (void)message_receiver;
     saved_on_message_received = on_message_received;
     saved_on_message_received_context = callback_context;
+    return 0;
+}
+
+static int my_messagesender_close(MESSAGE_SENDER_HANDLE message_sender)
+{
+    (void)message_sender;
+
+    if (saved_on_message_sender_state_changed != NULL)
+    {
+        saved_on_message_sender_state_changed(
+            saved_on_message_sender_state_changed_context, 
+            messagesender_close_on_message_sender_state_changed_new_state, 
+            messagesender_close_on_message_sender_state_changed_previous_state);
+    }
+
     return 0;
 }
 
@@ -291,6 +308,7 @@ TEST_SUITE_INITIALIZE(suite_init)
     REGISTER_GLOBAL_MOCK_RETURN(messaging_create_source, test_source_amqp_value);
     REGISTER_GLOBAL_MOCK_RETURN(messaging_create_target, test_target_amqp_value);
     REGISTER_GLOBAL_MOCK_HOOK(messagesender_create, my_messagesender_create);
+    REGISTER_GLOBAL_MOCK_HOOK(messagesender_close, my_messagesender_close);
     REGISTER_GLOBAL_MOCK_HOOK(messagereceiver_create, my_messagereceiver_create);
     REGISTER_GLOBAL_MOCK_HOOK(messagereceiver_open, my_messagereceiver_open);
     REGISTER_GLOBAL_MOCK_HOOK(messagesender_send_async, my_messagesender_send_async);
@@ -351,6 +369,8 @@ TEST_FUNCTION_INITIALIZE(test_init)
 
     umock_c_reset_all_calls();
     singlylinkedlist_remove_result = 0;
+    messagesender_close_on_message_sender_state_changed_previous_state = MESSAGE_SENDER_STATE_OPEN;
+    messagesender_close_on_message_sender_state_changed_new_state = MESSAGE_SENDER_STATE_CLOSING;
 }
 
 TEST_FUNCTION_CLEANUP(test_cleanup)
@@ -899,10 +919,10 @@ TEST_FUNCTION(amqp_management_close_when_opening_indicates_an_open_complete_with
     saved_on_message_sender_state_changed(saved_on_message_sender_state_changed_context, MESSAGE_SENDER_STATE_OPEN, MESSAGE_SENDER_STATE_OPENING);
     umock_c_reset_all_calls();
 
+    STRICT_EXPECTED_CALL(test_on_amqp_management_open_complete((void*)0x4242, AMQP_MANAGEMENT_OPEN_CANCELLED));
     STRICT_EXPECTED_CALL(messagesender_close(test_message_sender));
     STRICT_EXPECTED_CALL(messagereceiver_close(test_message_receiver));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinkedlist_handle));
-    STRICT_EXPECTED_CALL(test_on_amqp_management_open_complete((void*)0x4242, AMQP_MANAGEMENT_OPEN_CANCELLED));
 
     // act
     result = amqp_management_close(amqp_management);
@@ -3167,6 +3187,169 @@ TEST_FUNCTION(on_message_sender_state_changed_when_a_new_SENDER_CLOSING_state_is
     saved_on_message_sender_state_changed(saved_on_message_sender_state_changed_context, MESSAGE_SENDER_STATE_CLOSING, MESSAGE_SENDER_STATE_OPENING);
 
     // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqp_management_destroy(amqp_management);
+}
+
+// Tests_SRS_AMQP_MANAGEMENT_09_001: [ For the current state of AMQP management being `CLOSING`: ]
+// Tests_SRS_AMQP_MANAGEMENT_09_002: [ - If `new_state` is `MESSAGE_SENDER_STATE_OPEN`, `MESSAGE_SENDER_STATE_OPENING`, `MESSAGE_SENDER_STATE_ERROR` the `on_amqp_management_error` callback shall be invoked while passing the `on_amqp_management_error_context` as argument. ]
+TEST_FUNCTION(on_message_sender_state_changed_when_a_new_SENDER_OPEN_state_is_detected_while_in_CLOSING_indicates_an_error)
+{
+    // arrange
+    AMQP_MANAGEMENT_HANDLE amqp_management;
+    int result;
+
+    amqp_management = amqp_management_create(test_session_handle, "test_node");
+    (void)amqp_management_open_async(amqp_management, test_on_amqp_management_open_complete, (void*)0x4242, test_on_amqp_management_error, (void*)0x4243);
+    saved_on_message_sender_state_changed(saved_on_message_sender_state_changed_context, MESSAGE_SENDER_STATE_OPEN, MESSAGE_SENDER_STATE_OPENING);
+    saved_on_message_receiver_state_changed(saved_on_message_receiver_state_changed_context, MESSAGE_RECEIVER_STATE_OPEN, MESSAGE_RECEIVER_STATE_OPENING);
+    umock_c_reset_all_calls();
+
+    messagesender_close_on_message_sender_state_changed_previous_state = MESSAGE_SENDER_STATE_OPEN;
+    messagesender_close_on_message_sender_state_changed_new_state = MESSAGE_SENDER_STATE_OPENING;
+    
+    STRICT_EXPECTED_CALL(messagesender_close(test_message_sender));
+    STRICT_EXPECTED_CALL(test_on_amqp_management_error((void*)0x4243));
+    STRICT_EXPECTED_CALL(messagereceiver_close(test_message_receiver));
+    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinkedlist_handle));
+
+    // act
+    result = amqp_management_close(amqp_management);
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqp_management_destroy(amqp_management);
+}
+
+// Tests_SRS_AMQP_MANAGEMENT_09_001: [ For the current state of AMQP management being `CLOSING`: ]
+// Tests_SRS_AMQP_MANAGEMENT_09_002: [ - If `new_state` is `MESSAGE_SENDER_STATE_OPEN`, `MESSAGE_SENDER_STATE_OPENING`, `MESSAGE_SENDER_STATE_ERROR` the `on_amqp_management_error` callback shall be invoked while passing the `on_amqp_management_error_context` as argument. ]
+TEST_FUNCTION(on_message_sender_state_changed_when_a_new_SENDER_OPENING_state_is_detected_while_in_CLOSING_indicates_an_error)
+{
+    // arrange
+    AMQP_MANAGEMENT_HANDLE amqp_management;
+    int result;
+
+    amqp_management = amqp_management_create(test_session_handle, "test_node");
+    (void)amqp_management_open_async(amqp_management, test_on_amqp_management_open_complete, (void*)0x4242, test_on_amqp_management_error, (void*)0x4243);
+    saved_on_message_sender_state_changed(saved_on_message_sender_state_changed_context, MESSAGE_SENDER_STATE_OPEN, MESSAGE_SENDER_STATE_OPENING);
+    saved_on_message_receiver_state_changed(saved_on_message_receiver_state_changed_context, MESSAGE_RECEIVER_STATE_OPEN, MESSAGE_RECEIVER_STATE_OPENING);
+    umock_c_reset_all_calls();
+
+    messagesender_close_on_message_sender_state_changed_previous_state = MESSAGE_SENDER_STATE_OPENING;
+    messagesender_close_on_message_sender_state_changed_new_state = MESSAGE_SENDER_STATE_OPEN;
+
+    STRICT_EXPECTED_CALL(messagesender_close(test_message_sender));
+    STRICT_EXPECTED_CALL(test_on_amqp_management_error((void*)0x4243));
+    STRICT_EXPECTED_CALL(messagereceiver_close(test_message_receiver));
+    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinkedlist_handle));
+
+    // act
+    result = amqp_management_close(amqp_management);
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqp_management_destroy(amqp_management);
+}
+
+// Tests_SRS_AMQP_MANAGEMENT_09_001: [ For the current state of AMQP management being `CLOSING`: ]
+// Tests_SRS_AMQP_MANAGEMENT_09_002: [ - If `new_state` is `MESSAGE_SENDER_STATE_OPEN`, `MESSAGE_SENDER_STATE_OPENING`, `MESSAGE_SENDER_STATE_ERROR` the `on_amqp_management_error` callback shall be invoked while passing the `on_amqp_management_error_context` as argument. ]
+TEST_FUNCTION(on_message_sender_state_changed_when_a_new_SENDER_ERROR_state_is_detected_while_in_CLOSING_indicates_an_error)
+{
+    // arrange
+    AMQP_MANAGEMENT_HANDLE amqp_management;
+    int result;
+
+    amqp_management = amqp_management_create(test_session_handle, "test_node");
+    (void)amqp_management_open_async(amqp_management, test_on_amqp_management_open_complete, (void*)0x4242, test_on_amqp_management_error, (void*)0x4243);
+    saved_on_message_sender_state_changed(saved_on_message_sender_state_changed_context, MESSAGE_SENDER_STATE_OPEN, MESSAGE_SENDER_STATE_OPENING);
+    saved_on_message_receiver_state_changed(saved_on_message_receiver_state_changed_context, MESSAGE_RECEIVER_STATE_OPEN, MESSAGE_RECEIVER_STATE_OPENING);
+    umock_c_reset_all_calls();
+
+    messagesender_close_on_message_sender_state_changed_previous_state = MESSAGE_SENDER_STATE_OPEN;
+    messagesender_close_on_message_sender_state_changed_new_state = MESSAGE_SENDER_STATE_ERROR;
+
+    STRICT_EXPECTED_CALL(messagesender_close(test_message_sender));
+    STRICT_EXPECTED_CALL(test_on_amqp_management_error((void*)0x4243));
+    STRICT_EXPECTED_CALL(messagereceiver_close(test_message_receiver));
+    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinkedlist_handle));
+
+    // act
+    result = amqp_management_close(amqp_management);
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqp_management_destroy(amqp_management);
+}
+
+// Tests_SRS_AMQP_MANAGEMENT_09_001: [ For the current state of AMQP management being `CLOSING`: ]
+// Tests_SRS_AMQP_MANAGEMENT_09_003: [ - If `new_state` is `MESSAGE_SENDER_STATE_CLOSING` or `MESSAGE_SENDER_STATE_IDLE`, `on_message_sender_state_changed` shall do nothing. ]
+TEST_FUNCTION(on_message_sender_state_changed_when_a_new_SENDER_CLOSING_state_is_detected_while_in_CLOSING_does_not_raise_on_amqp_management_error)
+{
+    // arrange
+    AMQP_MANAGEMENT_HANDLE amqp_management;
+    int result;
+
+    amqp_management = amqp_management_create(test_session_handle, "test_node");
+    (void)amqp_management_open_async(amqp_management, test_on_amqp_management_open_complete, (void*)0x4242, test_on_amqp_management_error, (void*)0x4243);
+    saved_on_message_sender_state_changed(saved_on_message_sender_state_changed_context, MESSAGE_SENDER_STATE_OPEN, MESSAGE_SENDER_STATE_OPENING);
+    saved_on_message_receiver_state_changed(saved_on_message_receiver_state_changed_context, MESSAGE_RECEIVER_STATE_OPEN, MESSAGE_RECEIVER_STATE_OPENING);
+    umock_c_reset_all_calls();
+
+    messagesender_close_on_message_sender_state_changed_previous_state = MESSAGE_SENDER_STATE_OPEN;
+    messagesender_close_on_message_sender_state_changed_new_state = MESSAGE_SENDER_STATE_CLOSING;
+
+    STRICT_EXPECTED_CALL(messagesender_close(test_message_sender));
+    STRICT_EXPECTED_CALL(messagereceiver_close(test_message_receiver));
+    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinkedlist_handle));
+
+    // act
+    result = amqp_management_close(amqp_management);
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqp_management_destroy(amqp_management);
+}
+
+// Tests_SRS_AMQP_MANAGEMENT_09_001: [ For the current state of AMQP management being `CLOSING`: ]
+// Tests_SRS_AMQP_MANAGEMENT_09_003: [ - If `new_state` is `MESSAGE_SENDER_STATE_CLOSING` or `MESSAGE_SENDER_STATE_IDLE`, `on_message_sender_state_changed` shall do nothing. ]
+TEST_FUNCTION(on_message_sender_state_changed_when_a_new_SENDER_IDLE_state_is_detected_while_in_CLOSING_does_not_raise_on_amqp_management_error)
+{
+    // arrange
+    AMQP_MANAGEMENT_HANDLE amqp_management;
+    int result;
+
+    amqp_management = amqp_management_create(test_session_handle, "test_node");
+    (void)amqp_management_open_async(amqp_management, test_on_amqp_management_open_complete, (void*)0x4242, test_on_amqp_management_error, (void*)0x4243);
+    saved_on_message_sender_state_changed(saved_on_message_sender_state_changed_context, MESSAGE_SENDER_STATE_OPEN, MESSAGE_SENDER_STATE_OPENING);
+    saved_on_message_receiver_state_changed(saved_on_message_receiver_state_changed_context, MESSAGE_RECEIVER_STATE_OPEN, MESSAGE_RECEIVER_STATE_OPENING);
+    umock_c_reset_all_calls();
+
+    messagesender_close_on_message_sender_state_changed_previous_state = MESSAGE_SENDER_STATE_OPEN;
+    messagesender_close_on_message_sender_state_changed_new_state = MESSAGE_SENDER_STATE_IDLE;
+
+    STRICT_EXPECTED_CALL(messagesender_close(test_message_sender));
+    STRICT_EXPECTED_CALL(messagereceiver_close(test_message_receiver));
+    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinkedlist_handle));
+
+    // act
+    result = amqp_management_close(amqp_management);
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
     // cleanup

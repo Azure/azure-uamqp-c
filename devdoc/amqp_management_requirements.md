@@ -354,6 +354,12 @@ XX**SRS_AMQP_MANAGEMENT_01_143: [** - If `new_state` is `MESSAGE_SENDER_STATE_ID
 
 XX**SRS_AMQP_MANAGEMENT_01_145: [** - If `new_state` is `MESSAGE_SENDER_STATE_OPEN`, `on_message_sender_state_changed` shall do nothing. **]**
 
+XX**SRS_AMQP_MANAGEMENT_09_001: [** For the current state of AMQP management being `CLOSING`: **]**
+
+XX**SRS_AMQP_MANAGEMENT_09_002: [** - If `new_state` is `MESSAGE_SENDER_STATE_OPEN`, `MESSAGE_SENDER_STATE_OPENING`, `MESSAGE_SENDER_STATE_ERROR` the `on_amqp_management_error` callback shall be invoked while passing the `on_amqp_management_error_context` as argument. **]**
+
+XX**SRS_AMQP_MANAGEMENT_09_003: [** - If `new_state` is `MESSAGE_SENDER_STATE_CLOSING` or `MESSAGE_SENDER_STATE_IDLE`, `on_message_sender_state_changed` shall do nothing. **]**
+
 XX**SRS_AMQP_MANAGEMENT_01_146: [** For the current state of AMQP management being `ERROR`: **]**
 
 XX**SRS_AMQP_MANAGEMENT_01_147: [** - All state transitions shall be ignored. **]**

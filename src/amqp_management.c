@@ -34,6 +34,7 @@ typedef enum AMQP_MANAGEMENT_STATE_TAG
 {
     AMQP_MANAGEMENT_STATE_IDLE,
     AMQP_MANAGEMENT_STATE_OPENING,
+    AMQP_MANAGEMENT_STATE_CLOSING,
     AMQP_MANAGEMENT_STATE_OPEN,
     AMQP_MANAGEMENT_STATE_ERROR
 } AMQP_MANAGEMENT_STATE;
@@ -437,6 +438,26 @@ static void on_message_sender_state_changed(void* context, MESSAGE_SENDER_STATE 
 
                 case MESSAGE_SENDER_STATE_OPEN:
                     /* Codes_SRS_AMQP_MANAGEMENT_01_145: [ - If `new_state` is `MESSAGE_SENDER_STATE_OPEN`, `on_message_sender_state_changed` shall do nothing. ]*/
+                    break;
+                }
+                break;
+            }
+            /* Codes_SRS_AMQP_MANAGEMENT_09_001: [ For the current state of AMQP management being `CLOSING`: ]*/
+            case AMQP_MANAGEMENT_STATE_CLOSING:
+            {
+                switch (new_state)
+                {
+                default:
+                    /* Codes_SRS_AMQP_MANAGEMENT_09_002: [ - If `new_state` is `MESSAGE_SENDER_STATE_OPEN`, `MESSAGE_SENDER_STATE_OPENING`, `MESSAGE_SENDER_STATE_ERROR` the `on_amqp_management_error` callback shall be invoked while passing the `on_amqp_management_error_context` as argument. ]*/
+                case MESSAGE_SENDER_STATE_OPEN:
+                case MESSAGE_SENDER_STATE_OPENING:
+                case MESSAGE_SENDER_STATE_ERROR:
+                    amqp_management_instance->amqp_management_state = AMQP_MANAGEMENT_STATE_ERROR;
+                    amqp_management_instance->on_amqp_management_error(amqp_management_instance->on_amqp_management_error_context);
+                    break;
+                case MESSAGE_SENDER_STATE_IDLE:
+                case MESSAGE_SENDER_STATE_CLOSING:
+                    /* Codes_SRS_AMQP_MANAGEMENT_09_003: [ - If `new_state` is `MESSAGE_SENDER_STATE_CLOSING` or `MESSAGE_SENDER_STATE_IDLE`, `on_message_sender_state_changed` shall do nothing. ]*/
                     break;
                 }
                 break;
@@ -999,6 +1020,14 @@ int amqp_management_close(AMQP_MANAGEMENT_HANDLE amqp_management)
     }
     else
     {
+        if (amqp_management->amqp_management_state == AMQP_MANAGEMENT_STATE_OPENING)
+        {
+            /* Codes_SRS_AMQP_MANAGEMENT_01_048: [ `amqp_management_close` on an AMQP management instance that is OPENING shall trigger the `on_amqp_management_open_complete` callback with `AMQP_MANAGEMENT_OPEN_CANCELLED`, while also passing the context passed in `amqp_management_open_async`. ]*/
+            amqp_management->on_amqp_management_open_complete(amqp_management->on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_CANCELLED);
+        }
+
+        amqp_management->amqp_management_state = AMQP_MANAGEMENT_STATE_CLOSING;
+
         /* Codes_SRS_AMQP_MANAGEMENT_01_045: [ `amqp_management_close` shall close the AMQP management instance. ]*/
         /* Codes_SRS_AMQP_MANAGEMENT_01_050: [ `amqp_management_close` shall close the message sender by calling `messagesender_close`. ]*/
         if (messagesender_close(amqp_management->message_sender) != 0)
@@ -1037,12 +1066,6 @@ int amqp_management_close(AMQP_MANAGEMENT_HANDLE amqp_management)
                 }
 
                 list_item_handle = singlylinkedlist_get_head_item(amqp_management->pending_operations);
-            }
-
-            if (amqp_management->amqp_management_state == AMQP_MANAGEMENT_STATE_OPENING)
-            {
-                /* Codes_SRS_AMQP_MANAGEMENT_01_048: [ `amqp_management_close` on an AMQP management instance that is OPENING shall trigger the `on_amqp_management_open_complete` callback with `AMQP_MANAGEMENT_OPEN_CANCELLED`, while also passing the context passed in `amqp_management_open_async`. ]*/
-                amqp_management->on_amqp_management_open_complete(amqp_management->on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_CANCELLED);
             }
 
             amqp_management->amqp_management_state = AMQP_MANAGEMENT_STATE_IDLE;

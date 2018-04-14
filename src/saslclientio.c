@@ -33,6 +33,12 @@ typedef enum IO_STATE_TAG
     SASL_HEADER_EXCHANGE_HEADER_RCVD, \
     SASL_HEADER_EXCHANGE_HEADER_EXCH
 
+// Suppress unused function warning for SASL_HEADER_EXCHANGE_STATEstrings
+#ifdef NO_LOGGING
+#define ENUM_TO_STRING_UNUSED
+#include "azure_c_shared_utility/macro_utils.h"
+#endif
+
 DEFINE_LOCAL_ENUM(SASL_HEADER_EXCHANGE_STATE, SASL_HEADER_EXCHANGE_STATE_VALUES)
 
 #define SASL_CLIENT_NEGOTIATION_STATE_VALUES \
@@ -144,7 +150,7 @@ static void handle_error(SASL_CLIENT_IO_INSTANCE* sasl_client_io_instance)
     }
 }
 
-// This callback usage needs to be either verified and commented or integrated into 
+// This callback usage needs to be either verified and commented or integrated into
 // the state machine.
 static void unchecked_on_send_complete(void* context, IO_SEND_RESULT send_result)
 {
@@ -255,6 +261,7 @@ static void on_underlying_io_error(void* context)
     }
 }
 
+#ifndef NO_LOGGING
 static const char* get_frame_type_as_string(AMQP_VALUE descriptor)
 {
     const char* result;
@@ -286,6 +293,7 @@ static const char* get_frame_type_as_string(AMQP_VALUE descriptor)
 
     return result;
 }
+#endif // NO_LOGGING
 
 static void log_incoming_frame(AMQP_VALUE performative)
 {
@@ -400,7 +408,7 @@ static int saslclientio_receive_byte(SASL_CLIENT_IO_INSTANCE* sasl_client_io_ins
                     LogError("Invalid SASL header exchange state: %s", ENUM_TO_STRING(SASL_HEADER_EXCHANGE_STATE, sasl_client_io_instance->sasl_header_exchange_state));
                     result = __FAILURE__;
                     break;
-                
+
                 case SASL_HEADER_EXCHANGE_HEADER_SENT:
                     /* from this point on we need to decode SASL frames */
                     sasl_client_io_instance->sasl_header_exchange_state = SASL_HEADER_EXCHANGE_HEADER_EXCH;
@@ -1096,7 +1104,7 @@ int saslclientio_open_async(CONCRETE_IO_HANDLE sasl_client_io, ON_IO_OPEN_COMPLE
             }
         }
     }
-    
+
     return result;
 }
 

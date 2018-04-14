@@ -104,7 +104,7 @@ static void connection_set_state(CONNECTION_HANDLE connection, CONNECTION_STATE 
     }
 }
 
-// This callback usage needs to be either verified and commented or integrated into 
+// This callback usage needs to be either verified and commented or integrated into
 // the state machine.
 static void unchecked_on_send_complete(void* context, IO_SEND_RESULT send_result)
 {
@@ -147,6 +147,7 @@ static int send_header(CONNECTION_HANDLE connection)
     return result;
 }
 
+#ifndef NO_LOGGING
 static const char* get_frame_type_as_string(AMQP_VALUE descriptor)
 {
     const char* result;
@@ -194,6 +195,7 @@ static const char* get_frame_type_as_string(AMQP_VALUE descriptor)
 
     return result;
 }
+#endif // NO_LOGGING
 
 static void log_incoming_frame(AMQP_VALUE performative)
 {
@@ -248,7 +250,7 @@ static void log_outgoing_frame(AMQP_VALUE performative)
 static void on_bytes_encoded(void* context, const unsigned char* bytes, size_t length, bool encode_complete)
 {
     CONNECTION_HANDLE connection = (CONNECTION_HANDLE)context;
-    if (xio_send(connection->io, bytes, length, 
+    if (xio_send(connection->io, bytes, length,
         (encode_complete && connection->on_send_complete != NULL) ? connection->on_send_complete : unchecked_on_send_complete,
         connection->on_send_complete_callback_context) != 0)
     {
@@ -288,7 +290,7 @@ static int send_open_frame(CONNECTION_HANDLE connection)
         if (open_performative == NULL)
         {
             LogError("Cannot create OPEN performative");
-            
+
             /* Codes_SRS_CONNECTION_01_208: [If the open frame cannot be constructed, the connection shall be closed and set to the END state.] */
             if (xio_close(connection->io, NULL, NULL) != 0)
             {
@@ -1062,7 +1064,7 @@ static void on_amqp_frame_received(void* context, uint16_t channel, AMQP_VALUE p
 
 static void frame_codec_error(void* context)
 {
-    /* Bug: some error handling should happen here 
+    /* Bug: some error handling should happen here
     Filed: uAMQP: frame_codec error and amqp_frame_codec_error should handle the errors */
     LogError("A frame_codec_error occured");
     (void)context;

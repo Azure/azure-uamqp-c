@@ -54,8 +54,8 @@ typedef struct AMQP_MANAGEMENT_INSTANCE_TAG
     AMQP_MANAGEMENT_STATE amqp_management_state;
     char* status_code_key_name;
     char* status_description_key_name;
-    int sender_connected : 1;
-    int receiver_connected : 1;
+    uint8_t sender_connected : 1;
+    uint8_t receiver_connected : 1;
 } AMQP_MANAGEMENT_INSTANCE;
 
 static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE message)
@@ -410,7 +410,7 @@ static void on_message_sender_state_changed(void* context, MESSAGE_SENDER_STATE 
                     break;
 
                 case MESSAGE_SENDER_STATE_OPEN:
-                    amqp_management_instance->sender_connected = -1;
+                    amqp_management_instance->sender_connected = 1;
                     /* Codes_SRS_AMQP_MANAGEMENT_01_142: [ - If `new_state` is `MESSAGE_SENDER_STATE_OPEN` and the message receiver did not yet indicate its state as `MESSAGE_RECEIVER_STATE_OPEN`, the `on_amqp_management_open_complete` callback shall not be called.]*/
                     if (amqp_management_instance->receiver_connected != 0)
                     {
@@ -509,7 +509,7 @@ static void on_message_receiver_state_changed(const void* context, MESSAGE_RECEI
                     break;
 
                 case MESSAGE_RECEIVER_STATE_OPEN:
-                    amqp_management_instance->receiver_connected = -1;
+                    amqp_management_instance->receiver_connected = 1;
                     /* Codes_SRS_AMQP_MANAGEMENT_01_154: [ - If `new_state` is `MESSAGE_RECEIVER_STATE_OPEN` and the message sender did not yet indicate its state as `MESSAGE_RECEIVER_STATE_OPEN`, the `on_amqp_management_open_complete` callback shall not be called. ]*/
                     if (amqp_management_instance->sender_connected != 0)
                     {
@@ -1062,7 +1062,7 @@ int amqp_management_close(AMQP_MANAGEMENT_HANDLE amqp_management)
                     operation_message->on_execute_operation_complete(operation_message->callback_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_INSTANCE_CLOSED, 0, NULL, NULL);
                     free(operation_message);
                 }
-                
+
                 if (singlylinkedlist_remove(amqp_management->pending_operations, list_item_handle) != 0)
                 {
                     LogError("Cannot remove item");

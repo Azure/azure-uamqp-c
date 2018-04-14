@@ -34,9 +34,9 @@ extern "C" {
 		HEADER_DETECT_ENTRY* header_detect_entries;
 		size_t header_detect_entry_count;
 	} HEADER_DETECT_IO_CONFIG;
-    
-	MOCKABLE_FUNCTION(, const AMQP_HEADER, header_detect_io_get_amqp_header);
-	MOCKABLE_FUNCTION(, const AMQP_HEADER, header_detect_io_get_sasl_amqp_header);
+
+	MOCKABLE_FUNCTION(, AMQP_HEADER, header_detect_io_get_amqp_header);
+	MOCKABLE_FUNCTION(, AMQP_HEADER, header_detect_io_get_sasl_amqp_header);
 	MOCKABLE_FUNCTION(, const IO_INTERFACE_DESCRIPTION*, header_detect_io_get_interface_description);
 
 #ifdef __cplusplus

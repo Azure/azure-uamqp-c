@@ -77,5 +77,8 @@ extern "C" {
 #include "azure_uamqp_c/amqp_definitions_released.h"
 #include "azure_uamqp_c/amqp_definitions_modified.h"
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* AMQP_DEFINITIONS_H */

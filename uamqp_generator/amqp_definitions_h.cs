@@ -19,7 +19,7 @@ namespace amqplib_generator
     /// Class to produce the template output
     /// </summary>
     
-    #line 1 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_h.tt"
+    #line 1 "G:\test_uamqp\azure-uamqp-c\uamqp_generator\amqp_definitions_h.tt"
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "15.0.0.0")]
     public partial class amqp_definitions_h : amqp_definitions_hBase
     {
@@ -31,7 +31,7 @@ namespace amqplib_generator
         {
             this.Write("\r\n");
             
-            #line 8 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_h.tt"
+            #line 8 "G:\test_uamqp\azure-uamqp-c\uamqp_generator\amqp_definitions_h.tt"
  amqp amqp = Program.LoadAMQPTypes(); 
             
             #line default
@@ -56,68 +56,68 @@ extern ""C"" {
 
 ");
             
-            #line 27 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_h.tt"
+            #line 27 "G:\test_uamqp\azure-uamqp-c\uamqp_generator\amqp_definitions_h.tt"
   foreach (section section in amqp.Items.Where(item => item is section)) 
             
             #line default
             #line hidden
             
-            #line 28 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_h.tt"
+            #line 28 "G:\test_uamqp\azure-uamqp-c\uamqp_generator\amqp_definitions_h.tt"
   { 
             
             #line default
             #line hidden
             
-            #line 29 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_h.tt"
+            #line 29 "G:\test_uamqp\azure-uamqp-c\uamqp_generator\amqp_definitions_h.tt"
       List<type> types = new List<type>(); 
             
             #line default
             #line hidden
             
-            #line 30 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_h.tt"
+            #line 30 "G:\test_uamqp\azure-uamqp-c\uamqp_generator\amqp_definitions_h.tt"
       types.AddRange(section.Items.Where(item => item is type).Cast<type>()); 
             
             #line default
             #line hidden
             
-            #line 31 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_h.tt"
+            #line 31 "G:\test_uamqp\azure-uamqp-c\uamqp_generator\amqp_definitions_h.tt"
       foreach (type type in types) 
             
             #line default
             #line hidden
             
-            #line 32 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_h.tt"
+            #line 32 "G:\test_uamqp\azure-uamqp-c\uamqp_generator\amqp_definitions_h.tt"
       { 
             
             #line default
             #line hidden
             
-            #line 33 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_h.tt"
+            #line 33 "G:\test_uamqp\azure-uamqp-c\uamqp_generator\amqp_definitions_h.tt"
           string type_name = type.name.ToLower().Replace('-', '_'); 
             
             #line default
             #line hidden
             this.Write("#include \"");
             
-            #line 34 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_h.tt"
+            #line 34 "G:\test_uamqp\azure-uamqp-c\uamqp_generator\amqp_definitions_h.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture($"azure_uamqp_c/amqp_definitions_{type_name}.h"));
             
             #line default
             #line hidden
             this.Write("\"\r\n");
             
-            #line 35 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_h.tt"
+            #line 35 "G:\test_uamqp\azure-uamqp-c\uamqp_generator\amqp_definitions_h.tt"
       } 
             
             #line default
             #line hidden
             
-            #line 36 "E:\iot\azure-iot-sdk-c\uamqp\uamqp_generator\amqp_definitions_h.tt"
+            #line 36 "G:\test_uamqp\azure-uamqp-c\uamqp_generator\amqp_definitions_h.tt"
   } 
             
             #line default
             #line hidden
-            this.Write("\r\n\r\n#endif /* AMQP_DEFINITIONS_H */\r\n");
+            this.Write("\r\n#ifdef __cplusplus\r\n}\r\n#endif\r\n\r\n#endif /* AMQP_DEFINITIONS_H */\r\n");
             return this.GenerationEnvironment.ToString();
         }
     }

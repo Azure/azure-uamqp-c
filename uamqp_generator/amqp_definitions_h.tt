@@ -35,5 +35,8 @@ extern "C" {
 <#      } #>
 <#  } #>
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* AMQP_DEFINITIONS_H */

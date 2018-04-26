@@ -75,6 +75,65 @@ if(WIN32)
 endif()
 
 set(uamqp_h_files
+    ./inc/azure_uamqp_c/amqp_definitions_role.h
+    ./inc/azure_uamqp_c/amqp_definitions_sender_settle_mode.h
+    ./inc/azure_uamqp_c/amqp_definitions_receiver_settle_mode.h
+    ./inc/azure_uamqp_c/amqp_definitions_handle.h
+    ./inc/azure_uamqp_c/amqp_definitions_seconds.h
+    ./inc/azure_uamqp_c/amqp_definitions_milliseconds.h
+    ./inc/azure_uamqp_c/amqp_definitions_delivery_tag.h
+    ./inc/azure_uamqp_c/amqp_definitions_sequence_no.h
+    ./inc/azure_uamqp_c/amqp_definitions_delivery_number.h
+    ./inc/azure_uamqp_c/amqp_definitions_transfer_number.h
+    ./inc/azure_uamqp_c/amqp_definitions_message_format.h
+    ./inc/azure_uamqp_c/amqp_definitions_ietf_language_tag.h
+    ./inc/azure_uamqp_c/amqp_definitions_fields.h
+    ./inc/azure_uamqp_c/amqp_definitions_error.h
+    ./inc/azure_uamqp_c/amqp_definitions_amqp_error.h
+    ./inc/azure_uamqp_c/amqp_definitions_connection_error.h
+    ./inc/azure_uamqp_c/amqp_definitions_session_error.h
+    ./inc/azure_uamqp_c/amqp_definitions_link_error.h
+    ./inc/azure_uamqp_c/amqp_definitions_open.h
+    ./inc/azure_uamqp_c/amqp_definitions_begin.h
+    ./inc/azure_uamqp_c/amqp_definitions_attach.h
+    ./inc/azure_uamqp_c/amqp_definitions_flow.h
+    ./inc/azure_uamqp_c/amqp_definitions_transfer.h
+    ./inc/azure_uamqp_c/amqp_definitions_disposition.h
+    ./inc/azure_uamqp_c/amqp_definitions_detach.h
+    ./inc/azure_uamqp_c/amqp_definitions_end.h
+    ./inc/azure_uamqp_c/amqp_definitions_close.h
+    ./inc/azure_uamqp_c/amqp_definitions_sasl_code.h
+    ./inc/azure_uamqp_c/amqp_definitions_sasl_mechanisms.h
+    ./inc/azure_uamqp_c/amqp_definitions_sasl_init.h
+    ./inc/azure_uamqp_c/amqp_definitions_sasl_challenge.h
+    ./inc/azure_uamqp_c/amqp_definitions_sasl_response.h
+    ./inc/azure_uamqp_c/amqp_definitions_sasl_outcome.h
+    ./inc/azure_uamqp_c/amqp_definitions_terminus_durability.h
+    ./inc/azure_uamqp_c/amqp_definitions_terminus_expiry_policy.h
+    ./inc/azure_uamqp_c/amqp_definitions_node_properties.h
+    ./inc/azure_uamqp_c/amqp_definitions_filter_set.h
+    ./inc/azure_uamqp_c/amqp_definitions_source.h
+    ./inc/azure_uamqp_c/amqp_definitions_target.h
+    ./inc/azure_uamqp_c/amqp_definitions_annotations.h
+    ./inc/azure_uamqp_c/amqp_definitions_message_id_ulong.h
+    ./inc/azure_uamqp_c/amqp_definitions_message_id_uuid.h
+    ./inc/azure_uamqp_c/amqp_definitions_message_id_binary.h
+    ./inc/azure_uamqp_c/amqp_definitions_message_id_string.h
+    ./inc/azure_uamqp_c/amqp_definitions_address_string.h
+    ./inc/azure_uamqp_c/amqp_definitions_header.h
+    ./inc/azure_uamqp_c/amqp_definitions_delivery_annotations.h
+    ./inc/azure_uamqp_c/amqp_definitions_message_annotations.h
+    ./inc/azure_uamqp_c/amqp_definitions_application_properties.h
+    ./inc/azure_uamqp_c/amqp_definitions_data.h
+    ./inc/azure_uamqp_c/amqp_definitions_amqp_sequence.h
+    ./inc/azure_uamqp_c/amqp_definitions_amqp_value.h
+    ./inc/azure_uamqp_c/amqp_definitions_footer.h
+    ./inc/azure_uamqp_c/amqp_definitions_properties.h
+    ./inc/azure_uamqp_c/amqp_definitions_received.h
+    ./inc/azure_uamqp_c/amqp_definitions_accepted.h
+    ./inc/azure_uamqp_c/amqp_definitions_rejected.h
+    ./inc/azure_uamqp_c/amqp_definitions_released.h
+    ./inc/azure_uamqp_c/amqp_definitions_modified.h
     ./inc/azure_uamqp_c/amqp_definitions.h
     ./inc/azure_uamqp_c/amqp_frame_codec.h
     ./inc/azure_uamqp_c/amqp_management.h

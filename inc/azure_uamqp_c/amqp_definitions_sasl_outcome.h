@@ -3,6 +3,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+// This file is generated. DO NOT EDIT it manually.
+// The generator that produces it is located at /uamqp_generator/uamqp_generator.sln
+
 #ifndef AMQP_DEFINITIONS_SASL_OUTCOME_H
 #define AMQP_DEFINITIONS_SASL_OUTCOME_H
 

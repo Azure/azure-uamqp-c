@@ -6,11 +6,6 @@ project(uamqp)
 
 FILE(READ ${CMAKE_CURRENT_LIST_DIR}/version.txt UAMQP_VERSION)
 
-# Include the common build rules for the C SDK
-if (NOT TARGET aziotsharedutil)
-    include(deps/azure-c-shared-utility/configs/azure_iot_build_rules.cmake)
-endif()
-
 option(run_e2e_tests "set run_e2e_tests to ON to run e2e tests (default is OFF) [if possible, they are always built]" OFF)
 option(run_unittests "set run_unittests to ON to run unittests (default is OFF)" OFF)
 option(skip_samples "set skip_samples to ON to skip building samples (default is OFF)[if possible, they are always built]" OFF)
@@ -53,7 +48,10 @@ if(NOT ${use_installed_dependencies})
 endif()
 include("dependencies.cmake")
 
-set_platform_files(${CMAKE_CURRENT_LIST_DIR}/deps/azure-c-shared-utility)
+# Include the common build rules for C shared utility
+include(${SHARED_UTIL_FOLDER}/configs/azure_iot_build_rules.cmake)
+
+set_platform_files(${SHARED_UTIL_FOLDER})
 
 set(run_e2e_tests ${original_run_e2e_tests})
 set(run_int_tests ${original_run_int_tests})

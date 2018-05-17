@@ -45,7 +45,7 @@ typedef struct SESSION_INSTANCE_TAG
     handle handle_max;
     uint32_t remote_incoming_window;
     uint32_t remote_outgoing_window;
-    uint8_t is_underlying_connection_open : 1;
+    unsigned int is_underlying_connection_open : 1;
 } SESSION_INSTANCE;
 
 #define UNDERLYING_CONNECTION_NOT_OPEN 0

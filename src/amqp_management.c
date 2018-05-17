@@ -54,8 +54,8 @@ typedef struct AMQP_MANAGEMENT_INSTANCE_TAG
     AMQP_MANAGEMENT_STATE amqp_management_state;
     char* status_code_key_name;
     char* status_description_key_name;
-    uint8_t sender_connected : 1;
-    uint8_t receiver_connected : 1;
+    unsigned int sender_connected : 1;
+    unsigned int receiver_connected : 1;
 } AMQP_MANAGEMENT_INSTANCE;
 
 static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE message)

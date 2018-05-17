@@ -381,13 +381,14 @@ int <#= type_name #>_get_<#= field_name #>(<#= type_name.ToUpper() #>_HANDLE <#=
 <#                      } #>
 <#                      else #>
 <#                      { #>
-                    int get_single_value_result;
 <#                          if (field.multiple != "true") #>
 <#                          { #>
-                    if ((get_single_value_result = amqpvalue_get_<#= field.type.Replace('-', '_').Replace(':', '_') #>(item_value, <#= field_name #>_value)) != 0)
+                    int get_single_value_result = amqpvalue_get_<#= field.type.Replace('-', '_').Replace(':', '_') #>(item_value, <#= field_name #>_value);
+                    if (get_single_value_result != 0)
 <#                          } #>
 <#                          else #>
 <#                          { #>
+                    int get_single_value_result;
                     if (amqpvalue_get_type(item_value) != AMQP_TYPE_ARRAY)
                     {
                         get_single_value_result = amqpvalue_get_<#= field.type.ToLower().Replace('-', '_').Replace(':', '_') #>(item_value, &<#= field_name #>_single_value);

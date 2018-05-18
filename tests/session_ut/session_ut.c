@@ -427,7 +427,8 @@ TEST_FUNCTION(session_destroy_link_endpoint_with_NULL_handle_does_nothing)
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
-/* Tests_SRS_SESSION_01_049: [session_destroy_link_endpoint shall free all resources associated with the endpoint.] */
+#if 0
+/* Tests_SRS_SESSION_01_049: [session_destroy_link_endpoint shall detach the associated endpoint, but not free the resources of the endpoint.] */
 TEST_FUNCTION(session_destroy_link_endpoint_frees_the_resources)
 {
     // arrange
@@ -475,7 +476,6 @@ TEST_FUNCTION(session_destroy_link_endpoint_when_2_endpoints_are_there_frees_the
 
 /* session_send_transfer */
 
-#if 0
 /* Tests_SRS_SESSION_01_051: [session_send_transfer shall send a transfer frame with the performative indicated in the transfer argument.] */
 /* Tests_SRS_SESSION_01_053: [On success, session_send_transfer shall return 0.] */
 /* Tests_SRS_SESSION_01_055: [The encoding of the frame shall be done by calling connection_encode_frame and passing as arguments: the connection handle associated with the session, the transfer performative and the payload chunks passed to session_send_transfer.] */

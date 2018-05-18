@@ -58,8 +58,9 @@ typedef struct SERVER_INSTANCE_TAG
 {
     CONNECTION_HANDLE connection;
     SESSION_HANDLE session;
-    LINK_HANDLE link;
-    MESSAGE_RECEIVER_HANDLE message_receiver;
+    size_t link_count;
+    LINK_HANDLE links[2];
+    MESSAGE_RECEIVER_HANDLE message_receivers[2];
     size_t received_messages;
     XIO_HANDLE header_detect_io;
     XIO_HANDLE underlying_io;
@@ -91,7 +92,7 @@ static void on_message_send_cancelled(void* context, MESSAGE_SEND_RESULT send_re
     }
 }
 
-static void on_message_receiver_state_changed(const void* context, MESSAGE_RECEIVER_STATE new_state, MESSAGE_RECEIVER_STATE previous_state)
+static void on_message_receivers_state_changed(const void* context, MESSAGE_RECEIVER_STATE new_state, MESSAGE_RECEIVER_STATE previous_state)
 {
     (void)context;
     (void)new_state;
@@ -124,12 +125,13 @@ static bool on_new_link_attached(void* context, LINK_ENDPOINT_HANDLE new_link_en
     SERVER_INSTANCE* server = (SERVER_INSTANCE*)context;
     int result;
 
-    server->link = link_create_from_endpoint(server->session, new_link_endpoint, name, role, source, target);
-    ASSERT_IS_NOT_NULL_WITH_MSG(server->link, "Could not create link");
-    server->message_receiver = messagereceiver_create(server->link, on_message_receiver_state_changed, server);
-    ASSERT_IS_NOT_NULL_WITH_MSG(server->message_receiver, "Could not create message receiver");
-    result = messagereceiver_open(server->message_receiver, on_message_received, server);
+    server->links[server->link_count] = link_create_from_endpoint(server->session, new_link_endpoint, name, role, source, target);
+    ASSERT_IS_NOT_NULL_WITH_MSG(server->links[server->link_count], "Could not create link");
+    server->message_receivers[server->link_count] = messagereceiver_create(server->links[server->link_count], on_message_receivers_state_changed, server);
+    ASSERT_IS_NOT_NULL_WITH_MSG(server->message_receivers[server->link_count], "Could not create message receiver");
+    result = messagereceiver_open(server->message_receivers[server->link_count], on_message_received, server);
     ASSERT_ARE_EQUAL_WITH_MSG(int, 0, result, "message receiver open failed");
+    server->link_count++;
 
     return true;
 }
@@ -201,8 +203,9 @@ TEST_FUNCTION(client_and_server_connect_and_send_one_message_settled)
 
     server_instance.connection = NULL;
     server_instance.session = NULL;
-    server_instance.link = NULL;
-    server_instance.message_receiver = NULL;
+    server_instance.link_count = 0;
+    server_instance.links[0] = NULL;
+    server_instance.message_receivers[0] = NULL;
     server_instance.received_messages = 0;
 
     sent_messages = 0;
@@ -281,8 +284,8 @@ TEST_FUNCTION(client_and_server_connect_and_send_one_message_settled)
     connection_destroy(client_connection);
     xio_destroy(socket_io);
 
-    messagereceiver_destroy(server_instance.message_receiver);
-    link_destroy(server_instance.link);
+    messagereceiver_destroy(server_instance.message_receivers[0]);
+    link_destroy(server_instance.links[0]);
     session_destroy(server_instance.session);
     connection_destroy(server_instance.connection);
     xio_destroy(server_instance.header_detect_io);
@@ -315,8 +318,9 @@ TEST_FUNCTION(client_and_server_connect_and_send_one_message_unsettled)
 
     server_instance.connection = NULL;
     server_instance.session = NULL;
-    server_instance.link = NULL;
-    server_instance.message_receiver = NULL;
+    server_instance.link_count = 0;
+    server_instance.links[0] = NULL;
+    server_instance.message_receivers[0] = NULL;
     server_instance.received_messages = 0;
 
     sent_messages = 0;
@@ -396,8 +400,8 @@ TEST_FUNCTION(client_and_server_connect_and_send_one_message_unsettled)
     connection_destroy(client_connection);
     xio_destroy(socket_io);
 
-    messagereceiver_destroy(server_instance.message_receiver);
-    link_destroy(server_instance.link);
+    messagereceiver_destroy(server_instance.message_receivers[0]);
+    link_destroy(server_instance.links[0]);
     session_destroy(server_instance.session);
     connection_destroy(server_instance.connection);
     xio_destroy(server_instance.header_detect_io);
@@ -430,8 +434,9 @@ TEST_FUNCTION(cancelling_a_send_works)
 
     server_instance.connection = NULL;
     server_instance.session = NULL;
-    server_instance.link = NULL;
-    server_instance.message_receiver = NULL;
+    server_instance.link_count = 0;
+    server_instance.links[0] = NULL;
+    server_instance.message_receivers[0] = NULL;
     server_instance.received_messages = 0;
 
     cancelled_messages = 0;
@@ -512,8 +517,8 @@ TEST_FUNCTION(cancelling_a_send_works)
     connection_destroy(client_connection);
     xio_destroy(socket_io);
 
-    messagereceiver_destroy(server_instance.message_receiver);
-    link_destroy(server_instance.link);
+    messagereceiver_destroy(server_instance.message_receivers[0]);
+    link_destroy(server_instance.links[0]);
     session_destroy(server_instance.session);
     connection_destroy(server_instance.connection);
     xio_destroy(server_instance.header_detect_io);
@@ -521,7 +526,6 @@ TEST_FUNCTION(cancelling_a_send_works)
     socketlistener_destroy(socket_listener);
 }
 
-#if 0
 /* TODO: This test fails at the moment. Changes are needed to the way the link endpoints are tracked to make it succeed */
 TEST_FUNCTION(destroying_one_out_of_2_senders_works)
 {
@@ -550,8 +554,11 @@ TEST_FUNCTION(destroying_one_out_of_2_senders_works)
 
     server_instance.connection = NULL;
     server_instance.session = NULL;
-    server_instance.link = NULL;
-    server_instance.message_receiver = NULL;
+    server_instance.link_count = 0;
+    server_instance.links[0] = NULL;
+    server_instance.links[1] = NULL;
+    server_instance.message_receivers[0] = NULL;
+    server_instance.message_receivers[1] = NULL;
     server_instance.received_messages = 0;
 
     sent_messages = 0;
@@ -640,6 +647,11 @@ TEST_FUNCTION(destroying_one_out_of_2_senders_works)
     messagesender_destroy(client_message_sender_2);
     link_destroy(client_link_2);
 
+    // send 2nd message
+    send_async_operation = messagesender_send_async(client_message_sender_1, client_send_message, on_message_send_complete, &sent_messages, 0);
+    ASSERT_IS_NOT_NULL_WITH_MSG(send_async_operation, "cannot send message");
+    message_destroy(client_send_message);
+
     // wait for 
     start_time = time(NULL);
     while ((now_time = time(NULL)),
@@ -659,14 +671,9 @@ TEST_FUNCTION(destroying_one_out_of_2_senders_works)
         ThreadAPI_Sleep(1);
     }
 
-    // send 2nd message
-    send_async_operation = messagesender_send_async(client_message_sender_1, client_send_message, on_message_send_complete, &sent_messages, 0);
-    ASSERT_IS_NOT_NULL_WITH_MSG(send_async_operation, "cannot send message");
-    message_destroy(client_send_message);
-
     // assert
     ASSERT_ARE_EQUAL_WITH_MSG(size_t, 2, sent_messages, "Bad sent messages count");
-    ASSERT_ARE_EQUAL_WITH_MSG(size_t, 0, server_instance.received_messages, "Bad received messages count");
+    ASSERT_ARE_EQUAL_WITH_MSG(size_t, 2, server_instance.received_messages, "Bad received messages count");
 
     // cleanup
     socketlistener_stop(socket_listener);
@@ -676,14 +683,15 @@ TEST_FUNCTION(destroying_one_out_of_2_senders_works)
     connection_destroy(client_connection);
     xio_destroy(socket_io);
 
-    messagereceiver_destroy(server_instance.message_receiver);
-    link_destroy(server_instance.link);
+    messagereceiver_destroy(server_instance.message_receivers[0]);
+    messagereceiver_destroy(server_instance.message_receivers[1]);
+    link_destroy(server_instance.links[0]);
+    link_destroy(server_instance.links[1]);
     session_destroy(server_instance.session);
     connection_destroy(server_instance.connection);
     xio_destroy(server_instance.header_detect_io);
     xio_destroy(server_instance.underlying_io);
     socketlistener_destroy(socket_listener);
 }
-#endif
 
 END_TEST_SUITE(local_client_server_tcp_e2e)

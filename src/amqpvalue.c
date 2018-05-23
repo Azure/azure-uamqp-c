@@ -2122,6 +2122,31 @@ bool amqpvalue_are_equal(AMQP_VALUE value1, AMQP_VALUE value2)
 
                 break;
             }
+            case AMQP_TYPE_ARRAY:
+            {
+                /* Codes_SRS_AMQPVALUE_01_231: [- array: compare array item count and each element.] */
+                if (value1_data->value.array_value.count != value2_data->value.array_value.count)
+                {
+                    result = false;
+                }
+                else
+                {
+                    uint32_t i;
+
+                    for (i = 0; i < value1_data->value.array_value.count; i++)
+                    {
+                        /* Codes_SRS_AMQPVALUE_01_232: [Nesting shall be considered in comparison.] */
+                        if (!amqpvalue_are_equal(value1_data->value.array_value.items[i], value2_data->value.array_value.items[i]))
+                        {
+                            break;
+                        }
+                    }
+
+                    result = (i == value1_data->value.array_value.count);
+                }
+
+                break;
+            }
             case AMQP_TYPE_MAP:
             {
                 /* Codes_SRS_AMQPVALUE_01_233: [- map: compare map pair count and each key/value pair.] */
@@ -3047,6 +3072,115 @@ static int encode_map(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, ui
     return result;
 }
 
+static int encode_array(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, uint32_t count, AMQP_VALUE* items)
+{
+    size_t i;
+    int result;
+
+    uint32_t size = 0;
+
+    /* get the size of all items in the array */
+    for (i = 0; i < count; i++)
+    {
+        size_t item_size;
+        if (amqpvalue_get_encoded_size(items[i], &item_size) != 0)
+        {
+            LogError("Could not get encoded size for element %u of the array", (unsigned int)i);
+            break;
+        }
+
+        if ((item_size > UINT32_MAX) ||
+            size + (uint32_t)item_size < size)
+        {
+            LogError("Overflow in array size computation");
+            break;
+        }
+        
+        size = (uint32_t)(size + item_size);
+
+    }
+
+    if (i < count)
+    {
+        /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+        result = __FAILURE__;
+    }
+    else
+    {
+        if ((count <= 255) && (size < 255))
+        {
+            size++;
+
+            /* Codes_SRS_AMQPVALUE_01_306: [<encoding name="map8" code="0xE0" category="compound" width="1" label="up to 2^8 - 1 octets of encoded map data"/>] */
+            if ((output_byte(encoder_output, context, 0xE0) != 0) ||
+                /* size */
+                (output_byte(encoder_output, context, (size & 0xFF)) != 0) ||
+                /* count */
+                (output_byte(encoder_output, context, (count & 0xFF)) != 0))
+            {
+                /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+                LogError("Could not encode map header");
+                result = __FAILURE__;
+            }
+            else
+            {
+                /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+                result = 0;
+            }
+        }
+        else
+        {
+            size += 4;
+
+            /* Codes_SRS_AMQPVALUE_01_307: [<encoding name="map32" code="0xF0" category="compound" width="4" label="up to 2^32 - 1 octets of encoded map data"/>] */
+            if ((output_byte(encoder_output, context, 0xF0) != 0) ||
+                /* size */
+                (output_byte(encoder_output, context, (size >> 24) & 0xFF) != 0) ||
+                (output_byte(encoder_output, context, (size >> 16) & 0xFF) != 0) ||
+                (output_byte(encoder_output, context, (size >> 8) & 0xFF) != 0) ||
+                (output_byte(encoder_output, context, size & 0xFF) != 0) ||
+                /* count */
+                (output_byte(encoder_output, context, (count >> 24) & 0xFF) != 0) ||
+                (output_byte(encoder_output, context, (count >> 16) & 0xFF) != 0) ||
+                (output_byte(encoder_output, context, (count >> 8) & 0xFF) != 0) ||
+                (output_byte(encoder_output, context, count & 0xFF) != 0))
+            {
+                /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+                LogError("Could not encode array");
+                result = __FAILURE__;
+            }
+            else
+            {
+                /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+                result = 0;
+            }
+        }
+
+        if (result == 0)
+        {
+            for (i = 0; i < count; i++)
+            {
+                if (amqpvalue_encode(items[i], encoder_output, context) != 0)
+                {
+                    break;
+                }
+            }
+
+            if (i < count)
+            {
+                LogError("Failed encoding element %u of the array", (unsigned int)i);
+                result = __FAILURE__;
+            }
+            else
+            {
+                result = 0;
+            }
+        }
+    }
+
+    return result;
+}
+
 static int encode_descriptor_header(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context)
 {
     int result;
@@ -3161,6 +3295,10 @@ int amqpvalue_encode(AMQP_VALUE value, AMQPVALUE_ENCODER_OUTPUT encoder_output, 
 
         case AMQP_TYPE_LIST:
             result = encode_list(encoder_output, context, value_data->value.list_value.count, value_data->value.list_value.items);
+            break;
+
+        case AMQP_TYPE_ARRAY:
+            result = encode_array(encoder_output, context, value_data->value.array_value.count, value_data->value.array_value.items);
             break;
 
         case AMQP_TYPE_MAP:

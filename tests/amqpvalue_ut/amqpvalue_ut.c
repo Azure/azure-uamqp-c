@@ -4656,6 +4656,346 @@ TEST_FUNCTION(amqpvalue_get_map_key_value_pair_on_a_non_map_value_fails)
     amqpvalue_destroy(null_value);
 }
 
+/* amqpvalue_create_array */
+
+/* Tests_SRS_AMQPVALUE_01_397: [1.6.24 array A sequence of values of a single type.] */
+TEST_FUNCTION(amqpvalue_create_array_succeeds)
+{
+    // arrange
+    AMQP_VALUE result;
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+
+    // act
+    result = amqpvalue_create_array();
+
+    // assert
+    ASSERT_IS_NOT_NULL(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_destroy(result);
+}
+
+TEST_FUNCTION(when_allocating_memory_fails_then_amqpvalue_create_array_fails)
+{
+    // arrange
+    AMQP_VALUE result;
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .SetReturn(NULL);
+
+    // act
+    result = amqpvalue_create_array();
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NULL(result);
+}
+
+/* amqpvalue_get_array_item_count */
+
+TEST_FUNCTION(amqpvalue_get_array_item_count_yields_0_on_an_empty_array)
+{
+    // arrange
+    int result;
+    uint32_t item_count;
+    AMQP_VALUE array = amqpvalue_create_array();
+    umock_c_reset_all_calls();
+
+    // act
+    result = amqpvalue_get_array_item_count(array, &item_count);
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(uint32_t, 0, item_count);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_destroy(array);
+}
+
+TEST_FUNCTION(amqpvalue_get_array_item_count_with_NULL_handle_fails)
+{
+    // arrange
+
+    // act
+    uint32_t item_count;
+    int result = amqpvalue_get_array_item_count(NULL, &item_count);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+}
+
+TEST_FUNCTION(amqpvalue_get_array_item_count_with_NULL_item_count_fails)
+{
+    // arrange
+    int result;
+    AMQP_VALUE array = amqpvalue_create_array();
+    umock_c_reset_all_calls();
+
+    // act
+    result = amqpvalue_get_array_item_count(array, NULL);
+
+    // assert
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_destroy(array);
+}
+
+TEST_FUNCTION(amqpvalue_get_array_item_count_on_a_non_array_type_fails)
+{
+    // arrange
+    int result;
+    uint32_t item_count;
+    AMQP_VALUE null_value = amqpvalue_create_null();
+    umock_c_reset_all_calls();
+
+    // act
+    result = amqpvalue_get_array_item_count(null_value, &item_count);
+
+    // assert
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_destroy(null_value);
+}
+
+/* amqpvalue_add_array_item */
+
+TEST_FUNCTION(amqpvalue_add_array_item_on_an_empty_array_succeeds)
+{
+    // arrange
+    int result;
+    AMQP_VALUE array = amqpvalue_create_array();
+    AMQP_VALUE null_value = amqpvalue_create_null();
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+
+    // act
+    result = amqpvalue_add_array_item(array, null_value);
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_destroy(array);
+    amqpvalue_destroy(null_value);
+}
+
+TEST_FUNCTION(when_reallocating_the_array_fails_amqpvalue_add_array_item_fails_too)
+{
+    // arrange
+    int result;
+    AMQP_VALUE array = amqpvalue_create_array();
+    AMQP_VALUE null_value = amqpvalue_create_null();
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG))
+        .SetReturn(NULL);
+
+    // act
+    result = amqpvalue_add_array_item(array, null_value);
+
+    // assert
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_destroy(array);
+    amqpvalue_destroy(null_value);
+}
+
+TEST_FUNCTION(amqpvalue_add_array_item_with_NULL_handle_fails)
+{
+    // arrange
+    int result;
+    AMQP_VALUE null_value = amqpvalue_create_null();
+    umock_c_reset_all_calls();
+
+    // act
+    result = amqpvalue_add_array_item(NULL, null_value);
+
+    // assert
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_destroy(null_value);
+}
+
+TEST_FUNCTION(amqpvalue_add_array_item_with_NULL_item_fails)
+{
+    // arrange
+    int result;
+    AMQP_VALUE array = amqpvalue_create_array();
+    umock_c_reset_all_calls();
+
+    // act
+    result = amqpvalue_add_array_item(array, NULL);
+
+    // assert
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_destroy(array);
+}
+
+TEST_FUNCTION(when_growing_fails_amqpvalue_add_array_item_is_not_altered)
+{
+    // arrange
+    int result;
+    uint32_t item_count;
+    AMQP_VALUE array = amqpvalue_create_array();
+    AMQP_VALUE null_value = amqpvalue_create_null();
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG))
+        .SetReturn(NULL);
+
+    // act
+    result = amqpvalue_add_array_item(array, null_value);
+
+    // assert
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    (void)amqpvalue_get_array_item_count(array, &item_count);
+    ASSERT_ARE_EQUAL(uint32_t, 0, item_count);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_destroy(array);
+    amqpvalue_destroy(null_value);
+}
+
+/* amqpvalue_get_array_item */
+
+TEST_FUNCTION(amqpvalue_get_array_item_gets_the_first_item)
+{
+    // arrange
+    AMQP_VALUE result;
+    uint32_t value = 0;
+    AMQP_VALUE array = amqpvalue_create_array();
+    AMQP_VALUE uint_value = amqpvalue_create_uint(42);
+    (void)amqpvalue_add_array_item(array, uint_value);
+    umock_c_reset_all_calls();
+
+    // act
+    result = amqpvalue_get_array_item(array, 0);
+
+    // assert
+    ASSERT_IS_NOT_NULL(result);
+    (void)amqpvalue_get_uint(result, &value);
+    ASSERT_ARE_EQUAL(uint32_t, 42, value);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_destroy(array);
+    amqpvalue_destroy(uint_value);
+    amqpvalue_destroy(result);
+}
+
+TEST_FUNCTION(amqpvalue_get_array_item_gets_the_second_item)
+{
+    // arrange
+    AMQP_VALUE result;
+    uint32_t value = 0;
+    AMQP_VALUE array = amqpvalue_create_array();
+    AMQP_VALUE uint_value = amqpvalue_create_uint(42);
+    AMQP_VALUE ulong_value = amqpvalue_create_uint(43);
+    (void)amqpvalue_add_array_item(array, uint_value);
+    (void)amqpvalue_add_array_item(array, ulong_value);
+    umock_c_reset_all_calls();
+
+    // act
+    result = amqpvalue_get_array_item(array, 1);
+
+    // assert
+    ASSERT_IS_NOT_NULL(result);
+    (void)amqpvalue_get_uint(result, &value);
+    ASSERT_ARE_EQUAL(uint32_t, 43, value);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_destroy(array);
+    amqpvalue_destroy(uint_value);
+    amqpvalue_destroy(ulong_value);
+    amqpvalue_destroy(result);
+}
+
+TEST_FUNCTION(when_array_handle_is_null_amqpvalue_get_array_item_fails)
+{
+    // arrange
+
+    // act
+    AMQP_VALUE result = amqpvalue_get_array_item(NULL, 0);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NULL(result);
+}
+
+TEST_FUNCTION(amqpvalue_get_array_item_with_index_too_high_fails)
+{
+    // arrange
+    AMQP_VALUE result;
+    AMQP_VALUE array = amqpvalue_create_array();
+    AMQP_VALUE uint_value = amqpvalue_create_uint(42);
+    (void)amqpvalue_add_array_item(array, uint_value);
+    umock_c_reset_all_calls();
+
+    // act
+    result = amqpvalue_get_array_item(array, 1);
+
+    // assert
+    ASSERT_IS_NULL(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_destroy(array);
+    amqpvalue_destroy(uint_value);
+}
+
+TEST_FUNCTION(amqpvalue_get_array_item_with_index_0_on_an_empty_array_fails)
+{
+    // arrange
+    AMQP_VALUE result;
+    AMQP_VALUE array = amqpvalue_create_array();
+    umock_c_reset_all_calls();
+
+    // act
+    result = amqpvalue_get_array_item(array, 0);
+
+    // assert
+    ASSERT_IS_NULL(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_destroy(array);
+}
+
+TEST_FUNCTION(amqpvalue_get_array_item_called_with_a_non_array_handle_fails)
+{
+    // arrange
+    AMQP_VALUE result;
+    AMQP_VALUE array = amqpvalue_create_null();
+    umock_c_reset_all_calls();
+
+    // act
+    result = amqpvalue_get_array_item(array, 0);
+
+    // assert
+    ASSERT_IS_NULL(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_destroy(array);
+}
+
 /* amqpvalue_are_equal */
 
 /* Tests_SRS_AMQPVALUE_01_207: [If value1 and value2 are NULL, amqpvalue_are_equal shall return true.] */
@@ -6176,6 +6516,310 @@ TEST_FUNCTION(when_inner_maps_are_equal_not_are_not_equal_returns_false)
     amqpvalue_destroy(inner_map2);
 }
 
+/* Tests_SRS_AMQPVALUE_01_206: [amqpvalue_are_equal shall return true if the contents of value1 and value2 are equal.] */
+/* Tests_SRS_AMQPVALUE_01_231: [- array: compare array item count and each element.] */
+TEST_FUNCTION(for_2_empty_arrays_amqpvalue_are_equal_returns_true)
+{
+    // arrange
+    bool result;
+    AMQP_VALUE value1 = amqpvalue_create_array();
+    AMQP_VALUE value2 = amqpvalue_create_array();
+    umock_c_reset_all_calls();
+
+    // act
+    result = amqpvalue_are_equal(value1, value2);
+
+    // assert
+    ASSERT_IS_TRUE(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_destroy(value1);
+    amqpvalue_destroy(value2);
+}
+
+/* Tests_SRS_AMQPVALUE_01_206: [amqpvalue_are_equal shall return true if the contents of value1 and value2 are equal.] */
+/* Tests_SRS_AMQPVALUE_01_231: [- array: compare array item count and each element.] */
+TEST_FUNCTION(for_2_arrays_with_one_null_item_amqpvalue_are_equal_returns_true)
+{
+    // arrange
+    bool result;
+    AMQP_VALUE value1 = amqpvalue_create_array();
+    AMQP_VALUE value2 = amqpvalue_create_array();
+    AMQP_VALUE null_value = amqpvalue_create_null();
+    (void)amqpvalue_add_array_item(value1, null_value);
+    (void)amqpvalue_add_array_item(value2, null_value);
+    umock_c_reset_all_calls();
+
+    // act
+    result = amqpvalue_are_equal(value1, value2);
+
+    // assert
+    ASSERT_IS_TRUE(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_destroy(value1);
+    amqpvalue_destroy(value2);
+    amqpvalue_destroy(null_value);
+}
+
+/* Tests_SRS_AMQPVALUE_01_231: [- array: compare array item count and each element.] */
+TEST_FUNCTION(for_2_arrays_with_different_number_of_null_values_amqpvalue_are_equal_returns_false)
+{
+    // arrange
+    bool result;
+    AMQP_VALUE value1 = amqpvalue_create_array();
+    AMQP_VALUE value2 = amqpvalue_create_array();
+    AMQP_VALUE null_value = amqpvalue_create_null();
+    (void)amqpvalue_add_array_item(value1, null_value);
+    (void)amqpvalue_add_array_item(value2, null_value);
+    (void)amqpvalue_add_array_item(value2, null_value);
+    umock_c_reset_all_calls();
+
+    // act
+    result = amqpvalue_are_equal(value1, value2);
+
+    // assert
+    ASSERT_IS_FALSE(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_destroy(value1);
+    amqpvalue_destroy(value2);
+    amqpvalue_destroy(null_value);
+}
+
+/* Tests_SRS_AMQPVALUE_01_231: [- array: compare array item count and each element.] */
+TEST_FUNCTION(for_2_arrays_one_empty_and_one_with_a_value_amqpvalue_are_equal_returns_false)
+{
+    // arrange
+    bool result;
+    AMQP_VALUE value1 = amqpvalue_create_array();
+    AMQP_VALUE value2 = amqpvalue_create_array();
+    AMQP_VALUE null_value = amqpvalue_create_null();
+    (void)amqpvalue_add_array_item(value1, null_value);
+    umock_c_reset_all_calls();
+
+    // act
+    result = amqpvalue_are_equal(value1, value2);
+
+    // assert
+    ASSERT_IS_FALSE(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_destroy(value1);
+    amqpvalue_destroy(value2);
+    amqpvalue_destroy(null_value);
+}
+
+/* Tests_SRS_AMQPVALUE_01_206: [amqpvalue_are_equal shall return true if the contents of value1 and value2 are equal.] */
+/* Tests_SRS_AMQPVALUE_01_231: [- array: compare array item count and each element.] */
+TEST_FUNCTION(for_2_arrays_with_one_identical_int_value_amqpvalue_are_equal_returns_true)
+{
+    // arrange
+    bool result;
+    AMQP_VALUE value1 = amqpvalue_create_array();
+    AMQP_VALUE value2 = amqpvalue_create_array();
+    AMQP_VALUE int_value = amqpvalue_create_int(42);
+    (void)amqpvalue_add_array_item(value1, int_value);
+    (void)amqpvalue_add_array_item(value2, int_value);
+    umock_c_reset_all_calls();
+
+    // act
+    result = amqpvalue_are_equal(value1, value2);
+
+    // assert
+    ASSERT_IS_TRUE(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_destroy(value1);
+    amqpvalue_destroy(value2);
+    amqpvalue_destroy(int_value);
+}
+
+/* Tests_SRS_AMQPVALUE_01_231: [- array: compare array item count and each element.] */
+TEST_FUNCTION(for_2_arrays_with_2_different_int_values_amqpvalue_are_equal_returns_false)
+{
+    // arrange
+    bool result;
+    AMQP_VALUE value1 = amqpvalue_create_array();
+    AMQP_VALUE value2 = amqpvalue_create_array();
+    AMQP_VALUE int_value1 = amqpvalue_create_int(42);
+    AMQP_VALUE int_value2 = amqpvalue_create_int(43);
+    (void)amqpvalue_add_array_item(value1, int_value1);
+    (void)amqpvalue_add_array_item(value2, int_value2);
+    umock_c_reset_all_calls();
+
+    // act
+    result = amqpvalue_are_equal(value1, value2);
+
+    // assert
+    ASSERT_IS_FALSE(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_destroy(value1);
+    amqpvalue_destroy(value2);
+    amqpvalue_destroy(int_value1);
+    amqpvalue_destroy(int_value2);
+}
+
+/* Tests_SRS_AMQPVALUE_01_231: [- array: compare array item count and each element.] */
+TEST_FUNCTION(for_2_arrays_with_different_int_values_at_index_1_amqpvalue_are_equal_returns_false)
+{
+    // arrange
+    bool result;
+    AMQP_VALUE value1 = amqpvalue_create_array();
+    AMQP_VALUE value2 = amqpvalue_create_array();
+    AMQP_VALUE int_value1 = amqpvalue_create_int(42);
+    AMQP_VALUE int_value2 = amqpvalue_create_int(43);
+    (void)amqpvalue_add_array_item(value1, int_value1);
+    (void)amqpvalue_add_array_item(value2, int_value1);
+    (void)amqpvalue_add_array_item(value1, int_value1);
+    (void)amqpvalue_add_array_item(value2, int_value2);
+    umock_c_reset_all_calls();
+
+    // act
+    result = amqpvalue_are_equal(value1, value2);
+
+    // assert
+    ASSERT_IS_FALSE(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_destroy(value1);
+    amqpvalue_destroy(value2);
+    amqpvalue_destroy(int_value1);
+    amqpvalue_destroy(int_value2);
+}
+
+/* Tests_SRS_AMQPVALUE_01_206: [amqpvalue_are_equal shall return true if the contents of value1 and value2 are equal.] */
+/* Tests_SRS_AMQPVALUE_01_232: [Nesting shall be considered in comparison.] */
+TEST_FUNCTION(for_2_arrays_each_with_one_empty_array_amqpvalue_are_equal_returns_true)
+{
+    // arrange
+    bool result;
+    AMQP_VALUE value1 = amqpvalue_create_array();
+    AMQP_VALUE value2 = amqpvalue_create_array();
+    AMQP_VALUE inner_array1 = amqpvalue_create_array();
+    AMQP_VALUE inner_array2 = amqpvalue_create_array();
+    (void)amqpvalue_add_array_item(value1, inner_array1);
+    (void)amqpvalue_add_array_item(value2, inner_array2);
+    umock_c_reset_all_calls();
+
+    // act
+    result = amqpvalue_are_equal(value1, value2);
+
+    // assert
+    ASSERT_IS_TRUE(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_destroy(value1);
+    amqpvalue_destroy(value2);
+    amqpvalue_destroy(inner_array1);
+    amqpvalue_destroy(inner_array2);
+}
+
+/* Tests_SRS_AMQPVALUE_01_232: [Nesting shall be considered in comparison.] */
+TEST_FUNCTION(when_inner_arrays_have_different_item_count_amqpvalue_are_equal_returns_false)
+{
+    // arrange
+    bool result;
+    AMQP_VALUE value1 = amqpvalue_create_array();
+    AMQP_VALUE value2 = amqpvalue_create_array();
+    AMQP_VALUE inner_array1 = amqpvalue_create_array();
+    AMQP_VALUE inner_array2 = amqpvalue_create_array();
+    AMQP_VALUE null_value = amqpvalue_create_null();
+    (void)amqpvalue_add_array_item(inner_array1, null_value);
+    (void)amqpvalue_add_array_item(value1, inner_array1);
+    (void)amqpvalue_add_array_item(value2, inner_array2);
+    umock_c_reset_all_calls();
+
+    // act
+    result = amqpvalue_are_equal(value1, value2);
+
+    // assert
+    ASSERT_IS_FALSE(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_destroy(value1);
+    amqpvalue_destroy(value2);
+    amqpvalue_destroy(inner_array1);
+    amqpvalue_destroy(inner_array2);
+    amqpvalue_destroy(null_value);
+}
+
+/* Tests_SRS_AMQPVALUE_01_206: [amqpvalue_are_equal shall return true if the contents of value1 and value2 are equal.] */
+/* Tests_SRS_AMQPVALUE_01_232: [Nesting shall be considered in comparison.] */
+TEST_FUNCTION(when_inner_arrays_have_each_1_item_count_amqpvalue_are_equal_returns_true)
+{
+    // arrange
+    bool result;
+    AMQP_VALUE value1 = amqpvalue_create_array();
+    AMQP_VALUE value2 = amqpvalue_create_array();
+    AMQP_VALUE inner_array1 = amqpvalue_create_array();
+    AMQP_VALUE inner_array2 = amqpvalue_create_array();
+    AMQP_VALUE null_value = amqpvalue_create_null();
+    (void)amqpvalue_add_array_item(inner_array1, null_value);
+    (void)amqpvalue_add_array_item(inner_array2, null_value);
+    (void)amqpvalue_add_array_item(value1, inner_array1);
+    (void)amqpvalue_add_array_item(value2, inner_array2);
+    umock_c_reset_all_calls();
+
+    // act
+    result = amqpvalue_are_equal(value1, value2);
+
+    // assert
+    ASSERT_IS_TRUE(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_destroy(value1);
+    amqpvalue_destroy(value2);
+    amqpvalue_destroy(inner_array1);
+    amqpvalue_destroy(inner_array2);
+    amqpvalue_destroy(null_value);
+}
+
+/* Tests_SRS_AMQPVALUE_01_232: [Nesting shall be considered in comparison.] */
+TEST_FUNCTION(when_inner_arrays_have_each_1_item_count_but_items_are_different_amqpvalue_are_equal_returns_false)
+{
+    // arrange
+    bool result;
+    AMQP_VALUE value1 = amqpvalue_create_array();
+    AMQP_VALUE value2 = amqpvalue_create_array();
+    AMQP_VALUE inner_array1 = amqpvalue_create_array();
+    AMQP_VALUE inner_array2 = amqpvalue_create_array();
+    AMQP_VALUE inner_item1 = amqpvalue_create_uint(42);
+    AMQP_VALUE inner_item2 = amqpvalue_create_uint(43);
+    (void)amqpvalue_add_array_item(inner_array1, inner_item1);
+    (void)amqpvalue_add_array_item(inner_array2, inner_item2);
+    (void)amqpvalue_add_array_item(value1, inner_array1);
+    (void)amqpvalue_add_array_item(value2, inner_array2);
+    umock_c_reset_all_calls();
+
+    // act
+    result = amqpvalue_are_equal(value1, value2);
+
+    // assert
+    ASSERT_IS_FALSE(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_destroy(value1);
+    amqpvalue_destroy(value2);
+    amqpvalue_destroy(inner_array1);
+    amqpvalue_destroy(inner_array2);
+    amqpvalue_destroy(inner_item1);
+    amqpvalue_destroy(inner_item2);
+}
+
+
 /* amqpvalue_clone */
 
 /* Tests_SRS_AMQPVALUE_01_402: [ If `value` is NULL, `amqpvalue_clone` shall return NULL. ]*/
@@ -7129,6 +7773,82 @@ TEST_FUNCTION(amqpvalue_clone_clones_a_map_with_2_items)
     amqpvalue_destroy(value2);
     amqpvalue_destroy(result);
 }
+
+/* Tests_SRS_AMQPVALUE_01_235: [amqpvalue_clone shall clone the value passed as argument and return a new non-NULL handle to the cloned AMQP value.] */
+/* Tests_SRS_AMQPVALUE_01_258: [array] */
+TEST_FUNCTION(amqpvalue_clone_clones_an_empty_array)
+{
+    // arrange
+    AMQP_VALUE result;
+    AMQP_VALUE source = amqpvalue_create_array();
+    umock_c_reset_all_calls();
+
+    // act
+    result = amqpvalue_clone(source);
+
+    // assert
+    ASSERT_IS_NOT_NULL(result);
+    ASSERT_IS_TRUE(amqpvalue_are_equal(result, source));
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_destroy(source);
+    amqpvalue_destroy(result);
+}
+
+/* Tests_SRS_AMQPVALUE_01_235: [amqpvalue_clone shall clone the value passed as argument and return a new non-NULL handle to the cloned AMQP value.] */
+/* Tests_SRS_AMQPVALUE_01_258: [array] */
+TEST_FUNCTION(amqpvalue_clone_clones_an_array_with_one_item)
+{
+    // arrange
+    AMQP_VALUE result;
+    AMQP_VALUE item = amqpvalue_create_uint(42);
+    AMQP_VALUE source = amqpvalue_create_array();
+    (void)amqpvalue_add_array_item(source, item);
+    umock_c_reset_all_calls();
+
+    // act
+    result = amqpvalue_clone(source);
+
+    // assert
+    ASSERT_IS_NOT_NULL(result);
+    ASSERT_IS_TRUE(amqpvalue_are_equal(result, source));
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_destroy(source);
+    amqpvalue_destroy(item);
+    amqpvalue_destroy(result);
+}
+
+/* Tests_SRS_AMQPVALUE_01_235: [amqpvalue_clone shall clone the value passed as argument and return a new non-NULL handle to the cloned AMQP value.] */
+/* Tests_SRS_AMQPVALUE_01_258: [array] */
+TEST_FUNCTION(amqpvalue_clone_clones_an_array_with_2_items)
+{
+    // arrange
+    AMQP_VALUE result;
+    AMQP_VALUE item1 = amqpvalue_create_uint(42);
+    AMQP_VALUE item2 = amqpvalue_create_uint(43);
+    AMQP_VALUE source = amqpvalue_create_array();
+    (void)amqpvalue_add_array_item(source, item1);
+    (void)amqpvalue_add_array_item(source, item2);
+    umock_c_reset_all_calls();
+
+    // act
+    result = amqpvalue_clone(source);
+
+    // assert
+    ASSERT_IS_NOT_NULL(result);
+    ASSERT_IS_TRUE(amqpvalue_are_equal(result, source));
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_destroy(source);
+    amqpvalue_destroy(item1);
+    amqpvalue_destroy(item2);
+    amqpvalue_destroy(result);
+}
+
 
 /* amqpvalue_encode */
 
@@ -8496,6 +9216,191 @@ TEST_FUNCTION(when_encoding_would_result_in_more_than_the_max_size_for_a_map_amq
 }
 #endif
 
+/* Tests_SRS_AMQPVALUE_01_398: [<encoding name="array8" code="0xe0" category="array" width="1" label="up to 2^8 - 1 array elements with total size less than 2^8 octets"/>] */
+TEST_FUNCTION(amqpvalue_encode_array_empty_array_succeeds)
+{
+    AMQP_VALUE source = amqpvalue_create_array();
+    unsigned char expected_bytes[] = { 0xE0, 0x01, 0x00 };
+    stringify_bytes(expected_bytes, sizeof(expected_bytes), expected_stringified);
+    test_amqpvalue_encode(source, expected_stringified);
+}
+
+/* Tests_SRS_AMQPVALUE_01_398: [<encoding name="array8" code="0xe0" category="array" width="1" label="up to 2^8 - 1 array elements with total size less than 2^8 octets"/>] */
+TEST_FUNCTION(amqpvalue_encode_array_with_one_null_item_succeeds)
+{
+    AMQP_VALUE source = amqpvalue_create_array();
+    AMQP_VALUE item = amqpvalue_create_null();
+    amqpvalue_add_array_item(source, item);
+    amqpvalue_destroy(item);
+    test_amqpvalue_encode(source, "[0xE0,0x02,0x01,0x40]");
+}
+
+/* Tests_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+TEST_FUNCTION(when_encoder_output_fails_amqpvalue_encode_array_with_one_null_item_fails)
+{
+    AMQP_VALUE source = amqpvalue_create_array();
+    AMQP_VALUE item = amqpvalue_create_null();
+    amqpvalue_add_array_item(source, item);
+    amqpvalue_destroy(item);
+    test_amqpvalue_encode_failure(source);
+}
+
+/* Tests_SRS_AMQPVALUE_01_398: [<encoding name="array8" code="0xe0" category="array" width="1" label="up to 2^8 - 1 array elements with total size less than 2^8 octets"/>] */
+TEST_FUNCTION(amqpvalue_encode_array_with_2_null_item_succeeds)
+{
+    AMQP_VALUE source = amqpvalue_create_array();
+    AMQP_VALUE item = amqpvalue_create_null();
+    amqpvalue_add_array_item(source, item);
+    amqpvalue_add_array_item(source, item);
+    amqpvalue_destroy(item);
+    test_amqpvalue_encode(source, "[0xE0,0x03,0x02,0x40,0x40]");
+}
+
+/* Tests_SRS_AMQPVALUE_01_398: [<encoding name="array8" code="0xe0" category="array" width="1" label="up to 2^8 - 1 array elements with total size less than 2^8 octets"/>] */
+TEST_FUNCTION(amqpvalue_encode_array_with_254_null_items_succeeds)
+{
+    AMQP_VALUE source = amqpvalue_create_array();
+    AMQP_VALUE item = amqpvalue_create_null();
+    unsigned char expected_bytes[257] = { 0xE0, 0xFF, 0xFE };
+    int i;
+    for (i = 0; i < 254; i++)
+    {
+        amqpvalue_add_array_item(source, item);
+    }
+    amqpvalue_destroy(item);
+    for (i = 0; i < 254; i++)
+    {
+        expected_bytes[i + 3] = 0x40;
+    }
+    stringify_bytes(expected_bytes, sizeof(expected_bytes), expected_stringified);
+    test_amqpvalue_encode(source, expected_stringified);
+}
+
+/* Tests_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+TEST_FUNCTION(when_encoder_output_fails_then_amqpvalue_encode_array_with_255_null_items_fails)
+{
+    AMQP_VALUE source = amqpvalue_create_array();
+    AMQP_VALUE item = amqpvalue_create_null();
+    int i;
+    for (i = 0; i < 255; i++)
+    {
+        amqpvalue_add_array_item(source, item);
+    }
+    amqpvalue_destroy(item);
+    test_amqpvalue_encode_failure(source);
+}
+
+/* Tests_SRS_AMQPVALUE_01_398: [<encoding name="array8" code="0xe0" category="array" width="1" label="up to 2^8 - 1 array elements with total size less than 2^8 octets"/>] */
+TEST_FUNCTION(amqpvalue_encode_array_1_item_with_254_bytes_succeeds)
+{
+    AMQP_VALUE source = amqpvalue_create_array();
+    unsigned char bytes[252] = { 0 };
+    unsigned char expected_bytes[257] = { 0xE0, 0xFF, 0x01, 0xA0, 0xFC };
+    int i;
+    amqp_binary binary;
+    AMQP_VALUE item;
+    binary.bytes = &bytes;
+    binary.length = sizeof(bytes);
+    item = amqpvalue_create_binary(binary);
+    amqpvalue_add_array_item(source, item);
+    amqpvalue_destroy(item);
+    for (i = 0; i < 252; i++)
+    {
+        expected_bytes[i + 5] = 0;
+    }
+    stringify_bytes(expected_bytes, sizeof(expected_bytes), expected_stringified);
+    test_amqpvalue_encode(source, expected_stringified);
+}
+
+/* Tests_SRS_AMQPVALUE_01_399: [<encoding name="array32" code="0xf0" category="array" width="4" label="up to 2^32 - 1 array elements with total size less than 2^32 octets"/>] */
+TEST_FUNCTION(amqpvalue_encode_array_1_item_with_255_bytes_succeeds)
+{
+    AMQP_VALUE source = amqpvalue_create_array();
+    unsigned char bytes[253] = { 0 };
+    unsigned char expected_bytes[253 + 11] = { 0xF0, 0x00, 0x00, 0x01, 0x03, 0x00, 0x00, 0x00, 0x01, 0xA0, 0xFD };
+    int i;
+    amqp_binary binary;
+    AMQP_VALUE item;
+    binary.bytes = &bytes;
+    binary.length = sizeof(bytes);
+    item = amqpvalue_create_binary(binary);
+    amqpvalue_add_array_item(source, item);
+    amqpvalue_destroy(item);
+    for (i = 0; i < 253; i++)
+    {
+        expected_bytes[i + 11] = 0;
+    }
+    stringify_bytes(expected_bytes, sizeof(expected_bytes), expected_stringified);
+    test_amqpvalue_encode(source, expected_stringified);
+}
+
+/* Tests_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+TEST_FUNCTION(when_encoder_output_fails_amqpvalue_encode_array_1_item_with_256_bytes_fails)
+{
+    AMQP_VALUE source = amqpvalue_create_array();
+    unsigned char bytes[254] = { 0 };
+    amqp_binary binary;
+    AMQP_VALUE item;
+    binary.bytes = &bytes;
+    binary.length = sizeof(bytes);
+    item = amqpvalue_create_binary(binary);
+    amqpvalue_add_array_item(source, item);
+    amqpvalue_destroy(item);
+    test_amqpvalue_encode_failure(source);
+}
+
+/* Tests_SRS_AMQPVALUE_01_399: [<encoding name="array32" code="0xf0" category="array" width="4" label="up to 2^32 - 1 array elements with total size less than 2^32 octets"/>] */
+TEST_FUNCTION(amqpvalue_encode_array_255_null_items_succeeds)
+{
+    AMQP_VALUE source = amqpvalue_create_array();
+    AMQP_VALUE item = amqpvalue_create_null();
+    unsigned char expected_bytes[255 + 9] = { 0xF0, 0x00, 0x00, 0x01, 0x03, 0x00, 0x00, 0x00, 0xFF };
+    int i;
+    for (i = 0; i < 255; i++)
+    {
+        amqpvalue_add_array_item(source, item);
+    }
+    amqpvalue_destroy(item);
+    for (i = 0; i < 255; i++)
+    {
+        expected_bytes[i + 9] = 0x40;
+    }
+    stringify_bytes(expected_bytes, sizeof(expected_bytes), expected_stringified);
+    test_amqpvalue_encode(source, expected_stringified);
+}
+
+/* Tests_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+TEST_FUNCTION(when_encoder_output_fails_amqpvalue_encode_array_256_null_items_fails)
+{
+    AMQP_VALUE source = amqpvalue_create_array();
+    AMQP_VALUE item = amqpvalue_create_null();
+    int i;
+    for (i = 0; i < 256; i++)
+    {
+        amqpvalue_add_array_item(source, item);
+    }
+    amqpvalue_destroy(item);
+    test_amqpvalue_encode_failure(source);
+}
+
+/* Tests_SRS_AMQPVALUE_01_398: [<encoding name="array8" code="0xe0" category="array" width="1" label="up to 2^8 - 1 array elements with total size less than 2^8 octets"/>] */
+TEST_FUNCTION(amqpvalue_encode_array_with_2_different_items_fails)
+{
+    AMQP_VALUE source = amqpvalue_create_array();
+    unsigned char bytes[] = { 0x42 };
+    amqp_binary binary;
+    AMQP_VALUE item;
+    binary.bytes = &bytes;
+    binary.length = sizeof(bytes);
+    item = amqpvalue_create_binary(binary);
+    amqpvalue_add_array_item(source, item);
+    amqpvalue_destroy(item);
+    item = amqpvalue_create_null();
+    amqpvalue_add_array_item(source, item);
+    amqpvalue_destroy(item);
+    test_amqpvalue_encode_failure(source);
+}
+
 /* amqpvalue_get_encoded_size */
 
 /* Tests_SRS_AMQPVALUE_01_309: [If any argument is NULL, amqpvalue_get_encoded_size shall return a non-zero value.] */
@@ -9048,6 +9953,84 @@ TEST_FUNCTION(amqpvalue_get_encoded_size_with_map_value_with_1_key_and_value_256
     test_amqpvalue_get_encoded_size(source, 265);
 }
 
+/* Tests_SRS_AMQPVALUE_01_308: [amqpvalue_get_encoded_size shall fill in the encoded_size argument the number of bytes required to encode the given AMQP value.] */
+/* Tests_SRS_AMQPVALUE_01_398: [<encoding name="array8" code="0xe0" category="array" width="1" label="up to 2^8 - 1 array elements with total size less than 2^8 octets"/>] */
+TEST_FUNCTION(amqpvalue_get_encoded_size_with_empty_array_value_succeeds)
+{
+    // arrange
+    AMQP_VALUE source = amqpvalue_create_array();
+    test_amqpvalue_get_encoded_size(source, 3);
+}
+
+/* Tests_SRS_AMQPVALUE_01_308: [amqpvalue_get_encoded_size shall fill in the encoded_size argument the number of bytes required to encode the given AMQP value.] */
+/* Tests_SRS_AMQPVALUE_01_398: [<encoding name="array8" code="0xe0" category="array" width="1" label="up to 2^8 - 1 array elements with total size less than 2^8 octets"/>] */
+TEST_FUNCTION(amqpvalue_get_encoded_size_with_array_value_with_1_item_succeeds)
+{
+    // arrange
+    AMQP_VALUE source = amqpvalue_create_array();
+    AMQP_VALUE item = amqpvalue_create_null();
+    (void)amqpvalue_add_array_item(source, item);
+    amqpvalue_destroy(item);
+    test_amqpvalue_get_encoded_size(source, 4);
+}
+
+/* Tests_SRS_AMQPVALUE_01_308: [amqpvalue_get_encoded_size shall fill in the encoded_size argument the number of bytes required to encode the given AMQP value.] */
+/* Tests_SRS_AMQPVALUE_01_398: [<encoding name="array8" code="0xe0" category="array" width="1" label="up to 2^8 - 1 array elements with total size less than 2^8 octets"/>] */
+TEST_FUNCTION(amqpvalue_get_encoded_size_with_array_value_with_2_items_succeeds)
+{
+    // arrange
+    AMQP_VALUE source = amqpvalue_create_array();
+    AMQP_VALUE item = amqpvalue_create_null();
+    (void)amqpvalue_add_array_item(source, item);
+    (void)amqpvalue_add_array_item(source, item);
+    amqpvalue_destroy(item);
+    test_amqpvalue_get_encoded_size(source, 5);
+}
+
+/* Tests_SRS_AMQPVALUE_01_308: [amqpvalue_get_encoded_size shall fill in the encoded_size argument the number of bytes required to encode the given AMQP value.] */
+/* Tests_SRS_AMQPVALUE_01_398: [<encoding name="array8" code="0xe0" category="array" width="1" label="up to 2^8 - 1 array elements with total size less than 2^8 octets"/>] */
+TEST_FUNCTION(amqpvalue_get_encoded_size_with_array_value_with_1_string_item_with_5_chars_succeeds)
+{
+    // arrange
+    AMQP_VALUE source = amqpvalue_create_array();
+    AMQP_VALUE item = amqpvalue_create_string("fluff");
+    (void)amqpvalue_add_array_item(source, item);
+    amqpvalue_destroy(item);
+    test_amqpvalue_get_encoded_size(source, 10);
+}
+
+/* Tests_SRS_AMQPVALUE_01_308: [amqpvalue_get_encoded_size shall fill in the encoded_size argument the number of bytes required to encode the given AMQP value.] */
+/* Tests_SRS_AMQPVALUE_01_398: [<encoding name="array8" code="0xe0" category="array" width="1" label="up to 2^8 - 1 array elements with total size less than 2^8 octets"/>] */
+TEST_FUNCTION(amqpvalue_get_encoded_size_with_array_value_with_254_null_items_succeeds)
+{
+    // arrange
+    uint32_t i;
+    AMQP_VALUE source = amqpvalue_create_array();
+    AMQP_VALUE item = amqpvalue_create_null();
+    for (i = 0; i < 254; i++)
+    {
+        (void)amqpvalue_add_array_item(source, item);
+    }
+    amqpvalue_destroy(item);
+    test_amqpvalue_get_encoded_size(source, 257);
+}
+
+/* Tests_SRS_AMQPVALUE_01_308: [amqpvalue_get_encoded_size shall fill in the encoded_size argument the number of bytes required to encode the given AMQP value.] */
+/* Tests_SRS_AMQPVALUE_01_399: [<encoding name="array32" code="0xf0" category="array" width="4" label="up to 2^32 - 1 array elements with total size less than 2^32 octets"/>] */
+TEST_FUNCTION(amqpvalue_get_encoded_size_with_array_value_with_255_null_items_succeeds)
+{
+    // arrange
+    uint32_t i;
+    AMQP_VALUE source = amqpvalue_create_array();
+    AMQP_VALUE item = amqpvalue_create_null();
+    for (i = 0; i < 255; i++)
+    {
+        (void)amqpvalue_add_array_item(source, item);
+    }
+    amqpvalue_destroy(item);
+    test_amqpvalue_get_encoded_size(source, 264);
+}
+
 /* amqpvalue_destroy */
 
 /* Tests_SRS_AMQPVALUE_01_315: [If the value argument is NULL, amqpvalue_destroy shall do nothing.] */
@@ -9467,6 +10450,67 @@ TEST_FUNCTION(amqpvalue_destroy_frees_the_memory_for_map_value_with_2_key_value_
     // cleanup
     amqpvalue_destroy(key1);
     amqpvalue_destroy(key2);
+    amqpvalue_destroy(null_value);
+}
+
+/* Tests_SRS_AMQPVALUE_01_314: [amqpvalue_destroy shall free all resources allocated by any of the amqpvalue_create_xxx functions or amqpvalue_clone.] */
+TEST_FUNCTION(amqpvalue_destroy_frees_the_memory_for_empty_array_value)
+{
+    // arrange
+    AMQP_VALUE value = amqpvalue_create_array();
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+
+    // act
+    amqpvalue_destroy(value);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+}
+
+/* Tests_SRS_AMQPVALUE_01_314: [amqpvalue_destroy shall free all resources allocated by any of the amqpvalue_create_xxx functions or amqpvalue_clone.] */
+TEST_FUNCTION(amqpvalue_destroy_frees_the_memory_for_array_value_with_1_null_item)
+{
+    // arrange
+    AMQP_VALUE value = amqpvalue_create_array();
+    AMQP_VALUE null_value = amqpvalue_create_null();
+    (void)amqpvalue_add_array_item(value, null_value);
+    amqpvalue_destroy(null_value);
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+
+    // act
+    amqpvalue_destroy(value);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+}
+
+/* Tests_SRS_AMQPVALUE_01_314: [amqpvalue_destroy shall free all resources allocated by any of the amqpvalue_create_xxx functions or amqpvalue_clone.] */
+TEST_FUNCTION(amqpvalue_destroy_frees_the_memory_for_array_value_with_2_null_items)
+{
+    // arrange
+    AMQP_VALUE value = amqpvalue_create_array();
+    AMQP_VALUE null_value = amqpvalue_create_null();
+    (void)amqpvalue_add_array_item(value, null_value);
+    (void)amqpvalue_add_array_item(value, null_value);
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+
+    // act
+    amqpvalue_destroy(value);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
     amqpvalue_destroy(null_value);
 }
 
@@ -10367,6 +11411,143 @@ TEST_FUNCTION(amqpvalue_destroy_frees_the_memory_for_map_cloned_value_with_2_key
 
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+
+    // act
+    amqpvalue_destroy(cloned_value);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+}
+
+/* Tests_SRS_AMQPVALUE_01_314: [amqpvalue_destroy shall free all resources allocated by any of the amqpvalue_create_xxx functions or amqpvalue_clone.] */
+/* Tests_SRS_AMQPVALUE_01_403: [ Cloning should be done by reference counting. ]*/
+TEST_FUNCTION(amqpvalue_destroy_frees_the_memory_for_empty_array_cloned_value)
+{
+    // arrange
+    AMQP_VALUE value = amqpvalue_create_array();
+    AMQP_VALUE cloned_value = amqpvalue_clone(value);
+    umock_c_reset_all_calls();
+
+    // act
+    amqpvalue_destroy(cloned_value);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_destroy(value);
+}
+
+/* Tests_SRS_AMQPVALUE_01_314: [amqpvalue_destroy shall free all resources allocated by any of the amqpvalue_create_xxx functions or amqpvalue_clone.] */
+/* Tests_SRS_AMQPVALUE_01_403: [ Cloning should be done by reference counting. ]*/
+TEST_FUNCTION(amqpvalue_destroy_frees_the_memory_for_empty_array_cloned_value_last_Reference)
+{
+    // arrange
+    AMQP_VALUE value = amqpvalue_create_array();
+    AMQP_VALUE cloned_value = amqpvalue_clone(value);
+    amqpvalue_destroy(value);
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+
+    // act
+    amqpvalue_destroy(cloned_value);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+}
+
+/* Tests_SRS_AMQPVALUE_01_314: [amqpvalue_destroy shall free all resources allocated by any of the amqpvalue_create_xxx functions or amqpvalue_clone.] */
+/* Tests_SRS_AMQPVALUE_01_403: [ Cloning should be done by reference counting. ]*/
+TEST_FUNCTION(amqpvalue_destroy_frees_the_memory_for_array_cloned_value_with_1_null_item)
+{
+    // arrange
+    AMQP_VALUE value = amqpvalue_create_array();
+    AMQP_VALUE null_value = amqpvalue_create_null();
+    AMQP_VALUE cloned_value;
+    (void)amqpvalue_add_array_item(value, null_value);
+    amqpvalue_destroy(null_value);
+    cloned_value = amqpvalue_clone(value);
+    umock_c_reset_all_calls();
+
+    // act
+    amqpvalue_destroy(cloned_value);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_destroy(value);
+}
+
+/* Tests_SRS_AMQPVALUE_01_314: [amqpvalue_destroy shall free all resources allocated by any of the amqpvalue_create_xxx functions or amqpvalue_clone.] */
+/* Tests_SRS_AMQPVALUE_01_403: [ Cloning should be done by reference counting. ]*/
+TEST_FUNCTION(amqpvalue_destroy_frees_the_memory_for_array_cloned_value_with_1_null_item_last_reference)
+{
+    // arrange
+    AMQP_VALUE value = amqpvalue_create_array();
+    AMQP_VALUE null_value = amqpvalue_create_null();
+    AMQP_VALUE cloned_value;
+    (void)amqpvalue_add_array_item(value, null_value);
+    amqpvalue_destroy(null_value);
+    cloned_value = amqpvalue_clone(value);
+    amqpvalue_destroy(value);
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+
+    // act
+    amqpvalue_destroy(cloned_value);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+}
+
+/* Tests_SRS_AMQPVALUE_01_314: [amqpvalue_destroy shall free all resources allocated by any of the amqpvalue_create_xxx functions or amqpvalue_clone.] */
+/* Tests_SRS_AMQPVALUE_01_403: [ Cloning should be done by reference counting. ]*/
+TEST_FUNCTION(amqpvalue_destroy_frees_the_memory_for_array_cloned_value_with_2_null_items)
+{
+    // arrange
+    AMQP_VALUE value = amqpvalue_create_array();
+    AMQP_VALUE null_value = amqpvalue_create_null();
+    AMQP_VALUE cloned_value;
+    (void)amqpvalue_add_array_item(value, null_value);
+    (void)amqpvalue_add_array_item(value, null_value);
+    amqpvalue_destroy(null_value);
+    cloned_value = amqpvalue_clone(value);
+    umock_c_reset_all_calls();
+
+    // act
+    amqpvalue_destroy(cloned_value);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_destroy(value);
+}
+
+/* Tests_SRS_AMQPVALUE_01_314: [amqpvalue_destroy shall free all resources allocated by any of the amqpvalue_create_xxx functions or amqpvalue_clone.] */
+/* Tests_SRS_AMQPVALUE_01_403: [ Cloning should be done by reference counting. ]*/
+TEST_FUNCTION(amqpvalue_destroy_frees_the_memory_for_array_cloned_value_with_2_null_items_last_reference)
+{
+    // arrange
+    AMQP_VALUE value = amqpvalue_create_array();
+    AMQP_VALUE null_value = amqpvalue_create_null();
+    AMQP_VALUE cloned_value;
+    (void)amqpvalue_add_array_item(value, null_value);
+    (void)amqpvalue_add_array_item(value, null_value);
+    amqpvalue_destroy(null_value);
+    cloned_value = amqpvalue_clone(value);
+    amqpvalue_destroy(value);
+    umock_c_reset_all_calls();
+
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
@@ -14761,6 +15942,363 @@ TEST_FUNCTION(amqpvalue_decode_list_0xD0_256_null_items_not_enough_bytes_does_no
     // assert
     ASSERT_ARE_EQUAL(int, 0, result);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_decoder_destroy(amqpvalue_decoder);
+}
+
+/* Tests_SRS_AMQPVALUE_01_397: [1.6.24 array A sequence of values of a single type.] */
+/* Tests_SRS_AMQPVALUE_01_398: [<encoding name="array8" code="0xe0" category="array" width="1" label="up to 2^8 - 1 array elements with total size less than 2^8 octets"/>] */
+TEST_FUNCTION(amqpvalue_decode_array_empty_array_succeeds)
+{
+    // arrange
+    int result;
+    AMQPVALUE_DECODER_HANDLE amqpvalue_decoder = amqpvalue_decoder_create(value_decoded_callback, test_context);
+    unsigned char bytes[] = { 0xE0, 0x01, 0x00 };
+    uint32_t item_count;
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG));
+
+    // act
+    result = amqpvalue_decode_bytes(amqpvalue_decoder, bytes, sizeof(bytes));
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_EQUAL(int, (int)AMQP_TYPE_ARRAY, (int)amqpvalue_get_type(decoded_values[0]));
+    (void)amqpvalue_get_array_item_count(decoded_values[0], &item_count);
+    ASSERT_ARE_EQUAL(uint32_t, 0, item_count);
+
+    // cleanup
+    amqpvalue_decoder_destroy(amqpvalue_decoder);
+}
+
+/* Tests_SRS_AMQPVALUE_01_397: [1.6.24 array A sequence of values of a single type.] */
+/* Tests_SRS_AMQPVALUE_01_398: [<encoding name="array8" code="0xe0" category="array" width="1" label="up to 2^8 - 1 array elements with total size less than 2^8 octets"/>] */
+TEST_FUNCTION(amqpvalue_decode_array_0xE0_zero_items_succeeds)
+{
+    // arrange
+    int result;
+    AMQPVALUE_DECODER_HANDLE amqpvalue_decoder = amqpvalue_decoder_create(value_decoded_callback, test_context);
+    unsigned char bytes[] = { 0xE0, 0x00, 0x00 };
+    uint32_t item_count;
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG));
+
+    // act
+    result = amqpvalue_decode_bytes(amqpvalue_decoder, bytes, sizeof(bytes));
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_EQUAL(int, (int)AMQP_TYPE_ARRAY, (int)amqpvalue_get_type(decoded_values[0]));
+    (void)amqpvalue_get_array_item_count(decoded_values[0], &item_count);
+    ASSERT_ARE_EQUAL(uint32_t, 0, item_count);
+
+    // cleanup
+    amqpvalue_decoder_destroy(amqpvalue_decoder);
+}
+
+/* Tests_SRS_AMQPVALUE_01_397: [1.6.24 array A sequence of values of a single type.] */
+/* Tests_SRS_AMQPVALUE_01_398: [<encoding name="array8" code="0xe0" category="array" width="1" label="up to 2^8 - 1 array elements with total size less than 2^8 octets"/>] */
+TEST_FUNCTION(amqpvalue_decode_array_0xE0_1_null_item_succeeds)
+{
+    // arrange
+    int result;
+    AMQPVALUE_DECODER_HANDLE amqpvalue_decoder = amqpvalue_decoder_create(value_decoded_callback, test_context);
+    unsigned char bytes[] = { 0xE0, 0x01, 0x01, 0x40 };
+    uint32_t item_count;
+    AMQP_VALUE item1;
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG));
+
+    // act
+    result = amqpvalue_decode_bytes(amqpvalue_decoder, bytes, sizeof(bytes));
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_EQUAL(int, (int)AMQP_TYPE_ARRAY, (int)amqpvalue_get_type(decoded_values[0]));
+    (void)amqpvalue_get_array_item_count(decoded_values[0], &item_count);
+    item1 = amqpvalue_get_array_item(decoded_values[0], 0);
+    ASSERT_ARE_EQUAL(uint32_t, 1, item_count);
+    ASSERT_ARE_EQUAL(int, (int)AMQP_TYPE_NULL, (int)amqpvalue_get_type(item1));
+
+    // cleanup
+    amqpvalue_decoder_destroy(amqpvalue_decoder);
+    amqpvalue_destroy(item1);
+}
+
+/* Tests_SRS_AMQPVALUE_01_397: [1.6.24 array A sequence of values of a single type.] */
+/* Tests_SRS_AMQPVALUE_01_398: [<encoding name="array8" code="0xe0" category="array" width="1" label="up to 2^8 - 1 array elements with total size less than 2^8 octets"/>] */
+TEST_FUNCTION(amqpvalue_decode_array_0xE0_2_null_items_succeeds)
+{
+    // arrange
+    int result;
+    AMQPVALUE_DECODER_HANDLE amqpvalue_decoder = amqpvalue_decoder_create(value_decoded_callback, test_context);
+    unsigned char bytes[] = { 0xE0, 0x03, 0x02, 0x40, 0x40 };
+    uint32_t item_count;
+    AMQP_VALUE item1;
+    AMQP_VALUE item2;
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG));
+
+    // act
+    result = amqpvalue_decode_bytes(amqpvalue_decoder, bytes, sizeof(bytes));
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_EQUAL(int, (int)AMQP_TYPE_ARRAY, (int)amqpvalue_get_type(decoded_values[0]));
+    (void)amqpvalue_get_array_item_count(decoded_values[0], &item_count);
+    ASSERT_ARE_EQUAL(uint32_t, 2, item_count);
+    item1 = amqpvalue_get_array_item(decoded_values[0], 0);
+    ASSERT_ARE_EQUAL(int, (int)AMQP_TYPE_NULL, (int)amqpvalue_get_type(item1));
+    item2 = amqpvalue_get_array_item(decoded_values[0], 1);
+    ASSERT_ARE_EQUAL(int, (int)AMQP_TYPE_NULL, (int)amqpvalue_get_type(item2));
+
+    // cleanup
+    amqpvalue_decoder_destroy(amqpvalue_decoder);
+    amqpvalue_destroy(item1);
+    amqpvalue_destroy(item2);
+}
+
+/* Tests_SRS_AMQPVALUE_01_397: [1.6.24 array A sequence of values of a single type.] */
+/* Tests_SRS_AMQPVALUE_01_398: [<encoding name="array8" code="0xe0" category="array" width="1" label="up to 2^8 - 1 array elements with total size less than 2^8 octets"/>] */
+TEST_FUNCTION(amqpvalue_decode_array_0xE0_255_null_items_succeeds)
+{
+    // arrange
+    int result;
+    AMQPVALUE_DECODER_HANDLE amqpvalue_decoder = amqpvalue_decoder_create(value_decoded_callback, test_context);
+    unsigned char bytes[3 + 255] = { 0xE0, 0xFF, 0xFF };
+    int i;
+    uint32_t item_count;
+    umock_c_reset_all_calls();
+    (void)memset(&bytes[3], 0x40, 255);
+
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG));
+
+    // act
+    result = amqpvalue_decode_bytes(amqpvalue_decoder, bytes, sizeof(bytes));
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_EQUAL(int, (int)AMQP_TYPE_ARRAY, (int)amqpvalue_get_type(decoded_values[0]));
+    (void)amqpvalue_get_array_item_count(decoded_values[0], &item_count);
+    ASSERT_ARE_EQUAL(uint32_t, 255, item_count);
+    for (i = 0; i < 255; i++)
+    {
+        AMQP_VALUE item = amqpvalue_get_array_item(decoded_values[0], 0);
+        ASSERT_ARE_EQUAL(int, (int)AMQP_TYPE_NULL, (int)amqpvalue_get_type(item));
+        amqpvalue_destroy(item);
+    }
+
+    // cleanup
+    amqpvalue_decoder_destroy(amqpvalue_decoder);
+}
+
+/* Tests_SRS_AMQPVALUE_01_397: [1.6.24 array A sequence of values of a single type.] */
+/* Tests_SRS_AMQPVALUE_01_399: [<encoding name="array32" code="0xf0" category="array" width="4" label="up to 2^32 - 1 array elements with total size less than 2^32 octets"/>] */
+TEST_FUNCTION(amqpvalue_decode_array_0xF0_zero_items_succeeds)
+{
+    // arrange
+    int result;
+    AMQPVALUE_DECODER_HANDLE amqpvalue_decoder = amqpvalue_decoder_create(value_decoded_callback, test_context);
+    unsigned char bytes[] = { 0xF0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+    uint32_t item_count;
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG));
+
+    // act
+    result = amqpvalue_decode_bytes(amqpvalue_decoder, bytes, sizeof(bytes));
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_EQUAL(int, (int)AMQP_TYPE_ARRAY, (int)amqpvalue_get_type(decoded_values[0]));
+    (void)amqpvalue_get_array_item_count(decoded_values[0], &item_count);
+    ASSERT_ARE_EQUAL(uint32_t, 0, item_count);
+
+    // cleanup
+    amqpvalue_decoder_destroy(amqpvalue_decoder);
+}
+
+/* Tests_SRS_AMQPVALUE_01_397: [1.6.24 array A sequence of values of a single type.] */
+/* Tests_SRS_AMQPVALUE_01_399: [<encoding name="array32" code="0xf0" category="array" width="4" label="up to 2^32 - 1 array elements with total size less than 2^32 octets"/>] */
+TEST_FUNCTION(amqpvalue_decode_array_0xF0_1_null_item_succeeds)
+{
+    // arrange
+    int result;
+    AMQPVALUE_DECODER_HANDLE amqpvalue_decoder = amqpvalue_decoder_create(value_decoded_callback, test_context);
+    unsigned char bytes[] = { 0xF0, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x40 };
+    uint32_t item_count;
+    AMQP_VALUE item;
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG));
+
+    // act
+    result = amqpvalue_decode_bytes(amqpvalue_decoder, bytes, sizeof(bytes));
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_EQUAL(int, (int)AMQP_TYPE_ARRAY, (int)amqpvalue_get_type(decoded_values[0]));
+    (void)amqpvalue_get_array_item_count(decoded_values[0], &item_count);
+    ASSERT_ARE_EQUAL(uint32_t, 1, item_count);
+    item = amqpvalue_get_array_item(decoded_values[0], 0);
+    ASSERT_ARE_EQUAL(int, (int)AMQP_TYPE_NULL, (int)amqpvalue_get_type(item));
+    amqpvalue_destroy(item);
+
+    // cleanup
+    amqpvalue_decoder_destroy(amqpvalue_decoder);
+}
+
+/* Tests_SRS_AMQPVALUE_01_397: [1.6.24 array A sequence of values of a single type.] */
+/* Tests_SRS_AMQPVALUE_01_399: [<encoding name="array32" code="0xf0" category="array" width="4" label="up to 2^32 - 1 array elements with total size less than 2^32 octets"/>] */
+TEST_FUNCTION(amqpvalue_decode_array_0xF0_2_null_items_succeeds)
+{
+    // arrange
+    int result;
+    AMQPVALUE_DECODER_HANDLE amqpvalue_decoder = amqpvalue_decoder_create(value_decoded_callback, test_context);
+    unsigned char bytes[] = { 0xF0, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x02, 0x40, 0x40 };
+    int i;
+    uint32_t item_count;
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG));
+
+    // act
+    result = amqpvalue_decode_bytes(amqpvalue_decoder, bytes, sizeof(bytes));
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_EQUAL(int, (int)AMQP_TYPE_ARRAY, (int)amqpvalue_get_type(decoded_values[0]));
+    (void)amqpvalue_get_array_item_count(decoded_values[0], &item_count);
+    ASSERT_ARE_EQUAL(uint32_t, 2, item_count);
+    for (i = 0; i < 2; i++)
+    {
+        AMQP_VALUE item = amqpvalue_get_array_item(decoded_values[0], i);
+        ASSERT_ARE_EQUAL(int, (int)AMQP_TYPE_NULL, (int)amqpvalue_get_type(item));
+        amqpvalue_destroy(item);
+    }
+
+    // cleanup
+    amqpvalue_decoder_destroy(amqpvalue_decoder);
+}
+
+/* Tests_SRS_AMQPVALUE_01_397: [1.6.24 array A sequence of values of a single type.] */
+/* Tests_SRS_AMQPVALUE_01_399: [<encoding name="array32" code="0xf0" category="array" width="4" label="up to 2^32 - 1 array elements with total size less than 2^32 octets"/>] */
+TEST_FUNCTION(amqpvalue_decode_array_0xF0_255_null_items_succeeds)
+{
+    // arrange
+    int result;
+    AMQPVALUE_DECODER_HANDLE amqpvalue_decoder = amqpvalue_decoder_create(value_decoded_callback, test_context);
+    unsigned char bytes[9 + 255] = { 0xF0, 0x00, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0xFF };
+    int i;
+    uint32_t item_count;
+    umock_c_reset_all_calls();
+    (void)memset(bytes + 9, 0x40, 255);
+
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG));
+
+    // act
+    result = amqpvalue_decode_bytes(amqpvalue_decoder, bytes, sizeof(bytes));
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_EQUAL(int, (int)AMQP_TYPE_ARRAY, (int)amqpvalue_get_type(decoded_values[0]));
+    (void)amqpvalue_get_array_item_count(decoded_values[0], &item_count);
+    ASSERT_ARE_EQUAL(uint32_t, 255, item_count);
+    for (i = 0; i < 255; i++)
+    {
+        AMQP_VALUE item = amqpvalue_get_array_item(decoded_values[0], i);
+        ASSERT_ARE_EQUAL(int, (int)AMQP_TYPE_NULL, (int)amqpvalue_get_type(item));
+        amqpvalue_destroy(item);
+    }
+
+    // cleanup
+    amqpvalue_decoder_destroy(amqpvalue_decoder);
+}
+
+/* Tests_SRS_AMQPVALUE_01_397: [1.6.24 array A sequence of values of a single type.] */
+/* Tests_SRS_AMQPVALUE_01_399: [<encoding name="array32" code="0xf0" category="array" width="4" label="up to 2^32 - 1 array elements with total size less than 2^32 octets"/>] */
+TEST_FUNCTION(amqpvalue_decode_array_0xF0_256_null_items_succeeds)
+{
+    // arrange
+    int result;
+    AMQPVALUE_DECODER_HANDLE amqpvalue_decoder = amqpvalue_decoder_create(value_decoded_callback, test_context);
+    unsigned char bytes[9 + 256] = { 0xF0, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00 };
+    int i;
+    uint32_t item_count;
+    umock_c_reset_all_calls();
+    (void)memset(bytes + 9, 0x40, 256);
+
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG));
+
+    // act
+    result = amqpvalue_decode_bytes(amqpvalue_decoder, bytes, sizeof(bytes));
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_EQUAL(int, (int)AMQP_TYPE_ARRAY, (int)amqpvalue_get_type(decoded_values[0]));
+    (void)amqpvalue_get_array_item_count(decoded_values[0], &item_count);
+    ASSERT_ARE_EQUAL(uint32_t, 256, item_count);
+    for (i = 0; i < 256; i++)
+    {
+        AMQP_VALUE item = amqpvalue_get_array_item(decoded_values[0], i);
+        ASSERT_ARE_EQUAL(int, (int)AMQP_TYPE_NULL, (int)amqpvalue_get_type(item));
+        amqpvalue_destroy(item);
+    }
 
     // cleanup
     amqpvalue_decoder_destroy(amqpvalue_decoder);

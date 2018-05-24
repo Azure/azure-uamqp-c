@@ -605,6 +605,7 @@ For each type the contents shall be compared according to the types defined in t
 **SRS_AMQPVALUE_01_230: [**- string: compare all string characters.**]** 
 **SRS_AMQPVALUE_01_263: [**- symbol: compare all symbol characters.**]** 
 **SRS_AMQPVALUE_01_231: [**- list: compare list item count and each element.**]** **SRS_AMQPVALUE_01_232: [**Nesting shall be considered in comparison.**]** 
+**SRS_AMQPVALUE_01_231: [**- array: compare array item count and each element.**]** **SRS_AMQPVALUE_01_232: [**Nesting shall be considered in comparison.**]** 
 **SRS_AMQPVALUE_01_233: [**- map: compare map pair count and each key/value pair.**]** **SRS_AMQPVALUE_01_234: [**Nesting shall be considered in comparison.**]** 
 
 ###amqpvalue_clone

@@ -16061,7 +16061,8 @@ TEST_FUNCTION(amqpvalue_decode_array_0xE0_2_null_items_succeeds)
         .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
         .IgnoreAllCalls();
-    STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG))
+        .IgnoreAllCalls();
 
     // act
     result = amqpvalue_decode_bytes(amqpvalue_decoder, bytes, sizeof(bytes));
@@ -16100,7 +16101,8 @@ TEST_FUNCTION(amqpvalue_decode_array_0xE0_255_null_items_succeeds)
         .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
         .IgnoreAllCalls();
-    STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG))
+        .IgnoreAllCalls();
 
     // act
     result = amqpvalue_decode_bytes(amqpvalue_decoder, bytes, sizeof(bytes));
@@ -16204,7 +16206,8 @@ TEST_FUNCTION(amqpvalue_decode_array_0xF0_2_null_items_succeeds)
         .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
         .IgnoreAllCalls();
-    STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG))
+        .IgnoreAllCalls();
 
     // act
     result = amqpvalue_decode_bytes(amqpvalue_decoder, bytes, sizeof(bytes));
@@ -16243,7 +16246,8 @@ TEST_FUNCTION(amqpvalue_decode_array_0xF0_255_null_items_succeeds)
         .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
         .IgnoreAllCalls();
-    STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG))
+        .IgnoreAllCalls();
 
     // act
     result = amqpvalue_decode_bytes(amqpvalue_decoder, bytes, sizeof(bytes));
@@ -16282,7 +16286,8 @@ TEST_FUNCTION(amqpvalue_decode_array_0xF0_256_null_items_succeeds)
         .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
         .IgnoreAllCalls();
-    STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG))
+        .IgnoreAllCalls();
 
     // act
     result = amqpvalue_decode_bytes(amqpvalue_decoder, bytes, sizeof(bytes));

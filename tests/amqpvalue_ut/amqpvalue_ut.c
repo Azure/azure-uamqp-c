@@ -4658,7 +4658,7 @@ TEST_FUNCTION(amqpvalue_get_map_key_value_pair_on_a_non_map_value_fails)
 
 /* amqpvalue_create_array */
 
-/* Tests_SRS_AMQPVALUE_01_149: [amqpvalue_create_array shall return a handle to an AMQP_VALUE that stores an array.] */
+/* Tests_SRS_AMQPVALUE_01_404: [ `amqpvalue_create_array` shall return a handle to an AMQP_VALUE that stores an array. ] */
 /* Tests_SRS_AMQPVALUE_01_397: [1.6.24 array A sequence of values of a single type.] */
 TEST_FUNCTION(amqpvalue_create_array_succeeds)
 {
@@ -4677,7 +4677,7 @@ TEST_FUNCTION(amqpvalue_create_array_succeeds)
     amqpvalue_destroy(result);
 }
 
-/* Tests_SRS_AMQPVALUE_01_150: [If allocating the AMQP_VALUE fails then amqpvalue_create_array shall return NULL.] */
+/* Tests_SRS_AMQPVALUE_01_405: [ If allocating memory for the array fails, then `amqpvalue_create_array` shall return NULL. ] */
 TEST_FUNCTION(when_allocating_memory_fails_then_amqpvalue_create_array_fails)
 {
     // arrange
@@ -4695,8 +4695,9 @@ TEST_FUNCTION(when_allocating_memory_fails_then_amqpvalue_create_array_fails)
 
 /* amqpvalue_get_array_item_count */
 
-/* Tests_SRS_AMQPVALUE_01_157: [amqpvalue_get_array_item_count shall fill in the size argument the number of items held by the AMQP array.] */
-/* Tests_SRS_AMQPVALUE_01_158: [On success amqpvalue_get_array_item_count shall return 0.] */
+/* Tests_SRS_AMQPVALUE_01_419: [ `amqpvalue_get_array_item_count` shall return in `count` the number of items in the array. ]*/
+/* Tests_SRS_AMQPVALUE_01_420: [ On success `amqpvalue_get_array_item_count` shall return 0. ]*/
+/* Tests_SRS_AMQPVALUE_01_406: [ The array shall have an initial size of zero. ] */
 TEST_FUNCTION(amqpvalue_get_array_item_count_yields_0_on_an_empty_array)
 {
     // arrange
@@ -4717,7 +4718,7 @@ TEST_FUNCTION(amqpvalue_get_array_item_count_yields_0_on_an_empty_array)
     amqpvalue_destroy(array);
 }
 
-/* Codes_SRS_AMQPVALUE_01_159: [If any of the arguments are NULL, amqpvalue_get_array_item_count shall return a non-zero value.] */
+/* Codes_SRS_AMQPVALUE_01_421: [ If any of the arguments is NULL, `amqpvalue_get_array_item_count` shall fail and return a non-zero value. ]*/
 TEST_FUNCTION(amqpvalue_get_array_item_count_with_NULL_handle_fails)
 {
     // arrange
@@ -4731,7 +4732,7 @@ TEST_FUNCTION(amqpvalue_get_array_item_count_with_NULL_handle_fails)
     ASSERT_ARE_NOT_EQUAL(int, 0, result);
 }
 
-/* Codes_SRS_AMQPVALUE_01_159: [If any of the arguments are NULL, amqpvalue_get_array_item_count shall return a non-zero value.] */
+/* Codes_SRS_AMQPVALUE_01_421: [ If any of the arguments is NULL, `amqpvalue_get_array_item_count` shall fail and return a non-zero value. ]*/
 TEST_FUNCTION(amqpvalue_get_array_item_count_with_NULL_item_count_fails)
 {
     // arrange
@@ -4750,7 +4751,7 @@ TEST_FUNCTION(amqpvalue_get_array_item_count_with_NULL_item_count_fails)
     amqpvalue_destroy(array);
 }
 
-/* Codes_SRS_AMQPVALUE_01_160: [If the AMQP_VALUE is not an array then amqpvalue_get_array_item_count shall return a non-zero value.] */
+/* Tests_SRS_AMQPVALUE_01_422: [ If the array argument is not an AMQP value created with the `amqpvalue_create_array` function then `amqpvalue_get_array_item_count` shall fail and return a non-zero value. ]*/
 TEST_FUNCTION(amqpvalue_get_array_item_count_on_a_non_array_type_fails)
 {
     // arrange
@@ -4772,9 +4773,9 @@ TEST_FUNCTION(amqpvalue_get_array_item_count_on_a_non_array_type_fails)
 
 /* amqpvalue_add_array_item */
 
-/* Codes_SRS_AMQPVALUE_01_163: [amqpvalue_add_array_item shall add the AMQP_VALUE specified by array_item_value at the 0 based n-th position in the array.] */
-/* Codes_SRS_AMQPVALUE_01_164: [On success amqpvalue_add_array_item shall return 0.] */
-/* Codes_SRS_AMQPVALUE_01_168: [The item stored at the n-th position in the list shall be a clone of array_item_value.] */
+/* Tests_SRS_AMQPVALUE_01_407: [ `amqpvalue_add_array_item` shall add the AMQP_VALUE specified by `array_item_value` at the 0 based n-th position in the array. ]*/
+/* Tests_SRS_AMQPVALUE_01_408: [ On success `amqpvalue_add_array_item` shall return 0. ]*/
+/* Tests_SRS_AMQPVALUE_01_410: [ The item stored at the n-th position in the array shall be a clone of `array_item_value`. ] */
 TEST_FUNCTION(amqpvalue_add_array_item_on_an_empty_array_succeeds)
 {
     // arrange
@@ -4821,7 +4822,7 @@ TEST_FUNCTION(when_reallocating_the_array_fails_amqpvalue_add_array_item_fails_t
     amqpvalue_destroy(null_value);
 }
 
-/* Codes_SRS_AMQPVALUE_01_165: [If value or array_item_value is NULL, amqpvalue_add_array_item shall fail and return a non-zero value.] */
+/* Tests_SRS_AMQPVALUE_01_409: [ If `value` or `array_item_value` is NULL, amqpvalue_add_array_item shall fail and return a non-zero value. ]*/
 TEST_FUNCTION(amqpvalue_add_array_item_with_NULL_handle_fails)
 {
     // arrange
@@ -4840,7 +4841,7 @@ TEST_FUNCTION(amqpvalue_add_array_item_with_NULL_handle_fails)
     amqpvalue_destroy(null_value);
 }
 
-/* Codes_SRS_AMQPVALUE_01_165: [If value or array_item_value is NULL, amqpvalue_add_array_item shall fail and return a non-zero value.] */
+/* Tests_SRS_AMQPVALUE_01_409: [ If `value` or `array_item_value` is NULL, amqpvalue_add_array_item shall fail and return a non-zero value. ]*/
 TEST_FUNCTION(amqpvalue_add_array_item_with_NULL_item_fails)
 {
     // arrange
@@ -4859,7 +4860,8 @@ TEST_FUNCTION(amqpvalue_add_array_item_with_NULL_item_fails)
     amqpvalue_destroy(array);
 }
 
-/* Codes_SRS_AMQPVALUE_01_170: [When amqpvalue_add_array_item fails due to not being able to clone the item or grow the array, the array shall not be altered.] */
+/* Tests_SRS_AMQPVALUE_01_423: [ When `amqpvalue_add_array_item` fails due to not being able to clone the item or grow the array, the array shall not be altered. ] */
+/* Tests_SRS_AMQPVALUE_01_424: [ If growing the array fails, then `amqpvalue_add_array_item` shall fail and return a non-zero value. ] */
 TEST_FUNCTION(when_growing_fails_amqpvalue_add_array_item_is_not_altered)
 {
     // arrange
@@ -4886,9 +4888,54 @@ TEST_FUNCTION(when_growing_fails_amqpvalue_add_array_item_is_not_altered)
     amqpvalue_destroy(null_value);
 }
 
+/* Tests_SRS_AMQPVALUE_01_425: [ If the type of `array_item_value` does not match that of items already in the array then `amqpvalue_add_array_item` shall fail and return a non-zero value. ] */
+TEST_FUNCTION(amqpvalue_add_array_item_with_different_item_types_fails)
+{
+    // arrange
+    int result;
+    AMQP_VALUE array = amqpvalue_create_array();
+    AMQP_VALUE value_1 = amqpvalue_create_int(0x42);
+    AMQP_VALUE value_2 = amqpvalue_create_uint(0x42);
+    (void)amqpvalue_add_array_item(array, value_1);
+    umock_c_reset_all_calls();
+
+    // act
+    result = amqpvalue_add_array_item(array, value_2);
+
+    // assert
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_destroy(array);
+    amqpvalue_destroy(value_1);
+    amqpvalue_destroy(value_2);
+}
+
+/* Tests_SRS_AMQPVALUE_01_413: [ If the `value` argument is not an AMQP array created with the `amqpvalue_create_array` function than `amqpvalue_add_array_item` shall fail and return a non-zero value. ] */
+TEST_FUNCTION(amqpvalue_add_array_item_on_a_non_array_item_fails)
+{
+    // arrange
+    int result;
+    AMQP_VALUE array = amqpvalue_create_null();
+    AMQP_VALUE value_1 = amqpvalue_create_int(0x42);
+    umock_c_reset_all_calls();
+
+    // act
+    result = amqpvalue_add_array_item(array, value_1);
+
+    // assert
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqpvalue_destroy(array);
+    amqpvalue_destroy(value_1);
+}
+
 /* amqpvalue_get_array_item */
 
-/* Codes_SRS_AMQPVALUE_01_173: [amqpvalue_get_array_item shall return a copy of the AMQP_VALUE stored at the 0 based position index in the array identified by value.] */
+/* Tests_SRS_AMQPVALUE_01_414: [ `amqpvalue_get_array_item` shall return a copy of the AMQP_VALUE stored at the 0 based position `index` in the array identified by `value`. ] */
 TEST_FUNCTION(amqpvalue_get_array_item_gets_the_first_item)
 {
     // arrange
@@ -4914,7 +4961,7 @@ TEST_FUNCTION(amqpvalue_get_array_item_gets_the_first_item)
     amqpvalue_destroy(result);
 }
 
-/* Codes_SRS_AMQPVALUE_01_173: [amqpvalue_get_array_item shall return a copy of the AMQP_VALUE stored at the 0 based position index in the array identified by value.] */
+/* Tests_SRS_AMQPVALUE_01_414: [ `amqpvalue_get_array_item` shall return a copy of the AMQP_VALUE stored at the 0 based position `index` in the array identified by `value`. ] */
 TEST_FUNCTION(amqpvalue_get_array_item_gets_the_second_item)
 {
     // arrange
@@ -4943,7 +4990,7 @@ TEST_FUNCTION(amqpvalue_get_array_item_gets_the_second_item)
     amqpvalue_destroy(result);
 }
 
-/* Codes_SRS_AMQPVALUE_01_174: [If the value argument is NULL, amqpvalue_get_array_item shall fail and return NULL.] */
+/* Tests_SRS_AMQPVALUE_01_416: [ If the `value` argument is NULL, `amqpvalue_get_array_item` shall fail and return NULL. ] */
 TEST_FUNCTION(when_array_handle_is_null_amqpvalue_get_array_item_fails)
 {
     // arrange
@@ -4956,7 +5003,7 @@ TEST_FUNCTION(when_array_handle_is_null_amqpvalue_get_array_item_fails)
     ASSERT_IS_NULL(result);
 }
 
-/* Codes_SRS_AMQPVALUE_01_175: [If index is greater or equal to the number of items in the array then amqpvalue_get_array_item shall fail and return NULL.] */
+/* Tests_SRS_AMQPVALUE_01_417: [ If `index` is greater or equal to the number of items in the array then `amqpvalue_get_array_item` shall fail and return NULL. ] */
 TEST_FUNCTION(amqpvalue_get_array_item_with_index_too_high_fails)
 {
     // arrange
@@ -4978,7 +5025,7 @@ TEST_FUNCTION(amqpvalue_get_array_item_with_index_too_high_fails)
     amqpvalue_destroy(uint_value);
 }
 
-/* Codes_SRS_AMQPVALUE_01_175: [If index is greater or equal to the number of items in the array then amqpvalue_get_array_item shall fail and return NULL.] */
+/* Tests_SRS_AMQPVALUE_01_417: [ If `index` is greater or equal to the number of items in the array then `amqpvalue_get_array_item` shall fail and return NULL. ] */
 TEST_FUNCTION(amqpvalue_get_array_item_with_index_0_on_an_empty_array_fails)
 {
     // arrange
@@ -4997,7 +5044,7 @@ TEST_FUNCTION(amqpvalue_get_array_item_with_index_0_on_an_empty_array_fails)
     amqpvalue_destroy(array);
 }
 
-/* Codes_SRS_AMQPVALUE_01_177: [If value is not an array then amqpvalue_get_array_item shall fail and return NULL.] */
+/* Tests_SRS_AMQPVALUE_01_418: [ If value is not an array then `amqpvalue_get_array_item` shall fail and return NULL. ] */
 TEST_FUNCTION(amqpvalue_get_array_item_called_with_a_non_array_handle_fails)
 {
     // arrange
@@ -6537,7 +6584,7 @@ TEST_FUNCTION(when_inner_maps_are_equal_not_are_not_equal_returns_false)
 }
 
 /* Tests_SRS_AMQPVALUE_01_206: [amqpvalue_are_equal shall return true if the contents of value1 and value2 are equal.] */
-/* Tests_SRS_AMQPVALUE_01_231: [- array: compare array item count and each element.] */
+/* Tests_SRS_AMQPVALUE_01_427: [- array: compare array item count and each element. ] */
 TEST_FUNCTION(for_2_empty_arrays_amqpvalue_are_equal_returns_true)
 {
     // arrange
@@ -6559,7 +6606,7 @@ TEST_FUNCTION(for_2_empty_arrays_amqpvalue_are_equal_returns_true)
 }
 
 /* Tests_SRS_AMQPVALUE_01_206: [amqpvalue_are_equal shall return true if the contents of value1 and value2 are equal.] */
-/* Tests_SRS_AMQPVALUE_01_231: [- array: compare array item count and each element.] */
+/* Tests_SRS_AMQPVALUE_01_427: [- array: compare array item count and each element. ] */
 TEST_FUNCTION(for_2_arrays_with_one_null_item_amqpvalue_are_equal_returns_true)
 {
     // arrange
@@ -6584,7 +6631,7 @@ TEST_FUNCTION(for_2_arrays_with_one_null_item_amqpvalue_are_equal_returns_true)
     amqpvalue_destroy(null_value);
 }
 
-/* Tests_SRS_AMQPVALUE_01_231: [- array: compare array item count and each element.] */
+/* Tests_SRS_AMQPVALUE_01_427: [- array: compare array item count and each element. ] */
 TEST_FUNCTION(for_2_arrays_with_different_number_of_null_values_amqpvalue_are_equal_returns_false)
 {
     // arrange
@@ -6610,7 +6657,7 @@ TEST_FUNCTION(for_2_arrays_with_different_number_of_null_values_amqpvalue_are_eq
     amqpvalue_destroy(null_value);
 }
 
-/* Tests_SRS_AMQPVALUE_01_231: [- array: compare array item count and each element.] */
+/* Tests_SRS_AMQPVALUE_01_427: [- array: compare array item count and each element. ] */
 TEST_FUNCTION(for_2_arrays_one_empty_and_one_with_a_value_amqpvalue_are_equal_returns_false)
 {
     // arrange
@@ -6635,7 +6682,7 @@ TEST_FUNCTION(for_2_arrays_one_empty_and_one_with_a_value_amqpvalue_are_equal_re
 }
 
 /* Tests_SRS_AMQPVALUE_01_206: [amqpvalue_are_equal shall return true if the contents of value1 and value2 are equal.] */
-/* Tests_SRS_AMQPVALUE_01_231: [- array: compare array item count and each element.] */
+/* Tests_SRS_AMQPVALUE_01_427: [- array: compare array item count and each element. ] */
 TEST_FUNCTION(for_2_arrays_with_one_identical_int_value_amqpvalue_are_equal_returns_true)
 {
     // arrange
@@ -6660,7 +6707,7 @@ TEST_FUNCTION(for_2_arrays_with_one_identical_int_value_amqpvalue_are_equal_retu
     amqpvalue_destroy(int_value);
 }
 
-/* Tests_SRS_AMQPVALUE_01_231: [- array: compare array item count and each element.] */
+/* Tests_SRS_AMQPVALUE_01_427: [- array: compare array item count and each element. ] */
 TEST_FUNCTION(for_2_arrays_with_2_different_int_values_amqpvalue_are_equal_returns_false)
 {
     // arrange
@@ -6687,7 +6734,7 @@ TEST_FUNCTION(for_2_arrays_with_2_different_int_values_amqpvalue_are_equal_retur
     amqpvalue_destroy(int_value2);
 }
 
-/* Tests_SRS_AMQPVALUE_01_231: [- array: compare array item count and each element.] */
+/* Tests_SRS_AMQPVALUE_01_427: [- array: compare array item count and each element. ] */
 TEST_FUNCTION(for_2_arrays_with_different_int_values_at_index_1_amqpvalue_are_equal_returns_false)
 {
     // arrange
@@ -6717,7 +6764,7 @@ TEST_FUNCTION(for_2_arrays_with_different_int_values_at_index_1_amqpvalue_are_eq
 }
 
 /* Tests_SRS_AMQPVALUE_01_206: [amqpvalue_are_equal shall return true if the contents of value1 and value2 are equal.] */
-/* Tests_SRS_AMQPVALUE_01_232: [Nesting shall be considered in comparison.] */
+/* Tests_SRS_AMQPVALUE_01_428: [ Nesting shall be considered in comparison. ] */
 TEST_FUNCTION(for_2_arrays_each_with_one_empty_array_amqpvalue_are_equal_returns_true)
 {
     // arrange
@@ -6744,7 +6791,7 @@ TEST_FUNCTION(for_2_arrays_each_with_one_empty_array_amqpvalue_are_equal_returns
     amqpvalue_destroy(inner_array2);
 }
 
-/* Tests_SRS_AMQPVALUE_01_232: [Nesting shall be considered in comparison.] */
+/* Tests_SRS_AMQPVALUE_01_428: [ Nesting shall be considered in comparison. ] */
 TEST_FUNCTION(when_inner_arrays_have_different_item_count_amqpvalue_are_equal_returns_false)
 {
     // arrange
@@ -6775,7 +6822,7 @@ TEST_FUNCTION(when_inner_arrays_have_different_item_count_amqpvalue_are_equal_re
 }
 
 /* Tests_SRS_AMQPVALUE_01_206: [amqpvalue_are_equal shall return true if the contents of value1 and value2 are equal.] */
-/* Tests_SRS_AMQPVALUE_01_232: [Nesting shall be considered in comparison.] */
+/* Tests_SRS_AMQPVALUE_01_428: [ Nesting shall be considered in comparison. ] */
 TEST_FUNCTION(when_inner_arrays_have_each_1_item_count_amqpvalue_are_equal_returns_true)
 {
     // arrange
@@ -6806,7 +6853,7 @@ TEST_FUNCTION(when_inner_arrays_have_each_1_item_count_amqpvalue_are_equal_retur
     amqpvalue_destroy(null_value);
 }
 
-/* Tests_SRS_AMQPVALUE_01_232: [Nesting shall be considered in comparison.] */
+/* Tests_SRS_AMQPVALUE_01_428: [ Nesting shall be considered in comparison. ] */
 TEST_FUNCTION(when_inner_arrays_have_each_1_item_count_but_items_are_different_amqpvalue_are_equal_returns_false)
 {
     // arrange

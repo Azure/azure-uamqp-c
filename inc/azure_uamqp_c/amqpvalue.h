@@ -75,6 +75,11 @@ extern "C" {
     MOCKABLE_FUNCTION(, int, amqpvalue_get_map_pair_count, AMQP_VALUE, map, uint32_t*, pair_count);
     MOCKABLE_FUNCTION(, int, amqpvalue_get_map_key_value_pair, AMQP_VALUE, map, uint32_t, index, AMQP_VALUE*, key, AMQP_VALUE*, value);
     MOCKABLE_FUNCTION(, int, amqpvalue_get_map, AMQP_VALUE, from_value, AMQP_VALUE*, map);
+    MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_create_array);
+    MOCKABLE_FUNCTION(, int, amqpvalue_add_array_item, AMQP_VALUE, value, AMQP_VALUE, array_item_value);
+    MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_get_array_item, AMQP_VALUE, value, uint32_t, index);
+    MOCKABLE_FUNCTION(, int, amqpvalue_get_array_item_count, AMQP_VALUE, value, uint32_t*, count);
+    MOCKABLE_FUNCTION(, int, amqpvalue_get_array, AMQP_VALUE, value, AMQP_VALUE*, array_value);
     MOCKABLE_FUNCTION(, AMQP_TYPE, amqpvalue_get_type, AMQP_VALUE, value);
 
     MOCKABLE_FUNCTION(, void, amqpvalue_destroy, AMQP_VALUE, value);
@@ -97,12 +102,6 @@ extern "C" {
     MOCKABLE_FUNCTION(, int, amqpvalue_decode_bytes, AMQPVALUE_DECODER_HANDLE, handle, const unsigned char*, buffer, size_t, size);
 
     /* misc for now */
-    MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_create_array);
-    MOCKABLE_FUNCTION(, int, amqpvalue_get_array_item_count, AMQP_VALUE, value, uint32_t*, count);
-    MOCKABLE_FUNCTION(, int, amqpvalue_add_array_item, AMQP_VALUE, value, AMQP_VALUE, array_item_value);
-    MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_get_array_item, AMQP_VALUE, value, uint32_t, index);
-    MOCKABLE_FUNCTION(, int, amqpvalue_get_array, AMQP_VALUE, value, AMQP_VALUE*, array_value);
-
     MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_get_inplace_descriptor, AMQP_VALUE, value);
     MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_get_inplace_described_value, AMQP_VALUE, value);
 

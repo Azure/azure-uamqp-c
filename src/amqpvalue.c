@@ -1805,15 +1805,15 @@ AMQP_VALUE amqpvalue_create_array(void)
     AMQP_VALUE result = REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
     if (result == NULL)
     {
-        /* Codes_SRS_AMQPVALUE_01_150: [If allocating the AMQP_VALUE fails then amqpvalue_create_array shall return NULL.] */
+        /* Codes_SRS_AMQPVALUE_01_405: [ If allocating memory for the array fails, then `amqpvalue_create_array` shall return NULL. ] */
         LogError("Could not allocate memory for AMQP value");
     }
     else
     {
-        /* Codes_SRS_AMQPVALUE_01_149: [amqpvalue_create_array shall return a handle to an AMQP_VALUE that stores an array.] */
+        /* Codes_SRS_AMQPVALUE_01_404: [ `amqpvalue_create_array` shall return a handle to an AMQP_VALUE that stores an array. ] */
         result->type = AMQP_TYPE_ARRAY;
 
-        /* Codes_SRS_AMQPVALUE_01_151: [The array shall have an initial size of zero.] */
+        /* Codes_SRS_AMQPVALUE_01_406: [ The array shall have an initial size of zero. ] */
         result->value.array_value.items = NULL;
         result->value.array_value.count = 0;
     }
@@ -1821,23 +1821,23 @@ AMQP_VALUE amqpvalue_create_array(void)
     return result;
 }
 
-int amqpvalue_get_array_item_count(AMQP_VALUE value, uint32_t* size)
+int amqpvalue_get_array_item_count(AMQP_VALUE value, uint32_t* count)
 {
     int result;
 
-    /* Codes_SRS_AMQPVALUE_01_159: [If any of the arguments are NULL, amqpvalue_get_array_item_count shall return a non-zero value.] */
+    /* Tests_SRS_AMQPVALUE_01_421: [ If any of the arguments is NULL, `amqpvalue_get_array_item_count` shall fail and return a non-zero value. ]*/
     if ((value == NULL) ||
-        (size == NULL))
+        (count == NULL))
     {
-        LogError("Bad arguments: value = %p, size = %p",
-            value, size);
+        LogError("Bad arguments: value = %p, count = %p",
+            value, count);
         result = __FAILURE__;
     }
     else
     {
         AMQP_VALUE_DATA* value_data = (AMQP_VALUE_DATA*)value;
 
-        /* Codes_SRS_AMQPVALUE_01_160: [If the AMQP_VALUE is not an array then amqpvalue_get_array_item_count shall return a non-zero value.] */
+        /* Codes_SRS_AMQPVALUE_01_422: [ If the array argument is not an AMQP value created with the `amqpvalue_create_array` function then `amqpvalue_get_array_item_count` shall fail and return a non-zero value. ]*/
         if (value_data->type != AMQP_TYPE_ARRAY)
         {
             LogError("Value is not of type ARRAY");
@@ -1845,10 +1845,10 @@ int amqpvalue_get_array_item_count(AMQP_VALUE value, uint32_t* size)
         }
         else
         {
-            /* Codes_SRS_AMQPVALUE_01_157: [amqpvalue_get_array_item_count shall fill in the size argument the number of items held by the AMQP array.] */
-            *size = value_data->value.array_value.count;
+            /* Codes_SRS_AMQPVALUE_01_419: [ `amqpvalue_get_array_item_count` shall return in `count` the number of items in the array. ]*/
+            *count = value_data->value.array_value.count;
 
-            /* Codes_SRS_AMQPVALUE_01_158: [On success amqpvalue_get_array_item_count shall return 0.] */
+            /* Codes_SRS_AMQPVALUE_01_420: [ On success `amqpvalue_get_array_item_count` shall return 0. ]*/
             result = 0;
         }
     }
@@ -1860,7 +1860,7 @@ int amqpvalue_add_array_item(AMQP_VALUE value, AMQP_VALUE array_item_value)
 {
     int result;
 
-    /* Codes_SRS_AMQPVALUE_01_165: [If value or array_item_value is NULL, amqpvalue_add_array_item shall fail and return a non-zero value.] */
+    /* Codes_SRS_AMQPVALUE_01_409: [ If `value` or `array_item_value` is NULL, amqpvalue_add_array_item shall fail and return a non-zero value. ]*/
     if (value == NULL)
     {
         LogError("NULL value");
@@ -1868,7 +1868,7 @@ int amqpvalue_add_array_item(AMQP_VALUE value, AMQP_VALUE array_item_value)
     }
     else
     {
-        /* Codes_SRS_AMQPVALUE_01_160: [If the AMQP_VALUE is not an array then amqpvalue_add_array_item shall return a non-zero value.] */
+        /* Codes_SRS_AMQPVALUE_01_413: [ If the `value` argument is not an AMQP array created with the `amqpvalue_create_array` function than `amqpvalue_add_array_item` shall fail and return a non-zero value. ] */
         AMQP_VALUE_DATA* value_data = (AMQP_VALUE_DATA*)value;
         if (value_data->type != AMQP_TYPE_ARRAY)
         {
@@ -1877,7 +1877,7 @@ int amqpvalue_add_array_item(AMQP_VALUE value, AMQP_VALUE array_item_value)
         }
         else
         {
-            /* Codes_SRS_AMQPVALUE_01_160: [If the type of array_item_value does not match that of items already in the array then amqpvalue_add_array_item shall return a non-zero value.] */
+            /* Codes_SRS_AMQPVALUE_01_425: [ If the type of `array_item_value` does not match that of items already in the array then `amqpvalue_add_array_item` shall fail and return a non-zero value. ] */
             AMQP_VALUE_DATA* array_item_value_data = (AMQP_VALUE_DATA*)array_item_value;
             if ((value_data->value.array_value.count > 0) &&
                 (array_item_value_data->type != value_data->value.array_value.items[0]->type))
@@ -1887,12 +1887,12 @@ int amqpvalue_add_array_item(AMQP_VALUE value, AMQP_VALUE array_item_value)
             }
             else
             {
-                /* Codes_SRS_AMQPVALUE_01_168: [The item stored at the n-th position in the list shall be a clone of array_item_value.] */
+                /* Codes_SRS_AMQPVALUE_01_410: [ The item stored at the n-th position in the array shall be a clone of `array_item_value`. ] */
                 AMQP_VALUE cloned_item = amqpvalue_clone(array_item_value);
                 if (cloned_item == NULL)
                 {
-                    /* Codes_SRS_AMQPVALUE_01_170: [When amqpvalue_add_array_item fails due to not being able to clone the item or grow the array, the array shall not be altered.] */
-                    /* Codes_SRS_AMQPVALUE_01_169: [If cloning the item fails, amqpvalue_add_array_item shall fail and return a non-zero value.] */
+                    /* Codes_SRS_AMQPVALUE_01_423: [ When `amqpvalue_add_array_item` fails due to not being able to clone the item or grow the array, the array shall not be altered. ] */
+                    /* Codes_SRS_AMQPVALUE_01_412: [ If cloning the item fails, `amqpvalue_add_array_item` shall fail and return a non-zero value. ]*/
                     LogError("Cannot clone value to put in the array");
                     result = __FAILURE__;
                 }
@@ -1901,8 +1901,8 @@ int amqpvalue_add_array_item(AMQP_VALUE value, AMQP_VALUE array_item_value)
                     AMQP_VALUE* new_array = (AMQP_VALUE*)realloc(value_data->value.array_value.items, (value_data->value.array_value.count + 1) * sizeof(AMQP_VALUE));
                     if (new_array == NULL)
                     {
-                        /* Codes_SRS_AMQPVALUE_01_170: [When amqpvalue_add_array_item fails due to not being able to clone the item or grow the array, the array shall not be altered.] */
-                        /* Codes_SRS_AMQPVALUE_01_172: [If growing the array fails, then amqpvalue_add_array_item shall fail and return a non-zero value.] */
+                        /* Codes_SRS_AMQPVALUE_01_423: [ When `amqpvalue_add_array_item` fails due to not being able to clone the item or grow the array, the array shall not be altered. ] */
+                        /* Codes_SRS_AMQPVALUE_01_424: [ If growing the array fails, then `amqpvalue_add_array_item` shall fail and return a non-zero value. ] */
                         amqpvalue_destroy(cloned_item);
                         LogError("Cannot resize array");
                         result = __FAILURE__;
@@ -1911,11 +1911,11 @@ int amqpvalue_add_array_item(AMQP_VALUE value, AMQP_VALUE array_item_value)
                     {
                         value_data->value.array_value.items = new_array;
 
-                        /* Codes_SRS_AMQPVALUE_01_163: [amqpvalue_add_array_item shall add the AMQP_VALUE specified by array_item_value at the 0 based n-th position in the array.] */
+                        /* Codes_SRS_AMQPVALUE_01_407: [ `amqpvalue_add_array_item` shall add the AMQP_VALUE specified by `array_item_value` at the 0 based n-th position in the array. ]*/
                         value_data->value.array_value.items[value_data->value.array_value.count] = cloned_item;
                         value_data->value.array_value.count++;
 
-                        /* Codes_SRS_AMQPVALUE_01_164: [On success amqpvalue_add_array_item shall return 0.] */
+                        /* Codes_SRS_AMQPVALUE_01_408: [ On success `amqpvalue_add_array_item` shall return 0. ]*/
                         result = 0;
                     }
                 }
@@ -1932,7 +1932,7 @@ AMQP_VALUE amqpvalue_get_array_item(AMQP_VALUE value, uint32_t index)
 
     if (value == NULL)
     {
-        /* Codes_SRS_AMQPVALUE_01_174: [If the value argument is NULL, amqpvalue_get_array_item shall fail and return NULL.] */
+        /* Codes_SRS_AMQPVALUE_01_416: [ If the `value` argument is NULL, `amqpvalue_get_array_item` shall fail and return NULL. ] */
         LogError("NULL value");
         result = NULL;
     }
@@ -1940,13 +1940,13 @@ AMQP_VALUE amqpvalue_get_array_item(AMQP_VALUE value, uint32_t index)
     {
         AMQP_VALUE_DATA* value_data = (AMQP_VALUE_DATA*)value;
 
-        /* Codes_SRS_AMQPVALUE_01_177: [If value is not an array then amqpvalue_get_array_item shall fail and return NULL.] */
+        /* Codes_SRS_AMQPVALUE_01_418: [ If value is not an array then `amqpvalue_get_array_item` shall fail and return NULL. ] */
         if (value_data->type != AMQP_TYPE_ARRAY)
         {
             LogError("Value is not of type ARRAY");
             result = NULL;
         }
-        /* Codes_SRS_AMQPVALUE_01_175: [If index is greater or equal to the number of items in the array then amqpvalue_get_array_item shall fail and return NULL.] */
+        /* Codes_SRS_AMQPVALUE_01_417: [ If `index` is greater or equal to the number of items in the array then `amqpvalue_get_array_item` shall fail and return NULL. ] */
         else if (value_data->value.array_value.count <= index)
         {
             LogError("Index out of range: %u", (unsigned int)index);
@@ -1954,8 +1954,8 @@ AMQP_VALUE amqpvalue_get_array_item(AMQP_VALUE value, uint32_t index)
         }
         else
         {
-            /* Codes_SRS_AMQPVALUE_01_173: [amqpvalue_get_array_item shall return a copy of the AMQP_VALUE stored at the 0 based position index in the array identified by value.] */
-            /* Codes_SRS_AMQPVALUE_01_176: [If cloning the item at position index fails, then amqpvalue_get_array_item shall fail and return NULL.] */
+            /* Codes_SRS_AMQPVALUE_01_414: [ `amqpvalue_get_array_item` shall return a copy of the AMQP_VALUE stored at the 0 based position `index` in the array identified by `value`. ] */
+            /* Codes_SRS_AMQPVALUE_01_426: [ If cloning the item at position `index` fails, then `amqpvalue_get_array_item` shall fail and return NULL. ] */
             result = amqpvalue_clone(value_data->value.array_value.items[index]);
         }
     }
@@ -2149,7 +2149,7 @@ bool amqpvalue_are_equal(AMQP_VALUE value1, AMQP_VALUE value2)
             }
             case AMQP_TYPE_ARRAY:
             {
-                /* Codes_SRS_AMQPVALUE_01_231: [- array: compare array item count and each element.] */
+                /* Codes_SRS_AMQPVALUE_01_427: [- array: compare array item count and each element. ] */
                 if (value1_data->value.array_value.count != value2_data->value.array_value.count)
                 {
                     result = false;
@@ -2160,7 +2160,7 @@ bool amqpvalue_are_equal(AMQP_VALUE value1, AMQP_VALUE value2)
 
                     for (i = 0; i < value1_data->value.array_value.count; i++)
                     {
-                        /* Codes_SRS_AMQPVALUE_01_232: [Nesting shall be considered in comparison.] */
+                        /* Codes_SRS_AMQPVALUE_01_428: [ Nesting shall be considered in comparison. ] */
                         if (!amqpvalue_are_equal(value1_data->value.array_value.items[i], value2_data->value.array_value.items[i]))
                         {
                             break;

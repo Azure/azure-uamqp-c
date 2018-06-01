@@ -56,22 +56,22 @@ static void my_gballoc_free(void* ptr)
 /* Tests_SRS_CONNECTION_01_235: [CLOSE_SENT - * TCP Close for Write] */
 /* Tests_SRS_CONNECTION_01_234: [CLOSE_RCVD * -TCP Close for Read] */
 
-#define TEST_IO_HANDLE                    (XIO_HANDLE)0x4242
-#define TEST_FRAME_CODEC_HANDLE            (FRAME_CODEC_HANDLE)0x4243
-#define TEST_AMQP_FRAME_CODEC_HANDLE    (AMQP_FRAME_CODEC_HANDLE)0x4244
-#define TEST_DESCRIPTOR_AMQP_VALUE        (AMQP_VALUE)0x4245
-#define TEST_LIST_ITEM_AMQP_VALUE        (AMQP_VALUE)0x4246
-#define TEST_DESCRIBED_AMQP_VALUE        (AMQP_VALUE)0x4247
-#define TEST_AMQP_OPEN_FRAME_HANDLE        (AMQP_OPEN_FRAME_HANDLE)0x4245
-#define TEST_LIST_HANDLE                (SINGLYLINKEDLIST_HANDLE)0x4246
-#define TEST_OPEN_PERFORMATIVE            (AMQP_VALUE)0x4301
-#define TEST_CLOSE_PERFORMATIVE                (AMQP_VALUE)0x4302
+#define TEST_IO_HANDLE                      (XIO_HANDLE)0x4242
+#define TEST_FRAME_CODEC_HANDLE             (FRAME_CODEC_HANDLE)0x4243
+#define TEST_AMQP_FRAME_CODEC_HANDLE        (AMQP_FRAME_CODEC_HANDLE)0x4244
+#define TEST_DESCRIPTOR_AMQP_VALUE          (AMQP_VALUE)0x4245
+#define TEST_LIST_ITEM_AMQP_VALUE           (AMQP_VALUE)0x4246
+#define TEST_DESCRIBED_AMQP_VALUE           (AMQP_VALUE)0x4247
+#define TEST_AMQP_OPEN_FRAME_HANDLE         (AMQP_OPEN_FRAME_HANDLE)0x4245
+#define TEST_LIST_HANDLE                    (SINGLYLINKEDLIST_HANDLE)0x4246
+#define TEST_OPEN_PERFORMATIVE              (AMQP_VALUE)0x4301
+#define TEST_CLOSE_PERFORMATIVE             (AMQP_VALUE)0x4302
 #define TEST_CLOSE_DESCRIPTOR_AMQP_VALUE    (AMQP_VALUE)0x4303
-#define TEST_TRANSFER_PERFORMATIVE            (AMQP_VALUE)0x4304
-#define TEST_PROPERTIES                   (fields)0x4255
-#define TEST_CLONED_PROPERTIES            (fields)0x4256
+#define TEST_TRANSFER_PERFORMATIVE          (AMQP_VALUE)0x4304
+#define TEST_PROPERTIES                     (fields)0x4255
+#define TEST_CLONED_PROPERTIES              (fields)0x4256
 
-#define TEST_CONTEXT                    (void*)(0x4242)
+#define TEST_CONTEXT                        (void*)(0x4242)
 
 static const TICK_COUNTER_HANDLE test_tick_counter = (TICK_COUNTER_HANDLE)0x4305;
 static const char test_container_id[] = "1234";
@@ -123,6 +123,8 @@ static char actual_stringified_io[8192];
 MOCK_FUNCTION_WITH_CODE(, void, test_on_frame_received, void*, context, AMQP_VALUE, performative, uint32_t, frame_payload_size, const unsigned char*, payload_bytes)
 MOCK_FUNCTION_END();
 MOCK_FUNCTION_WITH_CODE(, void, test_on_connection_state_changed, void*, context, CONNECTION_STATE, new_connection_state, CONNECTION_STATE, previous_connection_state)
+MOCK_FUNCTION_END();
+MOCK_FUNCTION_WITH_CODE(, void, test_on_connection_close_received, void*, context, ERROR_HANDLE, error)
 MOCK_FUNCTION_END();
 
 static int my_xio_open(XIO_HANDLE io, ON_IO_OPEN_COMPLETE on_io_open_complete, void* on_io_open_complete_context, ON_BYTES_RECEIVED on_bytes_received, void* on_bytes_received_context, ON_IO_ERROR on_io_error, void* on_io_error_context)
@@ -3532,6 +3534,152 @@ TEST_FUNCTION(connection_set_trace_succeeds)
 
     // cleanup
     connection_destroy(connection);
+}
+
+/* connection_subscribe_on_connection_close_received */
+
+/* Tests_SRS_CONNECTION_01_275: [ `connection_subscribe_on_connection_close_received` shall register the `on_connection_closed` handler to be triggered whenever a CLOSE performative is received.. ]*/
+/* Tests_SRS_CONNECTION_01_276: [ On success, `connection_subscribe_on_connection_close_received` shall return a non-NULL handle to the event subcription. ]*/
+TEST_FUNCTION(connection_subscribe_on_connection_close_received_succeeds)
+{
+    // arrange
+    CONNECTION_HANDLE connection = connection_create2(TEST_IO_HANDLE, "testhost", test_container_id, NULL, NULL, NULL, TEST_IO_HANDLE, TEST_on_io_error, TEST_CONTEXT);
+    ON_CONNECTION_CLOSED_EVENT_SUBSCRIPTION_HANDLE result;
+    umock_c_reset_all_calls();
+
+    // act
+    result = connection_subscribe_on_connection_close_received(connection, test_on_connection_close_received, (void*)0x4242);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NOT_NULL(result);
+
+    // cleanup
+    connection_destroy(connection);
+}
+
+/* Tests_SRS_CONNECTION_01_277: [ If `connection` is NULL, `connection_subscribe_on_connection_close_received` shall fail and return NULL. ]*/
+TEST_FUNCTION(connection_subscribe_on_connection_close_received_with_NULL_connection_fails)
+{
+    // arrange
+    ON_CONNECTION_CLOSED_EVENT_SUBSCRIPTION_HANDLE result;
+
+    // act
+    result = connection_subscribe_on_connection_close_received(NULL, test_on_connection_close_received, (void*)0x4242);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NULL(result);
+}
+
+/* Tests_SRS_CONNECTION_01_278: [ If `on_connection_close_received` is NULL, `connection_subscribe_on_connection_close_received` shall fail and return NULL. ]*/
+TEST_FUNCTION(connection_subscribe_on_connection_close_received_with_NULL_callback_fails)
+{
+    // arrange
+    CONNECTION_HANDLE connection = connection_create2(TEST_IO_HANDLE, "testhost", test_container_id, NULL, NULL, NULL, TEST_IO_HANDLE, TEST_on_io_error, TEST_CONTEXT);
+    ON_CONNECTION_CLOSED_EVENT_SUBSCRIPTION_HANDLE result;
+    umock_c_reset_all_calls();
+
+    // act
+    result = connection_subscribe_on_connection_close_received(connection, NULL, (void*)0x4242);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NULL(result);
+
+    // cleanup
+    connection_destroy(connection);
+}
+
+/* Tests_SRS_CONNECTION_01_279: [ `context` shall be allowed to be NULL. ]*/
+TEST_FUNCTION(connection_subscribe_on_connection_close_received_with_NULL_context_succeeds)
+{
+    // arrange
+    CONNECTION_HANDLE connection = connection_create2(TEST_IO_HANDLE, "testhost", test_container_id, NULL, NULL, NULL, TEST_IO_HANDLE, TEST_on_io_error, TEST_CONTEXT);
+    ON_CONNECTION_CLOSED_EVENT_SUBSCRIPTION_HANDLE result;
+    umock_c_reset_all_calls();
+
+    // act
+    result = connection_subscribe_on_connection_close_received(connection, test_on_connection_close_received, NULL);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NOT_NULL(result);
+
+    // cleanup
+    connection_destroy(connection);
+}
+
+/* Tests_SRS_CONNECTION_01_280: [ Only one subscription shall be allowed per connection, if a subsequent second even subscription is done while a subscription is active, `connection_subscribe_on_connection_close_received` shall fail and return NULL. ]*/
+TEST_FUNCTION(connection_subscribe_on_connection_close_received_when_already_subscribed_fails)
+{
+    // arrange
+    CONNECTION_HANDLE connection = connection_create2(TEST_IO_HANDLE, "testhost", test_container_id, NULL, NULL, NULL, TEST_IO_HANDLE, TEST_on_io_error, TEST_CONTEXT);
+    ON_CONNECTION_CLOSED_EVENT_SUBSCRIPTION_HANDLE result;
+    (void)connection_subscribe_on_connection_close_received(connection, test_on_connection_close_received, (void*)0x4242);
+    umock_c_reset_all_calls();
+
+    // act
+    result = connection_subscribe_on_connection_close_received(connection, test_on_connection_close_received, (void*)0x4243);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NULL(result);
+
+    // cleanup
+    connection_destroy(connection);
+}
+
+/* Tests_SRS_CONNECTION_01_280: [ Only one subscription shall be allowed per connection, if a subsequent second even subscription is done while a subscription is active, `connection_subscribe_on_connection_close_received` shall fail and return NULL. ]*/
+TEST_FUNCTION(connection_subscribe_on_connection_close_received_when_already_subscribed_with_same_arguments_fails)
+{
+    // arrange
+    CONNECTION_HANDLE connection = connection_create2(TEST_IO_HANDLE, "testhost", test_container_id, NULL, NULL, NULL, TEST_IO_HANDLE, TEST_on_io_error, TEST_CONTEXT);
+    ON_CONNECTION_CLOSED_EVENT_SUBSCRIPTION_HANDLE result;
+    (void)connection_subscribe_on_connection_close_received(connection, test_on_connection_close_received, (void*)0x4242);
+    umock_c_reset_all_calls();
+
+    // act
+    result = connection_subscribe_on_connection_close_received(connection, test_on_connection_close_received, (void*)0x4242);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NULL(result);
+
+    // cleanup
+    connection_destroy(connection);
+}
+
+/* connection_unsubscribe_on_connection_close_received */
+
+/* Tests_SRS_CONNECTION_01_281: [ `connection_unsubscribe_on_connection_close_received` shall remove the subscription for the connection closed event that was made by calling `connection_subscribe_on_connection_close_received`. ]*/
+TEST_FUNCTION(connection_unsubscribe_on_connection_close_received_removes_the_subscription)
+{
+    // arrange
+    CONNECTION_HANDLE connection = connection_create2(TEST_IO_HANDLE, "testhost", test_container_id, NULL, NULL, NULL, TEST_IO_HANDLE, TEST_on_io_error, TEST_CONTEXT);
+    ON_CONNECTION_CLOSED_EVENT_SUBSCRIPTION_HANDLE event_subscription = connection_subscribe_on_connection_close_received(connection, test_on_connection_close_received, (void*)0x4242);
+    umock_c_reset_all_calls();
+
+    // act
+    connection_unsubscribe_on_connection_close_received(event_subscription);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    connection_destroy(connection);
+}
+
+/* Tests_SRS_CONNECTION_01_282: [ If `event_subscription` is NULL, `connection_unsubscribe_on_connection_close_received` shall return. ]*/
+TEST_FUNCTION(connection_unsubscribe_on_connection_close_received_with_NULL_event_subscription_returns)
+{
+    // arrange
+
+    // act
+    connection_unsubscribe_on_connection_close_received(NULL);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
 END_TEST_SUITE(connection_ut)

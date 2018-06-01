@@ -183,7 +183,7 @@ static void end_session_with_error(SESSION_INSTANCE* session_instance, const cha
     {
         /* fatal error */
         session_set_state(session_instance, SESSION_STATE_DISCARDING);
-        (void)connection_close(session_instance->connection, "amqp:internal-error", "Cannot allocate error handle to end session");
+        (void)connection_close(session_instance->connection, "amqp:internal-error", "Cannot allocate error handle to end session", NULL);
     }
     else
     {
@@ -192,7 +192,7 @@ static void end_session_with_error(SESSION_INSTANCE* session_instance, const cha
         {
             /* fatal error */
             session_set_state(session_instance, SESSION_STATE_DISCARDING);
-            (void)connection_close(session_instance->connection, "amqp:internal-error", "Cannot allocate error handle to end session");
+            (void)connection_close(session_instance->connection, "amqp:internal-error", "Cannot allocate error handle to end session", NULL);
         }
         else
         {
@@ -388,7 +388,7 @@ static void on_frame_received(void* context, AMQP_VALUE performative, uint32_t p
 
         if (amqpvalue_get_begin(performative, &begin_handle) != 0)
         {
-            connection_close(session_instance->connection, "amqp:decode-error", "Cannot decode BEGIN frame");
+            connection_close(session_instance->connection, "amqp:decode-error", "Cannot decode BEGIN frame", NULL);
         }
         else
         {
@@ -398,7 +398,7 @@ static void on_frame_received(void* context, AMQP_VALUE performative, uint32_t p
                 /* error */
                 begin_destroy(begin_handle);
                 session_set_state(session_instance, SESSION_STATE_DISCARDING);
-                connection_close(session_instance->connection, "amqp:decode-error", "Cannot get incoming windows and next outgoing id");
+                connection_close(session_instance->connection, "amqp:decode-error", "Cannot get incoming windows and next outgoing id", NULL);
             }
             else
             {
@@ -413,7 +413,7 @@ static void on_frame_received(void* context, AMQP_VALUE performative, uint32_t p
                     session_set_state(session_instance, SESSION_STATE_BEGIN_RCVD);
                     if (send_begin(session_instance) != 0)
                     {
-                        connection_close(session_instance->connection, "amqp:internal-error", "Failed sending BEGIN frame");
+                        connection_close(session_instance->connection, "amqp:internal-error", "Failed sending BEGIN frame", NULL);
                         session_set_state(session_instance, SESSION_STATE_DISCARDING);
                     }
                     else
@@ -700,7 +700,7 @@ static void on_frame_received(void* context, AMQP_VALUE performative, uint32_t p
                 if (send_end_frame(session_instance, NULL) != 0)
                 {
                     /* fatal error */
-                    (void)connection_close(session_instance->connection, "amqp:internal-error", "Cannot send END frame.");
+                    (void)connection_close(session_instance->connection, "amqp:internal-error", "Cannot send END frame.", NULL);
                 }
 
                 session_set_state(session_instance, SESSION_STATE_DISCARDING);

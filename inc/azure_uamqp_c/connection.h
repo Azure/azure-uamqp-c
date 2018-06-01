@@ -12,6 +12,8 @@
 #include "azure_uamqp_c/amqp_frame_codec.h"
 #include "azure_uamqp_c/amqp_definitions_fields.h"
 #include "azure_uamqp_c/amqp_definitions_milliseconds.h"
+#include "azure_uamqp_c/amqp_definitions_error.h"
+#include "azure_uamqp_c/amqpvalue.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -19,6 +21,7 @@ extern "C" {
 
     typedef struct CONNECTION_INSTANCE_TAG* CONNECTION_HANDLE;
     typedef struct ENDPOINT_INSTANCE_TAG* ENDPOINT_HANDLE;
+    typedef struct ON_CONNECTION_CLOSED_EVENT_SUBSCRIPTION_TAG* ON_CONNECTION_CLOSED_EVENT_SUBSCRIPTION_HANDLE;
 
     typedef enum CONNECTION_STATE_TAG
     {
@@ -70,6 +73,7 @@ extern "C" {
 
     typedef void(*ON_ENDPOINT_FRAME_RECEIVED)(void* context, AMQP_VALUE performative, uint32_t frame_payload_size, const unsigned char* payload_bytes);
     typedef void(*ON_CONNECTION_STATE_CHANGED)(void* context, CONNECTION_STATE new_connection_state, CONNECTION_STATE previous_connection_state);
+    typedef void(*ON_CONNECTION_CLOSE_RECEIVED)(void* context, ERROR_HANDLE error);
     typedef bool(*ON_NEW_ENDPOINT)(void* context, ENDPOINT_HANDLE new_endpoint);
 
     MOCKABLE_FUNCTION(, CONNECTION_HANDLE, connection_create, XIO_HANDLE, io, const char*, hostname, const char*, container_id, ON_NEW_ENDPOINT, on_new_endpoint, void*, callback_context);
@@ -77,7 +81,7 @@ extern "C" {
     MOCKABLE_FUNCTION(, void, connection_destroy, CONNECTION_HANDLE, connection);
     MOCKABLE_FUNCTION(, int, connection_open, CONNECTION_HANDLE, connection);
     MOCKABLE_FUNCTION(, int, connection_listen, CONNECTION_HANDLE, connection);
-    MOCKABLE_FUNCTION(, int, connection_close, CONNECTION_HANDLE, connection, const char*, condition_value, const char*, description);
+    MOCKABLE_FUNCTION(, int, connection_close, CONNECTION_HANDLE, connection, const char*, condition_value, const char*, description, AMQP_VALUE, info);
     MOCKABLE_FUNCTION(, int, connection_set_max_frame_size, CONNECTION_HANDLE, connection, uint32_t, max_frame_size);
     MOCKABLE_FUNCTION(, int, connection_get_max_frame_size, CONNECTION_HANDLE, connection, uint32_t*, max_frame_size);
     MOCKABLE_FUNCTION(, int, connection_set_channel_max, CONNECTION_HANDLE, connection, uint16_t, channel_max);
@@ -96,6 +100,9 @@ extern "C" {
     MOCKABLE_FUNCTION(, void, connection_destroy_endpoint, ENDPOINT_HANDLE, endpoint);
     MOCKABLE_FUNCTION(, int, connection_encode_frame, ENDPOINT_HANDLE, endpoint, AMQP_VALUE, performative, PAYLOAD*, payloads, size_t, payload_count, ON_SEND_COMPLETE, on_send_complete, void*, callback_context);
     MOCKABLE_FUNCTION(, void, connection_set_trace, CONNECTION_HANDLE, connection, bool, trace_on);
+
+    MOCKABLE_FUNCTION(, ON_CONNECTION_CLOSED_EVENT_SUBSCRIPTION_HANDLE, connection_subscribe_on_connection_close_received, CONNECTION_HANDLE, connection, ON_CONNECTION_CLOSE_RECEIVED, on_connection_close_received, void*, context);
+    MOCKABLE_FUNCTION(, void, connection_unsubscribe_on_connection_close_received, ON_CONNECTION_CLOSED_EVENT_SUBSCRIPTION_HANDLE, event_subscription);
 
 #ifdef __cplusplus
 }

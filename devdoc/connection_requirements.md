@@ -7,48 +7,90 @@ connection is module that implements the connection layer in the AMQP ISO.
 ##Exposed API
 
 ```C
-	typedef void* CONNECTION_HANDLE;
+    typedef struct CONNECTION_INSTANCE_TAG* CONNECTION_HANDLE;
+    typedef struct ENDPOINT_INSTANCE_TAG* ENDPOINT_HANDLE;
+    typedef struct ON_CONNECTION_CLOSED_EVENT_SUBSCRIPTION_TAG* ON_CONNECTION_CLOSED_EVENT_SUBSCRIPTION_HANDLE;
 
-	typedef enum CONNECTION_STATE_TAG
-	{
-		CONNECTION_STATE_START,
-		CONNECTION_STATE_HDR_RCVD,
-		CONNECTION_STATE_HDR_SENT,
-		CONNECTION_STATE_HDR_EXCH,
-		CONNECTION_STATE_OPEN_PIPE,
-		CONNECTION_STATE_OC_PIPE,
-		CONNECTION_STATE_OPEN_RCVD,
-		CONNECTION_STATE_OPEN_SENT,
-		CONNECTION_STATE_CLOSE_PIPE,
-		CONNECTION_STATE_OPENED,
-		CONNECTION_STATE_CLOSE_RCVD,
-		CONNECTION_STATE_CLOSE_SENT,
-		CONNECTION_STATE_DISCARDING,
-		CONNECTION_STATE_END
-	} CONNECTION_STATE;
+    typedef enum CONNECTION_STATE_TAG
+    {
+        /* Codes_SRS_CONNECTION_01_039: [START In this state a connection exists, but nothing has been sent or received. This is the state an implementation would be in immediately after performing a socket connect or socket accept.] */
+        CONNECTION_STATE_START,
 
-	typedef void(*ON_ENDPOINT_FRAME_RECEIVED)(void* context, AMQP_VALUE performative, uint32_t frame_payload_size, const unsigned char* payload_bytes);
-	typedef void(*ON_CONNECTION_STATE_CHANGED)(void* context, CONNECTION_STATE new_connection_state, CONNECTION_STATE previous_connection_state);
+        /* Codes_SRS_CONNECTION_01_040: [HDR RCVD In this state the connection header has been received from the peer but a connection header has not been sent.] */
+        CONNECTION_STATE_HDR_RCVD,
 
-	extern CONNECTION_HANDLE connection_create(XIO_HANDLE xio, const char* hostname, const char* container_id);
-        extern CONNECTION_HANDLE connection_create2(XIO_HANDLE xio, const char* hostname, const char* container_id, ON_NEW_ENDPOINT on_new_endpoint, void* callback_context, ON_CONNECTION_STATE_CHANGED on_connection_state_changed, void* on_connection_state_changed_context, ON_IO_ERROR on_io_error, void* on_io_error_context);
-	extern int connection_set_max_frame_size(CONNECTION_HANDLE connection, uint32_t max_frame_size);
-	extern int connection_get_max_frame_size(CONNECTION_HANDLE connection, uint32_t* max_frame_size);
-	extern int connection_set_channel_max(CONNECTION_HANDLE connection, uint16_t channel_max);
-	extern int connection_get_channel_max(CONNECTION_HANDLE connection, uint16_t* channel_max);
-	extern int connection_set_idle_timeout(CONNECTION_HANDLE connection, milliseconds idle_timeout);
-	extern int connection_get_idle_timeout(CONNECTION_HANDLE connection, milliseconds* idle_timeout);
-	extern int connection_set_properties(CONNECTION_HANDLE connection, fields properties);
-	extern int connection_get_properties(CONNECTION_HANDLE connection, fields* properties);
-	extern int connection_get_remote_max_frame_size(CONNECTION_HANDLE connection, uint32_t* remote_max_frame_size);
-	extern void connection_destroy(CONNECTION_HANDLE connection);
-	extern void connection_dowork(CONNECTION_HANDLE connection);
-	extern uint64_t connection_handle_deadlines(CONNECTION_HANDLE connection);
+        /* Codes_SRS_CONNECTION_01_041: [HDR SENT In this state the connection header has been sent to the peer but no connection header has been received.] */
+        CONNECTION_STATE_HDR_SENT,
 
-	extern ENDPOINT_HANDLE connection_create_endpoint(CONNECTION_HANDLE connection, ON_ENDPOINT_FRAME_RECEIVED on_frame_received, ON_CONNECTION_STATE_CHANGED on_connection_state_changed, void* context);
-	extern void connection_destroy_endpoint(ENDPOINT_HANDLE endpoint);
-	extern int connection_encode_frame(ENDPOINT_HANDLE endpoint, const AMQP_VALUE performative, PAYLOAD* payloads, size_t payload_count);
-    extern void connection_set_trace(CONNECTION_HANDLE connection, bool traceOn);	
+        /* Codes_SRS_CONNECTION_01_042: [HDR EXCH In this state the connection header has been sent to the peer and a connection header has been received from the peer.] */
+        CONNECTION_STATE_HDR_EXCH,
+
+        /* Codes_SRS_CONNECTION_01_043: [OPEN PIPE In this state both the connection header and the open frame have been sent but nothing has been received.] */
+        CONNECTION_STATE_OPEN_PIPE,
+
+        /* Codes_SRS_CONNECTION_01_044: [OC PIPE In this state, the connection header, the open frame, any pipelined connection traffic, and the close frame have been sent but nothing has been received.] */
+        CONNECTION_STATE_OC_PIPE,
+
+        /* Codes_SRS_CONNECTION_01_045: [OPEN RCVD In this state the connection headers have been exchanged. An open frame has been received from the peer but an open frame has not been sent.] */
+        CONNECTION_STATE_OPEN_RCVD,
+
+        /* Codes_SRS_CONNECTION_01_046: [OPEN SENT In this state the connection headers have been exchanged. An open frame has been sent to the peer but no open frame has yet been received.] */
+        CONNECTION_STATE_OPEN_SENT,
+
+        /* Codes_SRS_CONNECTION_01_047: [CLOSE PIPE In this state the connection headers have been exchanged. An open frame, any pipelined connection traffic, and the close frame have been sent but no open frame has yet been received from the peer.] */
+        CONNECTION_STATE_CLOSE_PIPE,
+
+        /* Codes_SRS_CONNECTION_01_048: [OPENED In this state the connection header and the open frame have been both sent and received.] */
+        CONNECTION_STATE_OPENED,
+
+        /* Codes_SRS_CONNECTION_01_049: [CLOSE RCVD In this state a close frame has been received indicating that the peer has initiated an AMQP close.] */
+        CONNECTION_STATE_CLOSE_RCVD,
+
+        /* Codes_SRS_CONNECTION_01_053: [CLOSE SENT In this state a close frame has been sent to the peer. It is illegal to write anything more onto the connection, however there could potentially still be incoming frames.] */
+        CONNECTION_STATE_CLOSE_SENT,
+
+        /* Codes_SRS_CONNECTION_01_055: [DISCARDING The DISCARDING state is a variant of the CLOSE SENT state where the close is triggered by an error.] */
+        CONNECTION_STATE_DISCARDING,
+
+        /* Codes_SRS_CONNECTION_01_057: [END In this state it is illegal for either endpoint to write anything more onto the connection. The connection can be safely closed and discarded.] */
+        CONNECTION_STATE_END,
+
+        /* Codes_SRS_CONNECTION_09_001: [ERROR In this state the connection has failed, most likely due to a socket error, and should not be reused.] */
+        CONNECTION_STATE_ERROR
+    } CONNECTION_STATE;
+
+    typedef void(*ON_ENDPOINT_FRAME_RECEIVED)(void* context, AMQP_VALUE performative, uint32_t frame_payload_size, const unsigned char* payload_bytes);
+    typedef void(*ON_CONNECTION_STATE_CHANGED)(void* context, CONNECTION_STATE new_connection_state, CONNECTION_STATE previous_connection_state);
+    typedef void(*ON_CONNECTION_CLOSE_RECEIVED)(void* context, ERROR_HANDLE error);
+    typedef bool(*ON_NEW_ENDPOINT)(void* context, ENDPOINT_HANDLE new_endpoint);
+
+    MOCKABLE_FUNCTION(, CONNECTION_HANDLE, connection_create, XIO_HANDLE, io, const char*, hostname, const char*, container_id, ON_NEW_ENDPOINT, on_new_endpoint, void*, callback_context);
+    MOCKABLE_FUNCTION(, CONNECTION_HANDLE, connection_create2, XIO_HANDLE, xio, const char*, hostname, const char*, container_id, ON_NEW_ENDPOINT, on_new_endpoint, void*, callback_context, ON_CONNECTION_STATE_CHANGED, on_connection_state_changed, void*, on_connection_state_changed_context, ON_IO_ERROR, on_io_error, void*, on_io_error_context);
+    MOCKABLE_FUNCTION(, void, connection_destroy, CONNECTION_HANDLE, connection);
+    MOCKABLE_FUNCTION(, int, connection_open, CONNECTION_HANDLE, connection);
+    MOCKABLE_FUNCTION(, int, connection_listen, CONNECTION_HANDLE, connection);
+    MOCKABLE_FUNCTION(, int, connection_close, CONNECTION_HANDLE, connection, const char*, condition_value, const char*, description, AMQP_VALUE, info);
+    MOCKABLE_FUNCTION(, int, connection_set_max_frame_size, CONNECTION_HANDLE, connection, uint32_t, max_frame_size);
+    MOCKABLE_FUNCTION(, int, connection_get_max_frame_size, CONNECTION_HANDLE, connection, uint32_t*, max_frame_size);
+    MOCKABLE_FUNCTION(, int, connection_set_channel_max, CONNECTION_HANDLE, connection, uint16_t, channel_max);
+    MOCKABLE_FUNCTION(, int, connection_get_channel_max, CONNECTION_HANDLE, connection, uint16_t*, channel_max);
+    MOCKABLE_FUNCTION(, int, connection_set_idle_timeout, CONNECTION_HANDLE, connection, milliseconds, idle_timeout);
+    MOCKABLE_FUNCTION(, int, connection_get_idle_timeout, CONNECTION_HANDLE, connection, milliseconds*, idle_timeout);
+    MOCKABLE_FUNCTION(, int, connection_set_properties, CONNECTION_HANDLE, connection, fields, properties);
+    MOCKABLE_FUNCTION(, int, connection_get_properties, CONNECTION_HANDLE, connection, fields*, properties);
+    MOCKABLE_FUNCTION(, int, connection_get_remote_max_frame_size, CONNECTION_HANDLE, connection, uint32_t*, remote_max_frame_size);
+    MOCKABLE_FUNCTION(, int, connection_set_remote_idle_timeout_empty_frame_send_ratio, CONNECTION_HANDLE, connection, double, idle_timeout_empty_frame_send_ratio);
+    MOCKABLE_FUNCTION(, uint64_t, connection_handle_deadlines, CONNECTION_HANDLE, connection);
+    MOCKABLE_FUNCTION(, void, connection_dowork, CONNECTION_HANDLE, connection);
+    MOCKABLE_FUNCTION(, ENDPOINT_HANDLE, connection_create_endpoint, CONNECTION_HANDLE, connection);
+    MOCKABLE_FUNCTION(, int, connection_start_endpoint, ENDPOINT_HANDLE, endpoint, ON_ENDPOINT_FRAME_RECEIVED, on_frame_received, ON_CONNECTION_STATE_CHANGED, on_connection_state_changed, void*, context);
+    MOCKABLE_FUNCTION(, int, connection_endpoint_get_incoming_channel, ENDPOINT_HANDLE, endpoint, uint16_t*, incoming_channel);
+    MOCKABLE_FUNCTION(, void, connection_destroy_endpoint, ENDPOINT_HANDLE, endpoint);
+    MOCKABLE_FUNCTION(, int, connection_encode_frame, ENDPOINT_HANDLE, endpoint, AMQP_VALUE, performative, PAYLOAD*, payloads, size_t, payload_count, ON_SEND_COMPLETE, on_send_complete, void*, callback_context);
+    MOCKABLE_FUNCTION(, void, connection_set_trace, CONNECTION_HANDLE, connection, bool, trace_on);
+
+    MOCKABLE_FUNCTION(, ON_CONNECTION_CLOSED_EVENT_SUBSCRIPTION_HANDLE, connection_subscribe_on_connection_close_received, CONNECTION_HANDLE, connection, ON_CONNECTION_CLOSE_RECEIVED, on_connection_close_received, void*, context);
+    MOCKABLE_FUNCTION(, void, connection_unsubscribe_on_connection_close_received, ON_CONNECTION_CLOSED_EVENT_SUBSCRIPTION_HANDLE, event_subscription);
 ```
 
 ###connection_create
@@ -254,6 +296,28 @@ extern int connection_encode_frame(ENDPOINT_HANDLE endpoint, const AMQP_VALUE pe
 **SRS_CONNECTION_01_258: [**on_connection_state_changed shall be invoked whenever the connection state changes.**]** 
 **SRS_CONNECTION_01_260: [**Each endpoint's on_connection_state_changed shall be called.**]** 
 **SRS_CONNECTION_01_259: [**As context, the callback_context passed in connection_create_endpoint shall be given.**]** 
+
+### connection_subscribe_on_connection_close_received
+
+```c
+MOCKABLE_FUNCTION(, ON_CONNECTION_CLOSED_EVENT_SUBSCRIPTION_HANDLE, connection_subscribe_on_connection_close_received, CONNECTION_HANDLE, connection, ON_CONNECTION_CLOSE_RECEIVED, on_connection_close_received, void*, context);
+```
+
+**SRS_CONNECTION_01_275: [** `connection_subscribe_on_connection_close_received` shall register the `on_connection_close_received` handler to be triggered whenever a CLOSE performative is received. **]**
+**SRS_CONNECTION_01_276: [** On success, `connection_subscribe_on_connection_close_received` shall return a non-NULL handle to the event subcription. **]**
+**SRS_CONNECTION_01_277: [** If `connection` is NULL, `connection_subscribe_on_connection_close_received` shall fail and return NULL. **]**
+**SRS_CONNECTION_01_278: [** If `on_connection_close_received` is NULL, `connection_subscribe_on_connection_close_received` shall fail and return NULL. **]**
+**SRS_CONNECTION_01_279: [** `context` shall be allowed to be NULL. **]**
+**SRS_CONNECTION_01_280: [** Only one subscription shall be allowed per connection, if a subsequent second even subscription is done while a subscription is active, `connection_subscribe_on_connection_close_received` shall fail and return NULL. **]**
+
+### connection_unsubscribe_on_connection_close_received
+
+```c
+MOCKABLE_FUNCTION(, void, connection_unsubscribe_on_connection_close_received, ON_CONNECTION_CLOSED_EVENT_SUBSCRIPTION_HANDLE, event_subscription);
+```
+
+**SRS_CONNECTION_01_281: [** `connection_unsubscribe_on_connection_close_received` shall remove the subscription for the connection closed event that was made by calling `connection_subscribe_on_connection_close_received`. **]**
+**SRS_CONNECTION_01_282: [** If `event_subscription` is NULL, `connection_unsubscribe_on_connection_close_received` shall return. **]**
 
 ##Frame construction
 

@@ -30,6 +30,12 @@ typedef enum RECEIVE_FRAME_STATE_TAG
     RECEIVE_FRAME_STATE_FRAME_DATA
 } RECEIVE_FRAME_STATE;
 
+typedef struct ON_CONNECTION_CLOSED_EVENT_SUBSCRIPTION_TAG
+{
+    ON_CONNECTION_CLOSE_RECEIVED on_connection_close_received;
+    void* context;
+} ON_CONNECTION_CLOSED_EVENT_SUBSCRIPTION;
+
 typedef struct ENDPOINT_INSTANCE_TAG
 {
     uint16_t incoming_channel;
@@ -64,6 +70,8 @@ typedef struct CONNECTION_INSTANCE_TAG
     void* on_connection_state_changed_callback_context;
     ON_IO_ERROR on_io_error;
     void* on_io_error_callback_context;
+
+    ON_CONNECTION_CLOSED_EVENT_SUBSCRIPTION on_connection_close_received_event_subscription;
 
     /* options */
     uint32_t max_frame_size;
@@ -100,7 +108,10 @@ static void connection_set_state(CONNECTION_HANDLE connection, CONNECTION_STATE 
     for (i = 0; i < connection->endpoint_count; i++)
     {
         /* Codes_SRS_CONNECTION_01_259: [The callback_context passed in connection_create_endpoint.] */
-        connection->endpoints[i]->on_connection_state_changed(connection->endpoints[i]->callback_context, connection_state, previous_state);
+        if (connection->endpoints[i]->on_connection_state_changed != NULL)
+        {
+            connection->endpoints[i]->on_connection_state_changed(connection->endpoints[i]->callback_context, connection_state, previous_state);
+        }
     }
 }
 
@@ -497,9 +508,10 @@ static int send_close_frame(CONNECTION_HANDLE connection, ERROR_HANDLE error_han
     return result;
 }
 
-static void close_connection_with_error(CONNECTION_HANDLE connection, const char* condition_value, const char* description)
+static void close_connection_with_error(CONNECTION_HANDLE connection, const char* condition_value, const char* description, AMQP_VALUE info)
 {
     ERROR_HANDLE error_handle = error_create(condition_value);
+
     if (error_handle == NULL)
     {
         /* Codes_SRS_CONNECTION_01_214: [If the close frame cannot be constructed or sent, the connection shall be closed and set to the END state.] */
@@ -516,6 +528,19 @@ static void close_connection_with_error(CONNECTION_HANDLE connection, const char
         if (error_set_description(error_handle, description) != 0)
         {
             LogError("Cannot set error description on CLOSE frame");
+
+            /* Codes_SRS_CONNECTION_01_214: [If the close frame cannot be constructed or sent, the connection shall be closed and set to the END state.] */
+            if (xio_close(connection->io, NULL, NULL) != 0)
+            {
+                LogError("xio_close failed");
+            }
+
+            connection_set_state(connection, CONNECTION_STATE_END);
+        }
+        else if ((info != NULL) &&
+            (error_set_info(error_handle, info) != 0))
+        {
+            LogError("Cannot set error info on CLOSE frame");
 
             /* Codes_SRS_CONNECTION_01_214: [If the close frame cannot be constructed or sent, the connection shall be closed and set to the END state.] */
             if (xio_close(connection->io, NULL, NULL) != 0)
@@ -672,7 +697,7 @@ static int connection_byte_received(CONNECTION_HANDLE connection, unsigned char 
             LogError("Cannot process received bytes");
             /* Codes_SRS_CONNECTION_01_218: [The error amqp:internal-error shall be set in the error.condition field of the CLOSE frame.] */
             /* Codes_SRS_CONNECTION_01_219: [The error description shall be set to an implementation defined string.] */
-            close_connection_with_error(connection, "amqp:internal-error", "connection_byte_received::frame_codec_receive_bytes failed");
+            close_connection_with_error(connection, "amqp:internal-error", "connection_byte_received::frame_codec_receive_bytes failed", NULL);
             result = __FAILURE__;
         }
         else
@@ -794,7 +819,7 @@ static void on_amqp_frame_received(void* context, uint16_t channel, AMQP_VALUE p
     if (tickcounter_get_current_ms(connection->tick_counter, &connection->last_frame_received_time) != 0)
     {
         LogError("Cannot get tickcounter value");
-        close_connection_with_error(connection, "amqp:internal-error", "cannot get current tick count");
+        close_connection_with_error(connection, "amqp:internal-error", "cannot get current tick count", NULL);
     }
     else
     {
@@ -806,7 +831,7 @@ static void on_amqp_frame_received(void* context, uint16_t channel, AMQP_VALUE p
                 if (performative == NULL)
                 {
                     /* Codes_SRS_CONNECTION_01_223: [If the on_endpoint_frame_received is called with a NULL performative then the connection shall be closed with the error condition amqp:internal-error and an implementation defined error description.] */
-                    close_connection_with_error(connection, "amqp:internal-error", "connection_endpoint_frame_received::NULL performative");
+                    close_connection_with_error(connection, "amqp:internal-error", "connection_endpoint_frame_received::NULL performative", NULL);
                     LogError("connection_endpoint_frame_received::NULL performative");
                 }
                 else
@@ -825,14 +850,14 @@ static void on_amqp_frame_received(void* context, uint16_t channel, AMQP_VALUE p
                         {
                             /* Codes_SRS_CONNECTION_01_006: [The open frame can only be sent on channel 0.] */
                             /* Codes_SRS_CONNECTION_01_222: [If an Open frame is received in a manner violating the ISO specification, the connection shall be closed with condition amqp:not-allowed and description being an implementation defined string.] */
-                            close_connection_with_error(connection, "amqp:not-allowed", "OPEN frame received on a channel that is not 0");
+                            close_connection_with_error(connection, "amqp:not-allowed", "OPEN frame received on a channel that is not 0", NULL);
                             LogError("OPEN frame received on a channel that is not 0");
                         }
 
                         if (connection->connection_state == CONNECTION_STATE_OPENED)
                         {
                             /* Codes_SRS_CONNECTION_01_239: [If an Open frame is received in the Opened state the connection shall be closed with condition amqp:illegal-state and description being an implementation defined string.] */
-                            close_connection_with_error(connection, "amqp:illegal-state", "OPEN frame received in the OPENED state");
+                            close_connection_with_error(connection, "amqp:illegal-state", "OPEN frame received in the OPENED state", NULL);
                             LogError("OPEN frame received in the OPENED state");
                         }
                         else if ((connection->connection_state == CONNECTION_STATE_OPEN_SENT) ||
@@ -843,7 +868,7 @@ static void on_amqp_frame_received(void* context, uint16_t channel, AMQP_VALUE p
                             {
                                 /* Codes_SRS_CONNECTION_01_143: [If any of the values in the received open frame are invalid then the connection shall be closed.] */
                                 /* Codes_SRS_CONNECTION_01_220: [The error amqp:invalid-field shall be set in the error.condition field of the CLOSE frame.] */
-                                close_connection_with_error(connection, "amqp:invalid-field", "connection_endpoint_frame_received::failed parsing OPEN frame");
+                                close_connection_with_error(connection, "amqp:invalid-field", "connection_endpoint_frame_received::failed parsing OPEN frame", NULL);
                                 LogError("connection_endpoint_frame_received::failed parsing OPEN frame");
                             }
                             else
@@ -860,7 +885,7 @@ static void on_amqp_frame_received(void* context, uint16_t channel, AMQP_VALUE p
                                 {
                                     /* Codes_SRS_CONNECTION_01_143: [If any of the values in the received open frame are invalid then the connection shall be closed.] */
                                     /* Codes_SRS_CONNECTION_01_220: [The error amqp:invalid-field shall be set in the error.condition field of the CLOSE frame.] */
-                                    close_connection_with_error(connection, "amqp:invalid-field", "connection_endpoint_frame_received::failed parsing OPEN frame");
+                                    close_connection_with_error(connection, "amqp:invalid-field", "connection_endpoint_frame_received::failed parsing OPEN frame", NULL);
                                     LogError("connection_endpoint_frame_received::failed parsing OPEN frame");
                                 }
                                 else
@@ -892,7 +917,6 @@ static void on_amqp_frame_received(void* context, uint16_t channel, AMQP_VALUE p
                     }
                     else if (is_close_type_by_descriptor(descriptor))
                     {
-                        /* Codes_SRS_CONNECTION_01_012: [A close frame MAY be received on any channel up to the maximum channel number negotiated in open.] */
                         /* Codes_SRS_CONNECTION_01_242: [The connection module shall accept CLOSE frames even if they have extra payload bytes besides the Close performative.] */
 
                         /* Codes_SRS_CONNECTION_01_225: [HDR_RCVD HDR OPEN] */
@@ -918,18 +942,25 @@ static void on_amqp_frame_received(void* context, uint16_t channel, AMQP_VALUE p
                             /* Codes_SRS_CONNECTION_01_012: [A close frame MAY be received on any channel up to the maximum channel number negotiated in open.] */
                             if (channel > connection->channel_max)
                             {
-                                close_connection_with_error(connection, "amqp:invalid-field", "connection_endpoint_frame_received::failed parsing CLOSE frame");
+                                close_connection_with_error(connection, "amqp:invalid-field", "connection_endpoint_frame_received::failed parsing CLOSE frame", NULL);
                                 LogError("connection_endpoint_frame_received::failed parsing CLOSE frame");
                             }
                             else
                             {
                                 if (amqpvalue_get_close(performative, &close_handle) != 0)
                                 {
-                                    close_connection_with_error(connection, "amqp:invalid-field", "connection_endpoint_frame_received::failed parsing CLOSE frame");
+                                    close_connection_with_error(connection, "amqp:invalid-field", "connection_endpoint_frame_received::failed parsing CLOSE frame", NULL);
                                     LogError("connection_endpoint_frame_received::failed parsing CLOSE frame");
                                 }
                                 else
                                 {
+                                    ERROR_HANDLE error;
+
+                                    if (close_get_error(close_handle, &error) != 0)
+                                    {
+                                        error = NULL;
+                                    }
+
                                     close_destroy(close_handle);
 
                                     connection_set_state(connection, CONNECTION_STATE_CLOSE_RCVD);
@@ -946,6 +977,13 @@ static void on_amqp_frame_received(void* context, uint16_t channel, AMQP_VALUE p
                                     }
 
                                     connection_set_state(connection, CONNECTION_STATE_END);
+
+                                    if (connection->on_connection_close_received_event_subscription.on_connection_close_received != NULL)
+                                    {
+                                        connection->on_connection_close_received_event_subscription.on_connection_close_received(connection->on_connection_close_received_event_subscription.context, error);
+                                    }
+
+                                    error_destroy(error);
                                 }
                             }
                         }
@@ -1214,6 +1252,9 @@ CONNECTION_HANDLE connection_create2(XIO_HANDLE xio, const char* hostname, const
                                 connection->on_new_endpoint = on_new_endpoint;
                                 connection->on_new_endpoint_callback_context = callback_context;
 
+                                connection->on_connection_close_received_event_subscription.on_connection_close_received = NULL;
+                                connection->on_connection_close_received_event_subscription.context = NULL;
+
                                 connection->on_io_error = on_io_error;
                                 connection->on_io_error_callback_context = on_io_error_context;
                                 connection->on_connection_state_changed = on_connection_state_changed;
@@ -1260,7 +1301,7 @@ void connection_destroy(CONNECTION_HANDLE connection)
         /* Codes_SRS_CONNECTION_01_073: [connection_destroy shall free all resources associated with a connection.] */
         if (connection->is_underlying_io_open)
         {
-            (void)connection_close(connection, NULL, NULL);
+            (void)connection_close(connection, NULL, NULL, NULL);
         }
 
         amqp_frame_codec_destroy(connection->amqp_frame_codec);
@@ -1353,7 +1394,7 @@ int connection_listen(CONNECTION_HANDLE connection)
     return result;
 }
 
-int connection_close(CONNECTION_HANDLE connection, const char* condition_value, const char* description)
+int connection_close(CONNECTION_HANDLE connection, const char* condition_value, const char* description, AMQP_VALUE info)
 {
     int result;
 
@@ -1362,11 +1403,18 @@ int connection_close(CONNECTION_HANDLE connection, const char* condition_value, 
         LogError("NULL connection");
         result = __FAILURE__;
     }
+    else if ((info != NULL) &&
+        (amqpvalue_get_type(info) != AMQP_TYPE_MAP) &&
+        (amqpvalue_get_type(info) != AMQP_TYPE_NULL))
+    {
+        LogError("Invalid info, expected a map");
+        result = __FAILURE__;
+    }
     else
     {
         if (condition_value != NULL)
         {
-            close_connection_with_error(connection, condition_value, description);
+            close_connection_with_error(connection, condition_value, description, info);
         }
         else
         {
@@ -1714,7 +1762,7 @@ uint64_t connection_handle_deadlines(CONNECTION_HANDLE connection)
         if (tickcounter_get_current_ms(connection->tick_counter, &current_ms) != 0)
         {
             LogError("Could not get tick counter value");
-            close_connection_with_error(connection, "amqp:internal-error", "Could not get tick count");
+            close_connection_with_error(connection, "amqp:internal-error", "Could not get tick count", NULL);
         }
         else
         {
@@ -1732,7 +1780,7 @@ uint64_t connection_handle_deadlines(CONNECTION_HANDLE connection)
                     local_deadline = 0;
 
                     /* close connection */
-                    close_connection_with_error(connection, "amqp:internal-error", "No frame received for the idle timeout");
+                    close_connection_with_error(connection, "amqp:internal-error", "No frame received for the idle timeout", NULL);
                 }
             }
 
@@ -1754,7 +1802,7 @@ uint64_t connection_handle_deadlines(CONNECTION_HANDLE connection)
                     {
                         LogError("Encoding the empty frame failed");
                         /* close connection */
-                        close_connection_with_error(connection, "amqp:internal-error", "Cannot send empty frame");
+                        close_connection_with_error(connection, "amqp:internal-error", "Cannot send empty frame", NULL);
                     }
                     else
                     {
@@ -2057,4 +2105,55 @@ int connection_set_remote_idle_timeout_empty_frame_send_ratio(CONNECTION_HANDLE 
     }
 
     return result;
+}
+
+ON_CONNECTION_CLOSED_EVENT_SUBSCRIPTION_HANDLE connection_subscribe_on_connection_close_received(CONNECTION_HANDLE connection, ON_CONNECTION_CLOSE_RECEIVED on_connection_close_received, void* context)
+{
+    ON_CONNECTION_CLOSED_EVENT_SUBSCRIPTION_HANDLE result;
+
+    /* Codes_SRS_CONNECTION_01_279: [ `context` shall be allowed to be NULL. ]*/
+
+    /* Codes_SRS_CONNECTION_01_277: [ If `connection` is NULL, `connection_subscribe_on_connection_close_received` shall fail and return NULL. ]*/
+    if ((connection == NULL) ||
+        /* Codes_SRS_CONNECTION_01_278: [ If `on_connection_close_received` is NULL, `connection_subscribe_on_connection_close_received` shall fail and return NULL. ]*/
+        (on_connection_close_received == NULL))
+    {
+        LogError("Invalid arguments: connection = %p, on_connection_close_received = %p, context = %p",
+            connection, on_connection_close_received, context);
+        result = NULL;
+    }
+    else
+    {
+        if (connection->on_connection_close_received_event_subscription.on_connection_close_received != NULL)
+        {
+            /* Codes_SRS_CONNECTION_01_280: [ Only one subscription shall be allowed per connection, if a subsequent second even subscription is done while a subscription is active, `connection_subscribe_on_connection_close_received` shall fail and return NULL. ]*/
+            LogError("Already subscribed for on_connection_close_received events");
+            result = NULL;
+        }
+        else
+        {
+            /* Codes_SRS_CONNECTION_01_275: [ `connection_subscribe_on_connection_close_received` shall register the `on_connection_close_received` handler to be triggered whenever a CLOSE performative is received.. ]*/
+            connection->on_connection_close_received_event_subscription.on_connection_close_received = on_connection_close_received;
+            connection->on_connection_close_received_event_subscription.context = context;
+
+            /* Codes_SRS_CONNECTION_01_276: [ On success, `connection_subscribe_on_connection_close_received` shall return a non-NULL handle to the event subcription. ]*/
+            result = &connection->on_connection_close_received_event_subscription;
+        }
+    }
+
+    return result;
+}
+
+void connection_unsubscribe_on_connection_close_received(ON_CONNECTION_CLOSED_EVENT_SUBSCRIPTION_HANDLE event_subscription)
+{
+    if (event_subscription == NULL)
+    {
+        LogError("NULL event_subscription");
+    }
+    else
+    {
+        /* Codes_SRS_CONNECTION_01_281: [ `connection_unsubscribe_on_connection_close_received` shall remove the subscription for the connection closed event that was made by calling `connection_subscribe_on_connection_close_received`. ]*/
+        event_subscription->on_connection_close_received = NULL;
+        event_subscription->context = NULL;
+    }
 }

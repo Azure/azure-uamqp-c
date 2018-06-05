@@ -396,7 +396,7 @@ int messagereceiver_close(MESSAGE_RECEIVER_HANDLE message_receiver)
         {
             set_message_receiver_state(message_receiver, MESSAGE_RECEIVER_STATE_CLOSING);
 
-            if (link_detach(message_receiver->link, true) != 0)
+            if (link_detach(message_receiver->link, true, NULL, NULL, NULL) != 0)
             {
                 LogError("link detach failed");
                 result = __FAILURE__;

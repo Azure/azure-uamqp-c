@@ -800,7 +800,7 @@ int messagesender_close(MESSAGE_SENDER_HANDLE message_sender)
             (message_sender->message_sender_state == MESSAGE_SENDER_STATE_OPEN))
         {
             set_message_sender_state(message_sender, MESSAGE_SENDER_STATE_CLOSING);
-            if (link_detach(message_sender->link, true) != 0)
+            if (link_detach(message_sender->link, true, NULL, NULL, NULL) != 0)
             {
                 LogError("Detaching link failed");
                 result = __FAILURE__;

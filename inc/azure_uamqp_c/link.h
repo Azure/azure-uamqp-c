@@ -46,10 +46,13 @@ DEFINE_ENUM(LINK_TRANSFER_RESULT, LINK_TRANSFER_RESULT_VALUES)
 
 DEFINE_ENUM(LINK_DELIVERY_SETTLE_REASON, LINK_DELIVERY_SETTLE_REASON_VALUES)
 
+typedef struct ON_LINK_DETACH_EVENT_SUBSCRIPTION_TAG* ON_LINK_DETACH_EVENT_SUBSCRIPTION_HANDLE;
+
 typedef void(*ON_DELIVERY_SETTLED)(void* context, delivery_number delivery_no, LINK_DELIVERY_SETTLE_REASON reason, AMQP_VALUE delivery_state);
 typedef AMQP_VALUE(*ON_TRANSFER_RECEIVED)(void* context, TRANSFER_HANDLE transfer, uint32_t payload_size, const unsigned char* payload_bytes);
 typedef void(*ON_LINK_STATE_CHANGED)(void* context, LINK_STATE new_link_state, LINK_STATE previous_link_state);
 typedef void(*ON_LINK_FLOW_ON)(void* context);
+typedef void(*ON_LINK_DETACH_RECEIVED)(void* context, ERROR_HANDLE error);
 
 MOCKABLE_FUNCTION(, LINK_HANDLE, link_create, SESSION_HANDLE, session, const char*, name, role, role, AMQP_VALUE, source, AMQP_VALUE, target);
 MOCKABLE_FUNCTION(, LINK_HANDLE, link_create_from_endpoint, SESSION_HANDLE, session, LINK_ENDPOINT_HANDLE, link_endpoint, const char*, name, role, role, AMQP_VALUE, source, AMQP_VALUE, target);
@@ -69,10 +72,12 @@ MOCKABLE_FUNCTION(, int, link_get_name, LINK_HANDLE, link, const char**, link_na
 MOCKABLE_FUNCTION(, int, link_get_received_message_id, LINK_HANDLE, link, delivery_number*, message_id);
 MOCKABLE_FUNCTION(, int, link_send_disposition, LINK_HANDLE, link, delivery_number, message_number, AMQP_VALUE, delivery_state);
 MOCKABLE_FUNCTION(, int, link_attach, LINK_HANDLE, link, ON_TRANSFER_RECEIVED, on_transfer_received, ON_LINK_STATE_CHANGED, on_link_state_changed, ON_LINK_FLOW_ON, on_link_flow_on, void*, callback_context);
-MOCKABLE_FUNCTION(, int, link_detach, LINK_HANDLE, link, bool, close);
+MOCKABLE_FUNCTION(, int, link_detach, LINK_HANDLE, link, bool, close, const char*, error_condition, const char*, error_description, AMQP_VALUE, info);
 MOCKABLE_FUNCTION(, ASYNC_OPERATION_HANDLE, link_transfer_async, LINK_HANDLE, handle, message_format, message_format, PAYLOAD*, payloads, size_t, payload_count, ON_DELIVERY_SETTLED, on_delivery_settled, void*, callback_context, LINK_TRANSFER_RESULT*, link_transfer_result,tickcounter_ms_t, timeout);
 MOCKABLE_FUNCTION(, void, link_dowork, LINK_HANDLE, link);
 
+MOCKABLE_FUNCTION(, ON_LINK_DETACH_EVENT_SUBSCRIPTION_HANDLE, link_subscribe_on_link_detach_received, LINK_HANDLE, link, ON_LINK_DETACH_RECEIVED, on_link_detach_received, void*, context);
+MOCKABLE_FUNCTION(, void, link_unsubscribe_on_link_detach_received, ON_LINK_DETACH_EVENT_SUBSCRIPTION_HANDLE, event_subscription);
 
 #ifdef __cplusplus
 }

@@ -1,38 +1,36 @@
-﻿#amqp_frame_codec requirements
+﻿# amqp_frame_codec requirements
 
+## Overview
 
-##Overview
+`amqp_frame_codec` is module that encodes/decodes AMQP frames per the AMQP ISO.
 
-amqp_frame_codec is module that encodes/decodes AMQP frames per the AMQP ISO.
-
-##Exposed API
+## Exposed API
 
 ```C
-#define AMQP_OPEN			(uint64_t)0x10
-#define AMQP_BEGIN			(uint64_t)0x11
-#define AMQP_ATTACH			(uint64_t)0x12
-#define AMQP_FLOW			(uint64_t)0x13
-#define AMQP_TRANSFER		(uint64_t)0x14
-#define AMQP_DISPOSITION	(uint64_t)0x15
-#define AMQP_DETACH			(uint64_t)0x16
-#define AMQP_END			(uint64_t)0x17
-#define AMQP_CLOSE			(uint64_t)0x18
+#define AMQP_OPEN               (uint64_t)0x10
+#define AMQP_BEGIN              (uint64_t)0x11
+#define AMQP_ATTACH             (uint64_t)0x12
+#define AMQP_FLOW               (uint64_t)0x13
+#define AMQP_TRANSFER           (uint64_t)0x14
+#define AMQP_DISPOSITION        (uint64_t)0x15
+#define AMQP_DETACH             (uint64_t)0x16
+#define AMQP_END                (uint64_t)0x17
+#define AMQP_CLOSE              (uint64_t)0x18
 
-typedef void* AMQP_FRAME_CODEC_HANDLE;
+typedef struct AMQP_FRAME_CODEC_INSTANCE_TAG* AMQP_FRAME_CODEC_HANDLE;
 typedef void(*AMQP_EMPTY_FRAME_RECEIVED_CALLBACK)(void* context, uint16_t channel);
 typedef void(*AMQP_FRAME_RECEIVED_CALLBACK)(void* context, uint16_t channel, AMQP_VALUE performative, const unsigned char* payload_bytes, uint32_t frame_payload_size);
 typedef void(*AMQP_FRAME_CODEC_ERROR_CALLBACK)(void* context);
 
-extern AMQP_FRAME_CODEC_HANDLE amqp_frame_codec_create(FRAME_CODEC_HANDLE frame_codec, AMQP_FRAME_RECEIVED_CALLBACK frame_received_callback, AMQP_EMPTY_FRAME_RECEIVED_CALLBACK empty_frame_received_callback, AMQP_FRAME_CODEC_ERROR_CALLBACK amqp_frame_codec_error_callback, void* callback_context);
-extern void amqp_frame_codec_destroy(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec);
-extern int amqp_frame_codec_begin_encode_frame(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec, uint16_t channel, const AMQP_VALUE performative, uint32_t payload_size);
-extern int amqp_frame_codec_encode_payload_bytes(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec, const unsigned char* bytes, uint32_t count);
-extern int amqp_frame_codec_encode_empty_frame(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec, uint16_t channel);
+MOCKABLE_FUNCTION(, AMQP_FRAME_CODEC_HANDLE, amqp_frame_codec_create, FRAME_CODEC_HANDLE, frame_codec, AMQP_FRAME_RECEIVED_CALLBACK, frame_received_callback, AMQP_EMPTY_FRAME_RECEIVED_CALLBACK, empty_frame_received_callback, AMQP_FRAME_CODEC_ERROR_CALLBACK, amqp_frame_codec_error_callback, void*, callback_context);
+MOCKABLE_FUNCTION(, void, amqp_frame_codec_destroy, AMQP_FRAME_CODEC_HANDLE, amqp_frame_codec);
+MOCKABLE_FUNCTION(, int, amqp_frame_codec_encode_frame, AMQP_FRAME_CODEC_HANDLE, amqp_frame_codec, uint16_t, channel, AMQP_VALUE, performative, const PAYLOAD*, payloads, size_t, payload_count, ON_BYTES_ENCODED, on_bytes_encoded, void*, callback_context);
+MOCKABLE_FUNCTION(, int, amqp_frame_codec_encode_empty_frame, AMQP_FRAME_CODEC_HANDLE, amqp_frame_codec, uint16_t, channel, ON_BYTES_ENCODED, on_bytes_encoded, void*, callback_context);
 ```
 
-###amqp_frame_codec_create
+### amqp_frame_codec_create
 ```C
-extern AMQP_FRAME_CODEC_HANDLE amqp_frame_codec_create(FRAME_CODEC_HANDLE frame_codec, AMQP_FRAME_RECEIVED_CALLBACK frame_received_callback, AMQP_EMPTY_FRAME_RECEIVED_CALLBACK empty_frame_received_callback, AMQP_FRAME_CODEC_ERROR_CALLBACK amqp_frame_codec_error_callback, void* callback_context);
+MOCKABLE_FUNCTION(, AMQP_FRAME_CODEC_HANDLE, amqp_frame_codec_create, FRAME_CODEC_HANDLE, frame_codec, AMQP_FRAME_RECEIVED_CALLBACK, frame_received_callback, AMQP_EMPTY_FRAME_RECEIVED_CALLBACK, empty_frame_received_callback, AMQP_FRAME_CODEC_ERROR_CALLBACK, amqp_frame_codec_error_callback, void*, callback_context);
 ```
 
 **SRS_AMQP_FRAME_CODEC_01_011: [**amqp_frame_codec_create shall create an instance of an amqp_frame_codec and return a non-NULL handle to it.**]** 
@@ -43,10 +41,10 @@ extern AMQP_FRAME_CODEC_HANDLE amqp_frame_codec_create(FRAME_CODEC_HANDLE frame_
 **SRS_AMQP_FRAME_CODEC_01_019: [**If creating the decoder fails, amqp_frame_codec_create shall fail and return NULL.**]** 
 **SRS_AMQP_FRAME_CODEC_01_020: [**If allocating memory for the new amqp_frame_codec fails, then amqp_frame_codec_create shall fail and return NULL.**]** 
 
-###amqp_frame_codec_destroy
+### amqp_frame_codec_destroy
 
 ```C
-extern void amqp_frame_codec_destroy(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec);
+MOCKABLE_FUNCTION(, void, amqp_frame_codec_destroy, AMQP_FRAME_CODEC_HANDLE, amqp_frame_codec);
 ```
 
 **SRS_AMQP_FRAME_CODEC_01_015: [**amqp_frame_codec_destroy shall free all resources associated with the amqp_frame_codec instance.**]** 
@@ -54,10 +52,10 @@ extern void amqp_frame_codec_destroy(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec);
 **SRS_AMQP_FRAME_CODEC_01_017: [**amqp_frame_codec_destroy shall unsubscribe from receiving AMQP frames from the frame_codec that was passed to amqp_frame_codec_create.**]** 
 **SRS_AMQP_FRAME_CODEC_01_021: [**The decoder created in amqp_frame_codec_create shall be destroyed by amqp_frame_codec_destroy.**]** 
 
-###amqp_frame_codec_encode_frame
+### amqp_frame_codec_encode_frame
 
 ```C
-extern int amqp_frame_codec_encode_frame(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec, uint16_t channel, const AMQP_VALUE performative, PAYLOAD* payloads, size_t payload_count, ON_BYTES_ENCODED on_bytes_encoded, void* callback_context);
+MOCKABLE_FUNCTION(, int, amqp_frame_codec_encode_frame, AMQP_FRAME_CODEC_HANDLE, amqp_frame_codec, uint16_t, channel, AMQP_VALUE, performative, const PAYLOAD*, payloads, size_t, payload_count, ON_BYTES_ENCODED, on_bytes_encoded, void*, callback_context);
 ```
 
 **SRS_AMQP_FRAME_CODEC_01_022: [**amqp_frame_codec_encode_frame shall encode the frame header and AMQP performative in an AMQP frame and on success it shall return 0.**]** 
@@ -70,10 +68,10 @@ extern int amqp_frame_codec_encode_frame(AMQP_FRAME_CODEC_HANDLE amqp_frame_code
 **SRS_AMQP_FRAME_CODEC_01_028: [**The encode result for the performative shall be placed in a PAYLOAD structure.**]** 
 **SRS_AMQP_FRAME_CODEC_01_070: [**The payloads argument for frame_codec_encode_frame shall be made of the payload for the encoded performative and the payloads passed to amqp_frame_codec_encode_frame.**]** 
 
-###amqp_frame_codec_encode_empty_frame
+### amqp_frame_codec_encode_empty_frame
 
 ```C
-extern int amqp_frame_codec_encode_empty_frame(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec, uint16_t channel);
+MOCKABLE_FUNCTION(, int, amqp_frame_codec_encode_empty_frame, AMQP_FRAME_CODEC_HANDLE, amqp_frame_codec, uint16_t, channel, ON_BYTES_ENCODED, on_bytes_encoded, void*, callback_context);
 ```
 
 **SRS_AMQP_FRAME_CODEC_01_042: [**amqp_frame_codec_encode_empty_frame shall encode a frame with no payload.**]** 
@@ -82,7 +80,7 @@ extern int amqp_frame_codec_encode_empty_frame(AMQP_FRAME_CODEC_HANDLE amqp_fram
 **SRS_AMQP_FRAME_CODEC_01_045: [**If amqp_frame_codec is NULL, amqp_frame_codec_encode_empty_frame shall fail and return a non-zero value.**]** 
 **SRS_AMQP_FRAME_CODEC_01_046: [**If encoding fails in any way, amqp_frame_codec_encode_empty_frame shall fail and return a non-zero value.**]** 
 
-###Receive frames
+### Receive frames
 
 **SRS_AMQP_FRAME_CODEC_01_048: [**When a frame header is received from frame_codec and the frame payload size is 0, empty_frame_received_callback shall be invoked, while passing the channel number as argument.**]** 
 **SRS_AMQP_FRAME_CODEC_01_049: [**If not enough type specific bytes are received to decode the channel number, the decoding shall stop with an error.**]** 
@@ -97,7 +95,7 @@ extern int amqp_frame_codec_encode_empty_frame(AMQP_FRAME_CODEC_HANDLE amqp_fram
 **SRS_AMQP_FRAME_CODEC_01_060: [**If any error occurs while decoding a frame, the decoder shall switch to an error state where decoding shall not be possible anymore.**]** 
 **SRS_AMQP_FRAME_CODEC_01_069: [**If any error occurs while decoding a frame, the decoder shall indicate the error by calling the amqp_frame_codec_error_callback  and passing to it the callback context argument that was given in amqp_frame_codec_create.**]** 
 
-###ISO section (receive)
+### ISO section (receive)
 
 2.3.2 AMQP Frames
 
@@ -112,7 +110,7 @@ Figure 2.16: AMQP Frame Layout
 
 **SRS_AMQP_FRAME_CODEC_01_007: [**An AMQP frame with no body MAY be used to generate artificial traffic as needed to satisfy any negotiated idle timeout interval **]** (see subsection 2.4.5).
 
-###ISO section (send)
+### ISO section (send)
 
 2.3.2 AMQP Frames
 

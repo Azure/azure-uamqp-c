@@ -7,41 +7,41 @@
 ## Exposed API
 
 ```C
-	typedef struct SASL_MECHANISM_INSTANCE_TAG* SASL_MECHANISM_HANDLE;
-	typedef void* CONCRETE_SASL_MECHANISM_HANDLE;
+    typedef struct SASL_MECHANISM_INSTANCE_TAG* SASL_MECHANISM_HANDLE;
+    typedef void* CONCRETE_SASL_MECHANISM_HANDLE;
 
-	typedef struct SASL_MECHANISM_BYTES_TAG
-	{
-		const void* bytes;
-		uint32_t length;
-	} SASL_MECHANISM_BYTES;
+    typedef struct SASL_MECHANISM_BYTES_TAG
+    {
+        const void* bytes;
+        uint32_t length;
+    } SASL_MECHANISM_BYTES;
 
-	typedef CONCRETE_SASL_MECHANISM_HANDLE(*SASL_MECHANISM_CREATE)(void* config);
-	typedef void(*SASL_MECHANISM_DESTROY)(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism);
-	typedef int(*SASL_MECHANISM_GET_INIT_BYTES)(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism, SASL_MECHANISM_BYTES* init_bytes);
-	typedef const char*(*SASL_MECHANISM_GET_MECHANISM_NAME)(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism);
-	typedef int(*SASL_MECHANISM_CHALLENGE)(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism, const SASL_MECHANISM_BYTES* challenge_bytes, SASL_MECHANISM_BYTES* response_bytes);
+    typedef CONCRETE_SASL_MECHANISM_HANDLE(*SASL_MECHANISM_CREATE)(void* config);
+    typedef void(*SASL_MECHANISM_DESTROY)(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism);
+    typedef int(*SASL_MECHANISM_GET_INIT_BYTES)(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism, SASL_MECHANISM_BYTES* init_bytes);
+    typedef const char*(*SASL_MECHANISM_GET_MECHANISM_NAME)(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism);
+    typedef int(*SASL_MECHANISM_CHALLENGE)(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism, const SASL_MECHANISM_BYTES* challenge_bytes, SASL_MECHANISM_BYTES* response_bytes);
 
-	typedef struct SASL_MECHANISM_INTERFACE_TAG
-	{
-		SASL_MECHANISM_CREATE concrete_sasl_mechanism_create;
-		SASL_MECHANISM_DESTROY concrete_sasl_mechanism_destroy;
-		SASL_MECHANISM_GET_INIT_BYTES concrete_sasl_mechanism_get_init_bytes;
-		SASL_MECHANISM_GET_MECHANISM_NAME concrete_sasl_mechanism_get_mechanism_name;
-		SASL_MECHANISM_CHALLENGE concrete_sasl_mechanism_challenge;
-	} SASL_MECHANISM_INTERFACE_DESCRIPTION;
+    typedef struct SASL_MECHANISM_INTERFACE_TAG
+    {
+        SASL_MECHANISM_CREATE concrete_sasl_mechanism_create;
+        SASL_MECHANISM_DESTROY concrete_sasl_mechanism_destroy;
+        SASL_MECHANISM_GET_INIT_BYTES concrete_sasl_mechanism_get_init_bytes;
+        SASL_MECHANISM_GET_MECHANISM_NAME concrete_sasl_mechanism_get_mechanism_name;
+        SASL_MECHANISM_CHALLENGE concrete_sasl_mechanism_challenge;
+    } SASL_MECHANISM_INTERFACE_DESCRIPTION;
 
-	MOCKABLE_FUNCTION(, SASL_MECHANISM_HANDLE, saslmechanism_create, const SASL_MECHANISM_INTERFACE_DESCRIPTION*, sasl_mechanism_interface_description, void*, sasl_mechanism_create_parameters);
-	MOCKABLE_FUNCTION(, void, saslmechanism_destroy, SASL_MECHANISM_HANDLE, sasl_mechanism);
-	MOCKABLE_FUNCTION(, int, saslmechanism_get_init_bytes, SASL_MECHANISM_HANDLE, sasl_mechanism, SASL_MECHANISM_BYTES*, init_bytes);
-	MOCKABLE_FUNCTION(, const char*, saslmechanism_get_mechanism_name, SASL_MECHANISM_HANDLE, sasl_mechanism);
-	MOCKABLE_FUNCTION(, int, saslmechanism_challenge, SASL_MECHANISM_HANDLE, sasl_mechanism, const SASL_MECHANISM_BYTES*, challenge_bytes, SASL_MECHANISM_BYTES*, response_bytes);
+    MOCKABLE_FUNCTION(, SASL_MECHANISM_HANDLE, saslmechanism_create, const SASL_MECHANISM_INTERFACE_DESCRIPTION*, sasl_mechanism_interface_description, void*, sasl_mechanism_create_parameters);
+    MOCKABLE_FUNCTION(, void, saslmechanism_destroy, SASL_MECHANISM_HANDLE, sasl_mechanism);
+    MOCKABLE_FUNCTION(, int, saslmechanism_get_init_bytes, SASL_MECHANISM_HANDLE, sasl_mechanism, SASL_MECHANISM_BYTES*, init_bytes);
+    MOCKABLE_FUNCTION(, const char*, saslmechanism_get_mechanism_name, SASL_MECHANISM_HANDLE, sasl_mechanism);
+    MOCKABLE_FUNCTION(, int, saslmechanism_challenge, SASL_MECHANISM_HANDLE, sasl_mechanism, const SASL_MECHANISM_BYTES*, challenge_bytes, SASL_MECHANISM_BYTES*, response_bytes);
 ```
 
 ### saslmechanism_create
 
 ```C
-SASL_MECHANISM_HANDLE saslmechanism_create(const SASL_MECHANISM_INTERFACE_DESCRIPTION* sasl_mechanism_interface_description, void* sasl_mechanism_create_parameters);
+MOCKABLE_FUNCTION(, SASL_MECHANISM_HANDLE, saslmechanism_create, const SASL_MECHANISM_INTERFACE_DESCRIPTION*, sasl_mechanism_interface_description, void*, sasl_mechanism_create_parameters);
 ```
 
 **SRS_SASL_MECHANISM_01_001: [**`saslmechanism_create` shall return on success a non-NULL handle to a new SASL mechanism interface.**]**
@@ -59,7 +59,7 @@ SASL_MECHANISM_HANDLE saslmechanism_create(const SASL_MECHANISM_INTERFACE_DESCRI
 ### saslmechanism_destroy
 
 ```C
-void saslmechanism_destroy(SASL_MECHANISM_HANDLE sasl_mechanism);
+MOCKABLE_FUNCTION(, void, saslmechanism_destroy, SASL_MECHANISM_HANDLE, sasl_mechanism);
 ```
 
 **SRS_SASL_MECHANISM_01_007: [**`saslmechanism_destroy` shall free all resources associated with the SASL mechanism handle.**]**
@@ -71,7 +71,7 @@ void saslmechanism_destroy(SASL_MECHANISM_HANDLE sasl_mechanism);
 ### saslmechanism_get_init_bytes
 
 ```C
-int saslmechanism_get_init_bytes(SASL_MECHANISM_HANDLE sasl_mechanism, INIT_BYTES* init_bytes);
+MOCKABLE_FUNCTION(, int, saslmechanism_get_init_bytes, SASL_MECHANISM_HANDLE, sasl_mechanism, SASL_MECHANISM_BYTES*, init_bytes);
 ```
 
 **SRS_SASL_MECHANISM_01_010: [**`saslmechanism_get_init_bytes` shall call the specific `concrete_sasl_mechanism_get_init_bytes` function specified in `saslmechanism_create`, passing the `init_bytes` argument to it.**]**
@@ -85,7 +85,7 @@ int saslmechanism_get_init_bytes(SASL_MECHANISM_HANDLE sasl_mechanism, INIT_BYTE
 ### saslmechanism_get_mechanism_name
 
 ```C
-const char* saslmechanism_get_mechanism_name(SASL_MECHANISM_HANDLE sasl_mechanism);
+MOCKABLE_FUNCTION(, const char*, saslmechanism_get_mechanism_name, SASL_MECHANISM_HANDLE, sasl_mechanism);
 ```
 
 **SRS_SASL_MECHANISM_01_014: [**`saslmechanism_get_mechanism_name` shall call the specific `concrete_sasl_mechanism_get_mechanism_name` function specified in `saslmechanism_create`.**]**
@@ -99,7 +99,7 @@ const char* saslmechanism_get_mechanism_name(SASL_MECHANISM_HANDLE sasl_mechanis
 ### saslmechanism_challenge
 
 ```C
-int saslmechanism_challenge(SASL_MECHANISM_HANDLE sasl_mechanism, const SASL_MECHANISM_BYTES* challenge_bytes, SASL_MECHANISM_BYTES* response_bytes);
+MOCKABLE_FUNCTION(, int, saslmechanism_challenge, SASL_MECHANISM_HANDLE, sasl_mechanism, const SASL_MECHANISM_BYTES*, challenge_bytes, SASL_MECHANISM_BYTES*, response_bytes);
 ```
 
 **SRS_SASL_MECHANISM_01_018: [**`saslmechanism_challenge` shall call the specific `concrete_sasl_mechanism_challenge` function specified in `saslmechanism_create`, while passing the `challenge_bytes` and `response_bytes` arguments to it.**]**

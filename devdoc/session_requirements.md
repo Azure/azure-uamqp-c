@@ -1,10 +1,10 @@
-#session requirements
+# session requirements
  
-##Overview
+## Overview
 
 session is module that implements the session layer in the AMQP ISO.
 
-##Exposed API
+## Exposed API
 
 ```C
 typedef struct SESSION_INSTANCE_TAG* SESSION_HANDLE;
@@ -61,11 +61,11 @@ DEFINE_ENUM(SESSION_SEND_TRANSFER_RESULT, SESSION_SEND_TRANSFER_RESULT_VALUES)
 extern SESSION_HANDLE session_create(CONNECTION_HANDLE connection);
 ```
 
-**SRS_SESSION_01_030: [**session_create shall create a new session instance and return a non-NULL handle to it.**]** 
-**SRS_SESSION_01_031: [**If connection is NULL, session_create shall fail and return NULL.**]** 
-**SRS_SESSION_01_032: [**session_create shall create a new session endpoint by calling connection_create_endpoint.**]** 
-**SRS_SESSION_01_033: [**If connection_create_endpoint fails, session_create shall fail and return NULL.**]**
-**SRS_SESSION_01_042: [**If allocating memory for the session fails, session_create shall fail and return NULL.**]** 
+**S_R_S_SESSION_01_030: [**session_create shall create a new session instance and return a non-NULL handle to it.**]** 
+**S_R_S_SESSION_01_031: [**If connection is NULL, session_create shall fail and return NULL.**]** 
+**S_R_S_SESSION_01_032: [**session_create shall create a new session endpoint by calling connection_create_endpoint.**]** 
+**S_R_S_SESSION_01_033: [**If connection_create_endpoint fails, session_create shall fail and return NULL.**]**
+**S_R_S_SESSION_01_042: [**If allocating memory for the session fails, session_create shall fail and return NULL.**]** 
 
 ###session_destroy
 
@@ -73,9 +73,9 @@ extern SESSION_HANDLE session_create(CONNECTION_HANDLE connection);
 extern void session_destroy(SESSION_HANDLE session);
 ```
 
-**SRS_SESSION_01_034: [**session_destroy shall free all resources allocated by session_create.**]** 
-**SRS_SESSION_01_035: [**The endpoint created in session_create shall be freed by calling connection_destroy_endpoint.**]** 
-**SRS_SESSION_01_036: [**If session is NULL, session_destroy shall do nothing.**]** 
+**S_R_S_SESSION_01_034: [**session_destroy shall free all resources allocated by session_create.**]** 
+**S_R_S_SESSION_01_035: [**The endpoint created in session_create shall be freed by calling connection_destroy_endpoint.**]** 
+**S_R_S_SESSION_01_036: [**If session is NULL, session_destroy shall do nothing.**]** 
 
 ###session_create_link_endpoint
 
@@ -83,12 +83,12 @@ extern void session_destroy(SESSION_HANDLE session);
 extern LINK_ENDPOINT_HANDLE session_create_link_endpoint(SESSION_HANDLE session, const char* name, LINK_ENDPOINT_FRAME_RECEIVED_CALLBACK frame_received_callback, void* context);
 ```
 
-**SRS_SESSION_01_043: [**session_create_link_endpoint shall create a link endpoint associated with a given session and return a non-NULL handle to it.**]** 
-**SRS_SESSION_01_044: [**If session, name or frame_received_callback is NULL, session_create_link_endpoint shall fail and return NULL.**]** 
-**SRS_SESSION_01_045: [**If allocating memory for the link endpoint fails, session_create_link_endpoint shall fail and return NULL.**]** 
-**SRS_SESSION_01_046: [**An unused handle shall be assigned to the link endpoint.**]** 
-**SRS_SESSION_01_047: [**The lowest available handle shall be used.**]** 
-**SRS_SESSION_01_048: [**If no more handles are available, session_create_link_endpoint shall fail and return NULL.**]** 
+**S_R_S_SESSION_01_043: [**session_create_link_endpoint shall create a link endpoint associated with a given session and return a non-NULL handle to it.**]** 
+**S_R_S_SESSION_01_044: [**If session, name or frame_received_callback is NULL, session_create_link_endpoint shall fail and return NULL.**]** 
+**S_R_S_SESSION_01_045: [**If allocating memory for the link endpoint fails, session_create_link_endpoint shall fail and return NULL.**]** 
+**S_R_S_SESSION_01_046: [**An unused handle shall be assigned to the link endpoint.**]** 
+**S_R_S_SESSION_01_047: [**The lowest available handle shall be used.**]** 
+**S_R_S_SESSION_01_048: [**If no more handles are available, session_create_link_endpoint shall fail and return NULL.**]** 
 
 ###session_destroy_link_endpoint
 
@@ -96,8 +96,8 @@ extern LINK_ENDPOINT_HANDLE session_create_link_endpoint(SESSION_HANDLE session,
 extern void session_destroy_link_endpoint(LINK_ENDPOINT_HANDLE link_endpoint);
 ```
 
-**SRS_SESSION_01_049: [**session_destroy_link_endpoint shall detach the associated endpoint, but not free the resources of the endpoint.**]** 
-**SRS_SESSION_01_050: [**If link_endpoint is NULL, session_destroy_link_endpoint shall do nothing.**]** 
+**S_R_S_SESSION_01_049: [**session_destroy_link_endpoint shall detach the associated endpoint, but not free the resources of the endpoint.**]** 
+**S_R_S_SESSION_01_050: [**If link_endpoint is NULL, session_destroy_link_endpoint shall do nothing.**]** 
 
 ###session_send_transfer
 
@@ -105,22 +105,22 @@ extern void session_destroy_link_endpoint(LINK_ENDPOINT_HANDLE link_endpoint);
 extern int session_send_transfer(LINK_ENDPOINT_HANDLE link_endpoint, TRANSFER_HANDLE transfer, PAYLOAD* payloads, size_t payload_count, delivery_number* delivery_id);
 ```
 
-**SRS_SESSION_01_051: [**session_send_transfer shall send a transfer frame with the performative indicated in the transfer argument.**]** 
-**SRS_SESSION_01_053: [**On success, session_send_transfer shall return 0.**]** 
-**SRS_SESSION_01_054: [**If link_endpoint or transfer is NULL, session_send_transfer shall fail and return a non-zero value.**]** 
-**SRS_SESSION_01_055: [**The encoding of the frame shall be done by calling connection_encode_frame and passing as arguments: the connection handle associated with the session, the transfer performative and the payload chunks passed to session_send_transfer.**]** 
-**SRS_SESSION_01_056: [**If connection_encode_frame fails then session_send_transfer shall fail and return a non-zero value.**]** 
-**SRS_SESSION_01_057: [**The delivery ids shall be assigned starting at 0.**]** 
-**SRS_SESSION_01_058: [**When any other error occurs, session_send_transfer shall fail and return a non-zero value.**]** 
-**SRS_SESSION_01_059: [**When session_send_transfer is called while the session is not in the MAPPED state, session_send_transfer shall fail and return a non-zero value.**]** 
+**S_R_S_SESSION_01_051: [**session_send_transfer shall send a transfer frame with the performative indicated in the transfer argument.**]** 
+**S_R_S_SESSION_01_053: [**On success, session_send_transfer shall return 0.**]** 
+**S_R_S_SESSION_01_054: [**If link_endpoint or transfer is NULL, session_send_transfer shall fail and return a non-zero value.**]** 
+**S_R_S_SESSION_01_055: [**The encoding of the frame shall be done by calling connection_encode_frame and passing as arguments: the connection handle associated with the session, the transfer performative and the payload chunks passed to session_send_transfer.**]** 
+**S_R_S_SESSION_01_056: [**If connection_encode_frame fails then session_send_transfer shall fail and return a non-zero value.**]** 
+**S_R_S_SESSION_01_057: [**The delivery ids shall be assigned starting at 0.**]** 
+**S_R_S_SESSION_01_058: [**When any other error occurs, session_send_transfer shall fail and return a non-zero value.**]** 
+**S_R_S_SESSION_01_059: [**When session_send_transfer is called while the session is not in the MAPPED state, session_send_transfer shall fail and return a non-zero value.**]** 
 
 ###connection_state_changed_callback
 
 The following shall be done when the connection_state_changed_callback is triggered:
 
--	**SRS_SESSION_01_060: [**If the previous connection state is not OPENED and the new connection state is OPENED, the BEGIN frame shall be sent out and the state shall be switched to BEGIN_SENT.**]**
--	**SRS_SESSION_01_061: [**If the previous connection state is OPENED and the new connection state is not OPENED anymore, the state shall be switched to DISCARDING.**]** 
--	**SRS_SESSION_09_001: [**If the new connection state is ERROR, the state shall be switched to ERROR.**]** 
+-	**S_R_S_SESSION_01_060: [**If the previous connection state is not OPENED and the new connection state is OPENED, the BEGIN frame shall be sent out and the state shall be switched to BEGIN_SENT.**]**
+-	**S_R_S_SESSION_01_061: [**If the previous connection state is OPENED and the new connection state is not OPENED anymore, the state shall be switched to DISCARDING.**]** 
+-	**S_R_S_SESSION_09_001: [**If the new connection state is ERROR, the state shall be switched to ERROR.**]** 
 
 ##ISO section
 
@@ -137,9 +137,9 @@ This common sequence allows endpoints to efficiently refer to sets of deliveries
 
 2.5.1 Establishing A Session
 
-**SRS_SESSION_01_001: [**Sessions are established by creating a session endpoint, assigning it to an unused channel number, and sending a begin announcing the association of the session endpoint with the outgoing channel.**]** **SRS_SESSION_01_002: [**Upon receiving the begin the partner will check the remote-channel field and find it empty.**]** This indicates that the begin is referring to remotely initiated session. **SRS_SESSION_01_003: [**The partner will therefore allocate an unused outgoing channel for the remotely initiated session and indicate this by sending its own begin setting the remote-channel field to the incoming channel of the remotely initiated session.**]** 
-**SRS_SESSION_01_004: [**To make it easier to monitor AMQP sessions, it is RECOMMENDED that implementations always assign the lowest available unused channel number.**]** 
-**SRS_SESSION_01_005: [**The remote-channel field of a begin frame MUST be empty for a locally initiated session**]**,**SRS_SESSION_01_006: [**and MUST be set when announcing the endpoint created as a result of a remotely initiated session.**]** 
+**S_R_S_SESSION_01_001: [**Sessions are established by creating a session endpoint, assigning it to an unused channel number, and sending a begin announcing the association of the session endpoint with the outgoing channel.**]** **S_R_S_SESSION_01_002: [**Upon receiving the begin the partner will check the remote-channel field and find it empty.**]** This indicates that the begin is referring to remotely initiated session. **S_R_S_SESSION_01_003: [**The partner will therefore allocate an unused outgoing channel for the remotely initiated session and indicate this by sending its own begin setting the remote-channel field to the incoming channel of the remotely initiated session.**]** 
+**S_R_S_SESSION_01_004: [**To make it easier to monitor AMQP sessions, it is RECOMMENDED that implementations always assign the lowest available unused channel number.**]** 
+**S_R_S_SESSION_01_005: [**The remote-channel field of a begin frame MUST be empty for a locally initiated session**]**,**S_R_S_SESSION_01_006: [**and MUST be set when announcing the endpoint created as a result of a remotely initiated session.**]** 
 
 ...
 
@@ -147,7 +147,7 @@ Figure 2.26: Session Begin Sequence
 
 2.5.2 Ending A Session
 
-**SRS_SESSION_01_007: [**Sessions end automatically when the connection is closed or interrupted.**]** **SRS_SESSION_01_008: [**Sessions are explicitly ended when either endpoint chooses to end the session.**]** **SRS_SESSION_01_009: [**When a session is explicitly ended, an end frame is sent to announce the disassociation of the endpoint from its outgoing channel, and to carry error information when relevant.**]** 
+**S_R_S_SESSION_01_007: [**Sessions end automatically when the connection is closed or interrupted.**]** **S_R_S_SESSION_01_008: [**Sessions are explicitly ended when either endpoint chooses to end the session.**]** **S_R_S_SESSION_01_009: [**When a session is explicitly ended, an end frame is sent to announce the disassociation of the endpoint from its outgoing channel, and to carry error information when relevant.**]** 
 
 ...
 
@@ -163,7 +163,7 @@ Figure 2.28: Simultaneous Session End Sequence
 
 2.5.4 Session Errors
 
-**SRS_SESSION_01_010: [**When a session is unable to process input, it MUST indicate this by issuing an END with an appropriate error indicating the cause of the problem.**]** **SRS_SESSION_01_011: [**It MUST then proceed to discard all incoming frames from the remote endpoint until receiving the remote endpoint's corresponding end frame.**]** 
+**S_R_S_SESSION_01_010: [**When a session is unable to process input, it MUST indicate this by issuing an END with an appropriate error indicating the cause of the problem.**]** **S_R_S_SESSION_01_011: [**It MUST then proceed to discard all incoming frames from the remote endpoint until receiving the remote endpoint's corresponding end frame.**]** 
 
 ...
 
@@ -193,17 +193,17 @@ There is no obligation to retain a session endpoint after it transitions to the 
 
 2.5.6 Session Flow Control
 
-**SRS_SESSION_01_012: [**The session endpoint assigns each outgoing transfer frame an implicit transfer-id from a session scoped sequence.**]****SRS_SESSION_01_013: [**Each session endpoint maintains the following state to manage incoming and outgoing transfer frames**]** :
-**SRS_SESSION_01_014: [**next-incoming-id The next-incoming-id identifies the expected transfer-id of the next incoming transfer frame.**]** 
-**SRS_SESSION_01_015: [**incoming-window The incoming-window defines the maximum number of incoming transfer frames that the endpoint can currently receive.**]** This identifies a current maximum incoming transfer-id that can be computed by subtracting one from the sum of incoming-window and next-incomingid.
-**SRS_SESSION_01_016: [**next-outgoing-id The next-outgoing-id is the transfer-id to assign to the next transfer frame.**]** **SRS_SESSION_01_017: [**The nextoutgoing-id MAY be initialized to an arbitrary value **]** and **SRS_SESSION_01_018: [**is incremented after each successive transfer according to RFC-1982 [RFC1982**]** serial number arithmetic.] 
-**SRS_SESSION_01_019: [**outgoing-window The outgoing-window defines the maximum number of outgoing transfer frames that the endpoint can currently send.**]** This identifies a current maximum outgoing transfer-id that can be computed by subtracting one from the sum of outgoing-window and next-outgoing-id.
-**SRS_SESSION_01_020: [**remote-incoming-window The remote-incoming-window reflects the maximum number of outgoing transfers that can be sent without exceeding the remote endpoint's incoming-window.**]****SRS_SESSION_01_021: [**This value MUST be decremented after every transfer frame is sent**]**,**SRS_SESSION_01_022: [**and recomputed when informed of the remote session endpoint state.**]** 
-**SRS_SESSION_01_023: [**remote-outgoing-window The remote-outgoing-window reflects the maximum number of incoming transfers that MAY arrive without exceeding the remote endpoint's outgoing-window.**]****SRS_SESSION_01_024: [**This value MUST be decremented after every incoming transfer frame is received**]**, **SRS_SESSION_01_025: [**and recomputed when informed of the remote session endpoint state.**]** When this window shrinks, it is an indication of outstanding transfers. Settling outstanding transfers can cause the window to grow.
-**SRS_SESSION_01_026: [**Once initialized, this state is updated by various events that occur in the lifespan of a session and its associated links:**]** 
-**SRS_SESSION_01_027: [**sending a transfer Upon sending a transfer, the sending endpoint will increment its next-outgoing-id**]**, **SRS_SESSION_01_062: [**decrement its remote-incoming-window**]** ,**SRS_SESSION_01_063: [**and MAY (depending on policy) decrement its outgoing window**]** . 
-**SRS_SESSION_01_028: [**receiving a transfer Upon receiving a transfer, the receiving endpoint will increment the next-incoming-id to match the implicit transfer-id of the incoming transfer plus one, as well as decrementing the remote-outgoing-window, and MAY (depending on policy) decrement its incoming-window.**]** 
-**SRS_SESSION_01_029: [**receiving a flow When the endpoint receives a flow frame from its peer, it MUST update the next-incoming-id directly from the next-outgoing-id of the frame, and it MUST update the remote-outgoingwindow directly from the outgoing-window of the frame.**]** 
+**S_R_S_SESSION_01_012: [**The session endpoint assigns each outgoing transfer frame an implicit transfer-id from a session scoped sequence.**]****S_R_S_SESSION_01_013: [**Each session endpoint maintains the following state to manage incoming and outgoing transfer frames**]** :
+**S_R_S_SESSION_01_014: [**next-incoming-id The next-incoming-id identifies the expected transfer-id of the next incoming transfer frame.**]** 
+**S_R_S_SESSION_01_015: [**incoming-window The incoming-window defines the maximum number of incoming transfer frames that the endpoint can currently receive.**]** This identifies a current maximum incoming transfer-id that can be computed by subtracting one from the sum of incoming-window and next-incomingid.
+**S_R_S_SESSION_01_016: [**next-outgoing-id The next-outgoing-id is the transfer-id to assign to the next transfer frame.**]** **S_R_S_SESSION_01_017: [**The nextoutgoing-id MAY be initialized to an arbitrary value **]** and **S_R_S_SESSION_01_018: [**is incremented after each successive transfer according to RFC-1982 [RFC1982**]** serial number arithmetic.] 
+**S_R_S_SESSION_01_019: [**outgoing-window The outgoing-window defines the maximum number of outgoing transfer frames that the endpoint can currently send.**]** This identifies a current maximum outgoing transfer-id that can be computed by subtracting one from the sum of outgoing-window and next-outgoing-id.
+**S_R_S_SESSION_01_020: [**remote-incoming-window The remote-incoming-window reflects the maximum number of outgoing transfers that can be sent without exceeding the remote endpoint's incoming-window.**]****S_R_S_SESSION_01_021: [**This value MUST be decremented after every transfer frame is sent**]**,**S_R_S_SESSION_01_022: [**and recomputed when informed of the remote session endpoint state.**]** 
+**S_R_S_SESSION_01_023: [**remote-outgoing-window The remote-outgoing-window reflects the maximum number of incoming transfers that MAY arrive without exceeding the remote endpoint's outgoing-window.**]****S_R_S_SESSION_01_024: [**This value MUST be decremented after every incoming transfer frame is received**]**, **S_R_S_SESSION_01_025: [**and recomputed when informed of the remote session endpoint state.**]** When this window shrinks, it is an indication of outstanding transfers. Settling outstanding transfers can cause the window to grow.
+**S_R_S_SESSION_01_026: [**Once initialized, this state is updated by various events that occur in the lifespan of a session and its associated links:**]** 
+**S_R_S_SESSION_01_027: [**sending a transfer Upon sending a transfer, the sending endpoint will increment its next-outgoing-id**]**, **S_R_S_SESSION_01_062: [**decrement its remote-incoming-window**]** ,**S_R_S_SESSION_01_063: [**and MAY (depending on policy) decrement its outgoing window**]** . 
+**S_R_S_SESSION_01_028: [**receiving a transfer Upon receiving a transfer, the receiving endpoint will increment the next-incoming-id to match the implicit transfer-id of the incoming transfer plus one, as well as decrementing the remote-outgoing-window, and MAY (depending on policy) decrement its incoming-window.**]** 
+**S_R_S_SESSION_01_029: [**receiving a flow When the endpoint receives a flow frame from its peer, it MUST update the next-incoming-id directly from the next-outgoing-id of the frame, and it MUST update the remote-outgoingwindow directly from the outgoing-window of the frame.**]** 
 
 The remote-incoming-window is computed as follows:
 

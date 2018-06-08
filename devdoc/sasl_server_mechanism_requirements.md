@@ -41,7 +41,7 @@
 ### sasl_server_mechanism_create
 
 ```C
-SASL_MECHANISM_HANDLE sasl_server_mechanism_create(const SASL_SERVER_MECHANISM_INTERFACE_DESCRIPTION* sasl_server_mechanism_interface_description, void* sasl_server_mechanism_create_parameters);
+MOCKABLE_FUNCTION(, SASL_SERVER_MECHANISM_HANDLE, sasl_server_mechanism_create, const SASL_SERVER_MECHANISM_INTERFACE_DESCRIPTION*, sasl_server_mechanism_interface_description, void*, sasl_server_mechanism_create_parameters);
 ```
 
 **SRS_SASL_SERVER_MECHANISM_01_001: [**`sasl_server_mechanism_create` shall return on success a non-NULL handle to a new SASL server mechanism interface.**]**
@@ -59,7 +59,7 @@ SASL_MECHANISM_HANDLE sasl_server_mechanism_create(const SASL_SERVER_MECHANISM_I
 ### sasl_server_mechanism_destroy
 
 ```C
-void sasl_server_mechanism_destroy(SASL_SERVER_MECHANISM_HANDLE sasl_server_mechanism);
+MOCKABLE_FUNCTION(, void, sasl_server_mechanism_destroy, SASL_SERVER_MECHANISM_HANDLE, sasl_server_mechanism);
 ```
 
 **SRS_SASL_SERVER_MECHANISM_01_007: [** `sasl_server_mechanism_destroy` shall free all resources associated with the SASL mechanism handle. **]**
@@ -71,7 +71,7 @@ void sasl_server_mechanism_destroy(SASL_SERVER_MECHANISM_HANDLE sasl_server_mech
 ### sasl_server_mechanism_handle_initial_response
 
 ```C
-int sasl_server_mechanism_handle_initial_response(SASL_SERVER_MECHANISM_HANDLE sasl_server_mechanism, const SASL_SERVER_MECHANISM_BYTES* initial_response_bytes, const char* hostname, bool* send_challenge, SASL_SERVER_MECHANISM_BYTES* challenge_bytes);
+MOCKABLE_FUNCTION(, int, sasl_server_mechanism_handle_initial_response, SASL_SERVER_MECHANISM_HANDLE, sasl_server_mechanism, const SASL_SERVER_MECHANISM_BYTES*, initial_response_bytes, const char*, hostname, bool*, send_challenge, SASL_SERVER_MECHANISM_BYTES*, challenge_bytes);
 ```
 
 **SRS_SASL_SERVER_MECHANISM_01_010: [** `sasl_server_mechanism_handle_initial_response` shall call the specific `handle_initial_response` function specified in `sasl_server_mechanism_create`, passing the `initial_response_bytes`, `hostname`, `send_challenge` and `challenge_bytes` arguments to it. **]**
@@ -85,7 +85,7 @@ int sasl_server_mechanism_handle_initial_response(SASL_SERVER_MECHANISM_HANDLE s
 ### sasl_server_mechanism_handle_response
 
 ```C
-int sasl_server_mechanism_handle_response(SASL_SERVER_MECHANISM_HANDLE sasl_server_mechanism, const SASL_SERVER_MECHANISM_BYTES* response_bytes, bool* send_next_challenge, SASL_SERVER_MECHANISM_BYTES* next_challenge_bytes);
+MOCKABLE_FUNCTION(, int, sasl_server_mechanism_handle_response, SASL_SERVER_MECHANISM_HANDLE, sasl_server_mechanism, const SASL_SERVER_MECHANISM_BYTES*, response_bytes, bool*, send_next_challenge, SASL_SERVER_MECHANISM_BYTES*, next_challenge_bytes);
 ```
 
 **SRS_SASL_SERVER_MECHANISM_01_014: [** `sasl_server_mechanism_handle_response` shall call the specific `handle_response` function specified in `sasl_server_mechanism_create`, passing the `response_bytes`, `send_next_challenge` and `next_challenge_bytes` arguments to it. **]**
@@ -99,7 +99,7 @@ int sasl_server_mechanism_handle_response(SASL_SERVER_MECHANISM_HANDLE sasl_serv
 ### sasl_server_mechanism_get_mechanism_name
 
 ```C
-const char* sasl_server_mechanism_get_mechanism_name(SASL_SERVER_MECHANISM_HANDLE sasl_server_mechanism);
+MOCKABLE_FUNCTION(, const char*, sasl_server_mechanism_get_mechanism_name, SASL_SERVER_MECHANISM_HANDLE, sasl_server_mechanism);
 ```
 
 **SRS_SASL_SERVER_MECHANISM_01_019: [** `sasl_server_mechanism_get_mechanism_name` shall call the specific `get_mechanism_name` function specified in `sasl_server_mechanism_create`. **]**

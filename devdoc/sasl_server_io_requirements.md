@@ -10,13 +10,20 @@ The SASL server IO module communicates with concrete SASL mechanisms implementat
 ## Exposed API
 
 ```C
-const IO_INTERFACE_DESCRIPTION* sasl_server_io_get_interface_description(void);
+typedef struct SASL_SERVER_IO_TAG
+{
+    SERVER_PROTOCOL_IO_CONFIG server_protocol_io;
+    const SASL_SERVER_MECHANISM_HANDLE* sasl_server_mechanisms;
+    size_t sasl_server_mechanism_count;
+} SASL_SERVER_IO;
+
+MOCKABLE_FUNCTION(, const IO_INTERFACE_DESCRIPTION*, sasl_server_io_get_interface_description);
 ```
 
 ### sasl_server_io_get_interface_description
 
 ```C
-const IO_INTERFACE_DESCRIPTION* sasl_server_io_get_interface_description(void);
+MOCKABLE_FUNCTION(, const IO_INTERFACE_DESCRIPTION*, sasl_server_io_get_interface_description);
 ```
 
 **SRS_SASL_SERVER_IO_01_001: [** `sasl_server_io_get_interface_description` shall return a pointer to an `IO_INTERFACE_DESCRIPTION` structure that contains pointers to the functions: `sasl_server_io_create`, `sasl_server_io_destroy`, `sasl_server_io_open_async`, `sasl_server_io_close_async`, `sasl_server_io_send_async`, `sasl_server_io_setoptions` and `sasl_server_io_dowork`. **]**

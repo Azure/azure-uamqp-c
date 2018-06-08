@@ -156,8 +156,8 @@ TEST_FUNCTION_CLEANUP(method_cleanup)
 
 /* session_create */
 
-/* Tests_SRS_SESSION_01_030: [session_create shall create a new session instance and return a non-NULL handle to it.] */
-/* Tests_SRS_SESSION_01_032: [session_create shall create a new session endpoint by calling connection_create_endpoint.] */
+/* Tests_S_R_S_SESSION_01_030: [session_create shall create a new session instance and return a non-NULL handle to it.] */
+/* Tests_S_R_S_SESSION_01_032: [session_create shall create a new session endpoint by calling connection_create_endpoint.] */
 TEST_FUNCTION(session_create_with_valid_args_succeeds)
 {
     // arrange
@@ -176,8 +176,8 @@ TEST_FUNCTION(session_create_with_valid_args_succeeds)
     session_destroy(session);
 }
 
-/* Tests_SRS_SESSION_01_030: [session_create shall create a new session instance and return a non-NULL handle to it.] */
-/* Tests_SRS_SESSION_01_032: [session_create shall create a new session endpoint by calling connection_create_endpoint.] */
+/* Tests_S_R_S_SESSION_01_030: [session_create shall create a new session instance and return a non-NULL handle to it.] */
+/* Tests_S_R_S_SESSION_01_032: [session_create shall create a new session endpoint by calling connection_create_endpoint.] */
 TEST_FUNCTION(session_create_twice_on_the_same_connection_works)
 {
     // arrange
@@ -203,7 +203,7 @@ TEST_FUNCTION(session_create_twice_on_the_same_connection_works)
     session_destroy(session2);
 }
 
-/* Tests_SRS_SESSION_01_031: [If connection is NULL, session_create shall fail and return NULL.] */
+/* Tests_S_R_S_SESSION_01_031: [If connection is NULL, session_create shall fail and return NULL.] */
 TEST_FUNCTION(session_create_with_NULL_connection_fails)
 {
     // arrange
@@ -216,7 +216,7 @@ TEST_FUNCTION(session_create_with_NULL_connection_fails)
     ASSERT_IS_NULL(session);
 }
 
-/* Tests_SRS_SESSION_01_042: [If allocating memory for the session fails, session_create shall fail and return NULL.] */
+/* Tests_S_R_S_SESSION_01_042: [If allocating memory for the session fails, session_create shall fail and return NULL.] */
 TEST_FUNCTION(when_allocating_memory_for_the_session_fails_session_create_fails)
 {
     // arrange
@@ -232,7 +232,7 @@ TEST_FUNCTION(when_allocating_memory_for_the_session_fails_session_create_fails)
     ASSERT_IS_NULL(session);
 }
 
-/* Tests_SRS_SESSION_01_033: [If connection_create_endpoint fails, session_create shall fail and return NULL.] */
+/* Tests_S_R_S_SESSION_01_033: [If connection_create_endpoint fails, session_create shall fail and return NULL.] */
 TEST_FUNCTION(when_connection_create_endpoint_fails_session_create_fails)
 {
     // arrange
@@ -252,8 +252,8 @@ TEST_FUNCTION(when_connection_create_endpoint_fails_session_create_fails)
 
 /* session_destroy */
 
-/* Tests_SRS_SESSION_01_034: [session_destroy shall free all resources allocated by session_create.] */
-/* Tests_SRS_SESSION_01_035: [The endpoint created in session_create shall be freed by calling connection_destroy_endpoint.] */
+/* Tests_S_R_S_SESSION_01_034: [session_destroy shall free all resources allocated by session_create.] */
+/* Tests_S_R_S_SESSION_01_035: [The endpoint created in session_create shall be freed by calling connection_destroy_endpoint.] */
 TEST_FUNCTION(when_session_destroy_is_called_then_the_underlying_endpoint_is_freed)
 {
     // arrange
@@ -270,7 +270,7 @@ TEST_FUNCTION(when_session_destroy_is_called_then_the_underlying_endpoint_is_fre
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
-/* Tests_SRS_SESSION_01_036: [If session is NULL, session_destroy shall do nothing.] */
+/* Tests_S_R_S_SESSION_01_036: [If session is NULL, session_destroy shall do nothing.] */
 TEST_FUNCTION(session_destroy_with_NULL_session_does_nothing)
 {
     // arrange
@@ -284,8 +284,8 @@ TEST_FUNCTION(session_destroy_with_NULL_session_does_nothing)
 
 /* session_create_link_endpoint */
 
-/* Tests_SRS_SESSION_01_043: [session_create_link_endpoint shall create a link endpoint associated with a given session and return a non-NULL handle to it.] */
-/* Tests_SRS_SESSION_01_046: [An unused handle shall be assigned to the link endpoint.] */
+/* Tests_S_R_S_SESSION_01_043: [session_create_link_endpoint shall create a link endpoint associated with a given session and return a non-NULL handle to it.] */
+/* Tests_S_R_S_SESSION_01_046: [An unused handle shall be assigned to the link endpoint.] */
 TEST_FUNCTION(session_create_link_endpoint_creates_a_link_endpoint)
 {
     // arrange
@@ -309,7 +309,7 @@ TEST_FUNCTION(session_create_link_endpoint_creates_a_link_endpoint)
     session_destroy(session);
 }
 
-/* Tests_SRS_SESSION_01_044: [If session, name or frame_received_callback is NULL, session_create_link_endpoint shall fail and return NULL.] */
+/* Tests_S_R_S_SESSION_01_044: [If session, name or frame_received_callback is NULL, session_create_link_endpoint shall fail and return NULL.] */
 TEST_FUNCTION(session_create_with_NULL_session_fails)
 {
     // arrange
@@ -322,7 +322,7 @@ TEST_FUNCTION(session_create_with_NULL_session_fails)
     ASSERT_IS_NULL(link_endpoint);
 }
 
-/* Tests_SRS_SESSION_01_044: [If session, name or frame_received_callback is NULL, session_create_link_endpoint shall fail and return NULL.] */
+/* Tests_S_R_S_SESSION_01_044: [If session, name or frame_received_callback is NULL, session_create_link_endpoint shall fail and return NULL.] */
 TEST_FUNCTION(session_create_with_NULL_name_fails)
 {
     // arrange
@@ -341,7 +341,7 @@ TEST_FUNCTION(session_create_with_NULL_name_fails)
     session_destroy(session);
 }
 
-/* Tests_SRS_SESSION_01_045: [If allocating memory for the link endpoint fails, session_create_link_endpoint shall fail and return NULL.] */
+/* Tests_S_R_S_SESSION_01_045: [If allocating memory for the link endpoint fails, session_create_link_endpoint shall fail and return NULL.] */
 TEST_FUNCTION(when_allocating_memory_for_the_link_endpoint_fails_then_session_create_link_endpoint_fails)
 {
     // arrange
@@ -363,7 +363,7 @@ TEST_FUNCTION(when_allocating_memory_for_the_link_endpoint_fails_then_session_cr
     session_destroy(session);
 }
 
-/* Tests_SRS_SESSION_01_045: [If allocating memory for the link endpoint fails, session_create_link_endpoint shall fail and return NULL.] */
+/* Tests_S_R_S_SESSION_01_045: [If allocating memory for the link endpoint fails, session_create_link_endpoint shall fail and return NULL.] */
 TEST_FUNCTION(when_allocating_the_link_name_fails_then_session_create_link_endpoint_fails)
 {
     // arrange
@@ -387,7 +387,7 @@ TEST_FUNCTION(when_allocating_the_link_name_fails_then_session_create_link_endpo
     session_destroy(session);
 }
 
-/* Tests_SRS_SESSION_01_045: [If allocating memory for the link endpoint fails, session_create_link_endpoint shall fail and return NULL.] */
+/* Tests_S_R_S_SESSION_01_045: [If allocating memory for the link endpoint fails, session_create_link_endpoint shall fail and return NULL.] */
 TEST_FUNCTION(when_reallocating_the_endpoint_array_for_the_link_endpoint_fails_then_session_create_link_endpoint_fails)
 {
     // arrange
@@ -415,7 +415,7 @@ TEST_FUNCTION(when_reallocating_the_endpoint_array_for_the_link_endpoint_fails_t
 
 /* session_destroy_link_endpoint */
 
-/* Tests_SRS_SESSION_01_050: [If link_endpoint is NULL, session_destroy_link_endpoint shall do nothing.] */
+/* Tests_S_R_S_SESSION_01_050: [If link_endpoint is NULL, session_destroy_link_endpoint shall do nothing.] */
 TEST_FUNCTION(session_destroy_link_endpoint_with_NULL_handle_does_nothing)
 {
     // arrange
@@ -428,7 +428,7 @@ TEST_FUNCTION(session_destroy_link_endpoint_with_NULL_handle_does_nothing)
 }
 
 #if 0
-/* Tests_SRS_SESSION_01_049: [session_destroy_link_endpoint shall detach the associated endpoint, but not free the resources of the endpoint.] */
+/* Tests_S_R_S_SESSION_01_049: [session_destroy_link_endpoint shall detach the associated endpoint, but not free the resources of the endpoint.] */
 TEST_FUNCTION(session_destroy_link_endpoint_frees_the_resources)
 {
     // arrange
@@ -450,7 +450,7 @@ TEST_FUNCTION(session_destroy_link_endpoint_frees_the_resources)
     session_destroy(session);
 }
 
-/* Tests_SRS_SESSION_01_049: [session_destroy_link_endpoint shall free all resources associated with the endpoint.] */
+/* Tests_S_R_S_SESSION_01_049: [session_destroy_link_endpoint shall free all resources associated with the endpoint.] */
 TEST_FUNCTION(session_destroy_link_endpoint_when_2_endpoints_are_there_frees_the_resources)
 {
     // arrange
@@ -476,10 +476,10 @@ TEST_FUNCTION(session_destroy_link_endpoint_when_2_endpoints_are_there_frees_the
 
 /* session_send_transfer */
 
-/* Tests_SRS_SESSION_01_051: [session_send_transfer shall send a transfer frame with the performative indicated in the transfer argument.] */
-/* Tests_SRS_SESSION_01_053: [On success, session_send_transfer shall return 0.] */
-/* Tests_SRS_SESSION_01_055: [The encoding of the frame shall be done by calling connection_encode_frame and passing as arguments: the connection handle associated with the session, the transfer performative and the payload chunks passed to session_send_transfer.] */
-/* Tests_SRS_SESSION_01_057: [The delivery ids shall be assigned starting at 0.] */
+/* Tests_S_R_S_SESSION_01_051: [session_send_transfer shall send a transfer frame with the performative indicated in the transfer argument.] */
+/* Tests_S_R_S_SESSION_01_053: [On success, session_send_transfer shall return 0.] */
+/* Tests_S_R_S_SESSION_01_055: [The encoding of the frame shall be done by calling connection_encode_frame and passing as arguments: the connection handle associated with the session, the transfer performative and the payload chunks passed to session_send_transfer.] */
+/* Tests_S_R_S_SESSION_01_057: [The delivery ids shall be assigned starting at 0.] */
 TEST_FUNCTION(session_transfer_sends_the_frame_to_the_connection)
 {
     // arrange
@@ -513,7 +513,7 @@ TEST_FUNCTION(session_transfer_sends_the_frame_to_the_connection)
 }
 #endif
 
-/* Tests_SRS_SESSION_01_054: [If link_endpoint or transfer is NULL, session_send_transfer shall fail and return a non-zero value.] */
+/* Tests_S_R_S_SESSION_01_054: [If link_endpoint or transfer is NULL, session_send_transfer shall fail and return a non-zero value.] */
 TEST_FUNCTION(session_transfer_with_NULL_transfer_fails)
 {
     // arrange
@@ -535,7 +535,7 @@ TEST_FUNCTION(session_transfer_with_NULL_transfer_fails)
     session_destroy(session);
 }
 
-/* Tests_SRS_SESSION_01_054: [If link_endpoint or transfer is NULL, session_send_transfer shall fail and return a non-zero value.] */
+/* Tests_S_R_S_SESSION_01_054: [If link_endpoint or transfer is NULL, session_send_transfer shall fail and return a non-zero value.] */
 TEST_FUNCTION(session_transfer_with_NULL_link_endpoint_fails)
 {
     // arrange
@@ -549,7 +549,7 @@ TEST_FUNCTION(session_transfer_with_NULL_link_endpoint_fails)
 }
 
 #if 0
-/* Tests_SRS_SESSION_01_058: [When any other error occurs, session_send_transfer shall fail and return a non-zero value.] */
+/* Tests_S_R_S_SESSION_01_058: [When any other error occurs, session_send_transfer shall fail and return a non-zero value.] */
 TEST_FUNCTION(when_transfer_set_delivery_id_fails_then_session_transfer_fails)
 {
     // arrange
@@ -578,7 +578,7 @@ TEST_FUNCTION(when_transfer_set_delivery_id_fails_then_session_transfer_fails)
     session_destroy(session);
 }
 
-/* Tests_SRS_SESSION_01_058: [When any other error occurs, session_send_transfer shall fail and return a non-zero value.] */
+/* Tests_S_R_S_SESSION_01_058: [When any other error occurs, session_send_transfer shall fail and return a non-zero value.] */
 TEST_FUNCTION(when_amqpvalue_create_transfer_fails_then_session_transfer_fails)
 {
     // arrange
@@ -610,7 +610,7 @@ TEST_FUNCTION(when_amqpvalue_create_transfer_fails_then_session_transfer_fails)
     session_destroy(session);
 }
 
-/* Tests_SRS_SESSION_01_056: [If connection_encode_frame fails then session_send_transfer shall fail and return a non-zero value.] */
+/* Tests_S_R_S_SESSION_01_056: [If connection_encode_frame fails then session_send_transfer shall fail and return a non-zero value.] */
 TEST_FUNCTION(when_connection_encode_frame_fails_then_session_transfer_fails)
 {
     // arrange
@@ -645,7 +645,7 @@ TEST_FUNCTION(when_connection_encode_frame_fails_then_session_transfer_fails)
 }
 #endif
 
-/* Tests_SRS_SESSION_01_059: [When session_send_transfer is called while the session is not in the MAPPED state, session_send_transfer shall fail and return a non-zero value.] */
+/* Tests_S_R_S_SESSION_01_059: [When session_send_transfer is called while the session is not in the MAPPED state, session_send_transfer shall fail and return a non-zero value.] */
 TEST_FUNCTION(when_session_is_not_MAPPED_the_transfer_fails)
 {
     // arrange
@@ -670,7 +670,7 @@ TEST_FUNCTION(when_session_is_not_MAPPED_the_transfer_fails)
 /* on_connection_state_changed */
 
 #if 0
-/* Tests_SRS_SESSION_01_060: [If the previous connection state is not OPENED and the new connection state is OPENED, the BEGIN frame shall be sent out and the state shall be switched to BEGIN_SENT.] */
+/* Tests_S_R_S_SESSION_01_060: [If the previous connection state is not OPENED and the new connection state is OPENED, the BEGIN frame shall be sent out and the state shall be switched to BEGIN_SENT.] */
 TEST_FUNCTION(connection_state_changed_callback_with_OPENED_triggers_sending_the_BEGIN_frame)
 {
     // arrange
@@ -698,7 +698,7 @@ TEST_FUNCTION(connection_state_changed_callback_with_OPENED_triggers_sending_the
     session_destroy(session);
 }
 
-/* Tests_SRS_SESSION_01_060: [If the previous connection state is not OPENED and the new connection state is OPENED, the BEGIN frame shall be sent out and the state shall be switched to BEGIN_SENT.] */
+/* Tests_S_R_S_SESSION_01_060: [If the previous connection state is not OPENED and the new connection state is OPENED, the BEGIN frame shall be sent out and the state shall be switched to BEGIN_SENT.] */
 TEST_FUNCTION(connection_state_changed_callback_and_new_state_is_not_OPENED_does_not_trigger_sending_the_BEGIN_frame)
 {
     // arrange
@@ -717,7 +717,7 @@ TEST_FUNCTION(connection_state_changed_callback_and_new_state_is_not_OPENED_does
     session_destroy(session);
 }
 
-/* Tests_SRS_SESSION_01_060: [If the previous connection state is not OPENED and the new connection state is OPENED, the BEGIN frame shall be sent out and the state shall be switched to BEGIN_SENT.] */
+/* Tests_S_R_S_SESSION_01_060: [If the previous connection state is not OPENED and the new connection state is OPENED, the BEGIN frame shall be sent out and the state shall be switched to BEGIN_SENT.] */
 TEST_FUNCTION(connection_state_changed_callback_and_from_OPENED_to_OPENED_does_not_trigger_sending_the_BEGIN_frame)
 {
     // arrange
@@ -736,7 +736,7 @@ TEST_FUNCTION(connection_state_changed_callback_and_from_OPENED_to_OPENED_does_n
     session_destroy(session);
 }
 
-/* Tests_SRS_SESSION_01_060: [If the previous connection state is not OPENED and the new connection state is OPENED, the BEGIN frame shall be sent out and the state shall be switched to BEGIN_SENT.] */
+/* Tests_S_R_S_SESSION_01_060: [If the previous connection state is not OPENED and the new connection state is OPENED, the BEGIN frame shall be sent out and the state shall be switched to BEGIN_SENT.] */
 TEST_FUNCTION(connection_state_changed_callback_to_OPENED_twice_only_triggers_sending_the_BEGIN_frame_once)
 {
     // arrange
@@ -756,7 +756,7 @@ TEST_FUNCTION(connection_state_changed_callback_to_OPENED_twice_only_triggers_se
     session_destroy(session);
 }
 
-/* Tests_-SRS_SESSION_01_061: [If the previous connection state is OPENED and the new connection state is not OPENED anymore, the state shall be switched to DISCARDING.] */
+/* Tests_-S_R_S_SESSION_01_061: [If the previous connection state is OPENED and the new connection state is not OPENED anymore, the state shall be switched to DISCARDING.] */
 TEST_FUNCTION(connection_state_changed_callback_to_different_than_OPENED_when_in_UNMAPPED_sets_the_session_state_to_END)
 {
     // arrange
@@ -777,7 +777,7 @@ TEST_FUNCTION(connection_state_changed_callback_to_different_than_OPENED_when_in
     session_destroy(session);
 }
 
-/* Tests_-SRS_SESSION_01_061: [If the previous connection state is OPENED and the new connection state is not OPENED anymore, the state shall be switched to DISCARDING.] */
+/* Tests_-S_R_S_SESSION_01_061: [If the previous connection state is OPENED and the new connection state is not OPENED anymore, the state shall be switched to DISCARDING.] */
 TEST_FUNCTION(connection_state_changed_callback_to_different_than_OPENED_when_in_BEGIN_SENT_sets_the_session_state_to_END)
 {
     // arrange
@@ -799,7 +799,7 @@ TEST_FUNCTION(connection_state_changed_callback_to_different_than_OPENED_when_in
     session_destroy(session);
 }
 
-/* Tests_-SRS_SESSION_01_061: [If the previous connection state is OPENED and the new connection state is not OPENED anymore, the state shall be switched to DISCARDING.] */
+/* Tests_-S_R_S_SESSION_01_061: [If the previous connection state is OPENED and the new connection state is not OPENED anymore, the state shall be switched to DISCARDING.] */
 TEST_FUNCTION(connection_state_changed_callback_to_different_than_OPENED_when_in_MAPPED_sets_the_session_state_to_END)
 {
     // arrange
@@ -826,11 +826,11 @@ TEST_FUNCTION(connection_state_changed_callback_to_different_than_OPENED_when_in
 
 /* Session flow control */
 
-/* Tests_SRS_SESSION_01_012: [The session endpoint assigns each outgoing transfer frame an implicit transfer-id from a session scoped sequence.] */
-/* Tests_SRS_SESSION_01_027: [sending a transfer Upon sending a transfer, the sending endpoint will increment its next-outgoing-id] */
-/* Tests_SRS_SESSION_01_016: [next-outgoing-id The next-outgoing-id is the transfer-id to assign to the next transfer frame.] */
-/* Tests_SRS_SESSION_01_017: [The nextoutgoing-id MAY be initialized to an arbitrary value ] */
-/* Tests_SRS_SESSION_01_018: [is incremented after each successive transfer according to RFC-1982 [RFC1982] serial number arithmetic.] */
+/* Tests_S_R_S_SESSION_01_012: [The session endpoint assigns each outgoing transfer frame an implicit transfer-id from a session scoped sequence.] */
+/* Tests_S_R_S_SESSION_01_027: [sending a transfer Upon sending a transfer, the sending endpoint will increment its next-outgoing-id] */
+/* Tests_S_R_S_SESSION_01_016: [next-outgoing-id The next-outgoing-id is the transfer-id to assign to the next transfer frame.] */
+/* Tests_S_R_S_SESSION_01_017: [The nextoutgoing-id MAY be initialized to an arbitrary value ] */
+/* Tests_S_R_S_SESSION_01_018: [is incremented after each successive transfer according to RFC-1982 [RFC1982] serial number arithmetic.] */
 TEST_FUNCTION(when_2_transfers_happen_on_2_different_endpoints_2_different_delivery_ids_are_assigned)
 {
     // arrange
@@ -874,7 +874,7 @@ TEST_FUNCTION(when_2_transfers_happen_on_2_different_endpoints_2_different_deliv
     session_destroy(session);
 }
 
-/* Tests_SRS_SESSION_01_018: [is incremented after each successive transfer according to RFC-1982 [RFC1982] serial number arithmetic.] */
+/* Tests_S_R_S_SESSION_01_018: [is incremented after each successive transfer according to RFC-1982 [RFC1982] serial number arithmetic.] */
 TEST_FUNCTION(when_if_sending_the_frame_to_the_connection_fails_the_next_outgoing_id_is_not_incremented)
 {
     // arrange

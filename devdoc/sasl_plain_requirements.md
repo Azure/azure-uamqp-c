@@ -90,7 +90,7 @@ int saslplain_challenge(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism, 
 ### saslplain_get_interface
 
 ```C
-const SASL_MECHANISM_INTERFACE_DESCRIPTION* saslplain_get_interface(void);
+MOCKABLE_FUNCTION(, const SASL_MECHANISM_INTERFACE_DESCRIPTION*, saslplain_get_interface);
 ```
 
 **SRS_SASL_PLAIN_01_015: [**`saslplain_get_interface` shall return a pointer to a `SASL_MECHANISM_INTERFACE_DESCRIPTION` structure that contains pointers to the functions: `saslplain_create`, `saslplain_destroy`, `saslplain_get_init_bytes`, `saslplain_get_mechanism_name`, `saslplain_challenge`.**]** 

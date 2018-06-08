@@ -224,13 +224,21 @@ void on_underlying_io_bytes_received(void* context, const unsigned char* buffer,
 ### on_underlying_io_bytes_received
 
 ```C
-const AMQP_HEADER header_detect_io_get_amqp_header();
+MOCKABLE_FUNCTION(, const AMQP_HEADER, header_detect_io_get_amqp_header);
 ```
 
 **SRS_HEADER_DETECT_IO_01_091: [** `header_detect_io_get_amqp_header` shall return a structure that should point to a buffer that contains the bytes { 'A', 'M', 'Q', 'P', 0, 1, 0, 0 }. **]**
 
 ```C
-const AMQP_HEADER header_detect_io_get_sasl_amqp_header();
+MOCKABLE_FUNCTION(, const AMQP_HEADER, header_detect_io_get_sasl_amqp_header);
 ```
 
 **SRS_HEADER_DETECT_IO_01_091: [** `header_detect_io_get_sasl_amqp_header` shall return a structure that should point to a buffer that contains the bytes { 'A', 'M', 'Q', 'P', 3, 1, 0, 0 }. **]**
+
+### header_detect_io_get_interface_description
+
+```c
+MOCKABLE_FUNCTION(, const IO_INTERFACE_DESCRIPTION*, header_detect_io_get_interface_description);
+```
+
+**SRS_HEADER_DETECT_IO_01_096: [** `header_detect_io_get_interface_description` shall return a pointer to an `IO_INTERFACE_DESCRIPTION` structure that contains pointers to the functions: `header_detect_io_retrieve_options`, `header_detect_io_retrieve_create`, `header_detect_io_destroy`, `header_detect_io_open`, `header_detect_io_close`, `header_detect_io_send` and `header_detect_io_dowork`. **]**

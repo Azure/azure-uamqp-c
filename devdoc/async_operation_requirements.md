@@ -32,7 +32,7 @@ MOCKABLE_FUNCTION(, int, async_operation_cancel, ASYNC_OPERATION_HANDLE, async_o
 ### async_operation_create
 
 ```C
-ASYNC_OPERATION_HANDLE async_operation_create(ASYNC_OPERATION_CANCEL_HANDLER_FUNC async_operation_cancel_handler, void* async_operation_cancel_handler_context)
+MOCKABLE_FUNCTION(, ASYNC_OPERATION_HANDLE, async_operation_create, ASYNC_OPERATION_CANCEL_HANDLER_FUNC, async_operation_cancel_handler, size_t, context_size);
 ```
 
 **SRS_ASYNC_OPERATION_01_001: [** `async_operation_create` shall return a non-NULL handle to a newly created asynchronous operation instance.**]**
@@ -43,7 +43,7 @@ ASYNC_OPERATION_HANDLE async_operation_create(ASYNC_OPERATION_CANCEL_HANDLER_FUN
 ### async_operation_destroy
 
 ```C
-void async_operation_destroy(ASYNC_OPERATION_HANDLE async_operation)
+MOCKABLE_FUNCTION(, void, async_operation_destroy, ASYNC_OPERATION_HANDLE, async_operation);
 ```
 
 **SRS_ASYNC_OPERATION_01_005: [** `async_operation_destroy` shall free all recources associated with the asyncronous operation instance.**]**
@@ -52,7 +52,7 @@ void async_operation_destroy(ASYNC_OPERATION_HANDLE async_operation)
 ### async_operation_cancel
 
 ```C
-int async_operation_cancel(ASYNC_OPERATION_HANDLE async_operation)
+MOCKABLE_FUNCTION(, int, async_operation_cancel, ASYNC_OPERATION_HANDLE, async_operation);
 ```
 
 **SRS_ASYNC_OPERATION_01_007: [** `async_operation_cancel` shall cancel the operation by calling the cancel handler function passed to `async_operation_create`.**]**

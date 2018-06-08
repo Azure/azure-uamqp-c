@@ -43,7 +43,7 @@ typedef struct SESSION_INSTANCE_TAG
     ON_LINK_ATTACHED on_link_attached;
     void* on_link_attached_callback_context;
 
-    /* Codes_SRS_SESSION_01_016: [next-outgoing-id The next-outgoing-id is the transfer-id to assign to the next transfer frame.] */
+    /* Codes_S_R_S_SESSION_01_016: [next-outgoing-id The next-outgoing-id is the transfer-id to assign to the next transfer frame.] */
     transfer_number next_outgoing_id;
     transfer_number next_incoming_id;
     uint32_t desired_incoming_window;
@@ -357,7 +357,7 @@ static void on_connection_state_changed(void* context, CONNECTION_STATE new_conn
 {
     SESSION_INSTANCE* session_instance = (SESSION_INSTANCE*)context;
 
-    /* Codes_SRS_SESSION_01_060: [If the previous connection state is not OPENED and the new connection state is OPENED, the BEGIN frame shall be sent out and the state shall be switched to BEGIN_SENT.] */
+    /* Codes_S_R_S_SESSION_01_060: [If the previous connection state is not OPENED and the new connection state is OPENED, the BEGIN frame shall be sent out and the state shall be switched to BEGIN_SENT.] */
     if ((new_connection_state == CONNECTION_STATE_OPENED) && (previous_connection_state != CONNECTION_STATE_OPENED) && (session_instance->session_state == SESSION_STATE_UNMAPPED))
     {
         if (send_begin(session_instance) == 0)
@@ -365,12 +365,12 @@ static void on_connection_state_changed(void* context, CONNECTION_STATE new_conn
             session_set_state(session_instance, SESSION_STATE_BEGIN_SENT);
         }
     }
-    /* Codes_SRS_SESSION_01_061: [If the previous connection state is OPENED and the new connection state is not OPENED anymore, the state shall be switched to DISCARDING.] */
+    /* Codes_S_R_S_SESSION_01_061: [If the previous connection state is OPENED and the new connection state is not OPENED anymore, the state shall be switched to DISCARDING.] */
     else if ((new_connection_state == CONNECTION_STATE_CLOSE_RCVD) || (new_connection_state == CONNECTION_STATE_END))
     {
         session_set_state(session_instance, SESSION_STATE_DISCARDING);
     }
-    /* Codes_SRS_SESSION_09_001: [If the new connection state is ERROR, the state shall be switched to ERROR.] */
+    /* Codes_S_R_S_SESSION_09_001: [If the new connection state is ERROR, the state shall be switched to ERROR.] */
     else if (new_connection_state == CONNECTION_STATE_ERROR)
     {
         session_set_state(session_instance, SESSION_STATE_ERROR);
@@ -715,14 +715,14 @@ SESSION_HANDLE session_create(CONNECTION_HANDLE connection, ON_LINK_ATTACHED on_
 
     if (connection == NULL)
     {
-        /* Codes_SRS_SESSION_01_031: [If connection is NULL, session_create shall fail and return NULL.] */
+        /* Codes_S_R_S_SESSION_01_031: [If connection is NULL, session_create shall fail and return NULL.] */
         result = NULL;
     }
     else
     {
-        /* Codes_SRS_SESSION_01_030: [session_create shall create a new session instance and return a non-NULL handle to it.] */
+        /* Codes_S_R_S_SESSION_01_030: [session_create shall create a new session instance and return a non-NULL handle to it.] */
         result = (SESSION_INSTANCE*)malloc(sizeof(SESSION_INSTANCE));
-        /* Codes_SRS_SESSION_01_042: [If allocating memory for the session fails, session_create shall fail and return NULL.] */
+        /* Codes_S_R_S_SESSION_01_042: [If allocating memory for the session fails, session_create shall fail and return NULL.] */
         if (result != NULL)
         {
             result->connection = connection;
@@ -730,8 +730,8 @@ SESSION_HANDLE session_create(CONNECTION_HANDLE connection, ON_LINK_ATTACHED on_
             result->link_endpoint_count = 0;
             result->handle_max = 4294967295u;
 
-            /* Codes_SRS_SESSION_01_057: [The delivery ids shall be assigned starting at 0.] */
-            /* Codes_SRS_SESSION_01_017: [The nextoutgoing-id MAY be initialized to an arbitrary value ] */
+            /* Codes_S_R_S_SESSION_01_057: [The delivery ids shall be assigned starting at 0.] */
+            /* Codes_S_R_S_SESSION_01_017: [The nextoutgoing-id MAY be initialized to an arbitrary value ] */
             result->next_outgoing_id = 0;
 
             result->desired_incoming_window = 1;
@@ -746,11 +746,11 @@ SESSION_HANDLE session_create(CONNECTION_HANDLE connection, ON_LINK_ATTACHED on_
             result->on_link_attached = on_link_attached;
             result->on_link_attached_callback_context = callback_context;
 
-            /* Codes_SRS_SESSION_01_032: [session_create shall create a new session endpoint by calling connection_create_endpoint.] */
+            /* Codes_S_R_S_SESSION_01_032: [session_create shall create a new session endpoint by calling connection_create_endpoint.] */
             result->endpoint = connection_create_endpoint(connection);
             if (result->endpoint == NULL)
             {
-                /* Codes_SRS_SESSION_01_033: [If connection_create_endpoint fails, session_create shall fail and return NULL.] */
+                /* Codes_S_R_S_SESSION_01_033: [If connection_create_endpoint fails, session_create shall fail and return NULL.] */
                 free(result);
                 result = NULL;
             }
@@ -806,15 +806,15 @@ SESSION_HANDLE session_create_from_endpoint(CONNECTION_HANDLE connection, ENDPOI
 
 void session_destroy(SESSION_HANDLE session)
 {
-    /* Codes_SRS_SESSION_01_036: [If session is NULL, session_destroy shall do nothing.] */
+    /* Codes_S_R_S_SESSION_01_036: [If session is NULL, session_destroy shall do nothing.] */
     if (session != NULL)
     {
         SESSION_INSTANCE* session_instance = (SESSION_INSTANCE*)session;
 
         session_end(session, NULL, NULL);
 
-        /* Codes_SRS_SESSION_01_034: [session_destroy shall free all resources allocated by session_create.] */
-        /* Codes_SRS_SESSION_01_035: [The endpoint created in session_create shall be freed by calling connection_destroy_endpoint.] */
+        /* Codes_S_R_S_SESSION_01_034: [session_destroy shall free all resources allocated by session_create.] */
+        /* Codes_S_R_S_SESSION_01_035: [The endpoint created in session_create shall be freed by calling connection_destroy_endpoint.] */
         connection_destroy_endpoint(session_instance->endpoint);
         if (session_instance->link_endpoints != NULL)
         {
@@ -1064,7 +1064,7 @@ LINK_ENDPOINT_HANDLE session_create_link_endpoint(SESSION_HANDLE session, const 
 {
     LINK_ENDPOINT_INSTANCE* result;
 
-    /* Codes_SRS_SESSION_01_044: [If session, name or frame_received_callback is NULL, session_create_link_endpoint shall fail and return NULL.] */
+    /* Codes_S_R_S_SESSION_01_044: [If session, name or frame_received_callback is NULL, session_create_link_endpoint shall fail and return NULL.] */
     if ((session == NULL) ||
         (name == NULL))
     {
@@ -1072,14 +1072,14 @@ LINK_ENDPOINT_HANDLE session_create_link_endpoint(SESSION_HANDLE session, const 
     }
     else
     {
-        /* Codes_SRS_SESSION_01_043: [session_create_link_endpoint shall create a link endpoint associated with a given session and return a non-NULL handle to it.] */
+        /* Codes_S_R_S_SESSION_01_043: [session_create_link_endpoint shall create a link endpoint associated with a given session and return a non-NULL handle to it.] */
         SESSION_INSTANCE* session_instance = (SESSION_INSTANCE*)session;
 
         result = (LINK_ENDPOINT_INSTANCE*)malloc(sizeof(LINK_ENDPOINT_INSTANCE));
-        /* Codes_SRS_SESSION_01_045: [If allocating memory for the link endpoint fails, session_create_link_endpoint shall fail and return NULL.] */
+        /* Codes_S_R_S_SESSION_01_045: [If allocating memory for the link endpoint fails, session_create_link_endpoint shall fail and return NULL.] */
         if (result != NULL)
         {
-            /* Codes_SRS_SESSION_01_046: [An unused handle shall be assigned to the link endpoint.] */
+            /* Codes_S_R_S_SESSION_01_046: [An unused handle shall be assigned to the link endpoint.] */
             handle selected_handle = 0;
             size_t i;
             size_t name_length;
@@ -1105,7 +1105,7 @@ LINK_ENDPOINT_HANDLE session_create_link_endpoint(SESSION_HANDLE session, const 
             result->name = (char*)malloc(name_length + 1);
             if (result->name == NULL)
             {
-                /* Codes_SRS_SESSION_01_045: [If allocating memory for the link endpoint fails, session_create_link_endpoint shall fail and return NULL.] */
+                /* Codes_S_R_S_SESSION_01_045: [If allocating memory for the link endpoint fails, session_create_link_endpoint shall fail and return NULL.] */
                 free(result);
                 result = NULL;
             }
@@ -1118,7 +1118,7 @@ LINK_ENDPOINT_HANDLE session_create_link_endpoint(SESSION_HANDLE session, const 
                 new_link_endpoints = (LINK_ENDPOINT_INSTANCE**)realloc(session_instance->link_endpoints, sizeof(LINK_ENDPOINT_INSTANCE*) * (session_instance->link_endpoint_count + 1));
                 if (new_link_endpoints == NULL)
                 {
-                    /* Codes_SRS_SESSION_01_045: [If allocating memory for the link endpoint fails, session_create_link_endpoint shall fail and return NULL.] */
+                    /* Codes_S_R_S_SESSION_01_045: [If allocating memory for the link endpoint fails, session_create_link_endpoint shall fail and return NULL.] */
                     free(result->name);
                     free(result);
                     result = NULL;
@@ -1396,12 +1396,12 @@ int session_send_detach(LINK_ENDPOINT_HANDLE link_endpoint, DETACH_HANDLE detach
     return result;
 }
 
-/* Codes_SRS_SESSION_01_051: [session_send_transfer shall send a transfer frame with the performative indicated in the transfer argument.] */
+/* Codes_S_R_S_SESSION_01_051: [session_send_transfer shall send a transfer frame with the performative indicated in the transfer argument.] */
 SESSION_SEND_TRANSFER_RESULT session_send_transfer(LINK_ENDPOINT_HANDLE link_endpoint, TRANSFER_HANDLE transfer, PAYLOAD* payloads, size_t payload_count, delivery_number* delivery_id, ON_SEND_COMPLETE on_send_complete, void* callback_context)
 {
     SESSION_SEND_TRANSFER_RESULT result;
 
-    /* Codes_SRS_SESSION_01_054: [If link_endpoint or transfer is NULL, session_send_transfer shall fail and return a non-zero value.] */
+    /* Codes_S_R_S_SESSION_01_054: [If link_endpoint or transfer is NULL, session_send_transfer shall fail and return a non-zero value.] */
     if ((link_endpoint == NULL) ||
         (transfer == NULL))
     {
@@ -1412,7 +1412,7 @@ SESSION_SEND_TRANSFER_RESULT session_send_transfer(LINK_ENDPOINT_HANDLE link_end
         LINK_ENDPOINT_INSTANCE* link_endpoint_instance = (LINK_ENDPOINT_INSTANCE*)link_endpoint;
         SESSION_INSTANCE* session_instance = (SESSION_INSTANCE*)link_endpoint_instance->session;
 
-        /* Codes_SRS_SESSION_01_059: [When session_send_transfer is called while the session is not in the MAPPED state, session_send_transfer shall fail and return a non-zero value.] */
+        /* Codes_S_R_S_SESSION_01_059: [When session_send_transfer is called while the session is not in the MAPPED state, session_send_transfer shall fail and return a non-zero value.] */
         if (session_instance->session_state != SESSION_STATE_MAPPED)
         {
             result = SESSION_SEND_TRANSFER_ERROR;
@@ -1446,14 +1446,14 @@ SESSION_SEND_TRANSFER_RESULT session_send_transfer(LINK_ENDPOINT_HANDLE link_end
                 }
                 else
                 {
-                    /* Codes_SRS_SESSION_01_012: [The session endpoint assigns each outgoing transfer frame an implicit transfer-id from a session scoped sequence.] */
-                    /* Codes_SRS_SESSION_01_027: [sending a transfer Upon sending a transfer, the sending endpoint will increment its next-outgoing-id] */
+                    /* Codes_S_R_S_SESSION_01_012: [The session endpoint assigns each outgoing transfer frame an implicit transfer-id from a session scoped sequence.] */
+                    /* Codes_S_R_S_SESSION_01_027: [sending a transfer Upon sending a transfer, the sending endpoint will increment its next-outgoing-id] */
                     *delivery_id = session_instance->next_outgoing_id;
                     if ((transfer_set_handle(transfer, link_endpoint_instance->output_handle) != 0) ||
                         (transfer_set_delivery_id(transfer, *delivery_id) != 0) ||
                         (transfer_set_more(transfer, false) != 0))
                     {
-                        /* Codes_SRS_SESSION_01_058: [When any other error occurs, session_send_transfer shall fail and return a non-zero value.] */
+                        /* Codes_S_R_S_SESSION_01_058: [When any other error occurs, session_send_transfer shall fail and return a non-zero value.] */
                         result = SESSION_SEND_TRANSFER_ERROR;
                     }
                     else
@@ -1463,7 +1463,7 @@ SESSION_SEND_TRANSFER_RESULT session_send_transfer(LINK_ENDPOINT_HANDLE link_end
                         transfer_value = amqpvalue_create_transfer(transfer);
                         if (transfer_value == NULL)
                         {
-                            /* Codes_SRS_SESSION_01_058: [When any other error occurs, session_send_transfer shall fail and return a non-zero value.] */
+                            /* Codes_S_R_S_SESSION_01_058: [When any other error occurs, session_send_transfer shall fail and return a non-zero value.] */
                             result = SESSION_SEND_TRANSFER_ERROR;
                         }
                         else
@@ -1490,20 +1490,20 @@ SESSION_SEND_TRANSFER_RESULT session_send_transfer(LINK_ENDPOINT_HANDLE link_end
 
                                 if (available_frame_size >= payload_size)
                                 {
-                                    /* Codes_SRS_SESSION_01_055: [The encoding of the frame shall be done by calling connection_encode_frame and passing as arguments: the connection handle associated with the session, the transfer performative and the payload chunks passed to session_send_transfer.] */
+                                    /* Codes_S_R_S_SESSION_01_055: [The encoding of the frame shall be done by calling connection_encode_frame and passing as arguments: the connection handle associated with the session, the transfer performative and the payload chunks passed to session_send_transfer.] */
                                     if (connection_encode_frame(session_instance->endpoint, transfer_value, payloads, payload_count, on_send_complete, callback_context) != 0)
                                     {
-                                        /* Codes_SRS_SESSION_01_056: [If connection_encode_frame fails then session_send_transfer shall fail and return a non-zero value.] */
+                                        /* Codes_S_R_S_SESSION_01_056: [If connection_encode_frame fails then session_send_transfer shall fail and return a non-zero value.] */
                                         result = SESSION_SEND_TRANSFER_ERROR;
                                     }
                                     else
                                     {
-                                        /* Codes_SRS_SESSION_01_018: [is incremented after each successive transfer according to RFC-1982 [RFC1982] serial number arithmetic.] */
+                                        /* Codes_S_R_S_SESSION_01_018: [is incremented after each successive transfer according to RFC-1982 [RFC1982] serial number arithmetic.] */
                                         session_instance->next_outgoing_id++;
                                         session_instance->remote_incoming_window--;
                                         session_instance->outgoing_window--;
 
-                                        /* Codes_SRS_SESSION_01_053: [On success, session_send_transfer shall return 0.] */
+                                        /* Codes_S_R_S_SESSION_01_053: [On success, session_send_transfer shall return 0.] */
                                         result = SESSION_SEND_TRANSFER_OK;
                                     }
                                 }
@@ -1619,7 +1619,7 @@ SESSION_SEND_TRANSFER_RESULT session_send_transfer(LINK_ENDPOINT_HANDLE link_end
                                     }
                                     else
                                     {
-                                        /* Codes_SRS_SESSION_01_018: [is incremented after each successive transfer according to RFC-1982 [RFC1982] serial number arithmetic.] */
+                                        /* Codes_S_R_S_SESSION_01_018: [is incremented after each successive transfer according to RFC-1982 [RFC1982] serial number arithmetic.] */
                                         session_instance->next_outgoing_id++;
                                         session_instance->remote_incoming_window--;
                                         session_instance->outgoing_window--;

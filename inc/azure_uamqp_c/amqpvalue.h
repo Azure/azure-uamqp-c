@@ -101,7 +101,7 @@ extern "C" {
     MOCKABLE_FUNCTION(, void, amqpvalue_decoder_destroy, AMQPVALUE_DECODER_HANDLE, handle);
     MOCKABLE_FUNCTION(, int, amqpvalue_decode_bytes, AMQPVALUE_DECODER_HANDLE, handle, const unsigned char*, buffer, size_t, size);
 
-    /* misc for now */
+    /* misc for now, not spec'd */
     MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_get_inplace_descriptor, AMQP_VALUE, value);
     MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_get_inplace_described_value, AMQP_VALUE, value);
 

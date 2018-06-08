@@ -1,10 +1,10 @@
-#amqpvalue requirements
+# amqpvalue requirements
 
-##Overview
+## Overview
 
-amqpvalue is module that encapsulates the typesystem of AMQP. It allows, creating AMQP type values from native C types, destroying them and converting the types to native C types.
+`amqpvalue` is module that encapsulates the typesystem of AMQP. It allows, creating AMQP type values from native C types, destroying them and converting the types to native C types.
 
-##Exposed API
+## Exposed API
 
 ```C
     typedef struct AMQP_VALUE_DATA_TAG* AMQP_VALUE;
@@ -90,7 +90,7 @@ amqpvalue is module that encapsulates the typesystem of AMQP. It allows, creatin
     MOCKABLE_FUNCTION(, void, amqpvalue_decoder_destroy, AMQPVALUE_DECODER_HANDLE, handle);
     MOCKABLE_FUNCTION(, int, amqpvalue_decode_bytes, AMQPVALUE_DECODER_HANDLE, handle, const unsigned char*, buffer, size_t, size);
 
-    /* misc for now */
+    /* misc for now, not spec'd */
     MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_get_inplace_descriptor, AMQP_VALUE, value);
     MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_get_inplace_described_value, AMQP_VALUE, value);
 
@@ -104,28 +104,28 @@ amqpvalue is module that encapsulates the typesystem of AMQP. It allows, creatin
     MOCKABLE_FUNCTION(, int, amqpvalue_get_composite_item_count, AMQP_VALUE, value, uint32_t*, item_count);
 ```
 
-###amqpvalue_create_null
+### amqpvalue_create_null
 
 ```C
-extern AMQP_VALUE amqpvalue_create_null(void);
+MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_create_null);
 ```
 
 **SRS_AMQPVALUE_01_001: [**amqpvalue_create_null shall return a handle to an AMQP_VALUE that stores a null value.**]**
 **SRS_AMQPVALUE_01_002: [**If allocating the AMQP_VALUE fails then amqpvalue_create_null shall return NULL.**]** 
 
-###amqpvalue_create_boolean
+### amqpvalue_create_boolean
 
 ```C
-extern AMQP_VALUE amqpvalue_create_boolean(bool value);
+MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_create_boolean, bool, bool_value);
 ```
 
 **SRS_AMQPVALUE_01_006: [**amqpvalue_create_boolean shall return a handle to an AMQP_VALUE that stores a boolean value.**]**
 **SRS_AMQPVALUE_01_007: [**If allocating the AMQP_VALUE fails then amqpvalue_create_boolean shall return NULL.**]** 
 
-###amqpvalue_get_boolean
+### amqpvalue_get_boolean
 
 ```C
-extern int amqpvalue_get_boolean(AMQP_VALUE value, bool* bool_value);
+MOCKABLE_FUNCTION(, int, amqpvalue_get_boolean, AMQP_VALUE, value, bool*, bool_value);
 ```
 
 **SRS_AMQPVALUE_01_008: [**amqpvalue_get_boolean shall fill in the bool_value argument the Boolean value stored by the AMQP value indicated by the value argument.**]**
@@ -133,19 +133,19 @@ extern int amqpvalue_get_boolean(AMQP_VALUE value, bool* bool_value);
 **SRS_AMQPVALUE_01_009: [**If any of the arguments is NULL then amqpvalue_get_boolean shall return a non-zero value.**]**
 **SRS_AMQPVALUE_01_011: [**If the type of the value is not Boolean, then amqpvalue_get_boolean shall return a non-zero value.**]**
 
-###amqpvalue_create_ubyte
+### amqpvalue_create_ubyte
 
 ```C
-extern AMQP_VALUE amqpvalue_create_ubyte(unsigned char value);
+MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_create_ubyte, unsigned char, ubyte_value);
 ```
 
 **SRS_AMQPVALUE_01_032: [**amqpvalue_create_ubyte shall return a handle to an AMQP_VALUE that stores a unsigned char value.**]**
 **SRS_AMQPVALUE_01_033: [**If allocating the AMQP_VALUE fails then amqpvalue_create_ubyte shall return NULL.**]** 
 
-###amqpvalue_get_ubyte
+### amqpvalue_get_ubyte
 
 ```C
-extern int amqpvalue_get_ubyte(AMQP_VALUE value, unsigned char* ubyte_value);
+MOCKABLE_FUNCTION(, int, amqpvalue_get_ubyte, AMQP_VALUE, value, unsigned char*, ubyte_value);
 ```
 
 **SRS_AMQPVALUE_01_034: [**amqpvalue_get_ubyte shall fill in the ubyte_value argument the unsigned char value stored by the AMQP value indicated by the value argument.**]**
@@ -153,19 +153,19 @@ extern int amqpvalue_get_ubyte(AMQP_VALUE value, unsigned char* ubyte_value);
 **SRS_AMQPVALUE_01_036: [**If any of the arguments is NULL then amqpvalue_get_ubyte shall return a non-zero value.**]**
 **SRS_AMQPVALUE_01_037: [**If the type of the value is not ubyte (was not created with amqpvalue_create_ubyte), then amqpvalue_get_ubyte shall return a non-zero value.**]** 
 
-###amqpvalue_create_ushort
+### amqpvalue_create_ushort
 
 ```C
-extern AMQP_VALUE amqpvalue_create_ushort(uint16_t value);
+MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_create_ushort, uint16_t, ushort_value);
 ```
 
 **SRS_AMQPVALUE_01_038: [**amqpvalue_create_ushort shall return a handle to an AMQP_VALUE that stores an uint16_t value.**]**
 **SRS_AMQPVALUE_01_039: [**If allocating the AMQP_VALUE fails then amqpvalue_create_ushort shall return NULL.**]** 
 
-###amqpvalue_get_ushort
+### amqpvalue_get_ushort
 
 ```C
-extern int amqpvalue_get_ushort(AMQP_VALUE value, uint16_t* ushort_value);
+MOCKABLE_FUNCTION(, int, amqpvalue_get_ushort, AMQP_VALUE, value, uint16_t*, ushort_value);
 ```
 
 **SRS_AMQPVALUE_01_040: [**amqpvalue_get_ushort shall fill in the ushort_value argument the uint16_t value stored by the AMQP value indicated by the value argument.**]**
@@ -173,19 +173,19 @@ extern int amqpvalue_get_ushort(AMQP_VALUE value, uint16_t* ushort_value);
 **SRS_AMQPVALUE_01_042: [**If any of the arguments is NULL then amqpvalue_get_ushort shall return a non-zero value.**]**
 **SRS_AMQPVALUE_01_043: [**If the type of the value is not ushort (was not created with amqpvalue_create_ushort), then amqpvalue_get_ushort shall return a non-zero value.**]** 
 
-###amqpvalue_create_uint
+### amqpvalue_create_uint
 
 ```C
-extern AMQP_VALUE amqpvalue_create_uint(uint32_t value);
+MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_create_uint, uint32_t, uint_value);
 ```
 
 **SRS_AMQPVALUE_01_044: [**amqpvalue_create_uint shall return a handle to an AMQP_VALUE that stores an uint32_t value.**]**
 **SRS_AMQPVALUE_01_045: [**If allocating the AMQP_VALUE fails then amqpvalue_create_uint shall return NULL.**]** 
 
-###amqpvalue_get_uint
+### amqpvalue_get_uint
 
 ```C
-extern int amqpvalue_get_uint(AMQP_VALUE value, uint32_t* uint_value);
+MOCKABLE_FUNCTION(, int, amqpvalue_get_uint, AMQP_VALUE, value, uint32_t*, uint_value);
 ```
 
 **SRS_AMQPVALUE_01_046: [**amqpvalue_get_uint shall fill in the uint_value argument the uint32_t value stored by the AMQP value indicated by the value argument.**]**
@@ -193,19 +193,19 @@ extern int amqpvalue_get_uint(AMQP_VALUE value, uint32_t* uint_value);
 **SRS_AMQPVALUE_01_079: [**If any of the arguments is NULL then amqpvalue_get_uint shall return a non-zero value.**]**
 **SRS_AMQPVALUE_01_048: [**If the type of the value is not uint (was not created with amqpvalue_create_uint), then amqpvalue_get_uint shall return a non-zero value.**]** 
 
-###amqpvalue_create_ulong
+### amqpvalue_create_ulong
 
 ```C
-extern AMQP_VALUE amqpvalue_create_ulong(uint64_t value);
+MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_create_ulong, uint64_t, ulong_value);
 ```
 
 **SRS_AMQPVALUE_01_049: [**amqpvalue_create_ulong shall return a handle to an AMQP_VALUE that stores an uint64_t value.**]**
 **SRS_AMQPVALUE_01_050: [**If allocating the AMQP_VALUE fails then amqpvalue_create_ulong shall return NULL.**]** 
 
-###amqpvalue_get_ulong
+### amqpvalue_get_ulong
 
 ```C
-extern int amqpvalue_get_ulong(AMQP_VALUE value, uint64_t* ulong_value);
+MOCKABLE_FUNCTION(, int, amqpvalue_get_ulong, AMQP_VALUE, value, uint64_t*, ulong_value);
 ```
 
 **SRS_AMQPVALUE_01_051: [**amqpvalue_get_ulong shall fill in the ulong_value argument the ulong64_t value stored by the AMQP value indicated by the value argument.**]**
@@ -213,19 +213,19 @@ extern int amqpvalue_get_ulong(AMQP_VALUE value, uint64_t* ulong_value);
 **SRS_AMQPVALUE_01_053: [**If any of the arguments is NULL then amqpvalue_get_ulong shall return a non-zero value.**]**
 **SRS_AMQPVALUE_01_054: [**If the type of the value is not ulong (was not created with amqpvalue_create_ulong), then amqpvalue_get_ulong shall return a non-zero value.**]** 
 
-###amqpvalue_create_byte
+### amqpvalue_create_byte
 
 ```C
-extern AMQP_VALUE amqpvalue_create_byte(char value);
+MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_create_byte, char, byte_value);
 ```
 
 **SRS_AMQPVALUE_01_055: [**amqpvalue_create_byte shall return a handle to an AMQP_VALUE that stores a char value.**]**
 **SRS_AMQPVALUE_01_056: [**If allocating the AMQP_VALUE fails then amqpvalue_create_byte shall return NULL.**]** 
 
-###amqpvalue_get_byte
+### amqpvalue_get_byte
 
 ```C
-extern int amqpvalue_get_byte(AMQP_VALUE value, char* byte_value);
+MOCKABLE_FUNCTION(, int, amqpvalue_get_byte, AMQP_VALUE, value, char*, byte_value);
 ```
 
 **SRS_AMQPVALUE_01_057: [**amqpvalue_get_byte shall fill in the byte_value argument the char value stored by the AMQP value indicated by the value argument.**]**
@@ -233,19 +233,19 @@ extern int amqpvalue_get_byte(AMQP_VALUE value, char* byte_value);
 **SRS_AMQPVALUE_01_059: [**If any of the arguments is NULL then amqpvalue_get_byte shall return a non-zero value.**]**
 **SRS_AMQPVALUE_01_060: [**If the type of the value is not byte (was not created with amqpvalue_create_byte), then amqpvalue_get_byte shall return a non-zero value.**]** 
 
-###amqpvalue_create_short
+### amqpvalue_create_short
 
 ```C
-extern AMQP_VALUE amqpvalue_create_short(int16_t value);
+MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_create_short, int16_t, short_value);
 ```
 
 **SRS_AMQPVALUE_01_061: [**amqpvalue_create_short shall return a handle to an AMQP_VALUE that stores an int16_t value.**]**
 **SRS_AMQPVALUE_01_062: [**If allocating the AMQP_VALUE fails then amqpvalue_create_short shall return NULL.**]** 
 
-###amqpvalue_get_short
+### amqpvalue_get_short
 
 ```C
-extern int amqpvalue_get_short(AMQP_VALUE value, int16_t* short_value);
+MOCKABLE_FUNCTION(, int, amqpvalue_get_short, AMQP_VALUE, value, int16_t*, short_value);
 ```
 
 **SRS_AMQPVALUE_01_063: [**amqpvalue_get_short shall fill in the short_value argument the int16_t value stored by the AMQP value indicated by the value argument.**]**
@@ -253,19 +253,19 @@ extern int amqpvalue_get_short(AMQP_VALUE value, int16_t* short_value);
 **SRS_AMQPVALUE_01_065: [**If any of the arguments is NULL then amqpvalue_get_short shall return a non-zero value.**]**
 **SRS_AMQPVALUE_01_066: [**If the type of the value is not short (was not created with amqpvalue_create_short), then amqpvalue_get_short shall return a non-zero value.**]** 
 
-###amqpvalue_create_int
+### amqpvalue_create_int
 
 ```C
-extern AMQP_VALUE amqpvalue_create_int(int32_t value);
+MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_create_int, int32_t, int_value);
 ```
 
 **SRS_AMQPVALUE_01_067: [**amqpvalue_create_int shall return a handle to an AMQP_VALUE that stores an int32_t value.**]**
 **SRS_AMQPVALUE_01_068: [**If allocating the AMQP_VALUE fails then amqpvalue_create_int shall return NULL.**]** 
 
-###amqpvalue_get_int
+### amqpvalue_get_int
 
 ```C
-extern int amqpvalue_get_int(AMQP_VALUE value, int32_t* int_value);
+MOCKABLE_FUNCTION(, int, amqpvalue_get_int, AMQP_VALUE, value, int32_t*, int_value);
 ```
 
 **SRS_AMQPVALUE_01_069: [**amqpvalue_get_int shall fill in the int_value argument the int32_t value stored by the AMQP value indicated by the value argument.**]**
@@ -273,20 +273,20 @@ extern int amqpvalue_get_int(AMQP_VALUE value, int32_t* int_value);
 **SRS_AMQPVALUE_01_071: [**If any of the arguments is NULL then amqpvalue_get_int shall return a non-zero value.**]**
 **SRS_AMQPVALUE_01_072: [**If the type of the value is not int (was not created with amqpvalue_create_int), then amqpvalue_get_int shall return a non-zero value.**]** 
 
-###amqpvalue_create_long
+### amqpvalue_create_long
 
 ```C
-extern AMQP_VALUE amqpvalue_create_long(int64_t value);
+MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_create_long, int64_t, long_value);
 ```
 
 **SRS_AMQPVALUE_01_073: [**amqpvalue_create_long shall return a handle to an AMQP_VALUE that stores an int64_t value.**]**
 **SRS_AMQPVALUE_01_074: [**If allocating the AMQP_VALUE fails then amqpvalue_create_long shall return NULL.**]** 
 
 
-###amqpvalue_get_long
+### amqpvalue_get_long
 
 ```C
-extern int amqpvalue_get_long(AMQP_VALUE value, int64_t* long_value);
+MOCKABLE_FUNCTION(, int, amqpvalue_get_long, AMQP_VALUE, value, int64_t*, long_value);
 ```
 
 **SRS_AMQPVALUE_01_075: [**amqpvalue_get_long shall fill in the long_value argument the int64_t value stored by the AMQP value indicated by the value argument.**]**
@@ -294,19 +294,19 @@ extern int amqpvalue_get_long(AMQP_VALUE value, int64_t* long_value);
 **SRS_AMQPVALUE_01_077: [**If any of the arguments is NULL then amqpvalue_get_long shall return a non-zero value.**]**
 **SRS_AMQPVALUE_01_078: [**If the type of the value is not long (was not created with amqpvalue_create_long), then amqpvalue_get_long shall return a non-zero value.**]**
 
-###amqpvalue_create_float
+### amqpvalue_create_float
 
 ```C
-extern AMQP_VALUE amqpvalue_create_float(float value);
+MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_create_float, float, float_value);
 ```
 
 **SRS_AMQPVALUE_01_080: [**amqpvalue_create_float shall return a handle to an AMQP_VALUE that stores a float value.**]**
 **SRS_AMQPVALUE_01_081: [**If allocating the AMQP_VALUE fails then amqpvalue_create_float shall return NULL.**]** 
 
-###amqpvalue_get_float
+### amqpvalue_get_float
 
 ```C
-extern int amqpvalue_get_float(AMQP_VALUE value, float* float_value);
+MOCKABLE_FUNCTION(, int, amqpvalue_get_float, AMQP_VALUE, value, float*, float_value);
 ```
 
 **SRS_AMQPVALUE_01_082: [**amqpvalue_get_float shall fill in the float_value argument the float value stored by the AMQP value indicated by the value argument.**]**
@@ -314,19 +314,19 @@ extern int amqpvalue_get_float(AMQP_VALUE value, float* float_value);
 **SRS_AMQPVALUE_01_084: [**If any of the arguments is NULL then amqpvalue_get_float shall return a non-zero value.**]**
 **SRS_AMQPVALUE_01_085: [**If the type of the value is not float (was not created with amqpvalue_create_float), then amqpvalue_get_float shall return a non-zero value.**]**
 
-###amqpvalue_create_double
+### amqpvalue_create_double
 
 ```C
-extern AMQP_VALUE amqpvalue_create_double(double value);
+MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_create_double, double, double_value);
 ```
 
 **SRS_AMQPVALUE_01_086: [**amqpvalue_create_double shall return a handle to an AMQP_VALUE that stores a double value.**]**
 **SRS_AMQPVALUE_01_087: [**If allocating the AMQP_VALUE fails then amqpvalue_create_double shall return NULL.**]**
 
-###amqpvalue_get_double
+### amqpvalue_get_double
 
 ```C
-extern int amqpvalue_get_double(AMQP_VALUE value, double* double_value);
+MOCKABLE_FUNCTION(, int, amqpvalue_get_double, AMQP_VALUE, value, double*, double_value);
 ```
 
 **SRS_AMQPVALUE_01_088: [**amqpvalue_get_double shall fill in the double_value argument the double value stored by the AMQP value indicated by the value argument.**]**
@@ -334,20 +334,20 @@ extern int amqpvalue_get_double(AMQP_VALUE value, double* double_value);
 **SRS_AMQPVALUE_01_090: [**If any of the arguments is NULL then amqpvalue_get_double shall return a non-zero value.**]**
 **SRS_AMQPVALUE_01_091: [**If the type of the value is not double (was not created with amqpvalue_create_double), then amqpvalue_get_double shall return a non-zero value.**]** 
 
-###amqpvalue_create_char
+### amqpvalue_create_char
 
 ```C
-extern AMQP_VALUE amqpvalue_create_char(char value);
+MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_create_char, uint32_t, char_value);
 ```
 
 **SRS_AMQPVALUE_01_092: [**amqpvalue_create_char shall return a handle to an AMQP_VALUE that stores a single UTF-32 character value.**]**
 **SRS_AMQPVALUE_01_093: [**If allocating the AMQP_VALUE fails then amqpvalue_create_char shall return NULL.**]**
 **SRS_AMQPVALUE_01_098: [**If the code point value is outside of the allowed range [0, 0x10FFFF**]** then amqpvalue_create_char shall return NULL.] 
 
-###amqpvalue_get_char
+### amqpvalue_get_char
 
 ```C
-extern int amqpvalue_get_char(AMQP_VALUE value, char* char_value);
+MOCKABLE_FUNCTION(, int, amqpvalue_get_char, AMQP_VALUE, value, uint32_t*, char_value);
 ```
 
 **SRS_AMQPVALUE_01_094: [**amqpvalue_get_char shall fill in the char_value argument the UTF32 char value stored by the AMQP value indicated by the value argument.**]**
@@ -355,19 +355,19 @@ extern int amqpvalue_get_char(AMQP_VALUE value, char* char_value);
 **SRS_AMQPVALUE_01_096: [**If any of the arguments is NULL then amqpvalue_get_char shall return a non-zero value.**]**
 **SRS_AMQPVALUE_01_097: [**If the type of the value is not char (was not created with amqpvalue_create_char), then amqpvalue_get_char shall return a non-zero value.**]** 
 
-###amqpvalue_create_timestamp
+### amqpvalue_create_timestamp
 
 ```C
-extern AMQP_VALUE amqpvalue_create_timestamp(uint64_t value);
+MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_create_timestamp, int64_t, timestamp_value);
 ```
 
 **SRS_AMQPVALUE_01_107: [**amqpvalue_create_timestamp shall return a handle to an AMQP_VALUE that stores an uint64_t value that represents a millisecond precision Unix time.**]**
 **SRS_AMQPVALUE_01_108: [**If allocating the AMQP_VALUE fails then amqpvalue_create_timestamp shall return NULL.**]** 
 
-###amqpvalue_get_timestamp
+### amqpvalue_get_timestamp
 
 ```C
-extern int amqpvalue_get_timestamp(AMQP_VALUE value, uint64_t* timestamp_value);
+MOCKABLE_FUNCTION(, int, amqpvalue_get_timestamp, AMQP_VALUE, value, int64_t*, timestamp_value);
 ```
 
 **SRS_AMQPVALUE_01_109: [**amqpvalue_get_timestamp shall fill in the timestamp_value argument the timestamp value stored by the AMQP value indicated by the value argument.**]**
@@ -375,19 +375,19 @@ extern int amqpvalue_get_timestamp(AMQP_VALUE value, uint64_t* timestamp_value);
 **SRS_AMQPVALUE_01_111: [**If any of the arguments is NULL then amqpvalue_get_timestamp shall return a non-zero value.**]**
 **SRS_AMQPVALUE_01_112: [**If the type of the value is not timestamp (was not created with amqpvalue_create_timestamp), then amqpvalue_get_timestamp shall return a non-zero value.**]** 
 
-###amqpvalue_create_uuid
+### amqpvalue_create_uuid
 
 ```C
-extern AMQP_VALUE amqpvalue_create_uuid(amqp_uuid value);
+MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_create_uuid, uuid, uuid_value);
 ```
 
 **SRS_AMQPVALUE_01_113: [**amqpvalue_create_uuid shall return a handle to an AMQP_VALUE that stores an amqp_uuid value that represents a unique identifier per RFC-4122 section 4.1.2.**]**
 **SRS_AMQPVALUE_01_114: [**If allocating the AMQP_VALUE fails then amqpvalue_create_uuid shall return NULL.**]** 
 
-###amqpvalue_get_uuid
+### amqpvalue_get_uuid
 
 ```C
-extern int amqpvalue_get_uuid(AMQP_VALUE value, amqp_uuid* uuid_value);
+MOCKABLE_FUNCTION(, int, amqpvalue_get_uuid, AMQP_VALUE, value, uuid*, uuid_value);
 ```
 
 **SRS_AMQPVALUE_01_115: [**amqpvalue_get_uuid shall fill in the uuid_value argument the uuid value stored by the AMQP value indicated by the value argument.**]**
@@ -395,10 +395,10 @@ extern int amqpvalue_get_uuid(AMQP_VALUE value, amqp_uuid* uuid_value);
 **SRS_AMQPVALUE_01_117: [**If any of the arguments is NULL then amqpvalue_get_uuid shall return a non-zero value.**]**
 **SRS_AMQPVALUE_01_118: [**If the type of the value is not uuid (was not created with amqpvalue_create_uuid), then amqpvalue_get_uuid shall return a non-zero value.**]** 
 
-###amqpvalue_create_binary
+### amqpvalue_create_binary
 
 ```C
-extern AMQP_VALUE amqpvalue_create_binary(amqp_binary value);
+MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_create_binary, amqp_binary, binary_value);
 ```
 
 **SRS_AMQPVALUE_01_127: [**amqpvalue_create_binary shall return a handle to an AMQP_VALUE that stores a sequence of bytes.**]**
@@ -406,30 +406,30 @@ extern AMQP_VALUE amqpvalue_create_binary(amqp_binary value);
 **SRS_AMQPVALUE_01_129: [**If value.data is NULL and value.length is positive then amqpvalue_create_binary shall return NULL.**]**
 **SRS_AMQPVALUE_01_130: [**If any other error occurs, amqpvalue_create_binary shall return NULL.**]** 
 
-###amqpvalue_get_binary
+### amqpvalue_get_binary
 
 ```C
-extern int amqpvalue_get_binary(AMQP_VALUE value, amqp_binary* binary_value);
+MOCKABLE_FUNCTION(, int, amqpvalue_get_binary, AMQP_VALUE, value, amqp_binary*, binary_value);
 ```
 
 **SRS_AMQPVALUE_01_131: [**amqpvalue_get_binary shall yield a pointer to the sequence of bytes held by the AMQP_VALUE in binary_value.data and fill in the binary_value.length argument the number of bytes held in the binary value.**]**
 **SRS_AMQPVALUE_01_132: [**If any of the arguments is NULL then amqpvalue_get_binary shall return NULL.**]**
 **SRS_AMQPVALUE_01_133: [**If the type of the value is not binary (was not created with amqpvalue_create_binary), then amqpvalue_get_binary shall return NULL.**]**
 
-###amqpvalue_create_string
+### amqpvalue_create_string
 
 ```C
-extern AMQP_VALUE amqpvalue_create_string(const char* value);
+MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_create_string, const char*, string_value);
 ```
 
 **SRS_AMQPVALUE_01_135: [**amqpvalue_create_string shall return a handle to an AMQP_VALUE that stores a sequence of Unicode characters.**]**
 **SRS_AMQPVALUE_01_136: [**If allocating the AMQP_VALUE fails then amqpvalue_create_string shall return NULL.**]**
 **SRS_AMQPVALUE_01_137: [**If any other error occurs, amqpvalue_create_string shall return NULL.**]** 
 
-###amqpvalue_get_string
+### amqpvalue_get_string
 
 ```C
-extern int amqpvalue_get_string(AMQP_VALUE value, const char** string_value);
+MOCKABLE_FUNCTION(, int, amqpvalue_get_string, AMQP_VALUE, value, const char**, string_value);
 ```
 
 **SRS_AMQPVALUE_01_138: [**amqpvalue_get_string shall yield a pointer to the sequence of bytes held by the AMQP_VALUE in string_value.**]**
@@ -437,10 +437,10 @@ extern int amqpvalue_get_string(AMQP_VALUE value, const char** string_value);
 **SRS_AMQPVALUE_01_139: [**If any of the arguments is NULL then amqpvalue_get_string shall return a non-zero value.**]**
 **SRS_AMQPVALUE_01_140: [**If the type of the value is not string (was not created with amqpvalue_create_string), then amqpvalue_get_string shall return a non-zero value.**]** 
 
-###amqpvalue_create_symbol
+### amqpvalue_create_symbol
 
 ```C
-extern AMQP_VALUE amqpvalue_create_symbol(const char* value);
+MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_create_symbol, const char*, symbol_value);
 ```
 
 **SRS_AMQPVALUE_01_142: [**amqpvalue_create_symbol shall return a handle to an AMQP_VALUE that stores a symbol (ASCII string) value.**]**
@@ -448,10 +448,10 @@ extern AMQP_VALUE amqpvalue_create_symbol(const char* value);
 **SRS_AMQPVALUE_01_143: [**If allocating the AMQP_VALUE fails then amqpvalue_create_symbol shall return NULL.**]**
 **SRS_AMQPVALUE_01_401: [** If the string pointed to by value is longer than 2^32-1 then amqpvalue_create_symbol shall return NULL. **]**
 
-###amqpvalue_get_symbol
+### amqpvalue_get_symbol
 
 ```C
-extern int amqpvalue_get_symbol(AMQP_VALUE value, const char** symbol_value);
+MOCKABLE_FUNCTION(, int, amqpvalue_get_symbol, AMQP_VALUE, value, const char**, symbol_value);
 ```
 
 **SRS_AMQPVALUE_01_145: [**amqpvalue_get_symbol shall fill in the symbol_value the symbol value string held by the AMQP_VALUE.**]**
@@ -459,20 +459,20 @@ extern int amqpvalue_get_symbol(AMQP_VALUE value, const char** symbol_value);
 **SRS_AMQPVALUE_01_147: [**If any of the arguments is NULL then amqpvalue_get_symbol shall return a non-zero value.**]**
 **SRS_AMQPVALUE_01_148: [**If the type of the value is not symbol (was not created with amqpvalue_create_symbol), then amqpvalue_get_symbol shall return a non-zero value.**]** 
 
-###amqpvalue_create_list
+### amqpvalue_create_list
 
 ```C
-extern AMQP_VALUE amqpvalue_create_list(void);
+MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_create_list);
 ```
 
 **SRS_AMQPVALUE_01_149: [**amqpvalue_create_list shall return a handle to an AMQP_VALUE that stores a list.**]**
 **SRS_AMQPVALUE_01_150: [**If allocating the AMQP_VALUE fails then amqpvalue_create_list shall return NULL.**]**
 **SRS_AMQPVALUE_01_151: [**The list shall have an initial size of zero.**]** 
 
-###amqpvalue_set_list_item_count
+### amqpvalue_set_list_item_count
 
 ```C
-extern int amqpvalue_set_list_item_count(AMQP_VALUE value, uint32_t size);
+MOCKABLE_FUNCTION(, int, amqpvalue_set_list_item_count, AMQP_VALUE, list, uint32_t, count);
 ```
 
 **SRS_AMQPVALUE_01_152: [**amqpvalue_set_list_item_count shall resize an AMQP list.**]**
@@ -483,10 +483,10 @@ extern int amqpvalue_set_list_item_count(AMQP_VALUE value, uint32_t size);
 **SRS_AMQPVALUE_01_161: [**When the list is shrunk, the extra items shall be freed by using amqp_value_destroy.**]**
 **SRS_AMQPVALUE_01_162: [**When a list is grown a null AMQP_VALUE shall be inserted as new list items to fill the list up to the new size.**]** 
 
-###amqpvalue_get_list_item_count
+### amqpvalue_get_list_item_count
 
 ```C
-extern int amqpvalue_get_list_item_count(AMQP_VALUE value, uint32_t* size);
+MOCKABLE_FUNCTION(, int, amqpvalue_get_list_item_count, AMQP_VALUE, list, uint32_t*, count);
 ```
 
 **SRS_AMQPVALUE_01_157: [**amqpvalue_get_list_item_count shall fill in the size argument the number of items held by the AMQP list.**]**
@@ -494,10 +494,10 @@ extern int amqpvalue_get_list_item_count(AMQP_VALUE value, uint32_t* size);
 **SRS_AMQPVALUE_01_159: [**If any of the arguments are NULL, amqpvalue_get_list_item_count shall return a non-zero value.**]**
 **SRS_AMQPVALUE_01_160: [**If the AMQP_VALUE is not a list then amqpvalue_get_list_item_count shall return a non-zero value.**]** 
 
-###amqpvalue_set_list_item
+### amqpvalue_set_list_item
 
 ```C
-extern int amqpvalue_set_list_item(AMQP_VALUE value, uint32_t index, AMQP_VALUE list_item_value);
+MOCKABLE_FUNCTION(, int, amqpvalue_set_list_item, AMQP_VALUE, list, uint32_t, index, AMQP_VALUE, list_item_value);
 ```
 
 **SRS_AMQPVALUE_01_163: [**amqpvalue_set_list_item shall replace the item at the 0 based index-th position in the list identified by the value argument with the AMQP_VALUE specified by list_item_value.**]**
@@ -511,10 +511,10 @@ extern int amqpvalue_set_list_item(AMQP_VALUE value, uint32_t index, AMQP_VALUE 
 **SRS_AMQPVALUE_01_170: [**When amqpvalue_set_list_item fails due to not being able to clone the item or grow the list, the list shall not be altered.**]**
 **SRS_AMQPVALUE_01_171: [**If the list_item_value_would result in a list with an encoding that would exceed the ISO limits, amqpvalue_set_list_item shall fail and return a non-zero value.**]** 
 
-###amqpvalue_get_list_item
+### amqpvalue_get_list_item
 
 ```C
-extern AMQP_VALUE amqpvalue_get_list_item(AMQP_VALUE value, size_t index);
+MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_get_list_item, AMQP_VALUE, list, size_t, index);
 ```
 
 **SRS_AMQPVALUE_01_173: [**amqpvalue_get_list_item shall return a copy of the AMQP_VALUE stored at the 0 based position index in the list identified by value.**]**
@@ -523,20 +523,20 @@ extern AMQP_VALUE amqpvalue_get_list_item(AMQP_VALUE value, size_t index);
 **SRS_AMQPVALUE_01_176: [**If cloning the item at position index fails, then amqpvalue_get_list_item shall fail and return NULL.**]**
 **SRS_AMQPVALUE_01_177: [**If value is not a list then amqpvalue_get_list_item shall fail and return NULL.**]** 
 
-###amqpvalue_create_map
+### amqpvalue_create_map
 
 ```C
-extern AMQP_VALUE amqpvalue_create_map(void);
+MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_create_map);
 ```
 
 **SRS_AMQPVALUE_01_178: [**amqpvalue_create_map shall create an AMQP value that holds a map and return a handle to it.**]**
 **SRS_AMQPVALUE_01_179: [**If allocating memory for the map fails, then amqpvalue_create_map shall return NULL.**]**
 **SRS_AMQPVALUE_01_180: [**The number of key/value pairs in the newly created map shall be zero.**]** 
 
-###amqpvalue_set_map_value
+### amqpvalue_set_map_value
 
 ```C
-extern int amqpvalue_set_map_value(AMQP_VALUE map, AMQP_VALUE key, AMQP_VALUE value);
+MOCKABLE_FUNCTION(, int, amqpvalue_set_map_value, AMQP_VALUE, map, AMQP_VALUE, key, AMQP_VALUE, value);
 ```
 
 **SRS_AMQPVALUE_01_181: [**amqpvalue_set_map_value shall set the value in the map identified by the map argument for a key/value pair identified by the key argument.**]**
@@ -549,10 +549,10 @@ extern int amqpvalue_set_map_value(AMQP_VALUE map, AMQP_VALUE key, AMQP_VALUE va
 **SRS_AMQPVALUE_01_188: [**If cloning the value fails, amqpvalue_set_map_value shall fail and return a non-zero value.**]**
 **SRS_AMQPVALUE_01_196: [**If the map argument is not an AMQP value created with the amqpvalue_create_map function than amqpvalue_set_map_value shall fail and return a non-zero value.**]** 
 
-###amqpvalue_get_map_value
+### amqpvalue_get_map_value
 
 ```C
-extern AMQP_VALUE amqpvalue_get_map_value(AMQP_VALUE map, AMQP_VALUE key);
+MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_get_map_value, AMQP_VALUE, map, AMQP_VALUE, key);
 ```
 
 **SRS_AMQPVALUE_01_189: [**amqpvalue_get_map_value shall return the value whose key is identified by the key argument.**]**
@@ -561,10 +561,10 @@ extern AMQP_VALUE amqpvalue_get_map_value(AMQP_VALUE map, AMQP_VALUE key);
 **SRS_AMQPVALUE_01_191: [**If the key cannot be found, amqpvalue_get_map_value shall return NULL.**]**
 **SRS_AMQPVALUE_01_197: [**If the map argument is not an AMQP value created with the amqpvalue_create_map function than amqpvalue_get_map_value shall return NULL.**]** 
 
-###amqpvalue_get_map_pair_count
+### amqpvalue_get_map_pair_count
 
 ```C
-extern int amqpvalue_get_map_pair_count(AMQP_VALUE map, uint32_t* pair_count);
+MOCKABLE_FUNCTION(, int, amqpvalue_get_map_pair_count, AMQP_VALUE, map, uint32_t*, pair_count);
 ```
 
 **SRS_AMQPVALUE_01_193: [**amqpvalue_get_map_pair_count shall fill in the number of key/value pairs in the map in the pair_count argument.**]** 
@@ -572,10 +572,10 @@ extern int amqpvalue_get_map_pair_count(AMQP_VALUE map, uint32_t* pair_count);
 **SRS_AMQPVALUE_01_195: [**If any of the arguments is NULL, amqpvalue_get_map_pair_count shall fail and return a non-zero value.**]**
 **SRS_AMQPVALUE_01_198: [**If the map argument is not an AMQP value created with the amqpvalue_create_map function then amqpvalue_get_map_pair_count shall fail and return a non-zero value.**]** 
 
-###amqpvalue_get_map_key_value_pair
+### amqpvalue_get_map_key_value_pair
 
 ```C
-extern int amqpvalue_get_map_key_value_pair(AMQP_VALUE map, uint32_t index, AMQP_VALUE* key, AMQP_VALUE* value);
+MOCKABLE_FUNCTION(, int, amqpvalue_get_map_key_value_pair, AMQP_VALUE, map, uint32_t, index, AMQP_VALUE*, key, AMQP_VALUE*, value);
 ```
 
 **SRS_AMQPVALUE_01_199: [**amqpvalue_get_map_key_value_pair shall fill in the key and value arguments copies of the key/value pair on the 0 based position index in a map.**]**
@@ -585,6 +585,14 @@ extern int amqpvalue_get_map_key_value_pair(AMQP_VALUE map, uint32_t index, AMQP
 **SRS_AMQPVALUE_01_203: [**If cloning the value fails, amqpvalue_get_map_key_value_pair shall fail and return a non-zero value.**]**
 **SRS_AMQPVALUE_01_204: [**If the index argument is greater or equal to the number of key/value pairs in the map then amqpvalue_get_map_key_value_pair shall fail and return a non-zero value.**]**
 **SRS_AMQPVALUE_01_205: [**If the map argument is not an AMQP value created with the amqpvalue_create_map function then amqpvalue_get_map_key_value_pair shall fail and return a non-zero value.**]** 
+
+### amqpvalue_get_map
+
+```c
+MOCKABLE_FUNCTION(, int, amqpvalue_get_map, AMQP_VALUE, from_value, AMQP_VALUE*, map);
+```
+
+TBD
 
 ### amqpvalue_create_array
 
@@ -635,10 +643,27 @@ MOCKABLE_FUNCTION(, int, amqpvalue_get_array_item_count, AMQP_VALUE, value, uint
 **SRS_AMQPVALUE_01_421: [** If any of the arguments is NULL, `amqpvalue_get_array_item_count` shall fail and return a non-zero value. **]**
 **SRS_AMQPVALUE_01_422: [** If the array argument is not an AMQP value created with the `amqpvalue_create_array` function then `amqpvalue_get_array_item_count` shall fail and return a non-zero value. **]**
 
-###amqpvalue_are_equal
+### amqpvalue_get_array
+
+```c
+MOCKABLE_FUNCTION(, int, amqpvalue_get_array, AMQP_VALUE, value, AMQP_VALUE*, array_value);
+```
+
+TBD
+
+### amqpvalue_destroy
 
 ```C
-extern bool amqpvalue_are_equal(AMQP_VALUE value1, AMQP_VALUE value2);
+MOCKABLE_FUNCTION(, void, amqpvalue_destroy, AMQP_VALUE, value);
+```
+
+**SRS_AMQPVALUE_01_314: [**amqpvalue_destroy shall free all resources allocated by any of the amqpvalue_create_xxx functions or amqpvalue_clone.**]**
+**SRS_AMQPVALUE_01_315: [**If the value argument is NULL, amqpvalue_destroy shall do nothing.**]** 
+
+### amqpvalue_are_equal
+
+```C
+MOCKABLE_FUNCTION(, bool, amqpvalue_are_equal, AMQP_VALUE, value1, AMQP_VALUE, value2);
 ```
 
 **SRS_AMQPVALUE_01_206: [**amqpvalue_are_equal shall return true if the contents of value1 and value2 are equal.**]**
@@ -672,10 +697,10 @@ For each type the contents shall be compared according to the types defined in t
 **SRS_AMQPVALUE_01_427: [**- array: compare array item count and each element. **]** **SRS_AMQPVALUE_01_428: [** Nesting shall be considered in comparison. **]**
 **SRS_AMQPVALUE_01_233: [**- map: compare map pair count and each key/value pair.**]** **SRS_AMQPVALUE_01_234: [**Nesting shall be considered in comparison.**]** 
 
-###amqpvalue_clone
+### amqpvalue_clone
 
 ```C
-extern AMQP_VALUE amqpvalue_clone(AMQP_VALUE value);
+MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_clone, AMQP_VALUE, value);
 ```
 
 **SRS_AMQPVALUE_01_235: [**amqpvalue_clone shall clone the value passed as argument and return a new non-NULL handle to the cloned AMQP value.**]**
@@ -707,19 +732,10 @@ All ISO types shall be supported:
 -	**SRS_AMQPVALUE_01_258: [**list**]** 
 -	**SRS_AMQPVALUE_01_259: [**map**]** 
 
-###amqpvalue_destroy
+### amqpvalue_encode
 
 ```C
-extern void amqpvalue_destroy(AMQP_VALUE value);
-```
-
-**SRS_AMQPVALUE_01_314: [**amqpvalue_destroy shall free all resources allocated by any of the amqpvalue_create_xxx functions or amqpvalue_clone.**]**
-**SRS_AMQPVALUE_01_315: [**If the value argument is NULL, amqpvalue_destroy shall do nothing.**]** 
-
-###amqpvalue_encode
-
-```C
-extern int amqpvalue_encode(AMQP_VALUE value, ENCODER_OUTPUT encoder_output, void* context);
+MOCKABLE_FUNCTION(, int, amqpvalue_encode, AMQP_VALUE, value, AMQPVALUE_ENCODER_OUTPUT, encoder_output, void*, context);
 ```
 
 **SRS_AMQPVALUE_01_265: [**amqpvalue_encode shall encode the value per the ISO.**]**
@@ -730,38 +746,38 @@ extern int amqpvalue_encode(AMQP_VALUE value, ENCODER_OUTPUT encoder_output, voi
 **SRS_AMQPVALUE_01_274: [**When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.**]**
 **SRS_AMQPVALUE_01_271: [**If encoding fails due to any error not specifically mentioned here, it shall return a non-zero value.**]** 
 
-###amqpvalue_get_encoded_size
+### amqpvalue_get_encoded_size
 
 ```C
-extern int amqpvalue_get_encoded_size(AMQP_VALUE value, size_t* encoded_size);
+MOCKABLE_FUNCTION(, int, amqpvalue_get_encoded_size, AMQP_VALUE, value, size_t*, encoded_size);
 ```
 
 **SRS_AMQPVALUE_01_308: [**amqpvalue_get_encoded_size shall fill in the encoded_size argument the number of bytes required to encode the given AMQP value.**]**
 **SRS_AMQPVALUE_01_309: [**If any argument is NULL, amqpvalue_get_encoded_size shall return a non-zero value.**]** 
 
-###amqpvalue_decoder_create
+### amqpvalue_decoder_create
 
 ```C
-extern AMQPVALUE_DECODER_HANDLE amqpvalue_decoder_create(ON_VALUE_DECODED on_value_decoded, void* callback_context);
+MOCKABLE_FUNCTION(, AMQPVALUE_DECODER_HANDLE, amqpvalue_decoder_create, ON_VALUE_DECODED, on_value_decoded, void*, callback_context);
 ```
 
 **SRS_AMQPVALUE_01_311: [**amqpvalue_decoder_create shall create a new amqp value decoder and return a non-NULL handle to it.**]**
 **SRS_AMQPVALUE_01_312: [**If the on_value_decoded argument is NULL, amqpvalue_decoder_create shall return NULL.**]**
 **SRS_AMQPVALUE_01_313: [**If creating the decoder fails, amqpvalue_decoder_create shall return NULL.**]** 
 
-###amqpvalue_decoder_destroy
+### amqpvalue_decoder_destroy
 
 ```C
-extern void amqpvalue_decoder_destroy(AMQPVALUE_DECODER_HANDLE handle);
+MOCKABLE_FUNCTION(, void, amqpvalue_decoder_destroy, AMQPVALUE_DECODER_HANDLE, handle);
 ```
 
 **SRS_AMQPVALUE_01_316: [**amqpvalue_decoder_destroy shall free all resources associated with the amqpvalue_decoder.**]**
 **SRS_AMQPVALUE_01_317: [**If handle is NULL, amqpvalue_decoder_destroy shall do nothing.**]** 
 
-###amqpvalue_decode_bytes
+### amqpvalue_decode_bytes
 
 ```C
-extern int amqpvalue_decode_bytes(AMQPVALUE_DECODER_HANDLE handle, const unsigned char* buffer, size_t size);
+MOCKABLE_FUNCTION(, int, amqpvalue_decode_bytes, AMQPVALUE_DECODER_HANDLE, handle, const unsigned char*, buffer, size_t, size);
 ```
 
 **SRS_AMQPVALUE_01_318: [**amqpvalue_decode_bytes shall decode size bytes that are passed in the buffer argument.**]**
@@ -775,7 +791,7 @@ extern int amqpvalue_decode_bytes(AMQPVALUE_DECODER_HANDLE handle, const unsigne
 **SRS_AMQPVALUE_01_326: [**If any allocation failure occurs during decoding, amqpvalue_decode_bytes shall fail and return a non-zero value.**]**
 **SRS_AMQPVALUE_01_327: [**If not enough bytes have accumulated to decode a value, the on_value_decoded shall not be called.**]** 
 
-###Encoding ISO section
+### Encoding ISO section
 
 Primitive Type Definitions
 
@@ -1030,7 +1046,7 @@ Figure 1.20: Layout of Map Encoding
 
 </type>
 
-###Decoding ISO Section
+### Decoding ISO Section
 
 Primitive Type Definitions
 

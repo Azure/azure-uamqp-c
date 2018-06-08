@@ -9,8 +9,8 @@
 ```C
 typedef struct SASLCLIENTIO_CONFIG_TAG
 {
-	XIO_HANDLE underlying_io;
-	SASL_MECHANISM_HANDLE sasl_mechanism;
+    XIO_HANDLE underlying_io;
+    SASL_MECHANISM_HANDLE sasl_mechanism;
 } SASLCLIENTIO_CONFIG;
 
 MOCKABLE_FUNCTION(, const IO_INTERFACE_DESCRIPTION*, saslclientio_get_interface_description);
@@ -133,7 +133,7 @@ void saslclientio_dowork(CONCRETE_IO_HANDLE sasl_client_io);
 ### saslclientio_get_interface_description
 
 ```C
-const IO_INTERFACE_DESCRIPTION* saslclientio_get_interface_description(void);
+MOCKABLE_FUNCTION(, const IO_INTERFACE_DESCRIPTION*, saslclientio_get_interface_description);
 ```
 
 **SRS_SASLCLIENTIO_01_087: [**`saslclientio_get_interface_description` shall return a pointer to an `IO_INTERFACE_DESCRIPTION` structure that contains pointers to the functions: `saslclientio_create`, `saslclientio_destroy`, `saslclientio_open_async`, `saslclientio_close_async`, `saslclientio_send_async`, `saslclientio_setoption`, `saslclientio_retrieveoptions` and `saslclientio_dowork`.**]** 

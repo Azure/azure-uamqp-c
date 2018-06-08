@@ -1,30 +1,40 @@
-#frame_codec requirements
+# frame_codec requirements
  
-##Overview
+## Overview
 
-frame_codec is module that encodes/decodes frames (regardless of their type).
+`frame_codec` is module that encodes/decodes frames (regardless of their type).
 
-##Exposed API
+## Exposed API
 
 ```C
-	typedef struct FRAME_CODEC_INSTANCE_TAG* FRAME_CODEC_HANDLE;
-	typedef void(*ON_FRAME_RECEIVED)(void* context, const unsigned char* type_specific, uint32_t type_specific_size, const unsigned char* frame_body, uint32_t frame_body_size);
-	typedef void(*ON_FRAME_CODEC_ERROR)(void* context);
-	typedef void(*ON_BYTES_ENCODED)(void* context, const unsigned char* bytes, size_t length, bool encode_complete);
+typedef struct PAYLOAD_TAG
+{
+    const unsigned char* bytes;
+    size_t length;
+} PAYLOAD;
 
-	extern FRAME_CODEC_HANDLE frame_codec_create(ON_FRAME_CODEC_ERROR on_frame_codec_error, void* callback_context);
-	extern void frame_codec_destroy(FRAME_CODEC_HANDLE frame_codec);
-	extern int frame_codec_set_max_frame_size(FRAME_CODEC_HANDLE frame_codec, uint32_t max_frame_size);
-	extern int frame_codec_subscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type, ON_FRAME_RECEIVED on_frame_received, void* callback_context);
-	extern int frame_codec_unsubscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type);
-	extern int frame_codec_receive_bytes(FRAME_CODEC_HANDLE frame_codec, const unsigned char* buffer, size_t size);
-	extern int frame_codec_encode_frame(FRAME_CODEC_HANDLE frame_codec, uint8_t type, const PAYLOAD* payloads, size_t payload_count, const unsigned char* type_specific_bytes, uint32_t type_specific_size, ON_BYTES_ENCODED on_bytes_encoded, void* callback_context);
+#define FRAME_TYPE_AMQP    (uint8_t)0x00
+
+#define FRAME_TYPE_SASL    (uint8_t)0x01
+
+    typedef struct FRAME_CODEC_INSTANCE_TAG* FRAME_CODEC_HANDLE;
+    typedef void(*ON_FRAME_RECEIVED)(void* context, const unsigned char* type_specific, uint32_t type_specific_size, const unsigned char* frame_body, uint32_t frame_body_size);
+    typedef void(*ON_FRAME_CODEC_ERROR)(void* context);
+    typedef void(*ON_BYTES_ENCODED)(void* context, const unsigned char* bytes, size_t length, bool encode_complete);
+
+    MOCKABLE_FUNCTION(, FRAME_CODEC_HANDLE, frame_codec_create, ON_FRAME_CODEC_ERROR, on_frame_codec_error, void*, callback_context);
+    MOCKABLE_FUNCTION(, void, frame_codec_destroy, FRAME_CODEC_HANDLE, frame_codec);
+    MOCKABLE_FUNCTION(, int, frame_codec_set_max_frame_size, FRAME_CODEC_HANDLE, frame_codec, uint32_t, max_frame_size);
+    MOCKABLE_FUNCTION(, int, frame_codec_subscribe, FRAME_CODEC_HANDLE, frame_codec, uint8_t, type, ON_FRAME_RECEIVED, on_frame_received, void*, callback_context);
+    MOCKABLE_FUNCTION(, int, frame_codec_unsubscribe, FRAME_CODEC_HANDLE, frame_codec, uint8_t, type);
+    MOCKABLE_FUNCTION(, int, frame_codec_receive_bytes, FRAME_CODEC_HANDLE, frame_codec, const unsigned char*, buffer, size_t, size);
+    MOCKABLE_FUNCTION(, int, frame_codec_encode_frame, FRAME_CODEC_HANDLE, frame_codec, uint8_t, type, const PAYLOAD*, payloads, size_t, payload_count, const unsigned char*, type_specific_bytes, uint32_t, type_specific_size, ON_BYTES_ENCODED, on_bytes_encoded, void*, callback_context);
 ```
 
-###frame_codec_create
+### frame_codec_create
 
 ```C
-extern FRAME_CODEC_HANDLE frame_codec_create(ON_FRAME_CODEC_ERROR on_frame_codec_error, void* callback_context);
+MOCKABLE_FUNCTION(, FRAME_CODEC_HANDLE, frame_codec_create, ON_FRAME_CODEC_ERROR, on_frame_codec_error, void*, callback_context);
 ```
 
 **SRS_FRAME_CODEC_01_021: [**frame_codec_create shall create a new instance of frame_codec and return a non-NULL handle to it on success.**]** 
@@ -33,19 +43,19 @@ extern FRAME_CODEC_HANDLE frame_codec_create(ON_FRAME_CODEC_ERROR on_frame_codec
 **SRS_FRAME_CODEC_01_082: [**The initial max_frame_size_shall be 512.**]** 
 **SRS_FRAME_CODEC_01_104: [**The callback_context shall be allowed to be NULL.**]** 
 
-###frame_codec_destroy
+### frame_codec_destroy
 
 ```C
-extern void frame_codec_destroy(FRAME_CODEC frame_codec);
+MOCKABLE_FUNCTION(, void, frame_codec_destroy, FRAME_CODEC_HANDLE, frame_codec);
 ```
 
 **SRS_FRAME_CODEC_01_023: [**frame_codec_destroy shall free all resources associated with a frame_codec instance.**]** 
 **SRS_FRAME_CODEC_01_024: [**If frame_codec is NULL, frame_codec_destroy shall do nothing.**]** 
 
-###frame_codec_set_max_frame_size
+### frame_codec_set_max_frame_size
 
 ```C
-extern int frame_codec_set_max_frame_size(FRAME_CODEC_HANDLE frame_codec, uint32_t max_frame_size);
+MOCKABLE_FUNCTION(, int, frame_codec_set_max_frame_size, FRAME_CODEC_HANDLE, frame_codec, uint32_t, max_frame_size);
 ```
 
 **SRS_FRAME_CODEC_01_075: [**frame_codec_set_max_frame_size shall set the maximum frame size for a frame_codec.**]** 
@@ -56,10 +66,34 @@ extern int frame_codec_set_max_frame_size(FRAME_CODEC_HANDLE frame_codec, uint32
 **SRS_FRAME_CODEC_01_081: [**If a frame being decoded already has a size bigger than the max_frame_size argument then frame_codec_set_max_frame_size shall return a non-zero value and the previous frame size shall be kept.**]** 
 **SRS_FRAME_CODEC_01_097: [**Setting a frame size on a frame_codec that had a decode error shall fail.**]** 
 
-###frame_codec_receive_bytes
+### frame_codec_subscribe
 
 ```C
-extern int frame_codec_receive_bytes(FRAME_CODEC frame_codec, const unsigned char* buffer, size_t size);
+MOCKABLE_FUNCTION(, int, frame_codec_subscribe, FRAME_CODEC_HANDLE, frame_codec, uint8_t, type, ON_FRAME_RECEIVED, on_frame_received, void*, callback_context);
+```
+
+**SRS_FRAME_CODEC_01_033: [**frame_codec_subscribe subscribes for a certain type of frame received by the frame_codec instance identified by frame_codec.**]** 
+**SRS_FRAME_CODEC_01_087: [**On success, frame_codec_subscribe shall return zero.**]** 
+**SRS_FRAME_CODEC_01_034: [**If any of the frame_codec or on_frame_received arguments is NULL, frame_codec_subscribe shall return a non-zero value.**]** 
+**SRS_FRAME_CODEC_01_035: [**After successfully registering a callback for a certain frame type, when subsequently that frame type is received the callbacks shall be invoked, passing to it the received frame and the callback_context value.**]** 
+**SRS_FRAME_CODEC_01_036: [**Only one callback pair shall be allowed to be registered for a given frame type.**]** 
+**SRS_FRAME_CODEC_01_037: [**If any failure occurs while performing the subscribe operation, frame_codec_subscribe shall return a non-zero value.**]** 
+
+### frame_codec_unsubscribe
+
+```C
+MOCKABLE_FUNCTION(, int, frame_codec_unsubscribe, FRAME_CODEC_HANDLE, frame_codec, uint8_t, type);
+```
+
+**SRS_FRAME_CODEC_01_038: [**frame_codec_unsubscribe removes a previous subscription for frames of type type and on success it shall return 0.**]** 
+**SRS_FRAME_CODEC_01_039: [**If frame_codec is NULL, frame_codec_unsubscribe shall return a non-zero value.**]** 
+**SRS_FRAME_CODEC_01_040: [**If no subscription for the type frame type exists, frame_codec_unsubscribe shall return a non-zero value.**]** 
+**SRS_FRAME_CODEC_01_041: [**If any failure occurs while performing the unsubscribe operation, frame_codec_unsubscribe shall return a non-zero value.**]** 
+
+### frame_codec_receive_bytes
+
+```C
+MOCKABLE_FUNCTION(, int, frame_codec_receive_bytes, FRAME_CODEC_HANDLE, frame_codec, const unsigned char*, buffer, size_t, size);
 ```
 
 **SRS_FRAME_CODEC_01_025: [**frame_codec_receive_bytes decodes a sequence of bytes into frames and on success it shall return zero.**]** 
@@ -78,34 +112,10 @@ extern int frame_codec_receive_bytes(FRAME_CODEC frame_codec, const unsigned cha
 **SRS_FRAME_CODEC_01_096: [**If a frame bigger than the current max frame size is received, frame_codec_receive_bytes shall fail and return a non-zero value.**]** 
 **SRS_FRAME_CODEC_01_103: [**Upon any decode error, if an error callback has been passed to frame_codec_create, then the error callback shall be called with the context argument being the frame_codec_error_callback_context argument passed to frame_codec_create.**]**
 
-###frame_codec_subscribe
+### frame_codec_encode_frame
 
 ```C
-extern int frame_codec_subscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type, ON_FRAME_RECEIVED on_frame_received, void* callback_context);
-```
-
-**SRS_FRAME_CODEC_01_033: [**frame_codec_subscribe subscribes for a certain type of frame received by the frame_codec instance identified by frame_codec.**]** 
-**SRS_FRAME_CODEC_01_087: [**On success, frame_codec_subscribe shall return zero.**]** 
-**SRS_FRAME_CODEC_01_034: [**If any of the frame_codec or on_frame_received arguments is NULL, frame_codec_subscribe shall return a non-zero value.**]** 
-**SRS_FRAME_CODEC_01_035: [**After successfully registering a callback for a certain frame type, when subsequently that frame type is received the callbacks shall be invoked, passing to it the received frame and the callback_context value.**]** 
-**SRS_FRAME_CODEC_01_036: [**Only one callback pair shall be allowed to be registered for a given frame type.**]** 
-**SRS_FRAME_CODEC_01_037: [**If any failure occurs while performing the subscribe operation, frame_codec_subscribe shall return a non-zero value.**]** 
-
-###frame_codec_unsubscribe
-
-```C
-extern int frame_codec_unsubscribe(FRAME_CODEC frame_codec, uint8_t type);
-```
-
-**SRS_FRAME_CODEC_01_038: [**frame_codec_unsubscribe removes a previous subscription for frames of type type and on success it shall return 0.**]** 
-**SRS_FRAME_CODEC_01_039: [**If frame_codec is NULL, frame_codec_unsubscribe shall return a non-zero value.**]** 
-**SRS_FRAME_CODEC_01_040: [**If no subscription for the type frame type exists, frame_codec_unsubscribe shall return a non-zero value.**]** 
-**SRS_FRAME_CODEC_01_041: [**If any failure occurs while performing the unsubscribe operation, frame_codec_unsubscribe shall return a non-zero value.**]** 
-
-###frame_codec_encode_frame
-
-```C
-extern int frame_codec_encode_frame(FRAME_CODEC_HANDLE frame_codec, uint8_t type, const PAYLOAD* payloads, size_t payload_count, const unsigned char* type_specific_bytes, uint32_t type_specific_size, ON_BYTES_ENCODED on_bytes_encoded, void* callback_context);
+MOCKABLE_FUNCTION(, int, frame_codec_encode_frame, FRAME_CODEC_HANDLE, frame_codec, uint8_t, type, const PAYLOAD*, payloads, size_t, payload_count, const unsigned char*, type_specific_bytes, uint32_t, type_specific_size, ON_BYTES_ENCODED, on_bytes_encoded, void*, callback_context);
 ```
 
 **SRS_FRAME_CODEC_01_042: [**frame_codec_encode_frame encodes the header, type specific bytes and frame payload of a frame that has frame_payload_size bytes.**]** 
@@ -124,7 +134,7 @@ extern int frame_codec_encode_frame(FRAME_CODEC_HANDLE frame_codec, uint8_t type
 **SRS_FRAME_CODEC_01_088: [**Encoded bytes shall be passed to the `on_bytes_encoded` callback in a single call, while setting the `encode complete` argument to true.**]** 
 **SRS_FRAME_CODEC_01_095: [**If the frame_size needed for the frame is bigger than the maximum frame size, frame_codec_encode_frame shall fail and return a non-zero value.**]** 
 
-##ISO section (receive)
+## ISO section (receive)
 
 2.3 Framing
 
@@ -162,7 +172,7 @@ Figure 2.15: General Frame Layout
 **SRS_FRAME_CODEC_01_018: [**A type code of 0x00 indicates that the frame is an AMQP frame.**]** 
 **SRS_FRAME_CODEC_01_019: [**A type code of 0x01 indicates that the frame is a SASL frame**]** , see Part 5: section 5.3.
 
-##ISO section (send)
+## ISO section (send)
 
 2.3 Framing
 
@@ -199,5 +209,3 @@ Figure 2.15: General Frame Layout
 **SRS_FRAME_CODEC_01_071: [**The subsequent bytes in the frame header MAY be interpreted differently depending on the type of the frame.**]** 
 **SRS_FRAME_CODEC_01_072: [**A type code of 0x00 indicates that the frame is an AMQP frame.**]** 
 **SRS_FRAME_CODEC_01_073: [**A type code of 0x01 indicates that the frame is a SASL frame**]** , see Part 5: section 5.3.
-
-

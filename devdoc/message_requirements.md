@@ -53,7 +53,7 @@
 ### message_create
 
 ```C
-MESSAGE_HANDLE message_create(void);
+MOCKABLE_FUNCTION(, MESSAGE_HANDLE, message_create);
 ```
 
 **SRS_MESSAGE_01_001: [** `message_create` shall create a new AMQP message instance and on success it shall return a non-NULL handle for the newly created message instance. **]**
@@ -62,7 +62,7 @@ MESSAGE_HANDLE message_create(void);
 ### message_clone
 
 ```C
-MESSAGE_HANDLE message_clone(MESSAGE_HANDLE source_message);
+MOCKABLE_FUNCTION(, MESSAGE_HANDLE, message_clone, MESSAGE_HANDLE, source_message);
 ```
 
 **SRS_MESSAGE_01_003: [** `message_clone` shall clone a message entirely and on success return a non-NULL handle to the cloned message. **]**
@@ -82,7 +82,7 @@ MESSAGE_HANDLE message_clone(MESSAGE_HANDLE source_message);
 ### message_destroy
 
 ```C
-void message_destroy(MESSAGE_HANDLE message);
+MOCKABLE_FUNCTION(, void, message_destroy, MESSAGE_HANDLE, message);
 ```
 
 **SRS_MESSAGE_01_013: [** `message_destroy` shall free all resources allocated by the message instance identified by the `message` argument. **]**
@@ -101,7 +101,7 @@ void message_destroy(MESSAGE_HANDLE message);
 ### message_set_header
 
 ```C
-int message_set_header(MESSAGE_HANDLE message, HEADER_HANDLE message_header);
+MOCKABLE_FUNCTION(, int, message_set_header, MESSAGE_HANDLE, message, HEADER_HANDLE, message_header);
 ```
 
 **SRS_MESSAGE_01_022: [** `message_set_header` shall copy the contents of `message_header` as the header for the message instance identified by message. **]**
@@ -115,7 +115,7 @@ int message_set_header(MESSAGE_HANDLE message, HEADER_HANDLE message_header);
 ### message_get_header
 
 ```C
-int message_get_header(MESSAGE_HANDLE message, HEADER_HANDLE* message_header);
+MOCKABLE_FUNCTION(, int, message_get_header, MESSAGE_HANDLE, message, HEADER_HANDLE*, message_header);
 ```
 
 **SRS_MESSAGE_01_027: [** `message_get_header` shall copy the contents of header for the message instance identified by `message` into the argument `message_header`. **]**
@@ -128,7 +128,7 @@ int message_get_header(MESSAGE_HANDLE message, HEADER_HANDLE* message_header);
 ### message_set_delivery_annotations
 
 ```C
-int message_set_delivery_annotations(MESSAGE_HANDLE message, annotations annotations);
+MOCKABLE_FUNCTION(, int, message_set_delivery_annotations, MESSAGE_HANDLE, message, delivery_annotations, annotations);
 ```
 
 **SRS_MESSAGE_01_032: [** `message_set_delivery_annotations` shall copy the contents of `annotations` as the delivery annotations for the message instance identified by `message`. **]**
@@ -142,7 +142,7 @@ int message_set_delivery_annotations(MESSAGE_HANDLE message, annotations annotat
 ### message_get_delivery_annotations
 
 ```C
-int message_get_delivery_annotations(MESSAGE_HANDLE message, delivery_annotations* annotations);
+MOCKABLE_FUNCTION(, int, message_get_delivery_annotations, MESSAGE_HANDLE, message, delivery_annotations*, annotations);
 ```
 
 **SRS_MESSAGE_01_037: [** `message_get_delivery_annotations` shall copy the contents of delivery annotations for the message instance identified by `message` into the argument `annotations`. **]**
@@ -155,7 +155,7 @@ int message_get_delivery_annotations(MESSAGE_HANDLE message, delivery_annotation
 ### message_set_message_annotations
 
 ```C
-int message_set_message_annotations(MESSAGE_HANDLE message, message_annotations annotations);
+MOCKABLE_FUNCTION(, int, message_set_message_annotations, MESSAGE_HANDLE, message, message_annotations, annotations);
 ```
 
 **SRS_MESSAGE_01_042: [** `message_set_message_annotations` shall copy the contents of `annotations` as the message annotations for the message instance identified by `message`. **]**
@@ -169,7 +169,7 @@ int message_set_message_annotations(MESSAGE_HANDLE message, message_annotations 
 ### message_get_message_annotations
 
 ```C
-int message_get_message_annotations(MESSAGE_HANDLE message, annotations* annotations);
+MOCKABLE_FUNCTION(, int, message_get_message_annotations, MESSAGE_HANDLE, message, message_annotations*, annotations);
 ```
 
 **SRS_MESSAGE_01_047: [** `message_get_message_annotations` shall copy the contents of message annotations for the message instance identified by `message` into the argument `annotations`. **]**
@@ -182,7 +182,7 @@ int message_get_message_annotations(MESSAGE_HANDLE message, annotations* annotat
 ### message_set_properties
 
 ```C
-int message_set_properties(MESSAGE_HANDLE message, PROPERTIES_HANDLE properties);
+MOCKABLE_FUNCTION(, int, message_set_properties, MESSAGE_HANDLE, message, PROPERTIES_HANDLE, properties);
 ```
 
 **SRS_MESSAGE_01_052: [** `message_set_properties` shall copy the contents of `properties` as the message properties for the message instance identified by `message`. **]**
@@ -196,7 +196,7 @@ int message_set_properties(MESSAGE_HANDLE message, PROPERTIES_HANDLE properties)
 ### message_get_properties
 
 ```C
-int message_get_properties(MESSAGE_HANDLE message, PROPERTIES_HANDLE* properties);
+MOCKABLE_FUNCTION(, int, message_get_properties, MESSAGE_HANDLE, message, PROPERTIES_HANDLE*, properties);
 ```
 
 **SRS_MESSAGE_01_057: [** `message_get_properties` shall copy the contents of message properties for the message instance identified by `message` into the argument `properties`. **]**
@@ -209,7 +209,7 @@ int message_get_properties(MESSAGE_HANDLE message, PROPERTIES_HANDLE* properties
 ### message_set_application_properties
 
 ```C
-int message_set_application_properties(MESSAGE_HANDLE message, AMQP_VALUE application_properties);
+MOCKABLE_FUNCTION(, int, message_set_application_properties, MESSAGE_HANDLE, message, AMQP_VALUE, application_properties);
 ```
 
 **SRS_MESSAGE_01_064: [** `message_set_application_properties` shall copy the contents of `application_properties` as the application properties for the message instance identified by `message`. **]**
@@ -223,7 +223,7 @@ int message_set_application_properties(MESSAGE_HANDLE message, AMQP_VALUE applic
 ### message_get_application_properties
 
 ```C
-int message_get_application_properties(MESSAGE_HANDLE message, AMQP_VALUE* application_properties);
+MOCKABLE_FUNCTION(, int, message_get_application_properties, MESSAGE_HANDLE, message, AMQP_VALUE*, application_properties);
 ```
 
 **SRS_MESSAGE_01_070: [** `message_get_application_properties` shall copy the contents of application message properties for the message instance identified by `message` into the argument `application_properties`. **]**
@@ -236,7 +236,7 @@ int message_get_application_properties(MESSAGE_HANDLE message, AMQP_VALUE* appli
 ### message_set_footer
 
 ```C
-int message_set_footer(MESSAGE_HANDLE message, annotations footer);
+MOCKABLE_FUNCTION(, int, message_set_footer, MESSAGE_HANDLE, message, annotations, footer);
 ```
 
 **SRS_MESSAGE_01_075: [** `message_set_footer` shall copy the contents of `footer` as the footer contents for the message instance identified by `message`. **]**
@@ -250,7 +250,7 @@ int message_set_footer(MESSAGE_HANDLE message, annotations footer);
 ### message_get_footer
 
 ```C
-int message_get_footer(MESSAGE_HANDLE message, annotations* footer);
+MOCKABLE_FUNCTION(, int, message_get_footer, MESSAGE_HANDLE, message, annotations*, footer);
 ```
 
 **SRS_MESSAGE_01_081: [** `message_get_footer` shall copy the contents of footer for the message instance identified by `message` into the argument `footer`. **]**
@@ -263,7 +263,7 @@ int message_get_footer(MESSAGE_HANDLE message, annotations* footer);
 ### message_add_body_amqp_data
 
 ```C
-int message_add_body_amqp_data(MESSAGE_HANDLE message, BINARY_DATA amqp_data);
+MOCKABLE_FUNCTION(, int, message_add_body_amqp_data, MESSAGE_HANDLE, message, BINARY_DATA, amqp_data);
 ```
 
 **SRS_MESSAGE_01_086: [** `message_add_body_amqp_data` shall add the contents of `amqp_data` to the list of AMQP data values for the body of the message identified by `message`. **]**
@@ -277,7 +277,7 @@ int message_add_body_amqp_data(MESSAGE_HANDLE message, BINARY_DATA amqp_data);
 ### message_get_body_amqp_data_in_place
 
 ```C
-int message_get_body_amqp_data_in_place(MESSAGE_HANDLE message, size_t index, BINARY_DATA* amqp_data);
+MOCKABLE_FUNCTION(, int, message_get_body_amqp_data_in_place, MESSAGE_HANDLE, message, size_t, index, BINARY_DATA*, amqp_data);
 ```
 
 **SRS_MESSAGE_01_092: [** `message_get_body_amqp_data_in_place` shall place the contents of the `index`th AMQP data for the message instance identified by `message` into the argument `amqp_data`, without copying the binary payload memory. **]**
@@ -289,7 +289,7 @@ int message_get_body_amqp_data_in_place(MESSAGE_HANDLE message, size_t index, BI
 ### message_get_body_amqp_data_count
 
 ```C
-int message_get_body_amqp_data_count(MESSAGE_HANDLE message, size_t* count);
+MOCKABLE_FUNCTION(, int, message_get_body_amqp_data_count, MESSAGE_HANDLE, message, size_t*, count);
 ```
 
 **SRS_MESSAGE_01_097: [** `message_get_body_amqp_data_count` shall fill in `count` the number of AMQP data chunks that are stored by the message identified by `message`. **]**
@@ -300,7 +300,7 @@ int message_get_body_amqp_data_count(MESSAGE_HANDLE message, size_t* count);
 ### message_set_body_amqp_value
 
 ```C
-int message_set_body_amqp_value(MESSAGE_HANDLE message, AMQP_VALUE body_amqp_value);
+MOCKABLE_FUNCTION(, int, message_set_body_amqp_value, MESSAGE_HANDLE, message, AMQP_VALUE, body_amqp_value);
 ```
 
 **SRS_MESSAGE_01_101: [** `message_set_body_amqp_value` shall set the contents of body as being the AMQP value indicate by `body_amqp_value`. **]**
@@ -314,7 +314,7 @@ int message_set_body_amqp_value(MESSAGE_HANDLE message, AMQP_VALUE body_amqp_val
 ### message_get_body_amqp_value_in_place
 
 ```C
-int message_get_body_amqp_value_in_place(MESSAGE_HANDLE message, AMQP_VALUE* body_amqp_value);
+MOCKABLE_FUNCTION(, int, message_get_body_amqp_value_in_place, MESSAGE_HANDLE, message, AMQP_VALUE*, body_amqp_value);
 ```
 
 **SRS_MESSAGE_01_106: [** `message_get_body_amqp_value_in_place` shall get the body AMQP value for the message instance identified by `message` in place (not cloning) into the `body_amqp_value` argument. **]**
@@ -325,7 +325,7 @@ int message_get_body_amqp_value_in_place(MESSAGE_HANDLE message, AMQP_VALUE* bod
 ### message_add_body_amqp_sequence
 
 ```C
-int message_add_body_amqp_sequence(MESSAGE_HANDLE message, AMQP_VALUE sequence);
+MOCKABLE_FUNCTION(, int, message_add_body_amqp_sequence, MESSAGE_HANDLE, message, AMQP_VALUE, sequence);
 ```
 
 **SRS_MESSAGE_01_110: [** `message_add_body_amqp_sequence` shall add the contents of `sequence` to the list of AMQP sequences for the body of the message identified by `message`. **]**
@@ -340,7 +340,7 @@ int message_add_body_amqp_sequence(MESSAGE_HANDLE message, AMQP_VALUE sequence);
 ### message_get_body_amqp_sequence_in_place
 
 ```C
-int message_get_body_amqp_sequence_in_place(MESSAGE_HANDLE message, size_t index, AMQP_VALUE* sequence);
+MOCKABLE_FUNCTION(, int, message_get_body_amqp_sequence_in_place, MESSAGE_HANDLE, message, size_t, index, AMQP_VALUE*, sequence);
 ```
 
 **SRS_MESSAGE_01_116: [** `message_get_body_amqp_sequence_in_place` shall return in `sequence` the content of the `index`th AMQP seuquence entry for the message instance identified by `message`. **]**
@@ -352,7 +352,7 @@ int message_get_body_amqp_sequence_in_place(MESSAGE_HANDLE message, size_t index
 ### message_get_body_amqp_sequence_count
 
 ```C
-int message_get_body_amqp_sequence_count(MESSAGE_HANDLE message, size_t* count);
+MOCKABLE_FUNCTION(, int, message_get_body_amqp_sequence_count, MESSAGE_HANDLE, message, size_t*, count);
 ```
 
 **SRS_MESSAGE_01_121: [** `message_get_body_amqp_sequence_count` shall fill in `count` the number of AMQP sequences that are stored by the message identified by `message`. **]**
@@ -363,7 +363,7 @@ int message_get_body_amqp_sequence_count(MESSAGE_HANDLE message, size_t* count);
 ### message_get_body_type
 
 ```C
-int message_get_body_type(MESSAGE_HANDLE message, MESSAGE_BODY_TYPE* body_type);
+MOCKABLE_FUNCTION(, int, message_get_body_type, MESSAGE_HANDLE, message, MESSAGE_BODY_TYPE*, body_type);
 ```
 
 **SRS_MESSAGE_01_125: [** `message_get_body_type` shall fill in `body_type` the AMQP message body type. **]**
@@ -374,7 +374,7 @@ int message_get_body_type(MESSAGE_HANDLE message, MESSAGE_BODY_TYPE* body_type);
 ### message_set_message_format
 
 ```C
-int message_set_message_format(MESSAGE_HANDLE message, uint32_t message_format);
+MOCKABLE_FUNCTION(, int, message_set_message_format, MESSAGE_HANDLE, message, uint32_t, message_format);
 ```
 
 **SRS_MESSAGE_01_129: [** `message_set_message_format` shall set the message format for the message identified by `message`. **]**
@@ -385,7 +385,7 @@ int message_set_message_format(MESSAGE_HANDLE message, uint32_t message_format);
 ### message_get_message_format
 
 ```C
-int message_get_message_format(MESSAGE_HANDLE message, uint32_t* message_format);
+MOCKABLE_FUNCTION(, int, message_get_message_format, MESSAGE_HANDLE, message, uint32_t*, message_format);
 ```
 
 **SRS_MESSAGE_01_132: [** `message_get_message_format` shall get the message format for the message identified by `message` and return it in the `message_fomrat` argument. **]**

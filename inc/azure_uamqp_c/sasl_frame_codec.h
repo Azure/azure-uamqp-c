@@ -16,11 +16,11 @@ extern "C" {
 
 #include "azure_c_shared_utility/umock_c_prod.h"
 
-#define SASL_MECHANISMS        (uint64_t)0x40
-#define SASL_INIT            (uint64_t)0x41
-#define SASL_CHALLENGE        (uint64_t)0x42
-#define SASL_RESPONSE        (uint64_t)0x43
-#define SASL_OUTCOME        (uint64_t)0x44
+#define SASL_MECHANISMS         (uint64_t)0x40
+#define SASL_INIT               (uint64_t)0x41
+#define SASL_CHALLENGE          (uint64_t)0x42
+#define SASL_RESPONSE           (uint64_t)0x43
+#define SASL_OUTCOME            (uint64_t)0x44
 
 typedef struct SASL_FRAME_CODEC_INSTANCE_TAG* SASL_FRAME_CODEC_HANDLE;
 typedef void(*ON_SASL_FRAME_RECEIVED)(void* context, AMQP_VALUE sasl_frame_value);

@@ -593,6 +593,8 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
             bool closed = false;
             ERROR_HANDLE error;
 
+            (void)detach_get_closed(detach, &closed);
+
             /* Received a detach while attached */
             if (link_instance->link_state == LINK_STATE_ATTACHED)
             {
@@ -635,8 +637,6 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
             }
             else 
             {
-                (void)detach_get_closed(detach, &closed);
-
                 remove_all_pending_deliveries(link_instance, true);
                 set_link_state(link_instance, LINK_STATE_DETACHED);
             }

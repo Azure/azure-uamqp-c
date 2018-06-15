@@ -447,17 +447,20 @@ static void on_frame_received(void* context, AMQP_VALUE performative, uint32_t p
             {
                 end_session_with_error(session_instance, "amqp:decode-error", "Cannot get link role from ATTACH frame");
             }
-            else if (attach_get_source(attach_handle, &source) != 0)
-            {
-                end_session_with_error(session_instance, "amqp:decode-error", "Cannot get link source from ATTACH frame");
-            }
-            else if (attach_get_target(attach_handle, &target) != 0)
-            {
-                end_session_with_error(session_instance, "amqp:decode-error", "Cannot get link target from ATTACH frame");
-            }
             else
             {
-                LINK_ENDPOINT_INSTANCE* link_endpoint = find_link_endpoint_by_name(session_instance, name);
+                LINK_ENDPOINT_INSTANCE* link_endpoint;
+
+                if (attach_get_source(attach_handle, &source) != 0)
+                {
+                    source = NULL;
+                }
+                if (attach_get_target(attach_handle, &target) != 0)
+                {
+                    target = NULL;
+                }
+
+                link_endpoint = find_link_endpoint_by_name(session_instance, name);
                 if (link_endpoint == NULL)
                 {
                     /* new link attach */

@@ -162,15 +162,15 @@ static int encode_bytes(void* context, const unsigned char* bytes, size_t length
 static void log_message_chunk(MESSAGE_SENDER_INSTANCE* message_sender, const char* name, AMQP_VALUE value)
 {
 #ifdef NO_LOGGING
-    UNUSED(message_sender);
-    UNUSED(name);
-    UNUSED(value);
+    (void)message_sender;
+    (void)name;
+    (void)value;
 #else
     if (xlogging_get_log_function() != NULL && message_sender->is_trace_on == 1)
     {
         char* value_as_string = NULL;
         LOG(AZ_LOG_TRACE, 0, "%s", P_OR_NULL(name));
-        LOG(AZ_LOG_TRACE, 0, "%s", P_OR_NULL((value_as_string = amqpvalue_to_string(value))));
+        LOG(AZ_LOG_TRACE, 0, "%s", ((value_as_string = amqpvalue_to_string(value)), P_OR_NULL(value_as_string)));
         if (value_as_string != NULL)
         {
             free(value_as_string);

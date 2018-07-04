@@ -1986,24 +1986,32 @@ void connection_destroy_endpoint(ENDPOINT_HANDLE endpoint)
 
         /* Codes_S_R_S_CONNECTION_01_130: [The outgoing channel associated with the endpoint shall be released by removing the endpoint from the endpoint list.] */
         /* Codes_S_R_S_CONNECTION_01_131: [Any incoming channel number associated with the endpoint shall be released.] */
-        if ((i < connection->endpoint_count) && (i > 0))
+        if (i < connection->endpoint_count)
         {
-            ENDPOINT_HANDLE* new_endpoints;
-            (void)memmove(connection->endpoints + i, connection->endpoints + i + 1, sizeof(ENDPOINT_HANDLE) * (connection->endpoint_count - i - 1));
-
-            new_endpoints = (ENDPOINT_HANDLE*)realloc(connection->endpoints, (connection->endpoint_count - 1) * sizeof(ENDPOINT_HANDLE));
-            if (new_endpoints != NULL)
+            // endpoint found
+            if (connection->endpoint_count == 1)
             {
-                connection->endpoints = new_endpoints;
+                free(connection->endpoints);
+                connection->endpoints = NULL;
+                connection->endpoint_count = 0;
             }
+            else
+            {
+                ENDPOINT_HANDLE* new_endpoints;
 
-            connection->endpoint_count--;
-        }
-        else if (connection->endpoint_count == 1)
-        {
-            free(connection->endpoints);
-            connection->endpoints = NULL;
-            connection->endpoint_count = 0;
+                if ((connection->endpoint_count - i - 1) > 0)
+                {
+                    (void)memmove(connection->endpoints + i, connection->endpoints + i + 1, sizeof(ENDPOINT_HANDLE) * (connection->endpoint_count - i - 1));
+                }
+
+                new_endpoints = (ENDPOINT_HANDLE*)realloc(connection->endpoints, (connection->endpoint_count - 1) * sizeof(ENDPOINT_HANDLE));
+                if (new_endpoints != NULL)
+                {
+                    connection->endpoints = new_endpoints;
+                }
+
+                connection->endpoint_count--;
+            }
         }
 
         free(endpoint);

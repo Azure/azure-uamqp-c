@@ -625,13 +625,14 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
             if (detach_get_error(detach, &error) == 0)
             {
                 remove_all_pending_deliveries(link_instance, true);
-                set_link_state(link_instance, LINK_STATE_ERROR);
 
                 // signal link detach received in order to handle cases like redirect
                 if (link_instance->on_link_detach_received_event_subscription.on_link_detach_received != NULL)
                 {
                     link_instance->on_link_detach_received_event_subscription.on_link_detach_received(link_instance->on_link_detach_received_event_subscription.context, error);
                 }
+
+                set_link_state(link_instance, LINK_STATE_ERROR);
 
                 error_destroy(error);
             }

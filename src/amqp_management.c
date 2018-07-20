@@ -335,6 +335,7 @@ static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE messag
 static void on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_result, AMQP_VALUE delivery_state)
 {
     (void)delivery_state;
+
     if (context == NULL)
     {
         /* Codes_SRS_AMQP_MANAGEMENT_01_167: [ When `on_message_send_complete` is called with a NULL context it shall return. ]*/

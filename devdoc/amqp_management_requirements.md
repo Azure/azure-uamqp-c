@@ -309,7 +309,7 @@ AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE message)
 ### on_message_send_complete
 
 ```c
-void on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_result)
+void on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_result, AMQP_VALUE delivery_state)
 ```
 
 **SRS_AMQP_MANAGEMENT_01_167: [** When `on_message_send_complete` is called with a NULL context it shall return. **]**

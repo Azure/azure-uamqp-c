@@ -119,6 +119,7 @@ static void on_delivery_settled(void* context, delivery_number delivery_no, LINK
             else
             {
                 AMQP_VALUE descriptor = amqpvalue_get_inplace_descriptor(delivery_state);
+                AMQP_VALUE described = amqpvalue_get_inplace_described_value(delivery_state);
 
                 if (descriptor == NULL)
                 {
@@ -126,24 +127,24 @@ static void on_delivery_settled(void* context, delivery_number delivery_no, LINK
                 }
                 else if (is_accepted_type_by_descriptor(descriptor))
                 {
-                    message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_OK);
+                    message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_OK, described);
                 }
                 else
                 {
-                    message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_ERROR);
+                    message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_ERROR, described);
                 }
             }
 
             break;
         case LINK_DELIVERY_SETTLE_REASON_SETTLED:
-            message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_OK);
+            message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_OK, NULL);
             break;
         case LINK_DELIVERY_SETTLE_REASON_TIMEOUT:
-            message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_TIMEOUT);
+            message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_TIMEOUT, NULL);
             break;
         case LINK_DELIVERY_SETTLE_REASON_NOT_DELIVERED:
         default:
-            message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_ERROR);
+            message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_ERROR, NULL);
             break;
         }
     }
@@ -612,7 +613,7 @@ static void send_all_pending_messages(MESSAGE_SENDER_HANDLE message_sender)
 
                 if (on_message_send_complete != NULL)
                 {
-                    on_message_send_complete(context, MESSAGE_SEND_ERROR);
+                    on_message_send_complete(context, MESSAGE_SEND_ERROR, NULL);
                 }
 
                 i = message_sender->message_count;
@@ -650,7 +651,7 @@ static void indicate_all_messages_as_error(MESSAGE_SENDER_INSTANCE* message_send
         MESSAGE_WITH_CALLBACK* message_with_callback = GET_ASYNC_OPERATION_CONTEXT(MESSAGE_WITH_CALLBACK, message_sender->messages[i]);
         if (message_with_callback->on_message_send_complete != NULL)
         {
-            message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_ERROR);
+            message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_ERROR, NULL);
         }
 
         if (message_with_callback->message != NULL)
@@ -825,7 +826,7 @@ static void messagesender_send_cancel_handler(ASYNC_OPERATION_HANDLE send_operat
     MESSAGE_WITH_CALLBACK* message_with_callback = GET_ASYNC_OPERATION_CONTEXT(MESSAGE_WITH_CALLBACK, send_operation);
     if (message_with_callback->on_message_send_complete != NULL)
     {
-        message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_CANCELLED);
+        message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_CANCELLED, NULL);
     }
 
     remove_pending_message(message_with_callback->message_sender, send_operation);

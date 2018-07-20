@@ -35,7 +35,7 @@ DEFINE_ENUM(MESSAGE_SEND_RESULT, MESSAGE_SEND_RESULT_VALUES)
 DEFINE_ENUM(MESSAGE_SENDER_STATE, MESSAGE_SENDER_STATE_VALUES)
 
     typedef struct MESSAGE_SENDER_INSTANCE_TAG* MESSAGE_SENDER_HANDLE;
-    typedef void(*ON_MESSAGE_SEND_COMPLETE)(void* context, MESSAGE_SEND_RESULT send_result);
+    typedef void(*ON_MESSAGE_SEND_COMPLETE)(void* context, MESSAGE_SEND_RESULT send_result, AMQP_VALUE delivery_state);
     typedef void(*ON_MESSAGE_SENDER_STATE_CHANGED)(void* context, MESSAGE_SENDER_STATE new_state, MESSAGE_SENDER_STATE previous_state);
 
     MOCKABLE_FUNCTION(, MESSAGE_SENDER_HANDLE, messagesender_create, LINK_HANDLE, link, ON_MESSAGE_SENDER_STATE_CHANGED, on_message_sender_state_changed, void*, context);

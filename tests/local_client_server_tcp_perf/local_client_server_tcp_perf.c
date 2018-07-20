@@ -234,12 +234,13 @@ typedef struct CLIENT_TAG
     size_t outstanding_message_count;
 } CLIENT;
 
-static void on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_result)
+static void on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_result, AMQP_VALUE delivery_state)
 {
     CLIENT* client = (CLIENT*)context;
     client->outstanding_message_count--;
     (void)send_result;
     (void)context;
+    (void)delivery_state;
 }
 
 int main(void)

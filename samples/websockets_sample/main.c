@@ -43,10 +43,11 @@ static void on_cbs_error(void* context)
     (void)printf("CBS error.\r\n");
 }
 
-void on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_result)
+static void on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_result, AMQP_VALUE delivery_state)
 {
     (void)send_result;
     (void)context;
+    (void)delivery_state;
 
     printf("Sent.\r\n");
     sent_messages++;

@@ -72,8 +72,10 @@ void on_cbs_put_token_complete(void* context, CBS_OPERATION_RESULT cbs_operation
     }
 }
 
-static void on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_result)
+static void on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_result, AMQP_VALUE delivery_state)
 {
+    (void)delivery_state;
+
     size_t* sent_messages = (size_t*)context;
     if (send_result == MESSAGE_SEND_OK)
     {

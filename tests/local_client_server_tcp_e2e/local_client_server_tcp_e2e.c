@@ -80,9 +80,10 @@ typedef struct SERVER_INSTANCE_TAG
 
 static void on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_result, AMQP_VALUE delivery_state)
 {
+    size_t* sent_messages = (size_t*)context;
+
     (void)delivery_state;
 
-    size_t* sent_messages = (size_t*)context;
     if (send_result == MESSAGE_SEND_OK)
     {
         (*sent_messages)++;
@@ -95,9 +96,10 @@ static void on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_res
 
 static void on_message_send_cancelled(void* context, MESSAGE_SEND_RESULT send_result, AMQP_VALUE delivery_state)
 {
+    size_t* cancelled_messages = (size_t*)context;
+
     (void)delivery_state;
 
-    size_t* cancelled_messages = (size_t*)context;
     if (send_result == MESSAGE_SEND_CANCELLED)
     {
         (*cancelled_messages)++;

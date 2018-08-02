@@ -7,9 +7,9 @@
 #include "azure_uamqp_c/amqp_types.h"
 
 #ifdef __cplusplus
-extern "C" {
 #include <cstddef>
 #include <cstdint>
+extern "C" {
 #else
 #include <stddef.h>
 #include <stdint.h>

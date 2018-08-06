@@ -690,9 +690,9 @@ static void on_link_state_changed(void* context, LINK_STATE new_link_state, LINK
         if ((message_sender->message_sender_state == MESSAGE_SENDER_STATE_OPEN) ||
             (message_sender->message_sender_state == MESSAGE_SENDER_STATE_CLOSING))
         {
-            /* User initiated transition, we should be good */
-            set_message_sender_state(message_sender, MESSAGE_SENDER_STATE_IDLE);
+            /* switch to closing so that no more requests should be accepted */
             indicate_all_messages_as_error(message_sender);
+            set_message_sender_state(message_sender, MESSAGE_SENDER_STATE_IDLE);
         }
         else if (message_sender->message_sender_state != MESSAGE_SENDER_STATE_IDLE)
         {
@@ -703,8 +703,8 @@ static void on_link_state_changed(void* context, LINK_STATE new_link_state, LINK
     case LINK_STATE_ERROR:
         if (message_sender->message_sender_state != MESSAGE_SENDER_STATE_ERROR)
         {
-            set_message_sender_state(message_sender, MESSAGE_SENDER_STATE_ERROR);
             indicate_all_messages_as_error(message_sender);
+            set_message_sender_state(message_sender, MESSAGE_SENDER_STATE_ERROR);
         }
         break;
     }
@@ -745,8 +745,8 @@ void messagesender_destroy(MESSAGE_SENDER_HANDLE message_sender)
     }
     else
     {
-        (void)messagesender_close(message_sender);
         indicate_all_messages_as_error(message_sender);
+        (void)messagesender_close(message_sender);
 
         free(message_sender);
     }

@@ -4963,7 +4963,6 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                             if (list_item == NULL)
                             {
                                 internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-                                result = __FAILURE__;
                             }
                             else
                             {
@@ -4974,11 +4973,6 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                                 {
                                     LogError("Could not create inner decoder for list items");
                                     internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-                                    result = __FAILURE__;
-                                }
-                                else
-                                {
-                                    result = 0;
                                 }
                             }
                         }
@@ -5172,7 +5166,6 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                             {
                                 LogError("Could not allocate memory for map item");
                                 internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-                                result = __FAILURE__;
                             }
                             else
                             {
@@ -5190,11 +5183,6 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                                 {
                                     LogError("Could not create inner decoder for map item");
                                     internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-                                    result = __FAILURE__;
-                                }
-                                else
-                                {
-                                    result = 0;
                                 }
                             }
                         }
@@ -5381,7 +5369,6 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                             {
                                 LogError("Could not allocate memory for array item to be decoded");
                                 internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
-                                result = __FAILURE__;
                             }
                             else
                             {
@@ -5392,11 +5379,6 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                                 {
                                     internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
                                     LogError("Could not create inner decoder for array items");
-                                    result = __FAILURE__;
-                                }
-                                else
-                                {
-                                    result = 0;
                                 }
                             }
                         }

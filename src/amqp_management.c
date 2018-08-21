@@ -218,11 +218,10 @@ static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE messag
                                                 OPERATION_MESSAGE_INSTANCE* operation_message = (OPERATION_MESSAGE_INSTANCE*)singlylinkedlist_item_get_value(list_item_handle);
                                                 if (operation_message == NULL)
                                                 {
-                                                    /* Codes_SRS_AMQP_MANAGEMENT_01_117: [ If iterating through the pending operations list fails, an error shall be indicated by calling `on_amqp_management_error` and passing the `on_amqp_management_error_context` to it. ]*/
                                                     LogError("Could not create status-description amqp value");
-                                                    amqp_management->on_amqp_management_error(amqp_management->on_amqp_management_error_context);
+                                                    /* Codes_SRS_AMQP_MANAGEMENT_01_117: [ If iterating through the pending operations list fails, an error shall be indicated by calling `on_amqp_management_error` and passing the `on_amqp_management_error_context` to it. ]*/
                                                     /* Codes_SRS_AMQP_MANAGEMENT_01_135: [ When an error occurs in creating AMQP values (for status code, etc.) `on_message_received` shall call `messaging_delivery_released` and return the created delivery AMQP value. ]*/
-                                                    result = messaging_delivery_released();
+                                                    is_error = true;
                                                     break;
                                                 }
                                                 else

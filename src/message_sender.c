@@ -361,7 +361,7 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
                 }
                 else
                 {
-                    if (body_data_count <= 0)
+                    if (body_data_count == 0)
                     {
                         LogError("Body data count is zero");
                         result = SEND_ONE_MESSAGE_ERROR;

@@ -993,7 +993,7 @@ TEST_FUNCTION(amqp_performatives_are_encoded_successfully)
 
         // assert
         ASSERT_ARE_EQUAL(int, 0, result);
-        (void)sprintf(test_string, "test %zu", i);
+        (void)sprintf(test_string, "test %lu", i);
         ASSERT_ARE_EQUAL_WITH_MSG(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls(), test_string);
     }
 

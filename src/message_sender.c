@@ -361,38 +361,46 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
                 }
                 else
                 {
-                    for (i = 0; i < body_data_count; i++)
+                    if (body_data_count == 0)
                     {
-                        if (message_get_body_amqp_data_in_place(message, i, &binary_data) != 0)
+                        LogError("Body data count is zero");
+                        result = SEND_ONE_MESSAGE_ERROR;
+                    }
+                    else
+                    {
+                        for (i = 0; i < body_data_count; i++)
                         {
-                            LogError("Cannot get body AMQP data %u", (unsigned int)i);
-                            result = SEND_ONE_MESSAGE_ERROR;
-                        }
-                        else
-                        {
-                            AMQP_VALUE body_amqp_data;
-                            amqp_binary binary_value;
-                            binary_value.bytes = binary_data.bytes;
-                            binary_value.length = (uint32_t)binary_data.length;
-                            body_amqp_data = amqpvalue_create_data(binary_value);
-                            if (body_amqp_data == NULL)
+                            if (message_get_body_amqp_data_in_place(message, i, &binary_data) != 0)
                             {
-                                LogError("Cannot create body AMQP data");
+                                LogError("Cannot get body AMQP data %u", (unsigned int)i);
                                 result = SEND_ONE_MESSAGE_ERROR;
                             }
                             else
                             {
-                                if (amqpvalue_get_encoded_size(body_amqp_data, &encoded_size) != 0)
+                                AMQP_VALUE body_amqp_data;
+                                amqp_binary binary_value;
+                                binary_value.bytes = binary_data.bytes;
+                                binary_value.length = (uint32_t)binary_data.length;
+                                body_amqp_data = amqpvalue_create_data(binary_value);
+                                if (body_amqp_data == NULL)
                                 {
-                                    LogError("Cannot get body AMQP data encoded size");
+                                    LogError("Cannot create body AMQP data");
                                     result = SEND_ONE_MESSAGE_ERROR;
                                 }
                                 else
                                 {
-                                    total_encoded_size += encoded_size;
-                                }
+                                    if (amqpvalue_get_encoded_size(body_amqp_data, &encoded_size) != 0)
+                                    {
+                                        LogError("Cannot get body AMQP data encoded size");
+                                        result = SEND_ONE_MESSAGE_ERROR;
+                                    }
+                                    else
+                                    {
+                                        total_encoded_size += encoded_size;
+                                    }
 
-                                amqpvalue_destroy(body_amqp_data);
+                                    amqpvalue_destroy(body_amqp_data);
+                                }
                             }
                         }
                     }

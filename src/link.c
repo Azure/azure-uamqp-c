@@ -444,7 +444,7 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                         is_error = true;
                     }
                 }
-                    
+
                 if (!is_error)
                 {
                     /* If this is a continuation transfer or if this is the first chunk of a multi frame transfer */
@@ -638,7 +638,7 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                 set_link_state(link_instance, LINK_STATE_ERROR);
                 error_destroy(error);
             }
-            else 
+            else
             {
                 set_link_state(link_instance, LINK_STATE_DETACHED);
             }
@@ -1309,7 +1309,7 @@ static void link_transfer_cancel_handler(ASYNC_OPERATION_HANDLE link_transfer_op
     {
         pending_delivery->on_delivery_settled(pending_delivery->callback_context, pending_delivery->delivery_id, LINK_DELIVERY_SETTLE_REASON_CANCELLED, NULL);
     }
-    
+
     (void)singlylinkedlist_remove_if(((LINK_HANDLE)pending_delivery->link)->pending_deliveries, remove_pending_delivery_condition_function, pending_delivery);
 
     async_operation_destroy(link_transfer_operation);

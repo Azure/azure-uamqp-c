@@ -1062,7 +1062,7 @@ AMQP_VALUE amqpvalue_create_string(const char* value)
     else
     {
         size_t length = strlen(value);
-        
+
         result = REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
         if (result == NULL)
         {
@@ -1323,7 +1323,7 @@ int amqpvalue_set_list_item_count(AMQP_VALUE value, uint32_t list_size)
             }
         }
     }
-    
+
     return result;
 }
 
@@ -2994,7 +2994,7 @@ static int encode_map(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, ui
             LogError("Encoded data is more than the max size for a map");
             break;
         }
-        
+
         size = (uint32_t)(size + item_size);
 
         if (amqpvalue_get_encoded_size(pairs[i].value, &item_size) != 0)
@@ -3120,7 +3120,7 @@ static int encode_array(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, 
             LogError("Overflow in array size computation");
             break;
         }
-        
+
         size = (uint32_t)(size + item_size);
 
     }
@@ -3627,7 +3627,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                     internal_decoder_data->decode_to_value->type = AMQP_TYPE_BOOL;
                     internal_decoder_data->decoder_state = DECODER_STATE_TYPE_DATA;
                     internal_decoder_data->bytes_decoded = 0;
-                
+
                     /* Codes_SRS_AMQPVALUE_01_327: [If not enough bytes have accumulated to decode a value, the on_value_decoded shall not be called.] */
                     result = 0;
                     break;
@@ -3708,7 +3708,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                     internal_decoder_data->decode_to_value->type = AMQP_TYPE_UINT;
                     internal_decoder_data->decode_to_value->value.uint_value = 0;
                     internal_decoder_data->decoder_state = DECODER_STATE_CONSTRUCTOR;
-                    
+
                     /* Codes_SRS_AMQPVALUE_01_323: [When enough bytes have been processed for a valid amqp value, the on_value_decoded passed in amqpvalue_decoder_create shall be called.] */
                     /* Codes_SRS_AMQPVALUE_01_324: [The decoded amqp value shall be passed to on_value_decoded.] */
                     /* Codes_SRS_AMQPVALUE_01_325: [Also the context stored in amqpvalue_decoder_create shall be passed to the on_value_decoded callback.] */

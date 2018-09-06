@@ -5,7 +5,7 @@ compileAsC99()
 
 add_executable(message_sender_sample
 	main.c)
-	
+
 include_directories(.)
 if(WIN32)
 	#windows needs this define
@@ -23,7 +23,7 @@ endif()
 	if(${use_openssl})
 		target_link_libraries(message_sender_sample
 			$ENV{OpenSSLDir}/lib/ssleay32.lib $ENV{OpenSSLDir}/lib/libeay32.lib)
-	
+
 		file(COPY $ENV{OpenSSLDir}/bin/libeay32.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Debug)
 		file(COPY $ENV{OpenSSLDir}/bin/ssleay32.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Debug)
 	endif()

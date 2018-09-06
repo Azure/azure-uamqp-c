@@ -5,7 +5,7 @@ compileAsC99()
 
 add_executable(eh_sender_with_sas_token_sample
 	main.c)
-	
+
 #TODO: link to whatever else the platform has (now for windows it is just ws2_32)
 
 include_directories(.)
@@ -27,7 +27,7 @@ endif()
 	if(${use_openssl})
 		target_link_libraries(eh_sender_with_sas_token_sample
 			$ENV{OpenSSLDir}/lib/ssleay32.lib $ENV{OpenSSLDir}/lib/libeay32.lib)
-	
+
 		file(COPY $ENV{OpenSSLDir}/bin/libeay32.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Debug)
 		file(COPY $ENV{OpenSSLDir}/bin/ssleay32.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Debug)
 	endif()

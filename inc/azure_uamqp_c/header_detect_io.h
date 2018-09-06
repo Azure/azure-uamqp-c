@@ -16,28 +16,28 @@ extern "C" {
 #include "azure_c_shared_utility/umock_c_prod.h"
 #include "azure_c_shared_utility/xio.h"
 
-	typedef struct AMQP_HEADER_TAG
-	{
-		const unsigned char* header_bytes;
-		size_t header_size;
-	} AMQP_HEADER;
+    typedef struct AMQP_HEADER_TAG
+    {
+        const unsigned char* header_bytes;
+        size_t header_size;
+    } AMQP_HEADER;
 
-	typedef struct HEADER_DETECT_ENTRY_TAG
-	{
-		AMQP_HEADER header;
+    typedef struct HEADER_DETECT_ENTRY_TAG
+    {
+        AMQP_HEADER header;
         const IO_INTERFACE_DESCRIPTION* io_interface_description;
-	} HEADER_DETECT_ENTRY;
+    } HEADER_DETECT_ENTRY;
 
-	typedef struct HEADER_DETECT_IO_CONFIG_TAG
-	{
-		XIO_HANDLE underlying_io;
-		HEADER_DETECT_ENTRY* header_detect_entries;
-		size_t header_detect_entry_count;
-	} HEADER_DETECT_IO_CONFIG;
+    typedef struct HEADER_DETECT_IO_CONFIG_TAG
+    {
+        XIO_HANDLE underlying_io;
+        HEADER_DETECT_ENTRY* header_detect_entries;
+        size_t header_detect_entry_count;
+    } HEADER_DETECT_IO_CONFIG;
 
-	MOCKABLE_FUNCTION(, AMQP_HEADER, header_detect_io_get_amqp_header);
-	MOCKABLE_FUNCTION(, AMQP_HEADER, header_detect_io_get_sasl_amqp_header);
-	MOCKABLE_FUNCTION(, const IO_INTERFACE_DESCRIPTION*, header_detect_io_get_interface_description);
+    MOCKABLE_FUNCTION(, AMQP_HEADER, header_detect_io_get_amqp_header);
+    MOCKABLE_FUNCTION(, AMQP_HEADER, header_detect_io_get_sasl_amqp_header);
+    MOCKABLE_FUNCTION(, const IO_INTERFACE_DESCRIPTION*, header_detect_io_get_interface_description);
 
 #ifdef __cplusplus
 }

@@ -62,7 +62,7 @@ static bool on_new_session_endpoint(void* context, ENDPOINT_HANDLE new_endpoint)
 
 static void on_socket_accepted(void* context, const IO_INTERFACE_DESCRIPTION* interface_description, void* io_parameters)
 {
-	HEADER_DETECT_IO_CONFIG header_detect_io_config;
+    HEADER_DETECT_IO_CONFIG header_detect_io_config;
     TLS_SERVER_IO_CONFIG tls_server_io_config;
     XIO_HANDLE underlying_io;
     XIO_HANDLE header_detect_io;
@@ -77,9 +77,9 @@ static void on_socket_accepted(void* context, const IO_INTERFACE_DESCRIPTION* in
     underlying_io = xio_create(tls_server_io_get_interface_description(), &tls_server_io_config);
 
     header_detect_io_config.underlying_io = underlying_io;
-	header_detect_io = xio_create(header_detect_io_get_interface_description(), &header_detect_io_config);
-	connection = connection_create(header_detect_io, NULL, "1", on_new_session_endpoint, NULL);
-	connection_listen(connection);
+    header_detect_io = xio_create(header_detect_io_get_interface_description(), &header_detect_io_config);
+    connection = connection_create(header_detect_io, NULL, "1", on_new_session_endpoint, NULL);
+    connection_listen(connection);
 }
 
 int main(int argc, char** argv)

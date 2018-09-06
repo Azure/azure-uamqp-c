@@ -464,7 +464,7 @@ static int internal_send(TLS_IO_INSTANCE* tls_io_instance, const void* buffer, s
     return result;
 }
 
-// This callback usage needs to be either verified and commented or integrated into 
+// This callback usage needs to be either verified and commented or integrated into
 // the state machine.
 static void unchecked_on_send_complete(void* context, IO_SEND_RESULT send_result)
 {
@@ -534,7 +534,7 @@ static void on_underlying_io_bytes_received(void* context, const unsigned char* 
                 case SEC_E_INCOMPLETE_MESSAGE:
                     if (input_buffers[1].BufferType != SECBUFFER_MISSING)
                     {
-                        //If SECBUFFER_MISSING not sent, try to read byte by byte. 
+                        //If SECBUFFER_MISSING not sent, try to read byte by byte.
                         tls_io_instance->needed_bytes = 1;
                     }
                     else
@@ -760,7 +760,7 @@ static void on_underlying_io_bytes_received(void* context, const unsigned char* 
                 break;
             }
         }
-    
+
     }
 }
 

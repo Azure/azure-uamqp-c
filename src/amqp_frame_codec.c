@@ -346,7 +346,7 @@ int amqp_frame_codec_encode_empty_frame(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec
     else
     {
         unsigned char channel_bytes[2];
-        
+
         channel_bytes[0] = channel >> 8;
         channel_bytes[1] = channel & 0xFF;
 

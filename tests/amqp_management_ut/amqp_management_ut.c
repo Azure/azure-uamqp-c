@@ -246,8 +246,8 @@ static int my_messagesender_close(MESSAGE_SENDER_HANDLE message_sender)
     if (saved_on_message_sender_state_changed != NULL)
     {
         saved_on_message_sender_state_changed(
-            saved_on_message_sender_state_changed_context, 
-            messagesender_close_on_message_sender_state_changed_new_state, 
+            saved_on_message_sender_state_changed_context,
+            messagesender_close_on_message_sender_state_changed_new_state,
             messagesender_close_on_message_sender_state_changed_previous_state);
     }
 
@@ -2084,7 +2084,7 @@ TEST_FUNCTION(on_message_received_with_a_valid_message_indicates_the_operation_c
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinkedlist_handle));
     STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(test_on_amqp_management_execute_operation_complete((void*)0x4244, AMQP_MANAGEMENT_EXECUTE_OPERATION_OK, 200, "my error ...", test_message));
-    
+
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist_handle, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(messaging_delivery_accepted());
@@ -3209,7 +3209,7 @@ TEST_FUNCTION(on_message_sender_state_changed_when_a_new_SENDER_OPEN_state_is_de
 
     messagesender_close_on_message_sender_state_changed_previous_state = MESSAGE_SENDER_STATE_OPEN;
     messagesender_close_on_message_sender_state_changed_new_state = MESSAGE_SENDER_STATE_OPENING;
-    
+
     STRICT_EXPECTED_CALL(messagesender_close(test_message_sender));
     STRICT_EXPECTED_CALL(test_on_amqp_management_error((void*)0x4243));
     STRICT_EXPECTED_CALL(messagereceiver_close(test_message_receiver));

@@ -354,7 +354,7 @@ TEST_FUNCTION(a_frame_of_exactly_max_frame_size_immediately_after_create_can_be_
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(test_on_bytes_encoded((void*)0x4242, IGNORED_PTR_ARG, IGNORED_NUM_ARG, true));
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-   
+
     // act
     result = frame_codec_encode_frame(frame_codec, 0, &payload, 1, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
 

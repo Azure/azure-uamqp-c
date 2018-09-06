@@ -32,7 +32,7 @@ extern "C" {
         MESSAGE_BODY_TYPE_VALUE
 
     DEFINE_ENUM(MESSAGE_BODY_TYPE, MESSAGE_BODY_TYPE_VALUES)
-    
+
     typedef struct MESSAGE_INSTANCE_TAG* MESSAGE_HANDLE;
     typedef struct BINARY_DATA_TAG
     {

@@ -41,7 +41,7 @@ if(NOT ${use_installed_dependencies})
         if (NOT TARGET umock_c)
             add_subdirectory(deps/umock-c)
         endif()
-    endif()	
+    endif()
     if (NOT TARGET aziotsharedutil)
         add_subdirectory(deps/azure-c-shared-utility)
     endif()
@@ -228,7 +228,7 @@ target_link_libraries(uamqp aziotsharedutil)
 if (NOT ${skip_samples})
     add_subdirectory(samples)
 endif()
-    
+
 if (${run_unittests})
     include("dependencies-test.cmake")
     add_subdirectory(tests)
@@ -289,8 +289,8 @@ else()
         uamqp
     )
     install(FILES ${uamqp_h_files}
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azure_uamqp_c) 
-    install(TARGETS ${install_staticlibs} 
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azure_uamqp_c)
+    install(TARGETS ${install_staticlibs}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()

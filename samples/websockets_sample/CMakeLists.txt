@@ -7,7 +7,7 @@ add_executable(websockets_sample
     main.c
     iothub_certs.h
     iothub_certs.c)
-    
+
 include_directories(.)
 
 if(WIN32)

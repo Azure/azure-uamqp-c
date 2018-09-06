@@ -677,7 +677,7 @@ TEST_FUNCTION(destroying_one_out_of_2_senders_works)
     ASSERT_IS_NOT_NULL_WITH_MSG(send_async_operation, "cannot send message");
     message_destroy(client_send_message);
 
-    // wait for 
+    // wait for
     start_time = time(NULL);
     while ((now_time = time(NULL)),
         (difftime(now_time, start_time) < TEST_TIMEOUT))
@@ -1578,7 +1578,7 @@ TEST_FUNCTION(client_and_server_connect_and_send_one_message_with_all_message_pa
     amqpvalue_destroy(message_annotations_key_1);
     amqpvalue_destroy(message_annotations_value_1);
 
-    // add message properties 
+    // add message properties
     message_properties = properties_create();
     ASSERT_IS_NOT_NULL_WITH_MSG(message_properties, "Could not create message properties");
     message_id = amqpvalue_create_string("msg-X");

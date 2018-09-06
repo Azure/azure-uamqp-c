@@ -360,7 +360,7 @@ TEST_SUITE_INITIALIZE(suite_init)
     REGISTER_GLOBAL_MOCK_HOOK(amqpvalue_decoder_create, my_amqpvalue_decoder_create);
     REGISTER_GLOBAL_MOCK_HOOK(amqpvalue_decode_bytes, my_amqpvalue_decode_bytes);
     REGISTER_GLOBAL_MOCK_HOOK(amqpvalue_encode, my_amqpvalue_encode);
-    
+
     REGISTER_GLOBAL_MOCK_RETURN(amqpvalue_create_ulong, TEST_AMQP_VALUE);
     REGISTER_GLOBAL_MOCK_RETURN(amqpvalue_get_inplace_descriptor, TEST_DESCRIPTOR_AMQP_VALUE);
     REGISTER_GLOBAL_MOCK_RETURN(frame_codec_create, TEST_FRAME_CODEC_HANDLE);

@@ -5069,7 +5069,7 @@ TEST_FUNCTION(amqpvalue_get_array_item_called_with_a_non_array_handle_fails)
 TEST_FUNCTION(amqpvalue_are_equal_with_NULL_values_returns_true)
 {
     // arrange
-    
+
     // act
     bool result = amqpvalue_are_equal(NULL, NULL);
 
@@ -14885,7 +14885,7 @@ TEST_FUNCTION(amqpvalue_decode_string_0xB1_255_byte_not_enough_bytes_does_not_tr
         .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
         .IgnoreAllCalls();
-    
+
     // act
     result = amqpvalue_decode_bytes(amqpvalue_decoder, bytes, sizeof(bytes));
 

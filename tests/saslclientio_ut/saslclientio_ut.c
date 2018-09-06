@@ -2622,7 +2622,7 @@ TEST_FUNCTION(when_a_SASL_mechanism_is_received_a_sasl_init_frame_is_send_with_t
     uint32_t mechanisms_count = 1;
     SASL_MECHANISM_BYTES init_bytes;
     amqp_binary expected_creds;
-    
+
     init_bytes.bytes = test_init_bytes;
     init_bytes.length = sizeof(test_init_bytes);
 

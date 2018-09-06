@@ -19,7 +19,7 @@ typedef struct SERVER_PROTOCOL_IO_CONFIG_TAG
     ON_BYTES_RECEIVED* on_bytes_received;
     void** on_bytes_received_context;
 } SERVER_PROTOCOL_IO_CONFIG;
-    
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

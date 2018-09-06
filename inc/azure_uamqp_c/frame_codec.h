@@ -48,7 +48,7 @@ typedef struct PAYLOAD_TAG
     MOCKABLE_FUNCTION(, int, frame_codec_unsubscribe, FRAME_CODEC_HANDLE, frame_codec, uint8_t, type);
     MOCKABLE_FUNCTION(, int, frame_codec_receive_bytes, FRAME_CODEC_HANDLE, frame_codec, const unsigned char*, buffer, size_t, size);
     MOCKABLE_FUNCTION(, int, frame_codec_encode_frame, FRAME_CODEC_HANDLE, frame_codec, uint8_t, type, const PAYLOAD*, payloads, size_t, payload_count, const unsigned char*, type_specific_bytes, uint32_t, type_specific_size, ON_BYTES_ENCODED, on_bytes_encoded, void*, callback_context);
-    
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

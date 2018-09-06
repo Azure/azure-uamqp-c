@@ -326,7 +326,7 @@ CBS_HANDLE cbs_create(SESSION_HANDLE session)
             cbs = NULL;
         }
     }
-    
+
 all_ok:
     return cbs;
 }

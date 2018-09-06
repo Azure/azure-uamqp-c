@@ -221,7 +221,7 @@ TEST_SUITE_INITIALIZE(suite_init)
     REGISTER_UMOCKC_PAIRED_CREATE_DESTROY_CALLS(amqp_management_create, amqp_management_destroy);
     REGISTER_UMOCKC_PAIRED_CREATE_DESTROY_CALLS(message_create, message_destroy);
     REGISTER_UMOCKC_PAIRED_CREATE_DESTROY_CALLS(properties_create, properties_destroy);
-    
+
     REGISTER_UMOCK_ALIAS_TYPE(CBS_HANDLE, void*);
     REGISTER_UMOCK_ALIAS_TYPE(SESSION_HANDLE, void*);
     REGISTER_UMOCK_ALIAS_TYPE(AMQP_MANAGEMENT_HANDLE, void*);

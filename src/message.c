@@ -507,7 +507,7 @@ int message_set_delivery_annotations(MESSAGE_HANDLE message, delivery_annotation
                 annotations_destroy(message->delivery_annotations);
                 message->delivery_annotations = NULL;
             }
-        
+
             /* Codes_SRS_MESSAGE_01_033: [ On success it shall return 0. ]*/
             result = 0;
         }

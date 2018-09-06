@@ -3876,7 +3876,7 @@ TEST_FUNCTION(message_get_body_amqp_sequence_in_place_gets_the_first_item)
     ASSERT_ARE_EQUAL(int, 0, result);
     ASSERT_ARE_EQUAL(void_ptr, cloned_sequence_1, read_sequence);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-    
+
     // cleanup
     message_destroy(message);
 }

@@ -753,7 +753,6 @@ void messagesender_destroy(MESSAGE_SENDER_HANDLE message_sender)
     }
     else
     {
-        indicate_all_messages_as_error(message_sender);
         (void)messagesender_close(message_sender);
 
         free(message_sender);
@@ -805,6 +804,8 @@ int messagesender_close(MESSAGE_SENDER_HANDLE message_sender)
     }
     else
     {
+        indicate_all_messages_as_error(message_sender);
+
         if ((message_sender->message_sender_state == MESSAGE_SENDER_STATE_OPENING) ||
             (message_sender->message_sender_state == MESSAGE_SENDER_STATE_OPEN))
         {

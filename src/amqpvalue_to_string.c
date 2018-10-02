@@ -338,7 +338,7 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
             }
             else
             {
-                char* uuid_string_value = UUID_to_string(&uuid_value);
+                char* uuid_string_value = UUID_to_string((const UUID_T *)&uuid_value);
                 if (uuid_string_value == NULL)
                 {
                     LogError("Failure getting UUID stringified value");

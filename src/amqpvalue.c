@@ -5575,8 +5575,8 @@ int amqpvalue_decode_bytes(AMQPVALUE_DECODER_HANDLE handle, const unsigned char*
         /* Codes_SRS_AMQPVALUE_01_321: [If size is 0, amqpvalue_decode_bytes shall return a non-zero value.] */
         (size == 0))
     {
-        LogError("Bad arguments: decoder_instance = %p, buffer = %p, size = %u",
-            decoder_instance, buffer, size);
+        LogError("Bad arguments: decoder_instance = %p, buffer = %p, size = %lu",
+            decoder_instance, buffer, (unsigned long)size);
         result = __FAILURE__;
     }
     else

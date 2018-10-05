@@ -222,9 +222,9 @@ static void log_incoming_frame(AMQP_VALUE performative)
     {
         char* performative_as_string;
         LOG(AZ_LOG_TRACE, 0, "<- ");
-        LOG(AZ_LOG_TRACE, 0, (char*)get_frame_type_as_string(descriptor));
+        LOG(AZ_LOG_TRACE, 0, "%s", (char*)get_frame_type_as_string(descriptor));
         performative_as_string = NULL;
-        LOG(AZ_LOG_TRACE, LOG_LINE, (performative_as_string = amqpvalue_to_string(performative)));
+        LOG(AZ_LOG_TRACE, LOG_LINE, "%s", (performative_as_string = amqpvalue_to_string(performative)));
         if (performative_as_string != NULL)
         {
             free(performative_as_string);
@@ -247,9 +247,9 @@ static void log_outgoing_frame(AMQP_VALUE performative)
     {
         char* performative_as_string;
         LOG(AZ_LOG_TRACE, 0, "-> ");
-        LOG(AZ_LOG_TRACE, 0, (char*)get_frame_type_as_string(descriptor));
+        LOG(AZ_LOG_TRACE, 0, "%s", (char*)get_frame_type_as_string(descriptor));
         performative_as_string = NULL;
-        LOG(AZ_LOG_TRACE, LOG_LINE, (performative_as_string = amqpvalue_to_string(performative)));
+        LOG(AZ_LOG_TRACE, LOG_LINE, "%s", (performative_as_string = amqpvalue_to_string(performative)));
         if (performative_as_string != NULL)
         {
             free(performative_as_string);
@@ -1000,7 +1000,7 @@ static void on_amqp_frame_received(void* context, uint16_t channel, AMQP_VALUE p
                             switch (performative_ulong)
                             {
                             default:
-                                LogError("Bad performative: %02x", performative);
+                                LogError("Bad performative: %02x", (unsigned int)performative_ulong);
                                 break;
 
                             case AMQP_BEGIN:

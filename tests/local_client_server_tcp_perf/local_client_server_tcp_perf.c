@@ -454,8 +454,8 @@ int main(void)
                                 }
                             }
 
-                            LogInfo("Received %u messages in %02f seconds, %02f messages/s",
-                                total_messages_received,
+                            LogInfo("Received %lu messages in %02f seconds, %02f messages/s",
+                                (unsigned long)total_messages_received,
                                 ((double)current_ms - start_ms) / 1000,
                                 total_messages_received / (((double)current_ms - start_ms) / 1000));
 

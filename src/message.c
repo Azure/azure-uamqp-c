@@ -1087,8 +1087,8 @@ int message_get_body_amqp_data_in_place(MESSAGE_HANDLE message, size_t index, BI
         else if (index >= message->body_amqp_data_count)
         {
             /* Codes_SRS_MESSAGE_01_095: [ If `index` indicates an AMQP data entry that is out of bounds, `message_get_body_amqp_data_in_place` shall fail and return a non-zero value. ]*/
-            LogError("Index too high for AMQP data (%u), number of AMQP data entries is %u",
-                index, message->body_amqp_data_count);
+            LogError("Index too high for AMQP data (%lu), number of AMQP data entries is %lu",
+                (unsigned long)index, (unsigned long)message->body_amqp_data_count);
             result = __FAILURE__;
         }
         else
@@ -1167,8 +1167,7 @@ int message_set_body_amqp_value(MESSAGE_HANDLE message, AMQP_VALUE body_amqp_val
             AMQP_VALUE new_amqp_value = amqpvalue_clone(body_amqp_value);
             if (new_amqp_value == NULL)
             {
-                LogError("Cannot clone body AMQP value",
-                    message, body_amqp_value);
+                LogError("Cannot clone body AMQP value");
                 result = __FAILURE__;
             }
             else
@@ -1311,8 +1310,8 @@ int message_get_body_amqp_sequence_in_place(MESSAGE_HANDLE message, size_t index
             if (index >= message->body_amqp_sequence_count)
             {
                 /* Codes_SRS_MESSAGE_01_119: [ If `index` indicates an AMQP sequence entry that is out of bounds, `message_get_body_amqp_sequence_in_place` shall fail and return a non-zero value. ]*/
-                LogError("Index too high for AMQP sequence (%u), maximum is %u",
-                    index, message->body_amqp_sequence_count);
+                LogError("Index too high for AMQP sequence (%lu), maximum is %lu",
+                    (unsigned long)index, (unsigned long)message->body_amqp_sequence_count);
                 result = __FAILURE__;
             }
             else

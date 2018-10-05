@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <inttypes.h>
 #include "azure_c_shared_utility/optimize_size.h"
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/xlogging.h"
@@ -848,7 +849,7 @@ ASYNC_OPERATION_HANDLE messagesender_send_async(MESSAGE_SENDER_HANDLE message_se
     if ((message_sender == NULL) ||
         (message == NULL))
     {
-        LogError("Bad parameters: message_sender = %p, message = %p");
+        LogError("Bad parameters: message_sender=%p, message=%p, on_message_send_complete=%p, callback_context=%p, timeout=%" PRIu64, message_sender, message, on_message_send_complete, callback_context, (uint64_t)timeout);
         result = NULL;
     }
     else

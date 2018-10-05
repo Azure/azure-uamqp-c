@@ -478,8 +478,8 @@ static CONCRETE_IO_HANDLE header_detect_io_create(void* io_create_parameters)
             /* Codes_SRS_HEADER_DETECT_IO_01_007: [ If the member `underlying_io` is NULL then `header_detect_io_create` shall fail and return NULL. ]*/
             (header_detect_io_config->underlying_io == NULL))
         {
-            LogError("Bad create parameters: header_detect_entry_count = %u, header_detect_entries = %p, underlying_io = %p",
-                header_detect_io_config->header_detect_entry_count,
+            LogError("Bad create parameters: header_detect_entry_count = %lu, header_detect_entries = %p, underlying_io = %p",
+                (unsigned long)header_detect_io_config->header_detect_entry_count,
                 header_detect_io_config->header_detect_entries,
                 header_detect_io_config->underlying_io);
             result = NULL;

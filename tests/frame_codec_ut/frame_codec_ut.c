@@ -186,9 +186,9 @@ TEST_SUITE_INITIALIZE(suite_init)
     umock_c_init(on_umock_c_error);
 
     result = umocktypes_stdint_register_types();
-    ASSERT_ARE_EQUAL_WITH_MSG(int, 0, result, "Failed registering stdint types");
+    ASSERT_ARE_EQUAL(int, 0, result, "Failed registering stdint types");
     result = umocktypes_bool_register_types();
-    ASSERT_ARE_EQUAL_WITH_MSG(int, 0, result, "Failed registering bool types");
+    ASSERT_ARE_EQUAL(int, 0, result, "Failed registering bool types");
 
     REGISTER_GLOBAL_MOCK_HOOK(gballoc_malloc, my_gballoc_malloc);
     REGISTER_GLOBAL_MOCK_HOOK(gballoc_free, my_gballoc_free);

@@ -541,7 +541,7 @@ TEST_FUNCTION(when_any_underlying_function_call_fails_amqp_management_create_fai
         amqp_management = amqp_management_create(test_session_handle, "test_node");
 
         // assert
-        ASSERT_IS_NULL_WITH_MSG(amqp_management, tmp_msg);
+        ASSERT_IS_NULL(amqp_management, tmp_msg);
     }
 
     // cleanup
@@ -1682,7 +1682,7 @@ TEST_FUNCTION(when_any_underlying_function_call_fails_amqp_management_execute_op
         result = amqp_management_execute_operation_async(amqp_management, "some_operation", "some_type", "en-US", test_message, test_on_amqp_management_execute_operation_complete, (void*)0x4244);
 
         // assert
-        ASSERT_ARE_NOT_EQUAL_WITH_MSG(int, 0, result, tmp_msg);
+        ASSERT_ARE_NOT_EQUAL(int, 0, result, tmp_msg);
     }
 
     // cleanup

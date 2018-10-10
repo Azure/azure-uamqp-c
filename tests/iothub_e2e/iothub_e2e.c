@@ -102,10 +102,10 @@ TEST_SUITE_INITIALIZE(suite_init)
     ASSERT_IS_NOT_NULL(g_testByTest);
 
     result = platform_init();
-    ASSERT_ARE_EQUAL_WITH_MSG(int, 0, result, "platform_init failed");
+    ASSERT_ARE_EQUAL(int, 0, result, "platform_init failed");
 
     iothub_connection_string = getenv("IOTHUB_CONNECTION_STRING");
-    ASSERT_IS_NOT_NULL_WITH_MSG(iothub_connection_string, "Could not get IoTHub connection string");
+    ASSERT_IS_NOT_NULL(iothub_connection_string, "Could not get IoTHub connection string");
 
     totalLen = strlen(iothub_connection_string);
     if (sscanf(iothub_connection_string, "HostName=%n%*[^.]%n.%n%*[^;];%nSharedAccessKeyName=%n%*[^;];%nSharedAccessKey=%n", &beginHost, &endHost, &beginIothub, &endIothub, &beginName, &endName, &beginKey) != 0)
@@ -204,49 +204,49 @@ TEST_FUNCTION(send_1_message_to_iothub_unsettled_auth_with_cbs)
     tlsio_config.underlying_io_parameters = NULL;
 
     tls_io = xio_create(platform_get_default_tlsio(), &tlsio_config);
-    ASSERT_IS_NOT_NULL_WITH_MSG(tls_io, "Could not create TLS IO");
+    ASSERT_IS_NOT_NULL(tls_io, "Could not create TLS IO");
 
     /* create SASL MSSBCBS handler */
     sasl_mechanism = saslmechanism_create(saslmssbcbs_get_interface(), NULL);
-    ASSERT_IS_NOT_NULL_WITH_MSG(sasl_mechanism, "Could not create SASL mechanism handle");
+    ASSERT_IS_NOT_NULL(sasl_mechanism, "Could not create SASL mechanism handle");
 
     sasl_io_config.underlying_io = tls_io;
     sasl_io_config.sasl_mechanism = sasl_mechanism;
     sasl_client_io = xio_create(saslclientio_get_interface_description(), &sasl_io_config);
-    ASSERT_IS_NOT_NULL_WITH_MSG(sasl_client_io, "Could not create SASL client IO");
+    ASSERT_IS_NOT_NULL(sasl_client_io, "Could not create SASL client IO");
 
     /* create the connection, session and link */
     client_connection = connection_create(sasl_client_io, hostname, "some", NULL, NULL);
-    ASSERT_IS_NOT_NULL_WITH_MSG(client_connection, "Could not create client connection");
+    ASSERT_IS_NOT_NULL(client_connection, "Could not create client connection");
 
     (void)connection_set_trace(client_connection, true);
     client_session = session_create(client_connection, NULL, NULL);
-    ASSERT_IS_NOT_NULL_WITH_MSG(client_session, "Could not create client session");
+    ASSERT_IS_NOT_NULL(client_session, "Could not create client session");
 
     key_string = STRING_new();
-    ASSERT_IS_NOT_NULL_WITH_MSG(key_string, "Could not create key_string");
+    ASSERT_IS_NOT_NULL(key_string, "Could not create key_string");
     result = STRING_concat(key_string, "LueeXZDJxzDoL6EoNv6Mi1hccyj2zZrmjHc1lUXeJT4=");
-    ASSERT_ARE_EQUAL_WITH_MSG(int, 0, result, "Could not create key_string");
+    ASSERT_ARE_EQUAL(int, 0, result, "Could not create key_string");
     scope_string = STRING_new();
-    ASSERT_IS_NOT_NULL_WITH_MSG(scope_string, "Could not create scope string");
+    ASSERT_IS_NOT_NULL(scope_string, "Could not create scope string");
     result = STRING_concat(scope_string, hostname);
-    ASSERT_ARE_EQUAL_WITH_MSG(int, 0, result, "cannot create scope for SAS token");
+    ASSERT_ARE_EQUAL(int, 0, result, "cannot create scope for SAS token");
     result = STRING_concat(scope_string, "/devices/eh_testdevice");
-    ASSERT_ARE_EQUAL_WITH_MSG(int, 0, result, "cannot create scope for SAS token");
+    ASSERT_ARE_EQUAL(int, 0, result, "cannot create scope for SAS token");
     keyname_string = STRING_new();
-    ASSERT_IS_NOT_NULL_WITH_MSG(keyname_string, "Could not create keyname_string");
+    ASSERT_IS_NOT_NULL(keyname_string, "Could not create keyname_string");
 
     sas_token = SASToken_Create(key_string, scope_string, keyname_string, (size_t)time(NULL) + 3600);
-    ASSERT_IS_NOT_NULL_WITH_MSG(sas_token, "Could not create sas_token");
+    ASSERT_IS_NOT_NULL(sas_token, "Could not create sas_token");
 
     cbs = cbs_create(client_session);
     result = cbs_open_async(cbs, on_cbs_open_complete, cbs, on_cbs_error, cbs);
-    ASSERT_ARE_EQUAL_WITH_MSG(int, 0, result, "cannot open cbs client");
+    ASSERT_ARE_EQUAL(int, 0, result, "cannot open cbs client");
 
     auth = false;
 
     result = cbs_put_token_async(cbs, "servicebus.windows.net:sastoken", STRING_c_str(scope_string), STRING_c_str(sas_token), on_cbs_put_token_complete, cbs);
-    ASSERT_ARE_EQUAL_WITH_MSG(int, 0, result, "cannot put cbs token");
+    ASSERT_ARE_EQUAL(int, 0, result, "cannot put cbs token");
 
     start_time = time(NULL);
     while ((now_time = time(NULL)),
@@ -264,35 +264,35 @@ TEST_FUNCTION(send_1_message_to_iothub_unsettled_auth_with_cbs)
     }
 
     source = messaging_create_source("ingress");
-    ASSERT_IS_NOT_NULL_WITH_MSG(source, "Could not create source");
+    ASSERT_IS_NOT_NULL(source, "Could not create source");
     target_length = snprintf(NULL, 0, "amqps://%s/devices/%s/messages/events", hostname, "eh_testdevice");
     target_string = (char*)malloc(target_length + 1);
-    ASSERT_IS_NOT_NULL_WITH_MSG(target_string, "Could not allocate memory for target string");
+    ASSERT_IS_NOT_NULL(target_string, "Could not allocate memory for target string");
     target_length = snprintf(target_string, target_length + 1, "amqps://%s/devices/%s/messages/events", hostname, "eh_testdevice");
     target = messaging_create_target(target_string);
-    ASSERT_IS_NOT_NULL_WITH_MSG(target, "Could not create target");
+    ASSERT_IS_NOT_NULL(target, "Could not create target");
     client_link = link_create(client_session, "sender-link", role_sender, source, target);
-    ASSERT_IS_NOT_NULL_WITH_MSG(client_link, "Could not create client link");
+    ASSERT_IS_NOT_NULL(client_link, "Could not create client link");
     result = link_set_snd_settle_mode(client_link, sender_settle_mode_settled);
-    ASSERT_ARE_EQUAL_WITH_MSG(int, 0, result, "cannot set sender settle mode");
+    ASSERT_ARE_EQUAL(int, 0, result, "cannot set sender settle mode");
 
     amqpvalue_destroy(source);
     amqpvalue_destroy(target);
 
     client_send_message = message_create();
-    ASSERT_IS_NOT_NULL_WITH_MSG(client_send_message, "Could not create message");
+    ASSERT_IS_NOT_NULL(client_send_message, "Could not create message");
     binary_data.bytes = hello;
     binary_data.length = sizeof(hello);
     result = message_add_body_amqp_data(client_send_message, binary_data);
-    ASSERT_ARE_EQUAL_WITH_MSG(int, 0, result, "cannot set message body");
+    ASSERT_ARE_EQUAL(int, 0, result, "cannot set message body");
 
     /* create a message sender */
     client_message_sender = messagesender_create(client_link, NULL, NULL);
-    ASSERT_IS_NOT_NULL_WITH_MSG(client_message_sender, "Could not create message sender");
+    ASSERT_IS_NOT_NULL(client_message_sender, "Could not create message sender");
     result = messagesender_open(client_message_sender);
-    ASSERT_ARE_EQUAL_WITH_MSG(int, 0, result, "cannot open message sender");
+    ASSERT_ARE_EQUAL(int, 0, result, "cannot open message sender");
     send_operation = messagesender_send_async(client_message_sender, client_send_message, on_message_send_complete, &sent_messages, 0);
-    ASSERT_IS_NOT_NULL_WITH_MSG(send_operation, "cannot send message");
+    ASSERT_IS_NOT_NULL(send_operation, "cannot send message");
     message_destroy(client_send_message);
 
     while ((now_time = time(NULL)),
@@ -311,7 +311,7 @@ TEST_FUNCTION(send_1_message_to_iothub_unsettled_auth_with_cbs)
     }
 
     // assert
-    ASSERT_ARE_EQUAL_WITH_MSG(size_t, 1, sent_messages, "Bad sent messages count");
+    ASSERT_ARE_EQUAL(size_t, 1, sent_messages, "Bad sent messages count");
 
     // cleanup
     STRING_delete(key_string);

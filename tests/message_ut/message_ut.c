@@ -179,8 +179,8 @@ TEST_FUNCTION(message_create_2_times_yields_2_different_message_instances)
     message2 = message_create();
 
     // assert
-    ASSERT_IS_NOT_NULL_WITH_MSG(message1, "Creating the first message failed");
-    ASSERT_IS_NOT_NULL_WITH_MSG(message2, "Creating the second message failed");
+    ASSERT_IS_NOT_NULL(message1, "Creating the first message failed");
+    ASSERT_IS_NOT_NULL(message2, "Creating the second message failed");
     ASSERT_ARE_NOT_EQUAL(void_ptr, message1, message2);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
@@ -461,7 +461,7 @@ TEST_FUNCTION(when_any_clone_operations_fails_message_clone_for_a_message_with_d
         message = message_clone(source_message);
 
         // assert
-        ASSERT_IS_NULL_WITH_MSG(message, tmp_msg);
+        ASSERT_IS_NULL(message, tmp_msg);
     }
 
     // cleanup
@@ -529,7 +529,7 @@ TEST_FUNCTION(when_any_clone_operations_fails_message_clone_for_a_message_with_v
         message = message_clone(source_message);
 
         // assert
-        ASSERT_IS_NULL_WITH_MSG(message, tmp_msg);
+        ASSERT_IS_NULL(message, tmp_msg);
     }
 
     // cleanup
@@ -598,7 +598,7 @@ TEST_FUNCTION(when_any_clone_operations_fails_message_clone_for_a_message_with_s
         message = message_clone(source_message);
 
         // assert
-        ASSERT_IS_NULL_WITH_MSG(message, tmp_msg);
+        ASSERT_IS_NULL(message, tmp_msg);
     }
 
     // cleanup

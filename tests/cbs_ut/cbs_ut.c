@@ -339,7 +339,7 @@ TEST_FUNCTION(when_one_of_the_functions_called_by_cbs_create_fails_then_cbs_crea
         cbs = cbs_create(test_session_handle);
 
         // assert
-        ASSERT_IS_NULL_WITH_MSG(cbs, tmp_msg);
+        ASSERT_IS_NULL(cbs, tmp_msg);
     }
 
     // cleanup
@@ -1079,7 +1079,7 @@ TEST_FUNCTION(when_any_underlying_call_fails_cbs_put_token_async_fails)
         result = cbs_put_token_async(cbs, "some_type", "my_audience", "blah_token", test_on_cbs_put_token_complete, NULL);
 
         // assert
-        ASSERT_ARE_NOT_EQUAL_WITH_MSG(int, 0, result, tmp_msg);
+        ASSERT_ARE_NOT_EQUAL(int, 0, result, tmp_msg);
     }
 
     // cleanup
@@ -1406,7 +1406,7 @@ TEST_FUNCTION(when_any_underlying_call_fails_cbs_delete_token_async_fails)
         result = cbs_delete_token_async(cbs, "some_type", "my_audience", test_on_cbs_put_token_complete, NULL);
 
         // assert
-        ASSERT_ARE_NOT_EQUAL_WITH_MSG(int, 0, result, tmp_msg);
+        ASSERT_ARE_NOT_EQUAL(int, 0, result, tmp_msg);
     }
 
     // cleanup

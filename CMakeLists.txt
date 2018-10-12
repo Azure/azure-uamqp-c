@@ -49,7 +49,7 @@ endif()
 include("dependencies.cmake")
 
 # Include the common build rules for C shared utility
-include(${SHARED_UTIL_FOLDER}/configs/azure_iot_build_rules.cmake)
+include(deps/azure-c-shared-utility/configs/azure_iot_build_rules.cmake)
 
 set_platform_files(${SHARED_UTIL_FOLDER})
 

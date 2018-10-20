@@ -19,7 +19,6 @@
 #include "azure_uamqp_c/uamqp.h"
 
 static TEST_MUTEX_HANDLE g_testByTest;
-static TEST_MUTEX_HANDLE g_dllByDll;
 static char* iothub_name;
 static char* hostname;
 static char* key_name;
@@ -97,7 +96,6 @@ TEST_SUITE_INITIALIZE(suite_init)
     size_t totalLen;
     const char* iothub_connection_string;
 
-    TEST_INITIALIZE_MEMORY_DEBUG(g_dllByDll);
     g_testByTest = TEST_MUTEX_CREATE();
     ASSERT_IS_NOT_NULL(g_testByTest);
 
@@ -164,7 +162,6 @@ TEST_SUITE_CLEANUP(suite_cleanup)
     free(shared_access_key);
 
     TEST_MUTEX_DESTROY(g_testByTest);
-    TEST_DEINITIALIZE_MEMORY_DEBUG(g_dllByDll);
 }
 
 TEST_FUNCTION(send_1_message_to_iothub_unsettled_auth_with_cbs)

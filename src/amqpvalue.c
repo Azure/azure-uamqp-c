@@ -2268,6 +2268,62 @@ static int output_bytes(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, 
     return result;
 }
 
+static int encode_boolean_constructor(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context)
+{
+    int result;
+
+    /* Codes_SRS_AMQPVALUE_01_270: [<encoding code="0x56" category="fixed" width="1" label="boolean with the octet 0x00 being false and octet 0x01 being true"/>] */
+    if (output_byte(encoder_output, context, 0x56) != 0)
+    {
+        /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+        LogError("Failed encoding boolean constructor");
+        result = __FAILURE__;
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+        result = 0;
+    }
+
+    return result;
+}
+
+static int encode_boolean_value(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, bool value)
+{
+    int result;
+
+    if (value == false)
+    {
+        /* Codes_SRS_AMQPVALUE_01_270: [<encoding code="0x56" category="fixed" width="1" label="boolean with the octet 0x00 being false and octet 0x01 being true"/>] */
+        if (output_byte(encoder_output, context, 0x00) != 0)
+        {
+            /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+            LogError("Failed encoding boolean value");
+            result = __FAILURE__;
+        }
+        else
+        {
+            result = 0;
+        }
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_270: [<encoding code="0x56" category="fixed" width="1" label="boolean with the octet 0x00 being false and octet 0x01 being true"/>] */
+        if (output_byte(encoder_output, context, 0x01) != 0)
+        {
+            /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+            LogError("Failed encoding boolean value");
+            result = __FAILURE__;
+        }
+        else
+        {
+            result = 0;
+        }
+    }
+
+    return result;
+}
+
 static int encode_boolean(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, bool value)
 {
     int result;
@@ -2304,16 +2360,96 @@ static int encode_boolean(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context
     return result;
 }
 
-static int encode_ubyte(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, unsigned char value)
+static int encode_ubyte_constructor(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context)
 {
     int result;
 
     /* Codes_SRS_AMQPVALUE_01_275: [<encoding code="0x50" category="fixed" width="1" label="8-bit unsigned integer"/>] */
-    if ((output_byte(encoder_output, context, 0x50) != 0) ||
-        (output_byte(encoder_output, context, value) != 0))
+    if (output_byte(encoder_output, context, 0x50) != 0)
+    {
+        /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+        LogError("Failed encoding ubyte constructor");
+        result = __FAILURE__;
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+        result = 0;
+    }
+
+    return result;
+}
+
+static int encode_ubyte_value(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, unsigned char value)
+{
+    int result;
+
+    /* Codes_SRS_AMQPVALUE_01_275: [<encoding code="0x50" category="fixed" width="1" label="8-bit unsigned integer"/>] */
+    if (output_byte(encoder_output, context, value) != 0)
+    {
+        /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+        LogError("Failed encoding ubyte value");
+        result = __FAILURE__;
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+        result = 0;
+    }
+
+    return result;
+}
+
+static int encode_ubyte(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, unsigned char value)
+{
+    int result;
+
+    if ((encode_ubyte_constructor(encoder_output, context) != 0) ||
+        (encode_ubyte_value(encoder_output, context, value) != 0))
     {
         /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
         LogError("Failed encoding ubyte");
+        result = __FAILURE__;
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+        result = 0;
+    }
+
+    return result;
+}
+
+static int encode_ushort_constructor(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context)
+{
+    int result;
+
+    /* Codes_SRS_AMQPVALUE_01_276: [<encoding code="0x60" category="fixed" width="2" label="16-bit unsigned integer in network byte order"/>] */
+    if (output_byte(encoder_output, context, 0x60) != 0)
+    {
+        /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+        LogError("Failed encoding ushort constructor");
+        result = __FAILURE__;
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+        result = 0;
+    }
+
+    return result;
+}
+
+static int encode_ushort_value(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, uint16_t value)
+{
+    int result;
+
+    /* Codes_SRS_AMQPVALUE_01_276: [<encoding code="0x60" category="fixed" width="2" label="16-bit unsigned integer in network byte order"/>] */
+    if ((output_byte(encoder_output, context, (value >> 8) & 0xFF) != 0) ||
+        (output_byte(encoder_output, context, (value & 0xFF)) != 0))
+    {
+        /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+        LogError("Failed encoding ushort value");
         result = __FAILURE__;
     }
     else
@@ -2329,10 +2465,8 @@ static int encode_ushort(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context,
 {
     int result;
 
-    /* Codes_SRS_AMQPVALUE_01_276: [<encoding code="0x60" category="fixed" width="2" label="16-bit unsigned integer in network byte order"/>] */
-    if ((output_byte(encoder_output, context, 0x60) != 0) ||
-        (output_byte(encoder_output, context, (value >> 8) & 0xFF) != 0) ||
-        (output_byte(encoder_output, context, (value & 0xFF)) != 0))
+    if ((encode_ushort_constructor(encoder_output, context) != 0) ||
+        (encode_ushort_value(encoder_output, context, value) != 0))
     {
         /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
         LogError("Failed encoding ushort");
@@ -2342,6 +2476,87 @@ static int encode_ushort(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context,
     {
         /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
         result = 0;
+    }
+
+    return result;
+}
+
+static int encode_uint_constructor(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, bool use_smallest)
+{
+    int result;
+
+    if (use_smallest)
+    {
+        /* smalluint */
+        /* Codes_SRS_AMQPVALUE_01_278: [<encoding name="smalluint" code="0x52" category="fixed" width="1" label="unsigned integer value in the range 0 to 255 inclusive"/>] */
+        if (output_byte(encoder_output, context, 0x52) != 0)
+        {
+            /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+            LogError("Failed encoding small uint constructor");
+            result = __FAILURE__;
+        }
+        else
+        {
+            /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+            result = 0;
+        }
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_277: [<encoding code="0x70" category="fixed" width="4" label="32-bit unsigned integer in network byte order"/>] */
+        if (output_byte(encoder_output, context, 0x70) != 0)
+        {
+            /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+            LogError("Failed encoding uint constructor");
+            result = __FAILURE__;
+        }
+        else
+        {
+            /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+            result = 0;
+        }
+    }
+
+    return result;
+}
+
+static int encode_uint_value(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, uint32_t value, bool use_smallest)
+{
+    int result;
+
+    if (use_smallest)
+    {
+        /* smalluint */
+        /* Codes_SRS_AMQPVALUE_01_278: [<encoding name="smalluint" code="0x52" category="fixed" width="1" label="unsigned integer value in the range 0 to 255 inclusive"/>] */
+        if (output_byte(encoder_output, context, value & 0xFF) != 0)
+        {
+            /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+            LogError("Failed encoding small uint value");
+            result = __FAILURE__;
+        }
+        else
+        {
+            /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+            result = 0;
+        }
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_277: [<encoding code="0x70" category="fixed" width="4" label="32-bit unsigned integer in network byte order"/>] */
+        if ((output_byte(encoder_output, context, (value >> 24) & 0xFF) != 0) ||
+            (output_byte(encoder_output, context, (value >> 16) & 0xFF) != 0) ||
+            (output_byte(encoder_output, context, (value >> 8) & 0xFF) != 0) ||
+            (output_byte(encoder_output, context, value & 0xFF) != 0))
+        {
+            /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+            LogError("Failed encoding uint value");
+            result = __FAILURE__;
+        }
+        else
+        {
+            /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+            result = 0;
+        }
     }
 
     return result;
@@ -2366,12 +2581,12 @@ static int encode_uint(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, u
             result = 0;
         }
     }
-    else if (value <= 255)
+    else
     {
-        /* smalluint */
-        /* Codes_SRS_AMQPVALUE_01_278: [<encoding name="smalluint" code="0x52" category="fixed" width="1" label="unsigned integer value in the range 0 to 255 inclusive"/>] */
-        if ((output_byte(encoder_output, context, 0x52) != 0) ||
-            (output_byte(encoder_output, context, value & 0xFF) != 0))
+        bool use_smallest = (value <= 255);
+
+        if ((encode_uint_constructor(encoder_output, context, use_smallest) != 0) ||
+            (encode_uint_value(encoder_output, context, value, use_smallest) != 0))
         {
             /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
             LogError("Failed encoding uint");
@@ -2383,17 +2598,83 @@ static int encode_uint(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, u
             result = 0;
         }
     }
+
+    return result;
+}
+
+static int encode_ulong_constructor(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, bool use_smallest)
+{
+    int result;
+
+    if (use_smallest)
+    {
+        /* smallulong */
+        /* Codes_SRS_AMQPVALUE_01_281: [<encoding name="smallulong" code="0x53" category="fixed" width="1" label="unsigned long value in the range 0 to 255 inclusive"/>] */
+        if (output_byte(encoder_output, context, 0x53) != 0)
+        {
+            /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+            LogError("Failed encoding small ulong constructor");
+            result = __FAILURE__;
+        }
+        else
+        {
+            /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+            result = 0;
+        }
+    }
     else
     {
-        /* Codes_SRS_AMQPVALUE_01_277: [<encoding code="0x70" category="fixed" width="4" label="32-bit unsigned integer in network byte order"/>] */
-        if ((output_byte(encoder_output, context, 0x70) != 0) ||
+        /* Codes_SRS_AMQPVALUE_01_280: [<encoding code="0x80" category="fixed" width="8" label="64-bit unsigned integer in network byte order"/>] */
+        if (output_byte(encoder_output, context, 0x80) != 0)
+        {
+            /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+            LogError("Failed encoding ulong constructor");
+            result = __FAILURE__;
+        }
+        else
+        {
+            /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+            result = 0;
+        }
+    }
+
+    return result;
+}
+
+static int encode_ulong_value(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, uint64_t value, bool use_smallest)
+{
+    int result;
+
+    if (use_smallest)
+    {
+        /* smallulong */
+        /* Codes_SRS_AMQPVALUE_01_281: [<encoding name="smallulong" code="0x53" category="fixed" width="1" label="unsigned long value in the range 0 to 255 inclusive"/>] */
+        if (output_byte(encoder_output, context, value & 0xFF) != 0)
+        {
+            /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+            LogError("Failed encoding small ulong value");
+            result = __FAILURE__;
+        }
+        else
+        {
+            /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+            result = 0;
+        }
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_280: [<encoding code="0x80" category="fixed" width="8" label="64-bit unsigned integer in network byte order"/>] */
+        if ((output_byte(encoder_output, context, (value >> 56) & 0xFF) != 0) ||
+            (output_byte(encoder_output, context, (value >> 48) & 0xFF) != 0) ||
+            (output_byte(encoder_output, context, (value >> 40) & 0xFF) != 0) ||
+            (output_byte(encoder_output, context, (value >> 32) & 0xFF) != 0) ||
             (output_byte(encoder_output, context, (value >> 24) & 0xFF) != 0) ||
             (output_byte(encoder_output, context, (value >> 16) & 0xFF) != 0) ||
             (output_byte(encoder_output, context, (value >> 8) & 0xFF) != 0) ||
             (output_byte(encoder_output, context, value & 0xFF) != 0))
         {
             /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-            LogError("Failed encoding uint");
+            LogError("Failed encoding ulong value");
             result = __FAILURE__;
         }
         else
@@ -2425,35 +2706,12 @@ static int encode_ulong(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, 
             result = 0;
         }
     }
-    else if (value <= 255)
-    {
-        /* smallulong */
-        /* Codes_SRS_AMQPVALUE_01_281: [<encoding name="smallulong" code="0x53" category="fixed" width="1" label="unsigned long value in the range 0 to 255 inclusive"/>] */
-        if ((output_byte(encoder_output, context, 0x53) != 0) ||
-            (output_byte(encoder_output, context, value & 0xFF) != 0))
-        {
-            /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-            LogError("Failed encoding ulong");
-            result = __FAILURE__;
-        }
-        else
-        {
-            /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
-            result = 0;
-        }
-    }
     else
     {
-        /* Codes_SRS_AMQPVALUE_01_280: [<encoding code="0x80" category="fixed" width="8" label="64-bit unsigned integer in network byte order"/>] */
-        if ((output_byte(encoder_output, context, 0x80) != 0) ||
-            (output_byte(encoder_output, context, (value >> 56) & 0xFF) != 0) ||
-            (output_byte(encoder_output, context, (value >> 48) & 0xFF) != 0) ||
-            (output_byte(encoder_output, context, (value >> 40) & 0xFF) != 0) ||
-            (output_byte(encoder_output, context, (value >> 32) & 0xFF) != 0) ||
-            (output_byte(encoder_output, context, (value >> 24) & 0xFF) != 0) ||
-            (output_byte(encoder_output, context, (value >> 16) & 0xFF) != 0) ||
-            (output_byte(encoder_output, context, (value >> 8) & 0xFF) != 0) ||
-            (output_byte(encoder_output, context, value & 0xFF) != 0))
+        bool use_smallest = (value <= 255);
+
+        if ((encode_ulong_constructor(encoder_output, context, use_smallest) != 0) ||
+            (encode_ulong_value(encoder_output, context, value, use_smallest) != 0))
         {
             /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
             LogError("Failed encoding ulong");
@@ -2469,16 +2727,96 @@ static int encode_ulong(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, 
     return result;
 }
 
-static int encode_byte(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, char value)
+static int encode_byte_constructor(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context)
 {
     int result;
 
     /* Codes_SRS_AMQPVALUE_01_283: [<encoding code="0x51" category="fixed" width="1" label="8-bit two's-complement integer"/>] */
-    if ((output_byte(encoder_output, context, 0x51) != 0) ||
-        (output_byte(encoder_output, context, value) != 0))
+    if (output_byte(encoder_output, context, 0x51) != 0)
+    {
+        /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+        LogError("Failed encoding byte constructor");
+        result = __FAILURE__;
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+        result = 0;
+    }
+
+    return result;
+}
+
+static int encode_byte_value(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, char value)
+{
+    int result;
+
+    /* Codes_SRS_AMQPVALUE_01_283: [<encoding code="0x51" category="fixed" width="1" label="8-bit two's-complement integer"/>] */
+    if (output_byte(encoder_output, context, value) != 0)
+    {
+        /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+        LogError("Failed encoding byte value");
+        result = __FAILURE__;
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+        result = 0;
+    }
+
+    return result;
+}
+
+static int encode_byte(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, char value)
+{
+    int result;
+
+    if ((encode_byte_constructor(encoder_output, context) != 0) ||
+        (encode_byte_value(encoder_output, context, value) != 0))
     {
         /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
         LogError("Failed encoding byte");
+        result = __FAILURE__;
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+        result = 0;
+    }
+
+    return result;
+}
+
+static int encode_short_constructor(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context)
+{
+    int result;
+
+    /* Codes_SRS_AMQPVALUE_01_284: [<encoding code="0x61" category="fixed" width="2" label="16-bit two's-complement integer in network byte order"/>] */
+    if (output_byte(encoder_output, context, 0x61) != 0)
+    {
+        /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+        LogError("Failed encoding short constructor");
+        result = __FAILURE__;
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+        result = 0;
+    }
+
+    return result;
+}
+
+static int encode_short_value(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, int16_t value)
+{
+    int result;
+
+    /* Codes_SRS_AMQPVALUE_01_284: [<encoding code="0x61" category="fixed" width="2" label="16-bit two's-complement integer in network byte order"/>] */
+    if ((output_byte(encoder_output, context, (value >> 8) & 0xFF) != 0) ||
+        (output_byte(encoder_output, context, (value & 0xFF)) != 0))
+    {
+        /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+        LogError("Failed encoding short value");
         result = __FAILURE__;
     }
     else
@@ -2494,10 +2832,8 @@ static int encode_short(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, 
 {
     int result;
 
-    /* Codes_SRS_AMQPVALUE_01_284: [<encoding code="0x61" category="fixed" width="2" label="16-bit two's-complement integer in network byte order"/>] */
-    if ((output_byte(encoder_output, context, 0x61) != 0) ||
-        (output_byte(encoder_output, context, (value >> 8) & 0xFF) != 0) ||
-        (output_byte(encoder_output, context, (value & 0xFF)) != 0))
+    if ((encode_short_constructor(encoder_output, context) != 0) ||
+        (encode_short_value(encoder_output, context, value) != 0))
     {
         /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
         LogError("Failed encoding short");
@@ -2512,18 +2848,17 @@ static int encode_short(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, 
     return result;
 }
 
-static int encode_int(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, int32_t value)
+static int encode_int_constructor(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, bool use_smallest)
 {
     int result;
 
-    if ((value <= 127) && (value >= -128))
+    if (use_smallest)
     {
         /* Codes_SRS_AMQPVALUE_01_286: [<encoding name="smallint" code="0x54" category="fixed" width="1" label="8-bit two's-complement integer"/>] */
-        if ((output_byte(encoder_output, context, 0x54) != 0) ||
-            (output_byte(encoder_output, context, value & 0xFF) != 0))
+        if (output_byte(encoder_output, context, 0x54) != 0)
         {
             /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-            LogError("Failed encoding int");
+            LogError("Failed encoding small int constructor");
             result = __FAILURE__;
         }
         else
@@ -2535,14 +2870,155 @@ static int encode_int(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, in
     else
     {
         /* Codes_SRS_AMQPVALUE_01_285: [<encoding code="0x71" category="fixed" width="4" label="32-bit two's-complement integer in network byte order"/>] */
-        if ((output_byte(encoder_output, context, 0x71) != 0) ||
+        if (output_byte(encoder_output, context, 0x71) != 0)
+        {
+            /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+            LogError("Failed encoding int constructor");
+            result = __FAILURE__;
+        }
+        else
+        {
+            /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+            result = 0;
+        }
+    }
+
+    return result;
+}
+
+static int encode_int_value(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, int32_t value, bool use_smallest)
+{
+    int result;
+
+    if (use_smallest)
+    {
+        /* Codes_SRS_AMQPVALUE_01_286: [<encoding name="smallint" code="0x54" category="fixed" width="1" label="8-bit two's-complement integer"/>] */
+        if (output_byte(encoder_output, context, value & 0xFF) != 0)
+        {
+            /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+            LogError("Failed encoding small int value");
+            result = __FAILURE__;
+        }
+        else
+        {
+            /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+            result = 0;
+        }
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_285: [<encoding code="0x71" category="fixed" width="4" label="32-bit two's-complement integer in network byte order"/>] */
+        if ((output_byte(encoder_output, context, (value >> 24) & 0xFF) != 0) ||
+            (output_byte(encoder_output, context, (value >> 16) & 0xFF) != 0) ||
+            (output_byte(encoder_output, context, (value >> 8) & 0xFF) != 0) ||
+            (output_byte(encoder_output, context, value & 0xFF) != 0))
+        {
+            /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+            LogError("Failed encoding int value");
+            result = __FAILURE__;
+        }
+        else
+        {
+            /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+            result = 0;
+        }
+    }
+
+    return result;
+}
+
+static int encode_int(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, int32_t value)
+{
+    int result;
+    bool use_smallest = ((value <= 127) && (value >= -128));
+
+    if ((encode_int_constructor(encoder_output, context, use_smallest) != 0) ||
+        (encode_int_value(encoder_output, context, value, use_smallest) != 0))
+    {
+        /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+        LogError("Failed encoding int");
+        result = __FAILURE__;
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+        result = 0;
+    }
+
+    return result;
+}
+
+static int encode_long_constructor(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, bool use_smallest)
+{
+    int result;
+
+    if (use_smallest)
+    {
+        /* Codes_SRS_AMQPVALUE_01_288: [<encoding name="smalllong" code="0x55" category="fixed" width="1" label="8-bit two's-complement integer"/>] */
+        if (output_byte(encoder_output, context, 0x55) != 0)
+        {
+            /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+            LogError("Failed encoding small long constructor");
+            result = __FAILURE__;
+        }
+        else
+        {
+            /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+            result = 0;
+        }
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_287: [<encoding code="0x81" category="fixed" width="8" label="64-bit two's-complement integer in network byte order"/>] */
+        if (output_byte(encoder_output, context, 0x81) != 0)
+        {
+            /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+            LogError("Failed encoding long constructor");
+            result = __FAILURE__;
+        }
+        else
+        {
+            /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+            result = 0;
+        }
+    }
+
+    return result;
+}
+
+static int encode_long_value(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, int64_t value, bool use_smallest)
+{
+    int result;
+
+    if (use_smallest)
+    {
+        /* Codes_SRS_AMQPVALUE_01_288: [<encoding name="smalllong" code="0x55" category="fixed" width="1" label="8-bit two's-complement integer"/>] */
+        if (output_byte(encoder_output, context, value & 0xFF) != 0)
+        {
+            /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+            LogError("Failed encoding small long value");
+            result = __FAILURE__;
+        }
+        else
+        {
+            /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+            result = 0;
+        }
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_287: [<encoding code="0x81" category="fixed" width="8" label="64-bit two's-complement integer in network byte order"/>] */
+        if ((output_byte(encoder_output, context, (value >> 56) & 0xFF) != 0) ||
+            (output_byte(encoder_output, context, (value >> 48) & 0xFF) != 0) ||
+            (output_byte(encoder_output, context, (value >> 40) & 0xFF) != 0) ||
+            (output_byte(encoder_output, context, (value >> 32) & 0xFF) != 0) ||
             (output_byte(encoder_output, context, (value >> 24) & 0xFF) != 0) ||
             (output_byte(encoder_output, context, (value >> 16) & 0xFF) != 0) ||
             (output_byte(encoder_output, context, (value >> 8) & 0xFF) != 0) ||
             (output_byte(encoder_output, context, value & 0xFF) != 0))
         {
             /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-            LogError("Failed encoding int");
+            LogError("Failed encoding long value");
             result = __FAILURE__;
         }
         else
@@ -2558,58 +3034,51 @@ static int encode_int(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, in
 static int encode_long(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, int64_t value)
 {
     int result;
+    bool use_smallest = ((value <= 127) && (value >= -128));
 
-    if ((value <= 127) && (value >= -128))
+    if ((encode_long_constructor(encoder_output, context, use_smallest) != 0) ||
+        (encode_long_value(encoder_output, context, value, use_smallest) != 0))
     {
-        /* Codes_SRS_AMQPVALUE_01_288: [<encoding name="smalllong" code="0x55" category="fixed" width="1" label="8-bit two's-complement integer"/>] */
-        if ((output_byte(encoder_output, context, 0x55) != 0) ||
-            (output_byte(encoder_output, context, value & 0xFF) != 0))
-        {
-            /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-            LogError("Failed encoding long");
-            result = __FAILURE__;
-        }
-        else
-        {
-            /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
-            result = 0;
-        }
+        /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+        LogError("Failed encoding long");
+        result = __FAILURE__;
     }
     else
     {
-        /* Codes_SRS_AMQPVALUE_01_287: [<encoding code="0x81" category="fixed" width="8" label="64-bit two's-complement integer in network byte order"/>] */
-        if ((output_byte(encoder_output, context, 0x81) != 0) ||
-            (output_byte(encoder_output, context, (value >> 56) & 0xFF) != 0) ||
-            (output_byte(encoder_output, context, (value >> 48) & 0xFF) != 0) ||
-            (output_byte(encoder_output, context, (value >> 40) & 0xFF) != 0) ||
-            (output_byte(encoder_output, context, (value >> 32) & 0xFF) != 0) ||
-            (output_byte(encoder_output, context, (value >> 24) & 0xFF) != 0) ||
-            (output_byte(encoder_output, context, (value >> 16) & 0xFF) != 0) ||
-            (output_byte(encoder_output, context, (value >> 8) & 0xFF) != 0) ||
-            (output_byte(encoder_output, context, value & 0xFF) != 0))
-        {
-            /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-            LogError("Failed encoding long");
-            result = __FAILURE__;
-        }
-        else
-        {
-            /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
-            result = 0;
-        }
+        /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+        result = 0;
     }
 
     return result;
 }
 
-static int encode_float(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, float value)
+static int encode_float_constructor(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context)
+{
+    int result;
+
+    /* Codes_SRS_AMQPVALUE_01_289: [\<encoding name="ieee-754" code="0x72" category="fixed" width="4" label="IEEE 754-2008 binary32"/>] */
+    if (output_byte(encoder_output, context, 0x72) != 0)
+    {
+        /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+        LogError("Failure encoding constructor for float");
+        result = __FAILURE__;
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+        result = 0;
+    }
+
+    return result;
+}
+
+static int encode_float_value(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, float value)
 {
     int result;
 
     uint32_t value_as_uint32 = *((uint32_t*)(void*)&value);
     /* Codes_SRS_AMQPVALUE_01_289: [\<encoding name="ieee-754" code="0x72" category="fixed" width="4" label="IEEE 754-2008 binary32"/>] */
-    if ((output_byte(encoder_output, context, 0x72) != 0) ||
-        (output_byte(encoder_output, context, (value_as_uint32 >> 24) & 0xFF) != 0) ||
+    if ((output_byte(encoder_output, context, (value_as_uint32 >> 24) & 0xFF) != 0) ||
         (output_byte(encoder_output, context, (value_as_uint32 >> 16) & 0xFF) != 0) ||
         (output_byte(encoder_output, context, (value_as_uint32 >> 8) & 0xFF) != 0) ||
         (output_byte(encoder_output, context, (value_as_uint32) & 0xFF) != 0))
@@ -2627,14 +3096,53 @@ static int encode_float(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, 
     return result;
 }
 
-static int encode_double(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, double value)
+static int encode_float(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, float value)
+{
+    int result;
+
+    if ((encode_float_constructor(encoder_output, context) != 0) ||
+        (encode_float_value(encoder_output, context, value) != 0))
+    {
+        /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+        LogError("Failure encoding float value");
+        result = __FAILURE__;
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+        result = 0;
+    }
+
+    return result;
+}
+
+static int encode_double_constructor(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context)
+{
+    int result;
+
+    /* Codes_SRS_AMQPVALUE_01_290: [\<encoding name="ieee-754" code="0x82" category="fixed" width="8" label="IEEE 754-2008 binary64"/>] */
+    if (output_byte(encoder_output, context, 0x82) != 0)
+    {
+        /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+        LogError("Failure encoding constructor for double");
+        result = __FAILURE__;
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+        result = 0;
+    }
+
+    return result;
+}
+
+static int encode_double_value(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, double value)
 {
     int result;
 
     uint64_t value_as_uint64 = *((uint64_t*)(void*)&value);
     /* Codes_SRS_AMQPVALUE_01_290: [\<encoding name="ieee-754" code="0x82" category="fixed" width="8" label="IEEE 754-2008 binary64"/>] */
-    if ((output_byte(encoder_output, context, 0x82) != 0) ||
-        (output_byte(encoder_output, context, (value_as_uint64 >> 56) & 0xFF) != 0) ||
+    if ((output_byte(encoder_output, context, (value_as_uint64 >> 56) & 0xFF) != 0) ||
         (output_byte(encoder_output, context, (value_as_uint64 >> 48) & 0xFF) != 0) ||
         (output_byte(encoder_output, context, (value_as_uint64 >> 40) & 0xFF) != 0) ||
         (output_byte(encoder_output, context, (value_as_uint64 >> 32) & 0xFF) != 0) ||
@@ -2656,13 +3164,52 @@ static int encode_double(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context,
     return result;
 }
 
-static int encode_timestamp(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, int64_t value)
+static int encode_double(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, double value)
+{
+    int result;
+
+    if ((encode_double_constructor(encoder_output, context) != 0) ||
+        (encode_double_value(encoder_output, context, value) != 0))
+    {
+        /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+        LogError("Failure encoding double value");
+        result = __FAILURE__;
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+        result = 0;
+    }
+
+    return result;
+}
+
+static int encode_timestamp_constructor(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context)
 {
     int result;
 
     /* Codes_SRS_AMQPVALUE_01_295: [<encoding name="ms64" code="0x83" category="fixed" width="8" label="64-bit two's-complement integer representing milliseconds since the unix epoch"/>] */
-    if ((output_byte(encoder_output, context, 0x83) != 0) ||
-        (output_byte(encoder_output, context, (value >> 56) & 0xFF) != 0) ||
+    if (output_byte(encoder_output, context, 0x83) != 0)
+    {
+        /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+        LogError("Failed encoding timestamp constructor");
+        result = __FAILURE__;
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+        result = 0;
+    }
+
+    return result;
+}
+
+static int encode_timestamp_value(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, int64_t value)
+{
+    int result;
+
+    /* Codes_SRS_AMQPVALUE_01_295: [<encoding name="ms64" code="0x83" category="fixed" width="8" label="64-bit two's-complement integer representing milliseconds since the unix epoch"/>] */
+    if ((output_byte(encoder_output, context, (value >> 56) & 0xFF) != 0) ||
         (output_byte(encoder_output, context, (value >> 48) & 0xFF) != 0) ||
         (output_byte(encoder_output, context, (value >> 40) & 0xFF) != 0) ||
         (output_byte(encoder_output, context, (value >> 32) & 0xFF) != 0) ||
@@ -2672,7 +3219,67 @@ static int encode_timestamp(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* conte
         (output_byte(encoder_output, context, value & 0xFF) != 0))
     {
         /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+        LogError("Failed encoding timestamp value");
+        result = __FAILURE__;
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+        result = 0;
+    }
+
+    return result;
+}
+
+static int encode_timestamp(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, int64_t value)
+{
+    int result;
+
+    if ((encode_timestamp_constructor(encoder_output, context) != 0) ||
+        (encode_timestamp_value(encoder_output, context, value) != 0))
+    {
+        /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
         LogError("Failed encoding timestamp");
+        result = __FAILURE__;
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+        result = 0;
+    }
+
+    return result;
+}
+
+static int encode_uuid_constructor(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context)
+{
+    int result;
+
+    /* Codes_SRS_AMQPVALUE_01_296: [<encoding code="0x98" category="fixed" width="16" label="UUID as defined in section 4.1.2 of RFC-4122"/>] */
+    if (output_byte(encoder_output, context, 0x98) != 0)
+    {
+        /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+        LogError("Failed encoding uuid constructor");
+        result = __FAILURE__;
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+        result = 0;
+    }
+
+    return result;
+}
+
+static int encode_uuid_value(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, uuid uuid)
+{
+    int result;
+
+    /* Codes_SRS_AMQPVALUE_01_296: [<encoding code="0x98" category="fixed" width="16" label="UUID as defined in section 4.1.2 of RFC-4122"/>] */
+    if (output_bytes(encoder_output, context, uuid, 16)  != 0)
+    {
+        /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+        LogError("Failed encoding uuid value");
         result = __FAILURE__;
     }
     else
@@ -2688,9 +3295,8 @@ static int encode_uuid(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, u
 {
     int result;
 
-    /* Codes_SRS_AMQPVALUE_01_296: [<encoding code="0x98" category="fixed" width="16" label="UUID as defined in section 4.1.2 of RFC-4122"/>] */
-    if ((output_byte(encoder_output, context, 0x98) != 0) ||
-        (output_bytes(encoder_output, context, uuid, 16)  != 0))
+    if ((encode_uuid_constructor(encoder_output, context) != 0) ||
+        (encode_uuid_value(encoder_output, context, uuid) != 0))
     {
         /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
         LogError("Failed encoding uuid");
@@ -2705,18 +3311,16 @@ static int encode_uuid(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, u
     return result;
 }
 
-static int encode_binary(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, const unsigned char* value, uint32_t length)
+static int encode_binary_constructor(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, bool use_smallest)
 {
     int result;
-    if (length <= 255)
+    if (use_smallest)
     {
         /* Codes_SRS_AMQPVALUE_01_297: [<encoding name="vbin8" code="0xa0" category="variable" width="1" label="up to 2^8 - 1 octets of binary data"/>] */
-        if ((output_byte(encoder_output, context, 0xA0) != 0) ||
-            (output_byte(encoder_output, context, (unsigned char)length) != 0) ||
-            ((length > 0) && (output_bytes(encoder_output, context, value, length) != 0)))
+        if (output_byte(encoder_output, context, 0xA0) != 0)
         {
             /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-            LogError("Failed encoding binary");
+            LogError("Failed encoding small binary constructor");
             result = __FAILURE__;
         }
         else
@@ -2728,15 +3332,10 @@ static int encode_binary(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context,
     else
     {
         /* Codes_SRS_AMQPVALUE_01_298: [<encoding name="vbin32" code="0xb0" category="variable" width="4" label="up to 2^32 - 1 octets of binary data"/>] */
-        if ((output_byte(encoder_output, context, 0xB0) != 0) ||
-            (output_byte(encoder_output, context, (length >> 24) & 0xFF) != 0) ||
-            (output_byte(encoder_output, context, (length >> 16) & 0xFF) != 0) ||
-            (output_byte(encoder_output, context, (length >> 8) & 0xFF) != 0) ||
-            (output_byte(encoder_output, context, length & 0xFF) != 0) ||
-            (output_bytes(encoder_output, context, value, length) != 0))
+        if (output_byte(encoder_output, context, 0xB0) != 0)
         {
             /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-            LogError("Failed encoding binary");
+            LogError("Failed encoding large binary constructor");
             result = __FAILURE__;
         }
         else
@@ -2749,20 +3348,80 @@ static int encode_binary(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context,
     return result;
 }
 
-static int encode_string(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, const char* value)
+static int encode_binary_value(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, const unsigned char* value, uint32_t length, bool use_smallest)
 {
     int result;
-    size_t length = strlen(value);
-
-    if (length <= 255)
+    if (use_smallest)
     {
-        /* Codes_SRS_AMQPVALUE_01_299: [<encoding name="str8-utf8" code="0xa1" category="variable" width="1" label="up to 2^8 - 1 octets worth of UTF-8 Unicode (with no byte order mark)"/>] */
-        if ((output_byte(encoder_output, context, (unsigned char)0xA1) != 0) ||
-            (output_byte(encoder_output, context, (unsigned char)length) != 0) ||
+        /* Codes_SRS_AMQPVALUE_01_297: [<encoding name="vbin8" code="0xa0" category="variable" width="1" label="up to 2^8 - 1 octets of binary data"/>] */
+        if ((output_byte(encoder_output, context, (unsigned char)length) != 0) ||
+            ((length > 0) && (output_bytes(encoder_output, context, value, length) != 0)))
+        {
+            /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+            LogError("Failed encoding small binary value");
+            result = __FAILURE__;
+        }
+        else
+        {
+            /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+            result = 0;
+        }
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_298: [<encoding name="vbin32" code="0xb0" category="variable" width="4" label="up to 2^32 - 1 octets of binary data"/>] */
+        if ((output_byte(encoder_output, context, (length >> 24) & 0xFF) != 0) ||
+            (output_byte(encoder_output, context, (length >> 16) & 0xFF) != 0) ||
+            (output_byte(encoder_output, context, (length >> 8) & 0xFF) != 0) ||
+            (output_byte(encoder_output, context, length & 0xFF) != 0) ||
             (output_bytes(encoder_output, context, value, length) != 0))
         {
             /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-            LogError("Failed encoding string");
+            LogError("Failed encoding large binary value");
+            result = __FAILURE__;
+        }
+        else
+        {
+            /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+            result = 0;
+        }
+    }
+
+    return result;
+}
+
+static int encode_binary(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, const unsigned char* value, uint32_t length)
+{
+    int result;
+    bool use_smallest = (length <= 255);
+
+    if ((encode_binary_constructor(encoder_output, context, use_smallest) != 0) ||
+        (encode_binary_value(encoder_output, context, value, length, use_smallest) != 0))
+    {
+        /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+        LogError("Failed encoding binary");
+        result = __FAILURE__;
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+        result = 0;
+    }
+
+    return result;
+}
+
+static int encode_string_constructor(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, bool use_smallest)
+{
+    int result;
+
+    if (use_smallest)
+    {
+        /* Codes_SRS_AMQPVALUE_01_299: [<encoding name="str8-utf8" code="0xa1" category="variable" width="1" label="up to 2^8 - 1 octets worth of UTF-8 Unicode (with no byte order mark)"/>] */
+        if (output_byte(encoder_output, context, (unsigned char)0xA1) != 0)
+        {
+            /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+            LogError("Failed encoding small string constructor");
             result = __FAILURE__;
         }
         else
@@ -2774,15 +3433,158 @@ static int encode_string(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context,
     else
     {
         /* Codes_SRS_AMQPVALUE_01_300: [<encoding name="str32-utf8" code="0xb1" category="variable" width="4" label="up to 2^32 - 1 octets worth of UTF-8 Unicode (with no byte order mark)"/>] */
-        if ((output_byte(encoder_output, context, 0xB1) != 0) ||
-            (output_byte(encoder_output, context, (length >> 24) & 0xFF) != 0) ||
+        if (output_byte(encoder_output, context, 0xB1) != 0)
+        {
+            /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+            LogError("Failed encoding large string constructor");
+            result = __FAILURE__;
+        }
+        else
+        {
+            /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+            result = 0;
+        }
+    }
+
+    return result;
+}
+
+static int encode_string_value(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, const char* value, size_t length, bool use_smallest)
+{
+    int result;
+
+    if (use_smallest)
+    {
+        /* Codes_SRS_AMQPVALUE_01_299: [<encoding name="str8-utf8" code="0xa1" category="variable" width="1" label="up to 2^8 - 1 octets worth of UTF-8 Unicode (with no byte order mark)"/>] */
+        if ((output_byte(encoder_output, context, (unsigned char)length) != 0) ||
+            (output_bytes(encoder_output, context, value, length) != 0))
+        {
+            /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+            LogError("Failed encoding small string value");
+            result = __FAILURE__;
+        }
+        else
+        {
+            /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+            result = 0;
+        }
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_300: [<encoding name="str32-utf8" code="0xb1" category="variable" width="4" label="up to 2^32 - 1 octets worth of UTF-8 Unicode (with no byte order mark)"/>] */
+        if ((output_byte(encoder_output, context, (length >> 24) & 0xFF) != 0) ||
             (output_byte(encoder_output, context, (length >> 16) & 0xFF) != 0) ||
             (output_byte(encoder_output, context, (length >> 8) & 0xFF) != 0) ||
             (output_byte(encoder_output, context, length & 0xFF) != 0) ||
             (output_bytes(encoder_output, context, value, length) != 0))
         {
             /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-            LogError("Failed encoding string");
+            LogError("Failed encoding large string value");
+            result = __FAILURE__;
+        }
+        else
+        {
+            /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+            result = 0;
+        }
+    }
+
+    return result;
+
+}
+
+static int encode_string(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, const char* value)
+{
+    int result;
+    size_t length = strlen(value);
+    bool use_smallest = (length <= 255);
+
+    if ((encode_string_constructor(encoder_output, context, use_smallest) != 0) ||
+        (encode_string_value(encoder_output, context, value, length, use_smallest) != 0))
+    {
+        /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+        LogError("Failed encoding string");
+        result = __FAILURE__;
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+        result = 0;
+    }
+
+    return result;
+}
+
+static int encode_symbol_constructor(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, bool use_smallest)
+{
+    int result;
+
+    if (use_smallest)
+    {
+        /* Codes_SRS_AMQPVALUE_01_301: [<encoding name="sym8" code="0xa3" category="variable" width="1" label="up to 2^8 - 1 seven bit ASCII characters representing a symbolic value"/>] */
+        if (output_byte(encoder_output, context, (unsigned char)0xA3) != 0)
+        {
+            /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+            LogError("Failed encoding small symbol constructor");
+            result = __FAILURE__;
+        }
+        else
+        {
+            /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+            result = 0;
+        }
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_302: [<encoding name="sym32" code="0xb3" category="variable" width="4" label="up to 2^32 - 1 seven bit ASCII characters representing a symbolic value"/>] */
+        if (output_byte(encoder_output, context, 0xB3) != 0)
+        {
+            /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+            LogError("Failed encoding large symbol constructor");
+            result = __FAILURE__;
+        }
+        else
+        {
+            /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+            result = 0;
+        }
+    }
+
+    return result;
+}
+
+static int encode_symbol_value(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, const char* value, size_t length, bool use_smallest)
+{
+    int result;
+
+    if (use_smallest)
+    {
+        /* Codes_SRS_AMQPVALUE_01_301: [<encoding name="sym8" code="0xa3" category="variable" width="1" label="up to 2^8 - 1 seven bit ASCII characters representing a symbolic value"/>] */
+        if ((output_byte(encoder_output, context, (unsigned char)length) != 0) ||
+            (output_bytes(encoder_output, context, value, length) != 0))
+        {
+            /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+            LogError("Failed encoding small symbol value");
+            result = __FAILURE__;
+        }
+        else
+        {
+            /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+            result = 0;
+        }
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_302: [<encoding name="sym32" code="0xb3" category="variable" width="4" label="up to 2^32 - 1 seven bit ASCII characters representing a symbolic value"/>] */
+        if ((output_byte(encoder_output, context, (length >> 24) & 0xFF) != 0) ||
+            (output_byte(encoder_output, context, (length >> 16) & 0xFF) != 0) ||
+            (output_byte(encoder_output, context, (length >> 8) & 0xFF) != 0) ||
+            (output_byte(encoder_output, context, length & 0xFF) != 0) ||
+            /* Codes_SRS_AMQPVALUE_01_122: [Symbols are encoded as ASCII characters [ASCII].] */
+            (output_bytes(encoder_output, context, value, length) != 0))
+        {
+            /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+            LogError("Failed encoding large symbol value");
             result = __FAILURE__;
         }
         else
@@ -2799,44 +3601,19 @@ static int encode_symbol(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context,
 {
     int result;
     size_t length = strlen(value);
+    bool use_smallest = (length <= 255);
 
-    if (length <= 255)
+    if ((encode_symbol_constructor(encoder_output, context, use_smallest) != 0) ||
+        (encode_symbol_value(encoder_output, context, value, length, use_smallest) != 0))
     {
-        /* Codes_SRS_AMQPVALUE_01_301: [<encoding name="sym8" code="0xa3" category="variable" width="1" label="up to 2^8 - 1 seven bit ASCII characters representing a symbolic value"/>] */
-        if ((output_byte(encoder_output, context, (unsigned char)0xA3) != 0) ||
-            (output_byte(encoder_output, context, (unsigned char)length) != 0) ||
-            (output_bytes(encoder_output, context, value, length) != 0))
-        {
-            /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-            LogError("Failed encoding symbol");
-            result = __FAILURE__;
-        }
-        else
-        {
-            /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
-            result = 0;
-        }
+        /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+        LogError("Failed encoding symbol");
+        result = __FAILURE__;
     }
     else
     {
-        /* Codes_SRS_AMQPVALUE_01_302: [<encoding name="sym32" code="0xb3" category="variable" width="4" label="up to 2^32 - 1 seven bit ASCII characters representing a symbolic value"/>] */
-        if ((output_byte(encoder_output, context, 0xB3) != 0) ||
-            (output_byte(encoder_output, context, (length >> 24) & 0xFF) != 0) ||
-            (output_byte(encoder_output, context, (length >> 16) & 0xFF) != 0) ||
-            (output_byte(encoder_output, context, (length >> 8) & 0xFF) != 0) ||
-            (output_byte(encoder_output, context, length & 0xFF) != 0) ||
-            /* Codes_SRS_AMQPVALUE_01_122: [Symbols are encoded as ASCII characters [ASCII].] */
-            (output_bytes(encoder_output, context, value, length) != 0))
-        {
-            /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
-            LogError("Failed encoding symbol");
-            result = __FAILURE__;
-        }
-        else
-        {
-            /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
-            result = 0;
-        }
+        /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+        result = 0;
     }
 
     return result;
@@ -3183,22 +3960,246 @@ static int encode_array(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, 
 
         if (result == 0)
         {
+            AMQP_TYPE array_type = AMQP_TYPE_UNKNOWN;
+
             for (i = 0; i < count; i++)
             {
-                if (amqpvalue_encode(items[i], encoder_output, context) != 0)
+                AMQP_VALUE_DATA* value_data = (AMQP_VALUE_DATA*)items[i];
+                if ((array_type != AMQP_TYPE_UNKNOWN) && (value_data->type != array_type))
                 {
+                    LogError("Item type '%d' inconsistent with array type '%d'", (int)value_data->type, (int)array_type);
+                    result = __FAILURE__;
                     break;
                 }
-            }
+                else if (result != 0)
+                {
+                    LogError("Failed encoding element %u of the array", (unsigned int)i);
+                    break;
+                }
 
-            if (i < count)
-            {
-                LogError("Failed encoding element %u of the array", (unsigned int)i);
-                result = __FAILURE__;
-            }
-            else
-            {
-                result = 0;
+                switch (value_data->type)
+                {
+                    default:
+                        /* Codes_SRS_AMQPVALUE_01_271: [If encoding fails due to any error not specifically mentioned here, it shall return a non-zero value.] */
+                        LogError("Unsupported array type: %d", (int)value_data->type);
+                        result = __FAILURE__;
+                        break;
+
+                    case AMQP_TYPE_NULL:
+                        /* Codes_SRS_AMQPVALUE_01_264: [<encoding code="0x40" category="fixed" width="0" label="the null value"/>] */
+                        /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+                        result = output_byte(encoder_output, context, (unsigned char)0x40);
+                        array_type = AMQP_TYPE_NULL;
+                        break;
+
+                    case AMQP_TYPE_BOOL:
+                        if (array_type == AMQP_TYPE_UNKNOWN)
+                        {
+                            result = encode_boolean_constructor(encoder_output, context);
+                            if (result != 0)
+                            {
+                                break;
+                            }
+                        }
+                        array_type = AMQP_TYPE_BOOL;
+                        result = encode_boolean_value(encoder_output, context, value_data->value.bool_value);
+                        break;
+
+                    case AMQP_TYPE_UBYTE:
+                        if (array_type == AMQP_TYPE_UNKNOWN)
+                        {
+                            result = encode_ubyte_constructor(encoder_output, context);
+                            if (result != 0)
+                            {
+                                break;
+                            }
+                        }
+                        array_type = AMQP_TYPE_UBYTE;
+                        result = encode_ubyte_value(encoder_output, context, value_data->value.ubyte_value);
+                        break;
+
+                    case AMQP_TYPE_USHORT:
+                        if (array_type == AMQP_TYPE_UNKNOWN)
+                        {
+                            result = encode_ushort_constructor(encoder_output, context);
+                            if (result != 0)
+                            {
+                                break;
+                            }
+                        }
+                        array_type = AMQP_TYPE_USHORT;
+                        result = encode_ushort_value(encoder_output, context, value_data->value.ushort_value);
+                        break;
+
+                    case AMQP_TYPE_UINT:
+                        if (array_type == AMQP_TYPE_UNKNOWN)
+                        {
+                            result = encode_uint_constructor(encoder_output, context, false);
+                            if (result != 0)
+                            {
+                                break;
+                            }
+                        }
+                        array_type = AMQP_TYPE_UINT;
+                        result = encode_uint_value(encoder_output, context, value_data->value.uint_value, false);
+                        break;
+
+                    case AMQP_TYPE_ULONG:
+                        if (array_type == AMQP_TYPE_UNKNOWN)
+                        {
+                            result = encode_ulong_constructor(encoder_output, context, false);
+                            if (result != 0)
+                            {
+                                break;
+                            }
+                        }
+                        array_type = AMQP_TYPE_ULONG;
+                        result = encode_ulong_value(encoder_output, context, value_data->value.ulong_value, false);
+                        break;
+
+                    case AMQP_TYPE_BYTE:
+                        if (array_type == AMQP_TYPE_UNKNOWN)
+                        {
+                            result = encode_byte_constructor(encoder_output, context);
+                            if (result != 0)
+                            {
+                                break;
+                            }
+                        }
+                        array_type = AMQP_TYPE_BYTE;
+                        result = encode_byte_value(encoder_output, context, value_data->value.byte_value);
+                        break;
+
+                    case AMQP_TYPE_SHORT:
+                        if (array_type == AMQP_TYPE_UNKNOWN)
+                        {
+                            result = encode_short_constructor(encoder_output, context);
+                            if (result != 0)
+                            {
+                                break;
+                            }
+                        }
+                        array_type = AMQP_TYPE_SHORT;
+                        result = encode_short_value(encoder_output, context, value_data->value.short_value);
+                        break;
+
+                    case AMQP_TYPE_INT:
+                        if (array_type == AMQP_TYPE_UNKNOWN)
+                        {
+                            result = encode_int_constructor(encoder_output, context, false);
+                            if (result != 0)
+                            {
+                                break;
+                            }
+                        }
+                        array_type = AMQP_TYPE_INT;
+                        result = encode_int_value(encoder_output, context, value_data->value.int_value, false);
+                        break;
+
+                    case AMQP_TYPE_LONG:
+                        if (array_type == AMQP_TYPE_UNKNOWN)
+                        {
+                            result = encode_long_constructor(encoder_output, context, false);
+                            if (result != 0)
+                            {
+                                break;
+                            }
+                        }
+                        array_type = AMQP_TYPE_LONG;
+                        result = encode_long_value(encoder_output, context, value_data->value.long_value, false);
+                        break;
+
+                    case AMQP_TYPE_FLOAT:
+                        if (array_type == AMQP_TYPE_UNKNOWN)
+                        {
+                            result = encode_float_constructor(encoder_output, context);
+                            if (result != 0)
+                            {
+                                break;
+                            }
+                        }
+                        array_type = AMQP_TYPE_FLOAT;
+                        result = encode_float_value(encoder_output, context, value_data->value.float_value);
+                        break;
+
+                    case AMQP_TYPE_DOUBLE:
+                        if (array_type == AMQP_TYPE_UNKNOWN)
+                        {
+                            result = encode_double_constructor(encoder_output, context);
+                            if (result != 0)
+                            {
+                                break;
+                            }
+                        }
+                        array_type = AMQP_TYPE_DOUBLE;
+                        result = encode_double_value(encoder_output, context, value_data->value.double_value);
+                        break;
+
+                    case AMQP_TYPE_TIMESTAMP:
+                        if (array_type == AMQP_TYPE_UNKNOWN)
+                        {
+                            result = encode_timestamp_constructor(encoder_output, context);
+                            if (result != 0)
+                            {
+                                break;
+                            }
+                        }
+                        array_type = AMQP_TYPE_TIMESTAMP;
+                        result = encode_timestamp_value(encoder_output, context, value_data->value.timestamp_value);
+                        break;
+
+                    case AMQP_TYPE_UUID:
+                        if (array_type == AMQP_TYPE_UNKNOWN)
+                        {
+                            result = encode_uuid_constructor(encoder_output, context);
+                            if (result != 0)
+                            {
+                                break;
+                            }
+                        }
+                        array_type = AMQP_TYPE_UUID;
+                        result = encode_uuid_value(encoder_output, context, value_data->value.uuid_value);
+                        break;
+
+                    case AMQP_TYPE_BINARY:
+                        if (array_type == AMQP_TYPE_UNKNOWN)
+                        {
+                            result = encode_binary_constructor(encoder_output, context, false);
+                            if (result != 0)
+                            {
+                                break;
+                            }
+                        }
+                        array_type = AMQP_TYPE_BINARY;
+                        result = encode_binary_value(encoder_output, context, (const unsigned char*)value_data->value.binary_value.bytes, value_data->value.binary_value.length, false);
+                        break;
+
+                    case AMQP_TYPE_STRING:
+                        if (array_type == AMQP_TYPE_UNKNOWN)
+                        {
+                            result = encode_string_constructor(encoder_output, context, false);
+                            if (result != 0)
+                            {
+                                break;
+                            }
+                        }
+                        array_type = AMQP_TYPE_STRING;
+                        result = encode_string_value(encoder_output, context, value_data->value.string_value.chars, strlen(value_data->value.string_value.chars), false);
+                        break;
+
+                    case AMQP_TYPE_SYMBOL:
+                        if (array_type == AMQP_TYPE_UNKNOWN)
+                        {
+                            result = encode_symbol_constructor(encoder_output, context, false);
+                            if (result != 0)
+                            {
+                                break;
+                            }
+                        }
+                        array_type = AMQP_TYPE_STRING;
+                        result = encode_symbol_value(encoder_output, context, value_data->value.symbol_value.chars, strlen(value_data->value.symbol_value.chars), false);
+                        break;
+                }
             }
         }
     }

@@ -999,7 +999,7 @@ AMQP_VALUE amqpvalue_create_binary(amqp_binary value)
             {
                 /* Codes_SRS_AMQPVALUE_01_128: [If allocating the AMQP_VALUE fails then amqpvalue_create_binary shall return NULL.] */
                 LogError("Could not allocate memory for binary payload of AMQP value");
-                free(result);
+                REFCOUNT_TYPE_DESTROY(AMQP_VALUE_DATA, result);
                 result = NULL;
             }
             else
@@ -1077,7 +1077,7 @@ AMQP_VALUE amqpvalue_create_string(const char* value)
             {
                 /* Codes_SRS_AMQPVALUE_01_136: [If allocating the AMQP_VALUE fails then amqpvalue_create_string shall return NULL.] */
                 LogError("Could not allocate memory for string AMQP value");
-                free(result);
+                REFCOUNT_TYPE_DESTROY(AMQP_VALUE_DATA, result);
                 result = NULL;
             }
             else
@@ -1161,7 +1161,7 @@ AMQP_VALUE amqpvalue_create_symbol(const char* value)
                 if (result->value.symbol_value.chars == NULL)
                 {
                     LogError("Cannot allocate memory for symbol string");
-                    free(result);
+                    REFCOUNT_TYPE_DESTROY(AMQP_VALUE_DATA, result);
                     result = NULL;
                 }
                 else
@@ -3471,7 +3471,7 @@ void amqpvalue_destroy(AMQP_VALUE value)
             /* Codes_SRS_AMQPVALUE_01_314: [amqpvalue_destroy shall free all resources allocated by any of the amqpvalue_create_xxx functions or amqpvalue_clone.] */
             AMQP_VALUE_DATA* value_data = (AMQP_VALUE_DATA*)value;
             amqpvalue_clear(value_data);
-            free(value);
+            REFCOUNT_TYPE_DESTROY(AMQP_VALUE_DATA, value);
         }
     }
 }
@@ -5534,7 +5534,7 @@ AMQPVALUE_DECODER_HANDLE amqpvalue_decoder_create(ON_VALUE_DECODED on_value_deco
                 {
                     /* Codes_SRS_AMQPVALUE_01_313: [If creating the decoder fails, amqpvalue_decoder_create shall return NULL.] */
                     LogError("Could not create the internal decoder");
-                    free(decoder_instance->decode_to_value);
+                    REFCOUNT_TYPE_DESTROY(AMQP_VALUE_DATA, decoder_instance->decode_to_value);
                     free(decoder_instance);
                     decoder_instance = NULL;
                 }
@@ -5684,7 +5684,7 @@ AMQP_VALUE amqpvalue_create_composite(AMQP_VALUE descriptor, uint32_t list_size)
         if (result->value.described_value.descriptor == NULL)
         {
             LogError("Cannot clone descriptor for composite type");
-            free(result);
+            REFCOUNT_TYPE_DESTROY(AMQP_VALUE_DATA, result);
             result = NULL;
         }
         else
@@ -5694,7 +5694,7 @@ AMQP_VALUE amqpvalue_create_composite(AMQP_VALUE descriptor, uint32_t list_size)
             {
                 LogError("Cannot create list for composite type");
                 amqpvalue_destroy(result->value.described_value.descriptor);
-                free(result);
+                REFCOUNT_TYPE_DESTROY(AMQP_VALUE_DATA, result);
                 result = NULL;
             }
             else
@@ -5704,7 +5704,7 @@ AMQP_VALUE amqpvalue_create_composite(AMQP_VALUE descriptor, uint32_t list_size)
                     LogError("Cannot set list item count for composite type");
                     amqpvalue_destroy(result->value.described_value.descriptor);
                     amqpvalue_destroy(result->value.described_value.value);
-                    free(result);
+                    REFCOUNT_TYPE_DESTROY(AMQP_VALUE_DATA, result);
                     result = NULL;
                 }
             }
@@ -5727,7 +5727,7 @@ AMQP_VALUE amqpvalue_create_composite_with_ulong_descriptor(uint64_t descriptor)
         if (descriptor_ulong_value == NULL)
         {
             LogError("Cannot create ulong descriptor for composite type");
-            free(result);
+            REFCOUNT_TYPE_DESTROY(AMQP_VALUE_DATA, result);
             result = NULL;
         }
         else
@@ -5739,7 +5739,7 @@ AMQP_VALUE amqpvalue_create_composite_with_ulong_descriptor(uint64_t descriptor)
             {
                 LogError("Cannot create list for composite type");
                 amqpvalue_destroy(descriptor_ulong_value);
-                free(result);
+                REFCOUNT_TYPE_DESTROY(AMQP_VALUE_DATA, result);
                 result = NULL;
             }
         }

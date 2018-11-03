@@ -2524,22 +2524,7 @@ static int encode_uint_value(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* cont
 {
     int result;
 
-    if (value == 0)
-    {
-        /* uint0 */
-        /* Codes_SRS_AMQPVALUE_01_279: [<encoding name="uint0" code="0x43" category="fixed" width="0" label="the uint value 0"/>] */
-        if (output_byte(encoder_output, context, 0x43) != 0)
-        {
-            LogError("Failed encoding uint");
-            result = __FAILURE__;
-        }
-        else
-        {
-            /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
-            result = 0;
-        }
-    }
-    else if (use_smallest)
+    if (use_smallest)
     {
         /* smalluint */
         /* Codes_SRS_AMQPVALUE_01_278: [<encoding name="smalluint" code="0x52" category="fixed" width="1" label="unsigned integer value in the range 0 to 255 inclusive"/>] */
@@ -4476,193 +4461,145 @@ int amqpvalue_encode_array_item(AMQP_VALUE item, bool first_element, AMQPVALUE_E
                 break;
 
             case AMQP_TYPE_BOOL:
-                if (first_element)
+                if ((first_element) && (encode_boolean_constructor(encoder_output, context) != 0))
                 {
-                    if (encode_boolean_constructor(encoder_output, context) != 0)
-                    {
-                        result = __FAILURE__;
-                        break;
-                    }
+                    result = __FAILURE__;
+                    break;
                 }
                 result = encode_boolean_value(encoder_output, context, value_data->value.bool_value);
                 break;
 
             case AMQP_TYPE_UBYTE:
-                if (first_element)
+                if ((first_element) && (encode_ubyte_constructor(encoder_output, context) != 0))
                 {
-                    if (encode_ubyte_constructor(encoder_output, context) != 0)
-                    {
-                        result = __FAILURE__;
-                        break;
-                    }
+                    result = __FAILURE__;
+                    break;
                 }
                 result = encode_ubyte_value(encoder_output, context, value_data->value.ubyte_value);
                 break;
 
             case AMQP_TYPE_USHORT:
-                if (first_element)
+                if ((first_element) && (encode_ushort_constructor(encoder_output, context) != 0))
                 {
-                    if (encode_ushort_constructor(encoder_output, context) != 0)
-                    {
-                        result = __FAILURE__;
-                        break;
-                    }
+                    result = __FAILURE__;
+                    break;
                 }
                 result = encode_ushort_value(encoder_output, context, value_data->value.ushort_value);
                 break;
 
             case AMQP_TYPE_UINT:
-                if (first_element)
+                if ((first_element) && (encode_uint_constructor(encoder_output, context, false) != 0))
                 {
-                    if (encode_uint_constructor(encoder_output, context, false) != 0)
-                    {
-                        result = __FAILURE__;
-                        break;
-                    }
+                    result = __FAILURE__;
+                    break;
                 }
                 result = encode_uint_value(encoder_output, context, value_data->value.uint_value, false);
                 break;
 
             case AMQP_TYPE_ULONG:
-                if (first_element)
+                if ((first_element) && (encode_ulong_constructor(encoder_output, context, false) != 0))
                 {
-                    if (encode_ulong_constructor(encoder_output, context, false) != 0)
-                    {
-                        result = __FAILURE__;
-                        break;
-                    }
+                    result = __FAILURE__;
+                    break;
                 }
                 result = encode_ulong_value(encoder_output, context, value_data->value.ulong_value, false);
                 break;
 
             case AMQP_TYPE_BYTE:
-                if (first_element)
+                if ((first_element) && (encode_byte_constructor(encoder_output, context) != 0))
                 {
-                    if (encode_byte_constructor(encoder_output, context) != 0)
-                    {
-                        result = __FAILURE__;
-                        break;
-                    }
+                    result = __FAILURE__;
+                    break;
                 }
                 result = encode_byte_value(encoder_output, context, value_data->value.byte_value);
                 break;
 
             case AMQP_TYPE_SHORT:
-                if (first_element)
+                if ((first_element) && (encode_short_constructor(encoder_output, context) != 0))
                 {
-                    if (encode_short_constructor(encoder_output, context) != 0)
-                    {
-                        result = __FAILURE__;
-                        break;
-                    }
+                    result = __FAILURE__;
+                    break;
                 }
                 result = encode_short_value(encoder_output, context, value_data->value.short_value);
                 break;
 
             case AMQP_TYPE_INT:
-                if (first_element)
+                if ((first_element) && (encode_int_constructor(encoder_output, context, false) != 0))
                 {
-                    if (encode_int_constructor(encoder_output, context, false) != 0)
-                    {
-                        result = __FAILURE__;
-                        break;
-                    }
+                    result = __FAILURE__;
+                    break;
                 }
                 result = encode_int_value(encoder_output, context, value_data->value.int_value, false);
                 break;
 
             case AMQP_TYPE_LONG:
-                if (first_element)
+                if ((first_element) && (encode_long_constructor(encoder_output, context, false) != 0))
                 {
-                    if (encode_long_constructor(encoder_output, context, false) != 0)
-                    {
-                        result = __FAILURE__;
-                        break;
-                    }
+                    result = __FAILURE__;
+                    break;
                 }
                 result = encode_long_value(encoder_output, context, value_data->value.long_value, false);
                 break;
 
             case AMQP_TYPE_FLOAT:
-                if (first_element)
+                if ((first_element) && (encode_float_constructor(encoder_output, context) != 0))
                 {
-                    if (encode_float_constructor(encoder_output, context) != 0)
-                    {
-                        result = __FAILURE__;
-                        break;
-                    }
+                    result = __FAILURE__;
+                    break;
                 }
                 result = encode_float_value(encoder_output, context, value_data->value.float_value);
                 break;
 
             case AMQP_TYPE_DOUBLE:
-                if (first_element)
+                if ((first_element) && (encode_double_constructor(encoder_output, context) != 0))
                 {
-                    if (encode_double_constructor(encoder_output, context) != 0)
-                    {
-                        result = __FAILURE__;
-                        break;
-                    }
+                    result = __FAILURE__;
+                    break;
                 }
                 result = encode_double_value(encoder_output, context, value_data->value.double_value);
                 break;
 
             case AMQP_TYPE_TIMESTAMP:
-                if (first_element)
+                if ((first_element) && (encode_timestamp_constructor(encoder_output, context) != 0))
                 {
-                    if (encode_timestamp_constructor(encoder_output, context) != 0)
-                    {
-                        result = __FAILURE__;
-                        break;
-                    }
+                    result = __FAILURE__;
+                    break;
                 }
                 result = encode_timestamp_value(encoder_output, context, value_data->value.timestamp_value);
                 break;
 
             case AMQP_TYPE_UUID:
-                if (first_element)
+                if ((first_element) && (encode_uuid_constructor(encoder_output, context) != 0))
                 {
-                    if (encode_uuid_constructor(encoder_output, context) != 0)
-                    {
-                        result = __FAILURE__;
-                        break;
-                    }
+                    result = __FAILURE__;
+                    break;
                 }
                 result = encode_uuid_value(encoder_output, context, value_data->value.uuid_value);
                 break;
 
             case AMQP_TYPE_BINARY:
-                if (first_element)
+                if ((first_element) && (encode_binary_constructor(encoder_output, context, false) != 0))
                 {
-                    if (encode_binary_constructor(encoder_output, context, false) != 0)
-                    {
-                        result = __FAILURE__;
-                        break;
-                    }
+                    result = __FAILURE__;
+                    break;
                 }
                 result = encode_binary_value(encoder_output, context, (const unsigned char*)value_data->value.binary_value.bytes, value_data->value.binary_value.length, false);
                 break;
 
             case AMQP_TYPE_STRING:
-                if (first_element)
+                if ((first_element) && (encode_string_constructor(encoder_output, context, false) != 0))
                 {
-                    if (encode_string_constructor(encoder_output, context, false) != 0)
-                    {
-                        result = __FAILURE__;
-                        break;
-                    }
+                    result = __FAILURE__;
+                    break;
                 }
                 result = encode_string_value(encoder_output, context, value_data->value.string_value.chars, strlen(value_data->value.string_value.chars), false);
                 break;
 
             case AMQP_TYPE_SYMBOL:
-                if (first_element)
+                if ((first_element) && (encode_symbol_constructor(encoder_output, context, false) != 0))
                 {
-                    if (encode_symbol_constructor(encoder_output, context, false) != 0)
-                    {
-                        result = __FAILURE__;
-                        break;
-                    }
+                    result = __FAILURE__;
+                    break;
                 }
                 result = encode_symbol_value(encoder_output, context, value_data->value.symbol_value.chars, strlen(value_data->value.symbol_value.chars), false);
                 break;
@@ -4670,15 +4607,11 @@ int amqpvalue_encode_array_item(AMQP_VALUE item, bool first_element, AMQPVALUE_E
             case AMQP_TYPE_LIST:
                 uint32_t list_size;
         
-                if (first_element)
+                if ((first_element) && (encode_list_constructor(encoder_output, context, false) != 0))
                 {
-                    if (encode_list_constructor(encoder_output, context, false) != 0)
-                    {
-                        result = __FAILURE__;
-                        break;
-                    }
+                    result = __FAILURE__;
                 }
-                if (amqpvalue_get_encoded_list_size(value_data->value.list_value.items, value_data->value.list_value.count, &list_size) != 0)
+                else if (amqpvalue_get_encoded_list_size(value_data->value.list_value.items, value_data->value.list_value.count, &list_size) != 0)
                 {
                     result = __FAILURE__;
                 }
@@ -4691,15 +4624,11 @@ int amqpvalue_encode_array_item(AMQP_VALUE item, bool first_element, AMQPVALUE_E
             case AMQP_TYPE_MAP:
                 uint32_t map_size;
         
-                if (first_element)
+                if ((first_element) && (encode_map_constructor(encoder_output, context, false) != 0))
                 {
-                    if (encode_map_constructor(encoder_output, context, false) != 0)
-                    {
-                        result = __FAILURE__;
-                        break;
-                    }
+                    result = __FAILURE__;
                 }
-                if (amqpvalue_get_encoded_map_size(value_data->value.map_value.pairs, value_data->value.map_value.pair_count, &map_size) != 0)
+                else if (amqpvalue_get_encoded_map_size(value_data->value.map_value.pairs, value_data->value.map_value.pair_count, &map_size) != 0)
                 {
                     result = __FAILURE__;
                 }
@@ -4712,15 +4641,11 @@ int amqpvalue_encode_array_item(AMQP_VALUE item, bool first_element, AMQPVALUE_E
             case AMQP_TYPE_ARRAY:
                 uint32_t array_size;
         
-                if (first_element)
+                if ((first_element) && (encode_array_constructor(encoder_output, context, false) != 0))
                 {
-                    if (encode_array_constructor(encoder_output, context, false) != 0)
-                    {
-                        result = __FAILURE__;
-                        break;
-                    }
+                    result = __FAILURE__;
                 }
-                if (amqpvalue_get_encoded_array_size(value_data->value.array_value.items, value_data->value.array_value.count, &array_size) != 0)
+                else if (amqpvalue_get_encoded_array_size(value_data->value.array_value.items, value_data->value.array_value.count, &array_size) != 0)
                 {
                     result = __FAILURE__;
                 }

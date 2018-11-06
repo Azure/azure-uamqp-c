@@ -4204,7 +4204,7 @@ static int amqpvalue_get_encoded_array_size(AMQP_VALUE* items, uint32_t count, u
             if (*encoded_size > count)
             {
                 /* Include a single constructor byte in the size calculation where array items require a constructor. */
-                *encoded_size++;
+                (*encoded_size)++;
             }
             result = 0;
         }
@@ -4657,8 +4657,9 @@ static int amqpvalue_encode_array_item(AMQP_VALUE item, bool first_element, AMQP
                 break;
 
             case AMQP_TYPE_LIST:
+            {
                 uint32_t list_size;
-        
+
                 if ((first_element) && (encode_list_constructor(encoder_output, context, false) != 0))
                 {
                     result = __FAILURE__;
@@ -4672,10 +4673,12 @@ static int amqpvalue_encode_array_item(AMQP_VALUE item, bool first_element, AMQP
                     result = encode_list_value(encoder_output, context, value_data->value.list_value.count, list_size, value_data->value.list_value.items, false);
                 }
                 break;
+            }
 
             case AMQP_TYPE_MAP:
+            {
                 uint32_t map_size;
-        
+
                 if ((first_element) && (encode_map_constructor(encoder_output, context, false) != 0))
                 {
                     result = __FAILURE__;
@@ -4689,10 +4692,12 @@ static int amqpvalue_encode_array_item(AMQP_VALUE item, bool first_element, AMQP
                     result = encode_map_value(encoder_output, context, value_data->value.map_value.pair_count, map_size, value_data->value.map_value.pairs, false);
                 }
                 break;
+            }
 
             case AMQP_TYPE_ARRAY:
+            {
                 uint32_t array_size;
-        
+
                 if ((first_element) && (encode_array_constructor(encoder_output, context, false) != 0))
                 {
                     result = __FAILURE__;
@@ -4706,6 +4711,7 @@ static int amqpvalue_encode_array_item(AMQP_VALUE item, bool first_element, AMQP
                     result = encode_array_value(encoder_output, context, value_data->value.array_value.count, array_size, value_data->value.array_value.items, false);
                 }
                 break;
+            }
         }
     }
     return result;

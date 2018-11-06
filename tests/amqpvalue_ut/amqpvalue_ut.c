@@ -9328,7 +9328,7 @@ TEST_FUNCTION(amqpvalue_encode_array_with_2_long_item_succeeds)
     amqpvalue_add_array_item(source, item);
     amqpvalue_add_array_item(source, item);
     amqpvalue_destroy(item);
-    test_amqpvalue_encode(source, "[0xE0,0x11,0x02,0x81,0x7F,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0x7F,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF]");
+    test_amqpvalue_encode(source, "[0xE0,0x12,0x02,0x81,0x7F,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0x7F,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF]");
 }
 
 /* Tests_SRS_AMQPVALUE_01_398: [<encoding name="array8" code="0xe0" category="array" width="1" label="up to 2^8 - 1 array elements with total size less than 2^8 octets"/>] */
@@ -9339,7 +9339,7 @@ TEST_FUNCTION(amqpvalue_encode_array_with_2_empty_lists_succeeds)
     amqpvalue_add_array_item(source, item);
     amqpvalue_add_array_item(source, item);
     amqpvalue_destroy(item);
-    test_amqpvalue_encode(source, "[0xE0,0x11,0x02,0xD0,0x00,0x00,0x00,0x04,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x04,0x00,0x00,0x00,0x00]");
+    test_amqpvalue_encode(source, "[0xE0,0x12,0x02,0xD0,0x00,0x00,0x00,0x04,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x04,0x00,0x00,0x00,0x00]");
 }
 
 /* Tests_SRS_AMQPVALUE_01_398: [<encoding name="array8" code="0xe0" category="array" width="1" label="up to 2^8 - 1 array elements with total size less than 2^8 octets"/>] */
@@ -9348,7 +9348,7 @@ TEST_FUNCTION(amqpvalue_encode_array_with_8_uuid_item_succeeds)
     AMQP_VALUE source = amqpvalue_create_array();
     uuid uuid = { 0 };
     AMQP_VALUE item = amqpvalue_create_uuid(uuid);
-    unsigned char expected_bytes[128 + 4] = { 0xE0, 0x81, 0x08, 0x98 };
+    unsigned char expected_bytes[128 + 4] = { 0xE0, 0x82, 0x08, 0x98 };
     int i;
     for (i = 0; i < 8; i++)
     {
@@ -9397,8 +9397,8 @@ TEST_FUNCTION(when_encoder_output_fails_then_amqpvalue_encode_array_with_255_nul
 TEST_FUNCTION(amqpvalue_encode_array_1_item_with_254_bytes_succeeds)
 {
     AMQP_VALUE source = amqpvalue_create_array();
-    unsigned char bytes[250] = { 0 };
-    unsigned char expected_bytes[250 + 8] = { 0xE0, 0xFF, 0x01, 0xB0, 0x00, 0x00, 0x00, 0xFA };
+    unsigned char bytes[249] = { 0 };
+    unsigned char expected_bytes[249 + 8] = { 0xE0, 0xFF, 0x01, 0xB0, 0x00, 0x00, 0x00, 0xF9 };
     int i;
     amqp_binary binary;
     AMQP_VALUE item;
@@ -9407,7 +9407,7 @@ TEST_FUNCTION(amqpvalue_encode_array_1_item_with_254_bytes_succeeds)
     item = amqpvalue_create_binary(binary);
     amqpvalue_add_array_item(source, item);
     amqpvalue_destroy(item);
-    for (i = 0; i < 250; i++)
+    for (i = 0; i < 249; i++)
     {
         expected_bytes[i + 8] = 0;
     }
@@ -9419,8 +9419,8 @@ TEST_FUNCTION(amqpvalue_encode_array_1_item_with_254_bytes_succeeds)
 TEST_FUNCTION(amqpvalue_encode_array_1_item_with_255_bytes_succeeds)
 {
     AMQP_VALUE source = amqpvalue_create_array();
-    unsigned char bytes[251] = { 0 };
-    unsigned char expected_bytes[251 + 14] = { 0xF0, 0x00, 0x00, 0x01, 0x03, 0x00, 0x00, 0x00, 0x01, 0xB0, 0x00, 0x00, 0x00, 0xFB };
+    unsigned char bytes[250] = { 0 };
+    unsigned char expected_bytes[250 + 14] = { 0xF0, 0x00, 0x00, 0x01, 0x03, 0x00, 0x00, 0x00, 0x01, 0xB0, 0x00, 0x00, 0x00, 0xFA };
     int i;
     amqp_binary binary;
     AMQP_VALUE item;
@@ -9429,7 +9429,7 @@ TEST_FUNCTION(amqpvalue_encode_array_1_item_with_255_bytes_succeeds)
     item = amqpvalue_create_binary(binary);
     amqpvalue_add_array_item(source, item);
     amqpvalue_destroy(item);
-    for (i = 0; i < 251; i++)
+    for (i = 0; i < 250; i++)
     {
         expected_bytes[i + 14] = 0;
     }

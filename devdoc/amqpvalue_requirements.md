@@ -81,8 +81,6 @@
 
     MOCKABLE_FUNCTION(, int, amqpvalue_encode, AMQP_VALUE, value, AMQPVALUE_ENCODER_OUTPUT, encoder_output, void*, context);
     MOCKABLE_FUNCTION(, int, amqpvalue_get_encoded_size, AMQP_VALUE, value, size_t*, encoded_size);
-    MOCKABLE_FUNCTION(, int, amqpvalue_encode_array_item, AMQP_VALUE, item, bool, first_element, AMQPVALUE_ENCODER_OUTPUT, encoder_output, void*, context);
-    MOCKABLE_FUNCTION(, int, amqpvalue_get_encoded_array_item_size, AMQP_VALUE, item, size_t*, encoded_size);
 
     /* decoding */
     typedef struct AMQPVALUE_DECODER_HANDLE_DATA_TAG* AMQPVALUE_DECODER_HANDLE;
@@ -756,29 +754,6 @@ MOCKABLE_FUNCTION(, int, amqpvalue_get_encoded_size, AMQP_VALUE, value, size_t*,
 
 **SRS_AMQPVALUE_01_308: [**amqpvalue_get_encoded_size shall fill in the encoded_size argument the number of bytes required to encode the given AMQP value.**]**
 **SRS_AMQPVALUE_01_309: [**If any argument is NULL, amqpvalue_get_encoded_size shall return a non-zero value.**]** 
-
-### amqpvalue_encode_array_item
-
-```C
-MOCKABLE_FUNCTION(, int, amqpvalue_encode_array_item, AMQP_VALUE, item, bool, first_element, AMQPVALUE_ENCODER_OUTPUT, encoder_output, void*, context);
-```
-
-**SRS_AMQPVALUE_01_429: [**amqpvalue_encode_array_item shall encode the value per the ISO with the constructor byte as optional per the first_element argument. Encoding will use the largest available descriptor.**]**
-**SRS_AMQPVALUE_01_430: [**On success amqpvalue_encode_array_item shall return 0.**]**
-**SRS_AMQPVALUE_01_431: [**amqpvalue_encode_array_item shall pass the encoded bytes to the encoder_output function.**]**
-**SRS_AMQPVALUE_01_432: [**On each call to the encoder_output function, amqpvalue_encode_array_item shall also pass the context argument.**]**
-**SRS_AMQPVALUE_01_433: [**If item or encoder_output are NULL, amqpvalue_encode_array_item shall fail and return a non-zero value.**]**
-**SRS_AMQPVALUE_01_434: [**When the encoder output function fails, amqpvalue_encode_array_item shall fail and return a non-zero value.**]**
-**SRS_AMQPVALUE_01_435: [**If encoding fails due to any error not specifically mentioned here, it shall return a non-zero value.**]** 
-
-### amqpvalue_get_encoded_array_item_size
-
-```C
-MOCKABLE_FUNCTION(, int, amqpvalue_get_encoded_array_item_size, AMQP_VALUE, item, size_t*, encoded_size);
-```
-
-**SRS_AMQPVALUE_01_436: [**amqpvalue_get_encoded_array_item_size shall fill in the encoded_size argument the number of bytes required to encode the given AMQP value without including the constructor byte. Encoding will use the largest available descriptor.**]**
-**SRS_AMQPVALUE_01_436: [**If any argument is NULL, amqpvalue_get_encoded_array_item_size shall return a non-zero value.**]** 
 
 ### amqpvalue_decoder_create
 

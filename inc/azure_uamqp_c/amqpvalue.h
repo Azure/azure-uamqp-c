@@ -92,8 +92,6 @@ extern "C" {
 
     MOCKABLE_FUNCTION(, int, amqpvalue_encode, AMQP_VALUE, value, AMQPVALUE_ENCODER_OUTPUT, encoder_output, void*, context);
     MOCKABLE_FUNCTION(, int, amqpvalue_get_encoded_size, AMQP_VALUE, value, size_t*, encoded_size);
-    MOCKABLE_FUNCTION(, int, amqpvalue_encode_array_item, AMQP_VALUE, item, bool, first_element, AMQPVALUE_ENCODER_OUTPUT, encoder_output, void*, context);
-    MOCKABLE_FUNCTION(, int, amqpvalue_get_encoded_array_item_size, AMQP_VALUE, item, size_t*, encoded_size);
 
     /* decoding */
     typedef struct AMQPVALUE_DECODER_HANDLE_DATA_TAG* AMQPVALUE_DECODER_HANDLE;

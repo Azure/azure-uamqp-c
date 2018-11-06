@@ -196,6 +196,9 @@ typedef struct AMQPVALUE_DECODER_HANDLE_DATA_TAG
     AMQP_VALUE_DATA* decode_to_value;
 } AMQPVALUE_DECODER_HANDLE_DATA;
 
+static int amqpvalue_encode_array_item(AMQP_VALUE item, bool first_element, AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context);
+static int amqpvalue_get_encoded_array_item_size(AMQP_VALUE item, size_t* encoded_size);
+
 /* Codes_SRS_AMQPVALUE_01_003: [1.6.1 null Indicates an empty value.] */
 AMQP_VALUE amqpvalue_create_null(void)
 {
@@ -2268,6 +2271,56 @@ static int output_bytes(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, 
     return result;
 }
 
+static int encode_null_constructor(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context)
+{
+    int result;
+
+    /* Codes_SRS_AMQPVALUE_01_264: [<encoding code="0x40" category="fixed" width="0" label="the null value"/>] */
+    if (output_byte(encoder_output, context, (unsigned char)0x40) != 0)
+    {
+        /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+        LogError("Failed encoding NULL constructor");
+        result = __FAILURE__;
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+        result = 0;
+    }
+
+    return result;
+}
+
+static int encode_null_value(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context)
+{
+    int result = 0;
+    (void)encoder_output;
+    (void)context;
+
+    /* Codes_SRS_AMQPVALUE_01_264: [<encoding code="0x40" category="fixed" width="0" label="the null value"/>] */
+    return result;
+}
+
+static int encode_null(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context)
+{
+    int result;
+
+    if ((encode_null_constructor(encoder_output, context) != 0) ||
+        (encode_null_value(encoder_output, context) != 0))
+    {
+        /* Codes_SRS_AMQPVALUE_01_274: [When the encoder output function fails, amqpvalue_encode shall fail and return a non-zero value.] */
+        LogError("Failed encoding NULL");
+        result = __FAILURE__;
+    }
+    else
+    {
+        /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
+        result = 0;
+    }
+
+    return result;
+}
+
 static int encode_boolean_constructor(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context)
 {
     int result;
@@ -4326,9 +4379,8 @@ int amqpvalue_encode(AMQP_VALUE value, AMQPVALUE_ENCODER_OUTPUT encoder_output, 
             break;
 
         case AMQP_TYPE_NULL:
-            /* Codes_SRS_AMQPVALUE_01_264: [<encoding code="0x40" category="fixed" width="0" label="the null value"/>] */
             /* Codes_SRS_AMQPVALUE_01_266: [On success amqpvalue_encode shall return 0.] */
-            result = output_byte(encoder_output, context, (unsigned char)0x40);
+            result = encode_null(encoder_output, context);
             break;
 
         case AMQP_TYPE_BOOL:
@@ -4430,12 +4482,10 @@ int amqpvalue_encode(AMQP_VALUE value, AMQPVALUE_ENCODER_OUTPUT encoder_output, 
     return result;
 }
 
-/* Codes_SRS_AMQPVALUE_01_429: [amqpvalue_encode_array_item shall encode the item per the ISO with the constructor byte as optional per the first_element argument. Encoding will use the largest available descriptor.] */
-int amqpvalue_encode_array_item(AMQP_VALUE item, bool first_element, AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context)
+static int amqpvalue_encode_array_item(AMQP_VALUE item, bool first_element, AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context)
 {
     int result;
 
-    /* Codes_SRS_AMQPVALUE_01_433: [If item or encoder_output are NULL, amqpvalue_encode_array_item shall fail and return a non-zero value.] */
     if ((item == NULL) ||
         (encoder_output == NULL))
     {
@@ -4449,15 +4499,17 @@ int amqpvalue_encode_array_item(AMQP_VALUE item, bool first_element, AMQPVALUE_E
         switch (value_data->type)
         {
             default:
-                /* Codes_SRS_AMQPVALUE_01_435: [If encoding fails due to any error not specifically mentioned here, it shall return a non-zero value.] */
                 LogError("Unsupported array type: %d", (int)value_data->type);
                 result = __FAILURE__;
                 break;
 
             case AMQP_TYPE_NULL:
-                /* Codes_SRS_AMQPVALUE_01_264: [<encoding code="0x40" category="fixed" width="0" label="the null value"/>] */
-                /* Codes_SRS_AMQPVALUE_01_430: [On success amqpvalue_encode_array_item shall return 0.] */
-                result = output_byte(encoder_output, context, (unsigned char)0x40);
+                if ((first_element) && (encode_null_constructor(encoder_output, context) != 0))
+                {
+                    result = __FAILURE__;
+                    break;
+                }
+                result = encode_null_value(encoder_output, context);
                 break;
 
             case AMQP_TYPE_BOOL:
@@ -4692,12 +4744,10 @@ int amqpvalue_get_encoded_size(AMQP_VALUE value, size_t* encoded_size)
     return result;
 }
 
-/* Codes_SRS_AMQPVALUE_01_435: [amqpvalue_get_encoded_array_item_size shall fill in the encoded_size argument the number of bytes required to encode the given AMQP value without including the constructor byte. Encoding will use the largest available descriptor.] */
-int amqpvalue_get_encoded_array_item_size(AMQP_VALUE item, size_t* encoded_size)
+static int amqpvalue_get_encoded_array_item_size(AMQP_VALUE item, size_t* encoded_size)
 {
     int result;
 
-    /* Codes_SRS_AMQPVALUE_01_436: [If any argument is NULL, amqpvalue_get_encoded_array_item_size shall return a non-zero value.] */
     if ((item == NULL) ||
         (encoded_size == NULL))
     {
@@ -4712,7 +4762,6 @@ int amqpvalue_get_encoded_array_item_size(AMQP_VALUE item, size_t* encoded_size)
 
     return result;
 }
-
 
 static void amqpvalue_clear(AMQP_VALUE_DATA* value_data)
 {
@@ -6744,7 +6793,6 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                         {
                             INTERNAL_DECODER_DATA* inner_decoder = (INTERNAL_DECODER_DATA*)internal_decoder_data->inner_decoder;
                             internal_decoder_data->bytes_decoded += inner_used_bytes;
-                            buffer += inner_used_bytes;
                             size -= inner_used_bytes;
 
                             if (inner_decoder->decoder_state == DECODER_STATE_DONE)
@@ -6755,6 +6803,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                                 internal_decoder_data->decode_value_state.array_value_state.item++;
                                 if (internal_decoder_data->decode_value_state.array_value_state.item == internal_decoder_data->decode_to_value->value.array_value.count)
                                 {
+                                    buffer += inner_used_bytes;
                                     internal_decoder_data->decoder_state = DECODER_STATE_CONSTRUCTOR;
                                     internal_decoder_data->on_value_decoded(internal_decoder_data->on_value_decoded_context, internal_decoder_data->decode_to_value);
 
@@ -6762,6 +6811,16 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                                 }
                                 else
                                 {
+                                    if ((size == 0) && (inner_used_bytes == 1))
+                                    {
+                                        /* Array items are constructor-only, e.g. NULL Don't increment buffer to account for implied data. */
+                                        size += inner_used_bytes;
+                                        internal_decoder_data->decoder_state = DECODER_STATE_TYPE_DATA;
+                                    }
+                                    else
+                                    {
+                                        buffer += inner_used_bytes;
+                                    }
                                     AMQP_VALUE_DATA* array_item = (AMQP_VALUE_DATA*)REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
                                     if (array_item == NULL)
                                     {
@@ -6797,6 +6856,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                             }
                             else
                             {
+                                buffer += inner_used_bytes;
                                 result = 0;
                             }
                         }

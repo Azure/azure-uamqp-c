@@ -16256,6 +16256,7 @@ TEST_FUNCTION(amqpvalue_decode_array_0xE0_2_long_items_succeeds)
     // cleanup
     amqpvalue_decoder_destroy(amqpvalue_decoder);
     amqpvalue_destroy(item1);
+    amqpvalue_destroy(item2);
 }
 
 /* Tests_SRS_AMQPVALUE_01_397: [1.6.24 array A sequence of values of a single type.] */

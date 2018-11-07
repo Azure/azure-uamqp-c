@@ -6817,6 +6817,8 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                                 }
                                 else
                                 {
+                                    AMQP_VALUE_DATA* array_item;
+
                                     if ((internal_decoder_data->decode_value_state.array_value_state.constructor_byte == 0x40) ||
                                         (internal_decoder_data->decode_value_state.array_value_state.constructor_byte == 0x41) ||
                                         (internal_decoder_data->decode_value_state.array_value_state.constructor_byte == 0x42) ||
@@ -6832,7 +6834,8 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                                     {
                                         buffer += inner_used_bytes;
                                     }
-                                    AMQP_VALUE_DATA* array_item = (AMQP_VALUE_DATA*)REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
+
+                                    array_item = (AMQP_VALUE_DATA*)REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
                                     if (array_item == NULL)
                                     {
                                         LogError("Could not allocate memory for array item");

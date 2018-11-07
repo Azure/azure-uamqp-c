@@ -6817,7 +6817,12 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                                 }
                                 else
                                 {
-                                    if ((size == 0) && (inner_used_bytes == 1))
+                                    if ((internal_decoder_data->decode_value_state.array_value_state.constructor_byte == 0x40) ||
+                                        (internal_decoder_data->decode_value_state.array_value_state.constructor_byte == 0x41) ||
+                                        (internal_decoder_data->decode_value_state.array_value_state.constructor_byte == 0x42) ||
+                                        (internal_decoder_data->decode_value_state.array_value_state.constructor_byte == 0x43) ||
+                                        (internal_decoder_data->decode_value_state.array_value_state.constructor_byte == 0x44) ||
+                                        (internal_decoder_data->decode_value_state.array_value_state.constructor_byte == 0x45))
                                     {
                                         /* Array items are constructor-only, e.g. NULL Don't increment buffer to account for implied data. */
                                         size += inner_used_bytes;

@@ -505,6 +505,14 @@ static void on_frame_received(void* context, AMQP_VALUE performative, uint32_t p
                     {
                         link_endpoint->link_endpoint_state = LINK_ENDPOINT_STATE_ATTACHED;
 
+                        if (session_instance->on_link_attached != NULL)
+                        {
+                            if (!session_instance->on_link_attached(session_instance->on_link_attached_callback_context, link_endpoint, name, role, source, target))
+                            {
+                                link_endpoint->link_endpoint_state = LINK_ENDPOINT_STATE_DETACHING;
+                            }
+                        }
+
                         link_endpoint->frame_received_callback(link_endpoint->callback_context, performative, payload_size, payload_bytes);
                     }
                 }

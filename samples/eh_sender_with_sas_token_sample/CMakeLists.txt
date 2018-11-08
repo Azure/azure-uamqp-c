@@ -1,10 +1,10 @@
 #Copyright (c) Microsoft. All rights reserved.
 #Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-compileAsC99()
-
 add_executable(eh_sender_with_sas_token_sample
 	main.c)
+
+compileTargetAsC99(eh_sender_with_sas_token_sample)
 
 #TODO: link to whatever else the platform has (now for windows it is just ws2_32)
 

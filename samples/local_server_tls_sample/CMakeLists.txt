@@ -1,12 +1,12 @@
 #Copyright (c) Microsoft. All rights reserved.
 #Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-compileAsC99()
-
 add_executable(local_server_tls_sample
 	main.c
         tls_server_io_schannel.c
 )
+
+compileTargetAsC99(local_server_tls_sample)
 
 include_directories(.)
 if (WIN32)

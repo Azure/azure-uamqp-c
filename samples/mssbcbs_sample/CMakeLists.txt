@@ -1,10 +1,10 @@
 #Copyright (c) Microsoft. All rights reserved.
 #Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-compileAsC99()
-
 add_executable(mssbcbs_sample
 	main.c)
+
+compileTargetAsC99(mssbcbs_sample)
 
 include_directories(.)
 if (WIN32)

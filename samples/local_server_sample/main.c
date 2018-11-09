@@ -31,9 +31,10 @@ static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE messag
     return messaging_delivery_accepted();
 }
 
-static bool on_new_link_attached(void* context, LINK_ENDPOINT_HANDLE new_link_endpoint, const char* name, role role, AMQP_VALUE source, AMQP_VALUE target)
+static bool on_new_link_attached(void* context, LINK_ENDPOINT_HANDLE new_link_endpoint, const char* name, role role, AMQP_VALUE source, AMQP_VALUE target, fields properties)
 {
     (void)context;
+    (void)properties;
     link = link_create_from_endpoint(session, new_link_endpoint, name, role, source, target);
     link_set_rcv_settle_mode(link, receiver_settle_mode_first);
     message_receiver = messagereceiver_create(link, on_message_receiver_state_changed, NULL);

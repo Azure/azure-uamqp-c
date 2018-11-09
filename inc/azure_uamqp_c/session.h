@@ -60,7 +60,7 @@ DEFINE_ENUM(SESSION_SEND_TRANSFER_RESULT, SESSION_SEND_TRANSFER_RESULT_VALUES)
     typedef void(*LINK_ENDPOINT_FRAME_RECEIVED_CALLBACK)(void* context, AMQP_VALUE performative, uint32_t frame_payload_size, const unsigned char* payload_bytes);
     typedef void(*ON_SESSION_STATE_CHANGED)(void* context, SESSION_STATE new_session_state, SESSION_STATE previous_session_state);
     typedef void(*ON_SESSION_FLOW_ON)(void* context);
-    typedef bool(*ON_LINK_ATTACHED)(void* context, LINK_ENDPOINT_HANDLE new_link_endpoint, const char* name, role role, AMQP_VALUE source, AMQP_VALUE target);
+    typedef bool(*ON_LINK_ATTACHED)(void* context, LINK_ENDPOINT_HANDLE new_link_endpoint, const char* name, role role, AMQP_VALUE source, AMQP_VALUE target, fields properties);
 
     MOCKABLE_FUNCTION(, SESSION_HANDLE, session_create, CONNECTION_HANDLE, connection, ON_LINK_ATTACHED, on_link_attached, void*, callback_context);
     MOCKABLE_FUNCTION(, SESSION_HANDLE, session_create_from_endpoint, CONNECTION_HANDLE, connection, ENDPOINT_HANDLE, connection_endpoint, ON_LINK_ATTACHED, on_link_attached, void*, callback_context);

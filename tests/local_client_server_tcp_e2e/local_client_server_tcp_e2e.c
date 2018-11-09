@@ -135,11 +135,12 @@ static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE messag
     return messaging_delivery_accepted();
 }
 
-static bool on_new_link_attached(void* context, LINK_ENDPOINT_HANDLE new_link_endpoint, const char* name, role role, AMQP_VALUE source, AMQP_VALUE target)
+static bool on_new_link_attached(void* context, LINK_ENDPOINT_HANDLE new_link_endpoint, const char* name, role role, AMQP_VALUE source, AMQP_VALUE target, fields properties)
 {
     SERVER_SESSION* server_session = (SERVER_SESSION*)context;
 	struct SERVER_INSTANCE_TAG* server = (struct SERVER_INSTANCE_TAG*)server_session->server;
     int result;
+    (void)properties;
 
     server->links[server->link_count] = link_create_from_endpoint(server_session->session, new_link_endpoint, name, role, source, target);
     ASSERT_IS_NOT_NULL(server->links[server->link_count], "Could not create link");

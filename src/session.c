@@ -438,6 +438,7 @@ static void on_frame_received(void* context, AMQP_VALUE performative, uint32_t p
             role role;
             AMQP_VALUE source;
             AMQP_VALUE target;
+            fields properties;
 
             if (attach_get_name(attach_handle, &name) != 0)
             {
@@ -459,6 +460,10 @@ static void on_frame_received(void* context, AMQP_VALUE performative, uint32_t p
                 {
                     target = NULL;
                 }
+                if (attach_get_properties(attach_handle, &properties) != 0)
+                {
+                    properties = NULL;
+                }
 
                 link_endpoint = find_link_endpoint_by_name(session_instance, name);
                 if (link_endpoint == NULL)
@@ -479,7 +484,7 @@ static void on_frame_received(void* context, AMQP_VALUE performative, uint32_t p
                         {
                             new_link_endpoint->link_endpoint_state = LINK_ENDPOINT_STATE_ATTACHED;
 
-                            if (!session_instance->on_link_attached(session_instance->on_link_attached_callback_context, new_link_endpoint, name, role, source, target))
+                            if (!session_instance->on_link_attached(session_instance->on_link_attached_callback_context, new_link_endpoint, name, role, source, target, properties))
                             {
                                 remove_link_endpoint(new_link_endpoint);
                                 free_link_endpoint(new_link_endpoint);
@@ -507,7 +512,7 @@ static void on_frame_received(void* context, AMQP_VALUE performative, uint32_t p
 
                         if (session_instance->on_link_attached != NULL)
                         {
-                            if (!session_instance->on_link_attached(session_instance->on_link_attached_callback_context, link_endpoint, name, role, source, target))
+                            if (!session_instance->on_link_attached(session_instance->on_link_attached_callback_context, link_endpoint, name, role, source, target, properties))
                             {
                                 link_endpoint->link_endpoint_state = LINK_ENDPOINT_STATE_DETACHING;
                             }

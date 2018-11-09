@@ -43,10 +43,11 @@ static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE messag
     return messaging_delivery_accepted();
 }
 
-static bool on_new_link_attached(void* context, LINK_ENDPOINT_HANDLE new_link_endpoint, const char* name, role role, AMQP_VALUE source, AMQP_VALUE target)
+static bool on_new_link_attached(void* context, LINK_ENDPOINT_HANDLE new_link_endpoint, const char* name, role role, AMQP_VALUE source, AMQP_VALUE target, fields properties)
 {
     SERVER_CONNECTED_CLIENT* server_connected_client = (SERVER_CONNECTED_CLIENT*)context;
     bool result;
+    (void)properties;
 
     LogInfo("Link attached");
 

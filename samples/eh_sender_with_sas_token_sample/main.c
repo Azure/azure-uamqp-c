@@ -135,7 +135,7 @@ int main(int argc, char** argv)
 
         /* unfortunately SASToken wants an encoded key - this should be fixed at a later time */
         buffer = BUFFER_create((unsigned char*)EH_KEY, strlen(EH_KEY));
-        sas_key_value = Base64_Encoder(buffer);
+        sas_key_value = Base64_Encode(buffer);
         BUFFER_delete(buffer);
         resource_uri = STRING_construct("sb://" EH_HOST "/" EH_NAME "/publishers/" EH_PUBLISHER);
         encoded_resource_uri = URL_EncodeString(STRING_c_str(resource_uri));

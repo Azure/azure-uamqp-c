@@ -132,7 +132,7 @@ int saslplain_get_init_bytes(CONCRETE_SASL_MECHANISM_HANDLE sasl_mechanism_concr
         /* Codes_SRS_SASL_PLAIN_01_009: [If any argument is NULL, `saslplain_get_init_bytes` shall return a non-zero value.] */
         LogError("Bad arguments: sasl_mechanism_concrete_handle = %p, init_bytes = %p",
             sasl_mechanism_concrete_handle, init_bytes);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -180,7 +180,7 @@ int saslplain_challenge(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_mechanism, 
     {
         LogError("Bad arguments: concrete_sasl_mechanism = %p, response_bytes = %p",
             concrete_sasl_mechanism, response_bytes);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {

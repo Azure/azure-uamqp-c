@@ -42,7 +42,7 @@ int saslmssbcbs_get_init_bytes(CONCRETE_SASL_MECHANISM_HANDLE sasl_mechanism_con
 
     if (sasl_mechanism_concrete_handle == NULL)
     {
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {

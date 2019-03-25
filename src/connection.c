@@ -141,7 +141,7 @@ static int send_header(CONNECTION_HANDLE connection)
         connection_set_state(connection, CONNECTION_STATE_END);
 
         /* Codes_S_R_S_CONNECTION_01_105: [When xio_send fails, connection_dowork shall return a non-zero value.] */
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -292,7 +292,7 @@ static int send_open_frame(CONNECTION_HANDLE connection)
         }
 
         connection_set_state(connection, CONNECTION_STATE_END);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -309,7 +309,7 @@ static int send_open_frame(CONNECTION_HANDLE connection)
             }
 
             connection_set_state(connection, CONNECTION_STATE_END);
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -325,7 +325,7 @@ static int send_open_frame(CONNECTION_HANDLE connection)
                 }
 
                 connection_set_state(connection, CONNECTION_STATE_END);
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             /* Codes_S_R_S_CONNECTION_01_139: [The channel_max connection setting shall be set in the open frame by using open_set_channel_max.] */
             else if (open_set_channel_max(open_performative, connection->channel_max) != 0)
@@ -339,7 +339,7 @@ static int send_open_frame(CONNECTION_HANDLE connection)
                 }
 
                 connection_set_state(connection, CONNECTION_STATE_END);
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             /* Codes_S_R_S_CONNECTION_01_142: [If no idle_timeout value has been specified, no value shall be stamped in the open frame (no call to open_set_idle_time_out shall be made).] */
             else if ((connection->idle_timeout_specified) &&
@@ -353,7 +353,7 @@ static int send_open_frame(CONNECTION_HANDLE connection)
                 }
 
                 connection_set_state(connection, CONNECTION_STATE_END);
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             /* Codes_S_R_S_CONNECTION_01_136: [If no hostname value has been specified, no value shall be stamped in the open frame (no call to open_set_hostname shall be made).] */
             else if ((connection->host_name != NULL) &&
@@ -369,7 +369,7 @@ static int send_open_frame(CONNECTION_HANDLE connection)
                 }
 
                 connection_set_state(connection, CONNECTION_STATE_END);
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             /* Codes_S_R_S_CONNECTION_01_243: [If no properties value has been specified, no value shall be stamped in the open frame (no call to open_set_properties shall be made).] */
             else if ((connection->properties != NULL) &&
@@ -385,7 +385,7 @@ static int send_open_frame(CONNECTION_HANDLE connection)
                 }
 
                 connection_set_state(connection, CONNECTION_STATE_END);
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -401,7 +401,7 @@ static int send_open_frame(CONNECTION_HANDLE connection)
                     }
 
                     connection_set_state(connection, CONNECTION_STATE_END);
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                 }
                 else
                 {
@@ -423,7 +423,7 @@ static int send_open_frame(CONNECTION_HANDLE connection)
                         }
 
                         connection_set_state(connection, CONNECTION_STATE_END);
-                        result = __FAILURE__;
+                        result = MU_FAILURE;
                     }
                     else
                     {
@@ -458,7 +458,7 @@ static int send_close_frame(CONNECTION_HANDLE connection, ERROR_HANDLE error_han
     if (close_performative == NULL)
     {
         LogError("Cannot create close performative");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -467,7 +467,7 @@ static int send_close_frame(CONNECTION_HANDLE connection, ERROR_HANDLE error_han
             (close_set_error(close_performative, error_handle) != 0))
         {
             LogError("Cannot set error on CLOSE");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -475,7 +475,7 @@ static int send_close_frame(CONNECTION_HANDLE connection, ERROR_HANDLE error_han
             if (close_performative_value == NULL)
             {
                 LogError("Cannot create AMQP CLOSE performative value");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -486,7 +486,7 @@ static int send_close_frame(CONNECTION_HANDLE connection, ERROR_HANDLE error_han
                 if (amqp_frame_codec_encode_frame(connection->amqp_frame_codec, 0, close_performative_value, NULL, 0, on_bytes_encoded, connection) != 0)
                 {
                     LogError("amqp_frame_codec_encode_frame failed");
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                 }
                 else
                 {
@@ -634,7 +634,7 @@ static int connection_byte_received(CONNECTION_HANDLE connection, unsigned char 
     {
     default:
         LogError("Unknown connection state: %d", (int)connection->connection_state);
-        result = __FAILURE__;
+        result = MU_FAILURE;
         break;
 
     /* Codes_S_R_S_CONNECTION_01_039: [START In this state a connection exists, but nothing has been sent or received. This is the state an implementation would be in immediately after performing a socket connect or socket accept.] */
@@ -651,7 +651,7 @@ static int connection_byte_received(CONNECTION_HANDLE connection, unsigned char 
             }
 
             connection_set_state(connection, CONNECTION_STATE_END);
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -698,7 +698,7 @@ static int connection_byte_received(CONNECTION_HANDLE connection, unsigned char 
             /* Codes_S_R_S_CONNECTION_01_218: [The error amqp:internal-error shall be set in the error.condition field of the CLOSE frame.] */
             /* Codes_S_R_S_CONNECTION_01_219: [The error description shall be set to an implementation defined string.] */
             close_connection_with_error(connection, "amqp:internal-error", "connection_byte_received::frame_codec_receive_bytes failed", NULL);
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -1333,7 +1333,7 @@ int connection_open(CONNECTION_HANDLE connection)
     if (connection == NULL)
     {
         LogError("NULL connection");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1343,7 +1343,7 @@ int connection_open(CONNECTION_HANDLE connection)
             {
                 LogError("Opening the underlying IO failed");
                 connection_set_state(connection, CONNECTION_STATE_END);
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -1370,7 +1370,7 @@ int connection_listen(CONNECTION_HANDLE connection)
     if (connection == NULL)
     {
         LogError("NULL connection");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1380,7 +1380,7 @@ int connection_listen(CONNECTION_HANDLE connection)
             {
                 LogError("Opening the underlying IO failed");
                 connection_set_state(connection, CONNECTION_STATE_END);
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -1407,14 +1407,14 @@ int connection_close(CONNECTION_HANDLE connection, const char* condition_value, 
     if (connection == NULL)
     {
         LogError("NULL connection");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else if ((info != NULL) &&
         (amqpvalue_get_type(info) != AMQP_TYPE_MAP) &&
         (amqpvalue_get_type(info) != AMQP_TYPE_NULL))
     {
         LogError("Invalid info, expected a map");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1453,14 +1453,14 @@ int connection_set_max_frame_size(CONNECTION_HANDLE connection, uint32_t max_fra
     if (connection == NULL)
     {
         LogError("NULL connection");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     /* Codes_S_R_S_CONNECTION_01_150: [If the max_frame_size is invalid then connection_set_max_frame_size shall fail and return a non-zero value.] */
     /* Codes_S_R_S_CONNECTION_01_167: [Both peers MUST accept frames of up to 512 (MIN-MAX-FRAME-SIZE) octets.] */
     else if (max_frame_size < 512)
     {
         LogError("max_frame_size too small");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1468,7 +1468,7 @@ int connection_set_max_frame_size(CONNECTION_HANDLE connection, uint32_t max_fra
         if (connection->connection_state != CONNECTION_STATE_START)
         {
             LogError("Connection already open");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -1494,7 +1494,7 @@ int connection_get_max_frame_size(CONNECTION_HANDLE connection, uint32_t* max_fr
     {
         LogError("Bad arguments: connection = %p, max_frame_size = %p",
             connection, max_frame_size);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1516,7 +1516,7 @@ int connection_set_channel_max(CONNECTION_HANDLE connection, uint16_t channel_ma
     if (connection == NULL)
     {
         LogError("NULL connection");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1524,7 +1524,7 @@ int connection_set_channel_max(CONNECTION_HANDLE connection, uint16_t channel_ma
         if (connection->connection_state != CONNECTION_STATE_START)
         {
             LogError("Connection already open");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -1550,7 +1550,7 @@ int connection_get_channel_max(CONNECTION_HANDLE connection, uint16_t* channel_m
     {
         LogError("Bad arguments: connection = %p, channel_max = %p",
             connection, channel_max);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1572,7 +1572,7 @@ int connection_set_idle_timeout(CONNECTION_HANDLE connection, milliseconds idle_
     if (connection == NULL)
     {
         LogError("NULL connection");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1580,7 +1580,7 @@ int connection_set_idle_timeout(CONNECTION_HANDLE connection, milliseconds idle_
         if (connection->connection_state != CONNECTION_STATE_START)
         {
             LogError("Connection already open");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -1607,7 +1607,7 @@ int connection_get_idle_timeout(CONNECTION_HANDLE connection, milliseconds* idle
     {
         LogError("Bad arguments: connection = %p, idle_timeout = %p",
             connection, idle_timeout);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1629,7 +1629,7 @@ int connection_set_properties(CONNECTION_HANDLE connection, fields properties)
     if (connection == NULL)
     {
         LogError("NULL connection");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1637,7 +1637,7 @@ int connection_set_properties(CONNECTION_HANDLE connection, fields properties)
         if (connection->connection_state != CONNECTION_STATE_START)
         {
             LogError("Connection already open");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -1664,7 +1664,7 @@ int connection_set_properties(CONNECTION_HANDLE connection, fields properties)
                 {
                     /* Codes_S_R_S_CONNECTION_01_267: [ If `fields_clone` fails, `connection_set_properties` shall fail and return a non-zero value. ]*/
                     LogError("Cannot clone connection properties");
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                 }
                 else
                 {
@@ -1697,7 +1697,7 @@ int connection_get_properties(CONNECTION_HANDLE connection, fields* properties)
     {
         LogError("Bad arguments: connection = %p, properties = %p",
             connection, properties);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1718,7 +1718,7 @@ int connection_get_properties(CONNECTION_HANDLE connection, fields* properties)
             {
                 /* Codes_S_R_S_CONNECTION_01_274: [ If `fields_clone` fails, `connection_get_properties` shall fail and return a non-zero value. ]*/
                 LogError("Cannot clone properties");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -1740,7 +1740,7 @@ int connection_get_remote_max_frame_size(CONNECTION_HANDLE connection, uint32_t*
     {
         LogError("Bad arguments: connection = %p, remote_max_frame_size = %p",
             connection, remote_max_frame_size);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1936,7 +1936,7 @@ int connection_start_endpoint(ENDPOINT_HANDLE endpoint, ON_ENDPOINT_FRAME_RECEIV
     {
         LogError("Bad arguments: endpoint = %p, on_endpoint_frame_received = %p, on_connection_state_changed = %p",
             endpoint, on_endpoint_frame_received, on_connection_state_changed);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1959,7 +1959,7 @@ int connection_endpoint_get_incoming_channel(ENDPOINT_HANDLE endpoint, uint16_t*
     {
         LogError("Bad arguments: endpoint = %p, incoming_channel = %p",
             endpoint, incoming_channel);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -2035,7 +2035,7 @@ int connection_encode_frame(ENDPOINT_HANDLE endpoint, AMQP_VALUE performative, P
     {
         LogError("Bad arguments: endpoint = %p, performative = %p",
             endpoint, performative);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -2046,7 +2046,7 @@ int connection_encode_frame(ENDPOINT_HANDLE endpoint, AMQP_VALUE performative, P
         if (connection->connection_state != CONNECTION_STATE_OPENED)
         {
             LogError("Connection not open");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -2060,7 +2060,7 @@ int connection_encode_frame(ENDPOINT_HANDLE endpoint, AMQP_VALUE performative, P
             {
                 /* Codes_S_R_S_CONNECTION_01_253: [If amqp_frame_codec_begin_encode_frame or amqp_frame_codec_encode_payload_bytes fails, then connection_encode_frame shall fail and return a non-zero value.] */
                 LogError("Encoding AMQP frame failed");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -2072,7 +2072,7 @@ int connection_encode_frame(ENDPOINT_HANDLE endpoint, AMQP_VALUE performative, P
                 if (tickcounter_get_current_ms(connection->tick_counter, &connection->last_frame_sent_time) != 0)
                 {
                     LogError("Getting tick counter value failed");
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                 }
                 else
                 {
@@ -2110,7 +2110,7 @@ int connection_set_remote_idle_timeout_empty_frame_send_ratio(CONNECTION_HANDLE 
     {
         LogError("Bad arguments: connection = %p, idle_timeout_empty_frame_send_ratio = %f",
             connection, idle_timeout_empty_frame_send_ratio);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {

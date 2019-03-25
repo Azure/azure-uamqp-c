@@ -39,7 +39,7 @@ static int string_concat(char** string, const char* to_concat)
     if (new_string == NULL)
     {
         LogError("Cannot allocate memory for the new string");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {

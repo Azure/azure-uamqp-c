@@ -70,7 +70,7 @@ int async_operation_cancel(ASYNC_OPERATION_HANDLE async_operation)
     if (async_operation == NULL)
     {
         LogError("NULL async_operation");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {

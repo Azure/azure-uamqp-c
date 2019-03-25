@@ -55,7 +55,7 @@ static int saslanonymous_get_init_bytes(CONCRETE_SASL_MECHANISM_HANDLE sasl_mech
     {
         LogError("Bad arguments: sasl_mechanism_concrete_handle = %p, init_bytes = %p",
             sasl_mechanism_concrete_handle, init_bytes);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -102,7 +102,7 @@ static int saslanonymous_challenge(CONCRETE_SASL_MECHANISM_HANDLE concrete_sasl_
     {
         LogError("Bad arguments: concrete_sasl_mechanism = %p, response_bytes = %p",
             concrete_sasl_mechanism, response_bytes);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {

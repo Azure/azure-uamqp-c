@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <inttypes.h>
-#include "azure_c_shared_utility/optimize_size.h"
+#include "azure_c_shared_utility/macro_utils.h"
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_c_shared_utility/singlylinkedlist.h"

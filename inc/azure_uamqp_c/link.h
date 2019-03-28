@@ -6,7 +6,7 @@
 
 #include <stddef.h>
 #include "azure_c_shared_utility/tickcounter.h"
-#include "azure_c_shared_utility/macro_utils.h"
+#include "azure_macro_utils/macro_utils.h"
 #include "azure_uamqp_c/session.h"
 #include "azure_uamqp_c/amqpvalue.h"
 #include "azure_uamqp_c/async_operation.h"

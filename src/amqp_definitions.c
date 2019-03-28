@@ -7,7 +7,7 @@
 // The generator that produces it is located at /uamqp_generator/uamqp_generator.sln
 
 #include <stdlib.h>
-#include "azure_c_shared_utility/macro_utils.h"
+#include "azure_macro_utils/macro_utils.h"
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_uamqp_c/amqpvalue.h"
 #include "azure_uamqp_c/amqp_definitions.h"

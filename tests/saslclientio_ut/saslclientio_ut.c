@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #endif
-#include "azure_c_shared_utility/macro_utils.h"
+#include "azure_macro_utils/macro_utils.h"
 #include "testrunnerswitcher.h"
 #include "umock_c.h"
 #include "umocktypes_stdint.h"

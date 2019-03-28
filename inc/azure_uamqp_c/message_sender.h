@@ -11,7 +11,7 @@
 #include "azure_uamqp_c/async_operation.h"
 #include "azure_c_shared_utility/tickcounter.h"
 #include "azure_c_shared_utility/umock_c_prod.h"
-#include "azure_c_shared_utility/macro_utils.h"
+#include "azure_macro_utils/macro_utils.h"
 
 #ifdef __cplusplus
 extern "C" {

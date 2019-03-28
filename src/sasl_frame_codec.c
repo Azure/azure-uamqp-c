@@ -6,7 +6,7 @@
 #include <stddef.h>
 #include <string.h>
 #include "azure_c_shared_utility/gballoc.h"
-#include "azure_c_shared_utility/macro_utils.h"
+#include "azure_macro_utils/macro_utils.h"
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_uamqp_c/sasl_frame_codec.h"
 #include "azure_uamqp_c/frame_codec.h"

@@ -8,7 +8,7 @@
 #include <stdbool.h>
 
 #include "azure_c_shared_utility/gballoc.h"
-#include "azure_c_shared_utility/macro_utils.h"
+#include "azure_macro_utils/macro_utils.h"
 #include "azure_uamqp_c/saslclientio.h"
 #include "azure_c_shared_utility/xio.h"
 #include "azure_c_shared_utility/xlogging.h"
@@ -36,7 +36,7 @@ typedef enum IO_STATE_TAG
 // Suppress unused function warning for SASL_HEADER_EXCHANGE_STATEstrings
 #ifdef NO_LOGGING
 #define ENUM_TO_STRING_UNUSED
-#include "azure_c_shared_utility/macro_utils.h"
+#include "azure_macro_utils/macro_utils.h"
 #endif
 
 MU_DEFINE_LOCAL_ENUM(SASL_HEADER_EXCHANGE_STATE, SASL_HEADER_EXCHANGE_STATE_VALUES)

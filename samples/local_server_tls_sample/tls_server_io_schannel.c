@@ -19,7 +19,7 @@
 #include "windows.h"
 #include "sspi.h"
 #include "schannel.h"
-#include "azure_c_shared_utility/macro_utils.h"
+#include "azure_macro_utils/macro_utils.h"
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_c_shared_utility/x509_schannel.h"
 #include "azure_c_shared_utility/crt_abstractions.h"

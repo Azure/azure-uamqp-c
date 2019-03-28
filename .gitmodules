@@ -10,3 +10,6 @@
 [submodule "deps/azure-c-testrunnerswitcher"]
 	path = deps/azure-c-testrunnerswitcher
 	url = https://www.github.com/Azure/azure-c-testrunnerswitcher
+[submodule "deps/azure-macro-utils-c"]
+	path = deps/azure-macro-utils-c
+	url = https://github.com/Azure/azure-macro-utils-c.git

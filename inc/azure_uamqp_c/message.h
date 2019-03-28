@@ -4,6 +4,7 @@
 #ifndef MESSAGE_H
 #define MESSAGE_H
 
+#include "azure_c_shared_utility/macro_utils.h"
 #include "azure_uamqp_c/amqpvalue.h"
 #include "azure_uamqp_c/amqp_definitions_annotations.h"
 #include "azure_uamqp_c/amqp_definitions_message_annotations.h"

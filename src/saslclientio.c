@@ -8,7 +8,7 @@
 #include <stdbool.h>
 
 #include "azure_c_shared_utility/gballoc.h"
-#include "azure_c_shared_utility/optimize_size.h"
+#include "azure_c_shared_utility/macro_utils.h"
 #include "azure_uamqp_c/saslclientio.h"
 #include "azure_c_shared_utility/xio.h"
 #include "azure_c_shared_utility/xlogging.h"

@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #endif
+#include "azure_c_shared_utility/macro_utils.h"
 #include "testrunnerswitcher.h"
 #include "umock_c.h"
 #include "umockalloc.h"

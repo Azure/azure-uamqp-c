@@ -8,7 +8,7 @@
 #include "azure_uamqp_c/message.h"
 #include "azure_uamqp_c/amqp_definitions_delivery_number.h"
 #include "azure_c_shared_utility/umock_c_prod.h"
-#include "azure_c_shared_utility/macro_utils.h"
+#include "azure_macro_utils/macro_utils.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,7 +23,7 @@ extern "C" {
     MESSAGE_RECEIVER_STATE_CLOSING, \
     MESSAGE_RECEIVER_STATE_ERROR
 
-DEFINE_ENUM(MESSAGE_RECEIVER_STATE, MESSAGE_RECEIVER_STATE_VALUES)
+MU_DEFINE_ENUM(MESSAGE_RECEIVER_STATE, MESSAGE_RECEIVER_STATE_VALUES)
 
     typedef struct MESSAGE_RECEIVER_INSTANCE_TAG* MESSAGE_RECEIVER_HANDLE;
     typedef AMQP_VALUE (*ON_MESSAGE_RECEIVED)(const void* context, MESSAGE_HANDLE message);

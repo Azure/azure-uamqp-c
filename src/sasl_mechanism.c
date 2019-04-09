@@ -2,7 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 #include <stdlib.h>
-#include "azure_c_shared_utility/optimize_size.h"
+#include "azure_macro_utils/macro_utils.h"
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_uamqp_c/sasl_mechanism.h"
@@ -89,7 +89,7 @@ int saslmechanism_get_init_bytes(SASL_MECHANISM_HANDLE sasl_mechanism, SASL_MECH
     if (sasl_mechanism == NULL)
     {
         LogError("NULL sasl_mechanism");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -98,7 +98,7 @@ int saslmechanism_get_init_bytes(SASL_MECHANISM_HANDLE sasl_mechanism, SASL_MECH
         {
             /* Codes_SRS_SASL_MECHANISM_01_013: [If the underlying `concrete_sasl_mechanism_get_init_bytes` fails, `saslmechanism_get_init_bytes` shall fail and return a non-zero value.] */
             LogError("concrete_sasl_mechanism_get_init_bytes failed");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -143,7 +143,7 @@ int saslmechanism_challenge(SASL_MECHANISM_HANDLE sasl_mechanism, const SASL_MEC
     if (sasl_mechanism == NULL)
     {
         LogError("NULL sasl_mechanism");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -152,7 +152,7 @@ int saslmechanism_challenge(SASL_MECHANISM_HANDLE sasl_mechanism, const SASL_MEC
         {
             /* Codes_SRS_SASL_MECHANISM_01_021: [If the underlying `concrete_sasl_mechanism_challenge` fails, `saslmechanism_challenge` shall fail and return a non-zero value.] */
             LogError("concrete_sasl_mechanism_challenge failed");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {

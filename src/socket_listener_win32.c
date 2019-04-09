@@ -7,7 +7,7 @@
 #include "windows.h"
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/xlogging.h"
-#include "azure_c_shared_utility/optimize_size.h"
+#include "azure_macro_utils/macro_utils.h"
 #include "azure_c_shared_utility/socketio.h"
 #include "azure_uamqp_c/socket_listener.h"
 
@@ -54,7 +54,7 @@ int socketlistener_start(SOCKET_LISTENER_HANDLE socket_listener, ON_SOCKET_ACCEP
     {
         LogError("Bad arguments: socket_listener = %p, on_socket_accepted = %p",
             socket_listener, on_socket_accepted);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -62,7 +62,7 @@ int socketlistener_start(SOCKET_LISTENER_HANDLE socket_listener, ON_SOCKET_ACCEP
         if (socket_listener->socket == INVALID_SOCKET)
         {
             LogError("Could not create socket");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -83,14 +83,14 @@ int socketlistener_start(SOCKET_LISTENER_HANDLE socket_listener, ON_SOCKET_ACCEP
                 LogError("Could not bind socket");
                 (void)closesocket(socket_listener->socket);
                 socket_listener->socket = INVALID_SOCKET;
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else if (ioctlsocket(socket_listener->socket, FIONBIO, &iMode) != 0)
             {
                 LogError("Could not set listening socket in non-blocking mode");
                 (void)closesocket(socket_listener->socket);
                 socket_listener->socket = INVALID_SOCKET;
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -99,7 +99,7 @@ int socketlistener_start(SOCKET_LISTENER_HANDLE socket_listener, ON_SOCKET_ACCEP
                     LogError("Could not start listening for connections");
                     (void)closesocket(socket_listener->socket);
                     socket_listener->socket = INVALID_SOCKET;
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                 }
                 else
                 {
@@ -119,7 +119,7 @@ int socketlistener_stop(SOCKET_LISTENER_HANDLE socket_listener)
     if (socket_listener == NULL)
     {
         LogError("NULL socket_listener");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {

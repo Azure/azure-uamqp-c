@@ -11,7 +11,7 @@
 #include "azure_uamqp_c/async_operation.h"
 #include "azure_c_shared_utility/tickcounter.h"
 #include "azure_c_shared_utility/umock_c_prod.h"
-#include "azure_c_shared_utility/macro_utils.h"
+#include "azure_macro_utils/macro_utils.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,7 +23,7 @@ extern "C" {
     MESSAGE_SEND_TIMEOUT, \
     MESSAGE_SEND_CANCELLED
 
-DEFINE_ENUM(MESSAGE_SEND_RESULT, MESSAGE_SEND_RESULT_VALUES)
+MU_DEFINE_ENUM(MESSAGE_SEND_RESULT, MESSAGE_SEND_RESULT_VALUES)
 
 #define MESSAGE_SENDER_STATE_VALUES \
     MESSAGE_SENDER_STATE_IDLE, \
@@ -32,7 +32,7 @@ DEFINE_ENUM(MESSAGE_SEND_RESULT, MESSAGE_SEND_RESULT_VALUES)
     MESSAGE_SENDER_STATE_CLOSING, \
     MESSAGE_SENDER_STATE_ERROR
 
-DEFINE_ENUM(MESSAGE_SENDER_STATE, MESSAGE_SENDER_STATE_VALUES)
+MU_DEFINE_ENUM(MESSAGE_SENDER_STATE, MESSAGE_SENDER_STATE_VALUES)
 
     typedef struct MESSAGE_SENDER_INSTANCE_TAG* MESSAGE_SENDER_HANDLE;
     typedef void(*ON_MESSAGE_SEND_COMPLETE)(void* context, MESSAGE_SEND_RESULT send_result, AMQP_VALUE delivery_state);

@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #endif
+#include "azure_macro_utils/macro_utils.h"
 #include "testrunnerswitcher.h"
 #include "umock_c.h"
 #include "umockalloc.h"
@@ -124,7 +125,7 @@ static int umocktypes_copy_const_SERVER_PROTOCOL_IO_CONFIG_ptr(SERVER_PROTOCOL_I
     *destination = (SERVER_PROTOCOL_IO_CONFIG*)umockalloc_malloc(sizeof(SERVER_PROTOCOL_IO_CONFIG));
     if (*destination == NULL)
     {
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -294,12 +295,12 @@ static LIST_ITEM_HANDLE my_singlylinkedlist_find(SINGLYLINKEDLIST_HANDLE handle,
     return (LIST_ITEM_HANDLE)found_item;
 }
 
-DEFINE_ENUM_STRINGS(UMOCK_C_ERROR_CODE, UMOCK_C_ERROR_CODE_VALUES)
+MU_DEFINE_ENUM_STRINGS(UMOCK_C_ERROR_CODE, UMOCK_C_ERROR_CODE_VALUES)
 
 static void on_umock_c_error(UMOCK_C_ERROR_CODE error_code)
 {
     char temp_str[256];
-    (void)snprintf(temp_str, sizeof(temp_str), "umock_c reported error :%s", ENUM_TO_STRING(UMOCK_C_ERROR_CODE, error_code));
+    (void)snprintf(temp_str, sizeof(temp_str), "umock_c reported error :%s", MU_ENUM_TO_STRING(UMOCK_C_ERROR_CODE, error_code));
     ASSERT_FAIL(temp_str);
 }
 

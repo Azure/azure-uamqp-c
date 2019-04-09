@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
-#include "azure_c_shared_utility/optimize_size.h"
+#include "azure_macro_utils/macro_utils.h"
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_uamqp_c/async_operation.h"
@@ -70,7 +70,7 @@ int async_operation_cancel(ASYNC_OPERATION_HANDLE async_operation)
     if (async_operation == NULL)
     {
         LogError("NULL async_operation");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {

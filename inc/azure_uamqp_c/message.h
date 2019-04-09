@@ -4,6 +4,7 @@
 #ifndef MESSAGE_H
 #define MESSAGE_H
 
+#include "azure_macro_utils/macro_utils.h"
 #include "azure_uamqp_c/amqpvalue.h"
 #include "azure_uamqp_c/amqp_definitions_annotations.h"
 #include "azure_uamqp_c/amqp_definitions_message_annotations.h"
@@ -31,7 +32,7 @@ extern "C" {
         MESSAGE_BODY_TYPE_SEQUENCE, \
         MESSAGE_BODY_TYPE_VALUE
 
-    DEFINE_ENUM(MESSAGE_BODY_TYPE, MESSAGE_BODY_TYPE_VALUES)
+    MU_DEFINE_ENUM(MESSAGE_BODY_TYPE, MESSAGE_BODY_TYPE_VALUES)
 
     typedef struct MESSAGE_INSTANCE_TAG* MESSAGE_HANDLE;
     typedef struct BINARY_DATA_TAG

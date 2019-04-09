@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <stdbool.h>
-#include "azure_c_shared_utility/optimize_size.h"
+#include "azure_macro_utils/macro_utils.h"
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_c_shared_utility/singlylinkedlist.h"
@@ -658,7 +658,7 @@ static int header_detect_io_open_async(CONCRETE_IO_HANDLE header_detect_io, ON_I
         /* Codes_SRS_HEADER_DETECT_IO_01_021: [ If `header_detect_io`, `on_io_open_complete`, `on_bytes_received` or `on_io_error` is NULL, `header_detect_io_open_async` shall fail and return a non-zero value. ]*/
         LogError("Bad arguments: header_detect_io = %p, on_io_open_complete = %p, on_bytes_received = %p, on_io_error = %p",
             header_detect_io, on_io_open_complete, on_bytes_received, on_io_error);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -668,7 +668,7 @@ static int header_detect_io_open_async(CONCRETE_IO_HANDLE header_detect_io, ON_I
         {
             /* Codes_SRS_HEADER_DETECT_IO_01_020: [ If the IO is already OPEN or OPENING then `header_detect_io_open_async` shall fail and return a non-zero value. ]*/
             LogError("Already OPEN");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -689,7 +689,7 @@ static int header_detect_io_open_async(CONCRETE_IO_HANDLE header_detect_io, ON_I
             {
                 /* Codes_SRS_HEADER_DETECT_IO_01_019: [ If `xio_open` fails, `header_detect_io_open_async` shall fail and return a non-zero value. ]*/
                 LogError("xio_open failed");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -710,7 +710,7 @@ static int header_detect_io_close_async(CONCRETE_IO_HANDLE header_detect_io, ON_
     {
         /* Codes_SRS_HEADER_DETECT_IO_01_026: [ If `header_detect_io` is NULL, `header_detect_io_close_async` shall fail and return a non-zero value. ]*/
         LogError("NULL header_detect_io");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -731,7 +731,7 @@ static int header_detect_io_close_async(CONCRETE_IO_HANDLE header_detect_io, ON_
             (header_detect_io_instance->io_state == IO_STATE_CLOSING))
         {
             LogError("Not open");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -746,7 +746,7 @@ static int header_detect_io_close_async(CONCRETE_IO_HANDLE header_detect_io, ON_
             {
                 /* Codes_SRS_HEADER_DETECT_IO_01_092: [ If `xio_close` fails `header_detect_io_close_async` shall fail and return a non-zero value. ]*/
                 LogError("xio_close failed");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -772,7 +772,7 @@ static int header_detect_io_send_async(CONCRETE_IO_HANDLE header_detect_io, cons
         /* Codes_SRS_HEADER_DETECT_IO_01_033: [ If `header_detect_io` or `buffer` is NULL, `header_detect_io_send_async` shall fail and return a non-zero value. ]*/
         LogError("Bad arguments: header_detect_io = %p, buffer = %p, size = %u",
             header_detect_io, buffer, (unsigned int)size);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -782,7 +782,7 @@ static int header_detect_io_send_async(CONCRETE_IO_HANDLE header_detect_io, cons
         {
             /* Codes_SRS_HEADER_DETECT_IO_01_093: [ `header_detect_io_send_async` when the IO is not open shall fail and return a non-zero value. ]*/
             LogError("header_detect_io not OPEN");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -792,7 +792,7 @@ static int header_detect_io_send_async(CONCRETE_IO_HANDLE header_detect_io, cons
             if (xio_send(*header_detect_io_instance->last_io, buffer, size, on_send_complete, callback_context) != 0)
             {
                 LogError("xio_send failed");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -845,7 +845,7 @@ static int header_detect_io_set_option(CONCRETE_IO_HANDLE header_detect_io, cons
     {
         /* Codes_SRS_HEADER_DETECT_IO_01_044: [ If `header_detect_io` or `optionName` is NULL, `header_detect_io_set_option` shall fail and return a non-zero value. ]*/
         LogError("NULL header_detect_io");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -857,7 +857,7 @@ static int header_detect_io_set_option(CONCRETE_IO_HANDLE header_detect_io, cons
         {
             /* Codes_SRS_HEADER_DETECT_IO_01_045: [ If `xio_setoption` fails, `header_detect_io_set_option` shall fail and return a non-zero value. ]*/
             LogError("Setting the option on the underlying IO failed");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {

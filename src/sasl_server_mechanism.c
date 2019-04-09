@@ -2,7 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 #include <stdlib.h>
-#include "azure_c_shared_utility/optimize_size.h"
+#include "azure_macro_utils/macro_utils.h"
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_uamqp_c/sasl_server_mechanism.h"
@@ -90,7 +90,7 @@ int sasl_server_mechanism_handle_initial_response(SASL_SERVER_MECHANISM_HANDLE s
     {
         /* Codes_SRS_SASL_SERVER_MECHANISM_01_012: [ If the argument `sasl_server_mechanism` is NULL, `sasl_server_mechanism_handle_initial_response` shall fail and return a non-zero value. ]*/
         LogError("NULL sasl_server_mechanism");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -99,7 +99,7 @@ int sasl_server_mechanism_handle_initial_response(SASL_SERVER_MECHANISM_HANDLE s
         {
             /* Codes_SRS_SASL_SERVER_MECHANISM_01_013: [ If the underlying `handle_initial_response` fails, `sasl_server_mechanism_handle_initial_response` shall fail and return a non-zero value. ]*/
             LogError("handle_initial_response_failed");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -119,7 +119,7 @@ int sasl_server_mechanism_handle_response(SASL_SERVER_MECHANISM_HANDLE sasl_serv
     {
         /* Codes_SRS_SASL_SERVER_MECHANISM_01_017: [ If the argument `sasl_server_mechanism` is NULL, `sasl_server_mechanism_handle_response` shall fail and return a non-zero value. ]*/
         LogError("NULL sasl_server_mechanism");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -128,7 +128,7 @@ int sasl_server_mechanism_handle_response(SASL_SERVER_MECHANISM_HANDLE sasl_serv
         {
             /* Codes_SRS_SASL_SERVER_MECHANISM_01_018: [ If the underlying `handle_response` fails, `sasl_server_mechanism_handle_response` shall fail and return a non-zero value. ]*/
             LogError("handle_response_failed");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {

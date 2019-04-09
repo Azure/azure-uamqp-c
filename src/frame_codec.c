@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <inttypes.h>
-#include "azure_c_shared_utility/optimize_size.h"
+#include "azure_macro_utils/macro_utils.h"
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_c_shared_utility/singlylinkedlist.h"
@@ -147,13 +147,13 @@ int frame_codec_set_max_frame_size(FRAME_CODEC_HANDLE frame_codec, uint32_t max_
         LogError("Bad arguments: frame_codec = %p, max_frame_size = %" PRIu32,
             frame_codec,
             max_frame_size);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     /* Codes_SRS_FRAME_CODEC_01_097: [Setting a frame size on a frame_codec that had a decode error shall fail.] */
     else if (frame_codec_data->receive_frame_state == RECEIVE_FRAME_STATE_ERROR)
     {
         LogError("Frame codec in error state");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -177,7 +177,7 @@ int frame_codec_set_max_frame_size(FRAME_CODEC_HANDLE frame_codec, uint32_t max_
 /* Codes_SRS_FRAME_CODEC_01_029: [The sequence of bytes does not have to be a complete frame, frame_codec shall be responsible for maintaining decoding state between frame_codec_receive_bytes calls.] */
 int frame_codec_receive_bytes(FRAME_CODEC_HANDLE frame_codec, const unsigned char* buffer, size_t size)
 {
-    int result = __FAILURE__;
+    int result = MU_FAILURE;
     FRAME_CODEC_INSTANCE* frame_codec_data = (FRAME_CODEC_INSTANCE*)frame_codec;
 
     /* Codes_SRS_FRAME_CODEC_01_026: [If frame_codec or buffer are NULL, frame_codec_receive_bytes shall return a non-zero value.] */
@@ -190,7 +190,7 @@ int frame_codec_receive_bytes(FRAME_CODEC_HANDLE frame_codec, const unsigned cha
             frame_codec,
             buffer,
             (unsigned int)size);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -202,7 +202,7 @@ int frame_codec_receive_bytes(FRAME_CODEC_HANDLE frame_codec, const unsigned cha
             case RECEIVE_FRAME_STATE_ERROR:
                 /* Codes_SRS_FRAME_CODEC_01_074: [If a decoding error is detected, any subsequent calls on frame_codec_data_receive_bytes shall fail.] */
                 LogError("Frame codec is in error state");
-                result = __FAILURE__;
+                result = MU_FAILURE;
                 size = 0;
                 break;
 
@@ -226,7 +226,7 @@ int frame_codec_receive_bytes(FRAME_CODEC_HANDLE frame_codec, const unsigned cha
                         /* Codes_SRS_FRAME_CODEC_01_103: [Upon any decode error, if an error callback has been passed to frame_codec_create, then the error callback shall be called with the context argument being the on_frame_codec_error_callback_context argument passed to frame_codec_create.] */
                         frame_codec_data->on_frame_codec_error(frame_codec_data->on_frame_codec_error_callback_context);
                         LogError("Received frame size is too big");
-                        result = __FAILURE__;
+                        result = MU_FAILURE;
                     }
                     else
                     {
@@ -259,7 +259,7 @@ int frame_codec_receive_bytes(FRAME_CODEC_HANDLE frame_codec, const unsigned cha
                     frame_codec_data->on_frame_codec_error(frame_codec_data->on_frame_codec_error_callback_context);
 
                     LogError("Malformed frame received");
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                 }
                 else
                 {
@@ -314,7 +314,7 @@ int frame_codec_receive_bytes(FRAME_CODEC_HANDLE frame_codec, const unsigned cha
                             frame_codec_data->on_frame_codec_error(frame_codec_data->on_frame_codec_error_callback_context);
 
                             LogError("Cannot allocate memort for frame bytes");
-                            result = __FAILURE__;
+                            result = MU_FAILURE;
                             break;
                         }
                         else
@@ -436,7 +436,7 @@ int frame_codec_subscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type, ON_FRAME
     {
         LogError("Bad arguments: frame_codec = %p, on_frame_received = %p",
             frame_codec, on_frame_received);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -453,7 +453,7 @@ int frame_codec_subscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type, ON_FRAME
             {
                 /* Codes_SRS_FRAME_CODEC_01_037: [If any failure occurs while performing the subscribe operation, frame_codec_subscribe shall return a non-zero value.] */
                 LogError("Cannot retrieve subscription information from the list for type %u", (unsigned int)type);
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -473,7 +473,7 @@ int frame_codec_subscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type, ON_FRAME
             if (subscription == NULL)
             {
                 LogError("Cannot allocate memory for new subscription");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -486,7 +486,7 @@ int frame_codec_subscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type, ON_FRAME
                 {
                     free(subscription);
                     LogError("Cannot add subscription to list");
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                 }
                 else
                 {
@@ -508,7 +508,7 @@ int frame_codec_unsubscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type)
     if (frame_codec == NULL)
     {
         LogError("NULL frame_codec");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -520,7 +520,7 @@ int frame_codec_unsubscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type)
             /* Codes_SRS_FRAME_CODEC_01_040: [If no subscription for the type frame type exists, frame_codec_unsubscribe shall return a non-zero value.] */
             /* Codes_SRS_FRAME_CODEC_01_041: [If any failure occurs while performing the unsubscribe operation, frame_codec_unsubscribe shall return a non-zero value.] */
             LogError("Cannot find subscription for type %u", (unsigned int)type);
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -529,7 +529,7 @@ int frame_codec_unsubscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type)
             {
                 /* Codes_SRS_FRAME_CODEC_01_041: [If any failure occurs while performing the unsubscribe operation, frame_codec_unsubscribe shall return a non-zero value.] */
                 LogError("singlylinkedlist_item_get_value failed when unsubscribing");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -538,7 +538,7 @@ int frame_codec_unsubscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type)
                 {
                     /* Codes_SRS_FRAME_CODEC_01_041: [If any failure occurs while performing the unsubscribe operation, frame_codec_unsubscribe shall return a non-zero value.] */
                     LogError("Cannot remove subscription from list");
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                 }
                 else
                 {
@@ -568,13 +568,13 @@ int frame_codec_encode_frame(FRAME_CODEC_HANDLE frame_codec, uint8_t type, const
     {
         LogError("Bad arguments: frame_codec = %p, on_bytes_encoded = %p, type_specific_size = %u, type_specific_bytes = %p",
             frame_codec, on_bytes_encoded, (unsigned int)type_specific_size, type_specific_bytes);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else if ((payloads == NULL) && (payload_count > 0))
     {
         /* Codes_SRS_FRAME_CODEC_01_107: [If the argument `payloads` is NULL and `payload_count` is non-zero, `frame_codec_encode_frame` shall return a non-zero value.]*/
         LogError("NULL payloads argument with non-zero payload count");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -606,7 +606,7 @@ int frame_codec_encode_frame(FRAME_CODEC_HANDLE frame_codec, uint8_t type, const
         if (i < payload_count)
         {
             LogError("Bad payload entry");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -617,7 +617,7 @@ int frame_codec_encode_frame(FRAME_CODEC_HANDLE frame_codec, uint8_t type, const
             {
                 /* Codes_SRS_FRAME_CODEC_01_095: [If the frame_size needed for the frame is bigger than the maximum frame size, frame_codec_encode_frame shall fail and return a non-zero value.] */
                 LogError("Encoded frame size exceeds the maximum allowed frame size");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -627,7 +627,7 @@ int frame_codec_encode_frame(FRAME_CODEC_HANDLE frame_codec, uint8_t type, const
                 {
                     /* Codes_SRS_FRAME_CODEC_01_109: [ If allocating memory fails, `frame_codec_encode_frame` shall fail and return a non-zero value. ]*/
                     LogError("Cannot allocate memory for frame");
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                 }
                 else
                 {

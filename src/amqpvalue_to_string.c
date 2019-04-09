@@ -7,7 +7,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdio.h>
-#include "azure_c_shared_utility/optimize_size.h"
+#include "azure_macro_utils/macro_utils.h"
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_c_shared_utility/uuid.h"
@@ -39,7 +39,7 @@ static int string_concat(char** string, const char* to_concat)
     if (new_string == NULL)
     {
         LogError("Cannot allocate memory for the new string");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {

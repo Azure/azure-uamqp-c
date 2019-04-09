@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-#include "azure_c_shared_utility/optimize_size.h"
+#include "azure_macro_utils/macro_utils.h"
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/singlylinkedlist.h"
 #include "azure_c_shared_utility/xlogging.h"
@@ -48,7 +48,7 @@ static int add_string_key_value_pair_to_map(AMQP_VALUE map, const char* key, con
     {
         /* Codes_SRS_CBS_01_072: [ If constructing the message fails, `cbs_put_token_async` shall fail and return a non-zero value. ]*/
         LogError("Failed creating value for property key %s", key);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -57,7 +57,7 @@ static int add_string_key_value_pair_to_map(AMQP_VALUE map, const char* key, con
         {
             /* Codes_SRS_CBS_01_072: [ If constructing the message fails, `cbs_put_token_async` shall fail and return a non-zero value. ]*/
             LogError("Failed creating value for property value %s", value);
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -65,7 +65,7 @@ static int add_string_key_value_pair_to_map(AMQP_VALUE map, const char* key, con
             {
                 /* Codes_SRS_CBS_01_072: [ If constructing the message fails, `cbs_put_token_async` shall fail and return a non-zero value. ]*/
                 LogError("Failed inserting key/value pair in the map");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -383,13 +383,13 @@ int cbs_open_async(CBS_HANDLE cbs, ON_CBS_OPEN_COMPLETE on_cbs_open_complete, vo
         /* Codes_SRS_CBS_01_040: [ If any of the arguments `cbs`, `on_cbs_open_complete` or `on_cbs_error` is NULL, then `cbs_open_async` shall fail and return a non-zero value. ]*/
         LogError("Bad arguments: cbs = %p, on_cbs_open_complete = %p, on_cbs_error = %p",
             cbs, on_cbs_open_complete, on_cbs_error);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else if (cbs->cbs_state != CBS_STATE_CLOSED)
     {
         /* Codes_SRS_CBS_01_043: [ `cbs_open_async` while already open or opening shall fail and return a non-zero value. ]*/
         LogError("cbs instance already open");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -404,7 +404,7 @@ int cbs_open_async(CBS_HANDLE cbs, ON_CBS_OPEN_COMPLETE on_cbs_open_complete, vo
         if (amqp_management_open_async(cbs->amqp_management, on_underlying_amqp_management_open_complete, cbs, on_underlying_amqp_management_error, cbs) != 0)
         {
             /* Codes_SRS_CBS_01_041: [ If `amqp_management_open_async` fails, shall fail and return a non-zero value. ]*/
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -424,14 +424,14 @@ int cbs_close(CBS_HANDLE cbs)
     {
         /* Codes_SRS_CBS_01_045: [ If the argument `cbs` is NULL, `cbs_close` shall fail and return a non-zero value. ]*/
         LogError("NULL cbs handle");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else if (cbs->cbs_state == CBS_STATE_CLOSED)
     {
         /* Codes_SRS_CBS_01_047: [ `cbs_close` when closed shall fail and return a non-zero value. ]*/
         /* Codes_SRS_CBS_01_048: [ `cbs_close` when not opened shall fail and return a non-zero value. ]*/
         LogError("Already closed");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -440,7 +440,7 @@ int cbs_close(CBS_HANDLE cbs)
         {
             /* Codes_SRS_CBS_01_046: [ If `amqp_management_close` fails, `cbs_close` shall fail and return a non-zero value. ]*/
             LogError("Failed closing AMQP management instance");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -474,14 +474,14 @@ int cbs_put_token_async(CBS_HANDLE cbs, const char* type, const char* audience, 
         /* Codes_SRS_CBS_01_050: [ If any of the arguments `cbs`, `type`, `audience`, `token` or `on_cbs_put_token_complete` is NULL `cbs_put_token_async` shall fail and return a non-zero value. ]*/
         LogError("Bad arguments: cbs = %p, type = %p, audience = %p, token = %p, on_cbs_put_token_complete = %p",
             cbs, type, audience, token, on_cbs_put_token_complete);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else if ((cbs->cbs_state == CBS_STATE_CLOSED) ||
         (cbs->cbs_state == CBS_STATE_ERROR))
     {
         /* Codes_SRS_CBS_01_058: [ If `cbs_put_token_async` is called when the CBS instance is not yet open or in error, it shall fail and return a non-zero value. ]*/
         LogError("put token called while closed or in error");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -491,7 +491,7 @@ int cbs_put_token_async(CBS_HANDLE cbs, const char* type, const char* audience, 
         {
             /* Codes_SRS_CBS_01_072: [ If constructing the message fails, `cbs_put_token_async` shall fail and return a non-zero value. ]*/
             LogError("message_create failed");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -500,7 +500,7 @@ int cbs_put_token_async(CBS_HANDLE cbs, const char* type, const char* audience, 
             {
                 /* Codes_SRS_CBS_01_072: [ If constructing the message fails, `cbs_put_token_async` shall fail and return a non-zero value. ]*/
                 LogError("Failed creating token AMQP value");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -509,7 +509,7 @@ int cbs_put_token_async(CBS_HANDLE cbs, const char* type, const char* audience, 
                 {
                     /* Codes_SRS_CBS_01_072: [ If constructing the message fails, `cbs_put_token_async` shall fail and return a non-zero value. ]*/
                     LogError("Failed setting the token in the message body");
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                 }
                 else
                 {
@@ -518,13 +518,13 @@ int cbs_put_token_async(CBS_HANDLE cbs, const char* type, const char* audience, 
                     {
                         /* Codes_SRS_CBS_01_072: [ If constructing the message fails, `cbs_put_token_async` shall fail and return a non-zero value. ]*/
                         LogError("Failed creating application properties map");
-                        result = __FAILURE__;
+                        result = MU_FAILURE;
                     }
                     else
                     {
                         if (add_string_key_value_pair_to_map(application_properties, "name", audience) != 0)
                         {
-                            result = __FAILURE__;
+                            result = MU_FAILURE;
                         }
                         else
                         {
@@ -532,7 +532,7 @@ int cbs_put_token_async(CBS_HANDLE cbs, const char* type, const char* audience, 
                             {
                                 /* Codes_SRS_CBS_01_072: [ If constructing the message fails, `cbs_put_token_async` shall fail and return a non-zero value. ]*/
                                 LogError("Failed setting message application properties");
-                                result = __FAILURE__;
+                                result = MU_FAILURE;
                             }
                             else
                             {
@@ -540,7 +540,7 @@ int cbs_put_token_async(CBS_HANDLE cbs, const char* type, const char* audience, 
                                 if (cbs_operation == NULL)
                                 {
                                     LogError("Failed allocating CBS operation instance");
-                                    result = __FAILURE__;
+                                    result = MU_FAILURE;
                                 }
                                 else
                                 {
@@ -555,7 +555,7 @@ int cbs_put_token_async(CBS_HANDLE cbs, const char* type, const char* audience, 
                                     {
                                         free(cbs_operation);
                                         LogError("Failed adding pending operation to list");
-                                        result = __FAILURE__;
+                                        result = MU_FAILURE;
                                     }
                                     else
                                     {
@@ -575,7 +575,7 @@ int cbs_put_token_async(CBS_HANDLE cbs, const char* type, const char* audience, 
                                             free(cbs_operation);
                                             /* Codes_SRS_CBS_01_084: [ If `amqp_management_execute_operation_async` fails `cbs_put_token_async` shall fail and return a non-zero value. ]*/
                                             LogError("Failed starting AMQP management operation");
-                                            result = __FAILURE__;
+                                            result = MU_FAILURE;
                                         }
                                         else
                                         {
@@ -614,14 +614,14 @@ int cbs_delete_token_async(CBS_HANDLE cbs, const char* type, const char* audienc
         /* Codes_SRS_CBS_01_060: [ If any of the arguments `cbs`, `type`, `audience` or `on_cbs_delete_token_complete` is NULL `cbs_put_token_async` shall fail and return a non-zero value. ]*/
         LogError("Bad arguments: cbs = %p, type = %p, audience = %p, on_cbs_delete_token_complete = %p",
             cbs, type, audience, on_cbs_delete_token_complete);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else if ((cbs->cbs_state == CBS_STATE_CLOSED) ||
         (cbs->cbs_state == CBS_STATE_ERROR))
     {
         /* Codes_SRS_CBS_01_067: [ If `cbs_delete_token_async` is called when the CBS instance is not yet open or in error, it shall fail and return a non-zero value. ]*/
         LogError("put token called while closed or in error");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -632,7 +632,7 @@ int cbs_delete_token_async(CBS_HANDLE cbs, const char* type, const char* audienc
         {
             /* Codes_SRS_CBS_01_071: [ If constructing the message fails, `cbs_delete_token_async` shall fail and return a non-zero value. ]*/
             LogError("message_create failed");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -641,13 +641,13 @@ int cbs_delete_token_async(CBS_HANDLE cbs, const char* type, const char* audienc
             {
                 /* Codes_SRS_CBS_01_071: [ If constructing the message fails, `cbs_delete_token_async` shall fail and return a non-zero value. ]*/
                 LogError("Failed creating application properties map");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
                 if (add_string_key_value_pair_to_map(application_properties, "name", audience) != 0)
                 {
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                 }
                 else
                 {
@@ -656,7 +656,7 @@ int cbs_delete_token_async(CBS_HANDLE cbs, const char* type, const char* audienc
                     {
                         /* Codes_SRS_CBS_01_071: [ If constructing the message fails, `cbs_delete_token_async` shall fail and return a non-zero value. ]*/
                         LogError("Failed setting message application properties");
-                        result = __FAILURE__;
+                        result = MU_FAILURE;
                     }
                     else
                     {
@@ -664,7 +664,7 @@ int cbs_delete_token_async(CBS_HANDLE cbs, const char* type, const char* audienc
                         if (cbs_operation == NULL)
                         {
                             LogError("Failed allocating CBS operation instance");
-                            result = __FAILURE__;
+                            result = MU_FAILURE;
                         }
                         else
                         {
@@ -679,7 +679,7 @@ int cbs_delete_token_async(CBS_HANDLE cbs, const char* type, const char* audienc
                             {
                                 free(cbs_operation);
                                 LogError("Failed adding pending operation to list");
-                                result = __FAILURE__;
+                                result = MU_FAILURE;
                             }
                             else
                             {
@@ -700,7 +700,7 @@ int cbs_delete_token_async(CBS_HANDLE cbs, const char* type, const char* audienc
                                     singlylinkedlist_remove(cbs->pending_operations, list_item);
                                     free(cbs_operation);
                                     LogError("Failed starting AMQP management operation");
-                                    result = __FAILURE__;
+                                    result = MU_FAILURE;
                                 }
                                 else
                                 {
@@ -729,7 +729,7 @@ int cbs_set_trace(CBS_HANDLE cbs, bool trace_on)
     {
         /* Codes_SRS_CBS_01_090: [ If the argument `cbs` is NULL, `cbs_set_trace` shall fail and return a non-zero value. ]*/
         LogError("NULL cbs handle");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {

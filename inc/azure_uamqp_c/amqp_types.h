@@ -5,7 +5,7 @@
 #define ANQP_TYPES_H
 
 #include <stddef.h>
-#include "azure_c_shared_utility/macro_utils.h"
+#include "azure_macro_utils/macro_utils.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,7 +37,7 @@ extern "C" {
     AMQP_TYPE_COMPOSITE, \
     AMQP_TYPE_UNKNOWN
 
-DEFINE_ENUM(AMQP_TYPE, AMQP_TYPE_VALUES);
+MU_DEFINE_ENUM(AMQP_TYPE, AMQP_TYPE_VALUES);
 
 #ifdef __cplusplus
 }

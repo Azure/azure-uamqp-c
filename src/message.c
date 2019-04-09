@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include "azure_c_shared_utility/optimize_size.h"
+#include "azure_macro_utils/macro_utils.h"
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_uamqp_c/amqp_definitions.h"
@@ -392,7 +392,7 @@ int message_set_header(MESSAGE_HANDLE message, HEADER_HANDLE header)
     {
         /* Codes_SRS_MESSAGE_01_024: [ If `message` is NULL, `message_set_header` shall fail and return a non-zero value. ]*/
         LogError("NULL message");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -419,7 +419,7 @@ int message_set_header(MESSAGE_HANDLE message, HEADER_HANDLE header)
             {
                 /* Codes_SRS_MESSAGE_01_026: [ If `header_clone` fails, `message_set_header` shall fail and return a non-zero value. ]*/
                 LogError("Cannot clone message header");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -451,7 +451,7 @@ int message_get_header(MESSAGE_HANDLE message, HEADER_HANDLE* header)
         /* Codes_SRS_MESSAGE_01_029: [ If `message` or `message_header` is NULL, `message_get_header` shall fail and return a non-zero value. ]*/
         LogError("Bad arguments: message = %p, header = %p",
             message, header);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -472,7 +472,7 @@ int message_get_header(MESSAGE_HANDLE message, HEADER_HANDLE* header)
             {
                 /* Codes_SRS_MESSAGE_01_031: [ If `header_clone` fails, `message_get_header` shall fail and return a non-zero value. ]*/
                 LogError("Cannot clone message header");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -493,7 +493,7 @@ int message_set_delivery_annotations(MESSAGE_HANDLE message, delivery_annotation
     {
         /* Codes_SRS_MESSAGE_01_034: [ If `message` is NULL, `message_set_delivery_annotations` shall fail and return a non-zero value. ]*/
         LogError("NULL message");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -520,7 +520,7 @@ int message_set_delivery_annotations(MESSAGE_HANDLE message, delivery_annotation
             {
                 /* Codes_SRS_MESSAGE_01_036: [ If `annotations_clone` fails, `message_set_delivery_annotations` shall fail and return a non-zero value. ]*/
                 LogError("Cannot clone delivery annotations");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -552,7 +552,7 @@ int message_get_delivery_annotations(MESSAGE_HANDLE message, delivery_annotation
         /* Codes_SRS_MESSAGE_01_039: [ If `message` or `annotations` is NULL, `message_get_delivery_annotations` shall fail and return a non-zero value. ]*/
         LogError("Bad arguments: message = %p, annotations = %p",
             message, annotations);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -573,7 +573,7 @@ int message_get_delivery_annotations(MESSAGE_HANDLE message, delivery_annotation
             {
                 /* Codes_SRS_MESSAGE_01_041: [ If `annotations_clone` fails, `message_get_delivery_annotations` shall fail and return a non-zero value. ]*/
                 LogError("Cannot clone delivery annotations");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -594,7 +594,7 @@ int message_set_message_annotations(MESSAGE_HANDLE message, message_annotations 
     {
         /* Codes_SRS_MESSAGE_01_044: [ If `message` is NULL, `message_set_message_annotations` shall fail and return a non-zero value. ]*/
         LogError("NULL message");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -621,7 +621,7 @@ int message_set_message_annotations(MESSAGE_HANDLE message, message_annotations 
             {
                 /* Codes_SRS_MESSAGE_01_046: [ If `annotations_clone` fails, `message_set_message_annotations` shall fail and return a non-zero value. ]*/
                 LogError("Cannot clone message annotations");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -653,7 +653,7 @@ int message_get_message_annotations(MESSAGE_HANDLE message, annotations* message
         /* Codes_SRS_MESSAGE_01_049: [ If `message` or `annotations` is NULL, `message_get_message_annotations` shall fail and return a non-zero value. ]*/
         LogError("Bad arguments: message = %p, message_annotations = %p",
             message, message_annotations);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -674,7 +674,7 @@ int message_get_message_annotations(MESSAGE_HANDLE message, annotations* message
             {
                 /* Codes_SRS_MESSAGE_01_051: [ If `annotations_clone` fails, `message_get_message_annotations` shall fail and return a non-zero value. ]*/
                 LogError("Cannot clone message annotations");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -695,7 +695,7 @@ int message_set_properties(MESSAGE_HANDLE message, PROPERTIES_HANDLE properties)
     {
         /* Codes_SRS_MESSAGE_01_054: [ If `message` is NULL, `message_set_properties` shall fail and return a non-zero value. ]*/
         LogError("NULL message");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -722,7 +722,7 @@ int message_set_properties(MESSAGE_HANDLE message, PROPERTIES_HANDLE properties)
             {
                 /* Codes_SRS_MESSAGE_01_056: [ If `properties_clone` fails, `message_set_properties` shall fail and return a non-zero value. ]*/
                 LogError("Cannot clone message properties");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -754,7 +754,7 @@ int message_get_properties(MESSAGE_HANDLE message, PROPERTIES_HANDLE* properties
         /* Codes_SRS_MESSAGE_01_059: [ If `message` or `properties` is NULL, `message_get_properties` shall fail and return a non-zero value. ]*/
         LogError("Bad arguments: message = %p, properties = %p",
             message, properties);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -775,7 +775,7 @@ int message_get_properties(MESSAGE_HANDLE message, PROPERTIES_HANDLE* properties
             {
                 /* Codes_SRS_MESSAGE_01_061: [ If `properties_clone` fails, `message_get_properties` shall fail and return a non-zero value. ]*/
                 LogError("Cannot clone message properties");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -796,7 +796,7 @@ int message_set_application_properties(MESSAGE_HANDLE message, AMQP_VALUE applic
     {
         /* Codes_SRS_MESSAGE_01_066: [ If `message` is NULL, `message_set_application_properties` shall fail and return a non-zero value. ]*/
         LogError("NULL message");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -823,7 +823,7 @@ int message_set_application_properties(MESSAGE_HANDLE message, AMQP_VALUE applic
             {
                 /* Codes_SRS_MESSAGE_01_068: [ If `application_properties_clone` fails, `message_set_application_properties` shall fail and return a non-zero value. ]*/
                 LogError("Cannot clone application properties");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -855,7 +855,7 @@ int message_get_application_properties(MESSAGE_HANDLE message, AMQP_VALUE* appli
         /* Codes_SRS_MESSAGE_01_072: [ If `message` or `application_properties` is NULL, `message_get_application_properties` shall fail and return a non-zero value. ]*/
         LogError("Bad arguments: message = %p, application_properties = %p",
             message, application_properties);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -876,7 +876,7 @@ int message_get_application_properties(MESSAGE_HANDLE message, AMQP_VALUE* appli
             {
                 /* Codes_SRS_MESSAGE_01_074: [ If `application_properties_clone` fails, `message_get_application_properties` shall fail and return a non-zero value. ]*/
                 LogError("Cannot clone application properties");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -897,7 +897,7 @@ int message_set_footer(MESSAGE_HANDLE message, annotations footer)
     {
         /* Codes_SRS_MESSAGE_01_077: [ If `message` is NULL, `message_set_footer` shall fail and return a non-zero value. ]*/
         LogError("NULL message");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -924,7 +924,7 @@ int message_set_footer(MESSAGE_HANDLE message, annotations footer)
             {
                 /* Codes_SRS_MESSAGE_01_079: [ If `annotations_clone` fails, `message_set_footer` shall fail and return a non-zero value. ]*/
                 LogError("Cannot clone message footer");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -956,7 +956,7 @@ int message_get_footer(MESSAGE_HANDLE message, annotations* footer)
         /* Codes_SRS_MESSAGE_01_083: [ If `message` or `footer` is NULL, `message_get_footer` shall fail and return a non-zero value. ]*/
         LogError("Bad arguments: message = %p, footer = %p",
             message, footer);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -977,7 +977,7 @@ int message_get_footer(MESSAGE_HANDLE message, annotations* footer)
             {
                 /* Codes_SRS_MESSAGE_01_085: [ If `annotations_clone` fails, `message_get_footer` shall fail and return a non-zero value. ]*/
                 LogError("Cannot clone message footer");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -1002,7 +1002,7 @@ int message_add_body_amqp_data(MESSAGE_HANDLE message, BINARY_DATA amqp_data)
     {
         LogError("Bad arguments: message = %p, bytes = %p, length = %u",
             message, amqp_data.bytes, (unsigned int)amqp_data.length);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1012,7 +1012,7 @@ int message_add_body_amqp_data(MESSAGE_HANDLE message, BINARY_DATA amqp_data)
         {
             /* Codes_SRS_MESSAGE_01_091: [ If the body was already set to an AMQP value or a list of AMQP sequences, `message_add_body_amqp_data` shall fail and return a non-zero value. ]*/
             LogError("Body type already set");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -1022,7 +1022,7 @@ int message_add_body_amqp_data(MESSAGE_HANDLE message, BINARY_DATA amqp_data)
             {
                 /* Codes_SRS_MESSAGE_01_153: [ If allocating memory to store the added AMQP data fails, `message_add_body_amqp_data` shall fail and return a non-zero value. ]*/
                 LogError("Cannot allocate memory for body AMQP data items");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -1044,7 +1044,7 @@ int message_add_body_amqp_data(MESSAGE_HANDLE message, BINARY_DATA amqp_data)
                     {
                         /* Codes_SRS_MESSAGE_01_153: [ If allocating memory to store the added AMQP data fails, `message_add_body_amqp_data` shall fail and return a non-zero value. ]*/
                         LogError("Cannot allocate memory for body AMQP data to be added");
-                        result = __FAILURE__;
+                        result = MU_FAILURE;
                     }
                     else
                     {
@@ -1073,7 +1073,7 @@ int message_get_body_amqp_data_in_place(MESSAGE_HANDLE message, size_t index, BI
         /* Codes_SRS_MESSAGE_01_094: [ If `message` or `amqp_data` is NULL, `message_get_body_amqp_data_in_place` shall fail and return a non-zero value. ]*/
         LogError("Bad arguments: message = %p, amqp_data = %p",
             message, amqp_data);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1082,14 +1082,14 @@ int message_get_body_amqp_data_in_place(MESSAGE_HANDLE message, size_t index, BI
         {
             /* Codes_SRS_MESSAGE_01_096: [ If the body for `message` is not of type `MESSAGE_BODY_TYPE_DATA`, `message_get_body_amqp_data_in_place` shall fail and return a non-zero value. ]*/
             LogError("Body type is not AMQP data");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else if (index >= message->body_amqp_data_count)
         {
             /* Codes_SRS_MESSAGE_01_095: [ If `index` indicates an AMQP data entry that is out of bounds, `message_get_body_amqp_data_in_place` shall fail and return a non-zero value. ]*/
             LogError("Index too high for AMQP data (%lu), number of AMQP data entries is %lu",
                 (unsigned long)index, (unsigned long)message->body_amqp_data_count);
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -1115,7 +1115,7 @@ int message_get_body_amqp_data_count(MESSAGE_HANDLE message, size_t* count)
         /* Codes_SRS_MESSAGE_01_099: [ If `message` or `count` is NULL, `message_get_body_amqp_data_count` shall fail and return a non-zero value. ]*/
         LogError("Bad arguments: message = %p, count = %p",
             message, count);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1124,7 +1124,7 @@ int message_get_body_amqp_data_count(MESSAGE_HANDLE message, size_t* count)
         {
             /* Codes_SRS_MESSAGE_01_100: [ If the body for `message` is not of type `MESSAGE_BODY_TYPE_DATA`, `message_get_body_amqp_data_count` shall fail and return a non-zero value. ]*/
             LogError("Body type is not AMQP data");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -1149,7 +1149,7 @@ int message_set_body_amqp_value(MESSAGE_HANDLE message, AMQP_VALUE body_amqp_val
         /* Codes_SRS_MESSAGE_01_103: [ If `message` or `body_amqp_value` is NULL, `message_set_body_amqp_value` shall fail and return a non-zero value. ]*/
         LogError("Bad arguments: message = %p, body_amqp_value = %p",
             message, body_amqp_value);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1159,7 +1159,7 @@ int message_set_body_amqp_value(MESSAGE_HANDLE message, AMQP_VALUE body_amqp_val
         {
             /* Codes_SRS_MESSAGE_01_105: [ If the body was already set to an AMQP data list or a list of AMQP sequences, `message_set_body_amqp_value` shall fail and return a non-zero value. ]*/
             LogError("Body is already set to another body type");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -1168,7 +1168,7 @@ int message_set_body_amqp_value(MESSAGE_HANDLE message, AMQP_VALUE body_amqp_val
             if (new_amqp_value == NULL)
             {
                 LogError("Cannot clone body AMQP value");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -1201,7 +1201,7 @@ int message_get_body_amqp_value_in_place(MESSAGE_HANDLE message, AMQP_VALUE* bod
         /* Codes_SRS_MESSAGE_01_108: [ If `message` or `body_amqp_value` is NULL, `message_get_body_amqp_value_in_place` shall fail and return a non-zero value. ]*/
         LogError("Bad arguments: message = %p, body_amqp_value = %p",
             message, body_amqp_value);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1210,7 +1210,7 @@ int message_get_body_amqp_value_in_place(MESSAGE_HANDLE message, AMQP_VALUE* bod
         {
             /* Codes_SRS_MESSAGE_01_109: [ If the body for `message` is not of type `MESSAGE_BODY_TYPE_VALUE`, `message_get_body_amqp_value_in_place` shall fail and return a non-zero value. ]*/
             LogError("Body is not of type AMQP value");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -1235,7 +1235,7 @@ int message_add_body_amqp_sequence(MESSAGE_HANDLE message, AMQP_VALUE sequence_l
         /* Codes_SRS_MESSAGE_01_112: [ If `message` or `sequence` is NULL, `message_add_body_amqp_sequence` shall fail and return a non-zero value. ]*/
         LogError("Bad arguments: message = %p, sequence_list = %p",
             message, sequence_list);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1245,7 +1245,7 @@ int message_add_body_amqp_sequence(MESSAGE_HANDLE message, AMQP_VALUE sequence_l
         {
             /* Codes_SRS_MESSAGE_01_115: [ If the body was already set to an AMQP data list or an AMQP value, `message_add_body_amqp_sequence` shall fail and return a non-zero value. ]*/
             LogError("Body is already set to another body type");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -1254,7 +1254,7 @@ int message_add_body_amqp_sequence(MESSAGE_HANDLE message, AMQP_VALUE sequence_l
             {
                 /* Codes_SRS_MESSAGE_01_158: [ If allocating memory in order to store the sequence fails, `message_add_body_amqp_sequence` shall fail and return a non-zero value. ]*/
                 LogError("Cannot allocate enough memory for sequence items");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -1267,7 +1267,7 @@ int message_add_body_amqp_sequence(MESSAGE_HANDLE message, AMQP_VALUE sequence_l
                 {
                     /* Codes_SRS_MESSAGE_01_157: [ If `amqpvalue_clone` fails, `message_add_body_amqp_sequence` shall fail and return a non-zero value. ]*/
                     LogError("Cloning sequence failed");
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                 }
                 else
                 {
@@ -1294,7 +1294,7 @@ int message_get_body_amqp_sequence_in_place(MESSAGE_HANDLE message, size_t index
         /* Codes_SRS_MESSAGE_01_118: [ If `message` or `sequence` is NULL, `message_get_body_amqp_sequence_in_place` shall fail and return a non-zero value. ]*/
         LogError("Bad arguments: message = %p, sequence = %p",
             message, sequence);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1303,7 +1303,7 @@ int message_get_body_amqp_sequence_in_place(MESSAGE_HANDLE message, size_t index
         {
             /* Codes_SRS_MESSAGE_01_120: [ If the body for `message` is not of type `MESSAGE_BODY_TYPE_SEQUENCE`, `message_get_body_amqp_sequence_in_place` shall fail and return a non-zero value. ]*/
             LogError("Body is not of type SEQUENCE");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -1312,7 +1312,7 @@ int message_get_body_amqp_sequence_in_place(MESSAGE_HANDLE message, size_t index
                 /* Codes_SRS_MESSAGE_01_119: [ If `index` indicates an AMQP sequence entry that is out of bounds, `message_get_body_amqp_sequence_in_place` shall fail and return a non-zero value. ]*/
                 LogError("Index too high for AMQP sequence (%lu), maximum is %lu",
                     (unsigned long)index, (unsigned long)message->body_amqp_sequence_count);
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -1338,7 +1338,7 @@ int message_get_body_amqp_sequence_count(MESSAGE_HANDLE message, size_t* count)
         /* Codes_SRS_MESSAGE_01_123: [ If `message` or `count` is NULL, `message_get_body_amqp_sequence_count` shall fail and return a non-zero value. ]*/
         LogError("Bad arguments: message = %p, count = %p",
             message, count);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1347,7 +1347,7 @@ int message_get_body_amqp_sequence_count(MESSAGE_HANDLE message, size_t* count)
         {
             /* Codes_SRS_MESSAGE_01_124: [ If the body for `message` is not of type `MESSAGE_BODY_TYPE_SEQUENCE`, `message_get_body_amqp_sequence_count` shall fail and return a non-zero value. ]*/
             LogError("Body is not of type SEQUENCE");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -1372,7 +1372,7 @@ int message_get_body_type(MESSAGE_HANDLE message, MESSAGE_BODY_TYPE* body_type)
         /* Codes_SRS_MESSAGE_01_127: [ If `message` or `body_type` is NULL, `message_get_body_type` shall fail and return a non-zero value. ]*/
         LogError("Bad arguments: message = %p, body_type = %p",
             message, body_type);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1410,7 +1410,7 @@ int message_set_message_format(MESSAGE_HANDLE message, uint32_t message_format)
     {
         /* Codes_SRS_MESSAGE_01_131: [ If `message` is NULL, `message_set_message_format` shall fail and return a non-zero value. ]*/
         LogError("NULL message");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1434,7 +1434,7 @@ int message_get_message_format(MESSAGE_HANDLE message, uint32_t *message_format)
         /* Codes_SRS_MESSAGE_01_134: [ If `message` or `message_format` is NULL, `message_get_message_format` shall fail and return a non-zero value. ]*/
         LogError("Bad arguments: message = %p, message_format = %p",
             message, message_format);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {

@@ -6,7 +6,7 @@
 #include <stddef.h>
 #include <string.h>
 #include "azure_c_shared_utility/gballoc.h"
-#include "azure_c_shared_utility/optimize_size.h"
+#include "azure_macro_utils/macro_utils.h"
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_uamqp_c/sasl_frame_codec.h"
 #include "azure_uamqp_c/frame_codec.h"
@@ -241,7 +241,7 @@ int sasl_frame_codec_encode_frame(SASL_FRAME_CODEC_HANDLE sasl_frame_codec, AMQP
         /* Codes_SRS_SASL_FRAME_CODEC_01_034: [If any error occurs during encoding, sasl_frame_codec_encode_frame shall fail and return a non-zero value.] */
         LogError("Bad arguments: sasl_frame_codec = %p, sasl_frame_value = %p",
             sasl_frame_codec, sasl_frame_value);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -253,13 +253,13 @@ int sasl_frame_codec_encode_frame(SASL_FRAME_CODEC_HANDLE sasl_frame_codec, AMQP
         {
             /* Codes_SRS_SASL_FRAME_CODEC_01_034: [If any error occurs during encoding, sasl_frame_codec_encode_frame shall fail and return a non-zero value.] */
             LogError("Cannot get SASL frame descriptor AMQP value");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else if (amqpvalue_get_ulong(descriptor, &sasl_frame_descriptor_ulong) != 0)
         {
             /* Codes_SRS_SASL_FRAME_CODEC_01_034: [If any error occurs during encoding, sasl_frame_codec_encode_frame shall fail and return a non-zero value.] */
             LogError("Cannot get SASL frame descriptor ulong");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         /* Codes_SRS_SASL_FRAME_CODEC_01_047: [The frame body of a SASL frame MUST contain exactly one AMQP type, whose type encoding MUST have provides="sasl-frame".] */
         else if ((sasl_frame_descriptor_ulong < SASL_MECHANISMS) ||
@@ -267,7 +267,7 @@ int sasl_frame_codec_encode_frame(SASL_FRAME_CODEC_HANDLE sasl_frame_codec, AMQP
         {
             /* Codes_SRS_SASL_FRAME_CODEC_01_034: [If any error occurs during encoding, sasl_frame_codec_encode_frame shall fail and return a non-zero value.] */
             LogError("Bad SASL frame descriptor");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         /* Codes_SRS_SASL_FRAME_CODEC_01_032: [The payload frame size shall be computed based on the encoded size of the sasl_frame_value and its fields.] */
         /* Codes_SRS_SASL_FRAME_CODEC_01_033: [The encoded size of the sasl_frame_value and its fields shall be obtained by calling amqpvalue_get_encoded_size.] */
@@ -275,14 +275,14 @@ int sasl_frame_codec_encode_frame(SASL_FRAME_CODEC_HANDLE sasl_frame_codec, AMQP
         {
             /* Codes_SRS_SASL_FRAME_CODEC_01_034: [If any error occurs during encoding, sasl_frame_codec_encode_frame shall fail and return a non-zero value.] */
             LogError("Cannot get SASL frame encoded size");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
             /* Codes_SRS_SASL_FRAME_CODEC_01_016: [The maximum size of a SASL frame is defined by MIN-MAX-FRAME-SIZE.] */
         else if (encoded_size > MIX_MAX_FRAME_SIZE - 8)
         {
             /* Codes_SRS_SASL_FRAME_CODEC_01_034: [If any error occurs during encoding, sasl_frame_codec_encode_frame shall fail and return a non-zero value.] */
             LogError("SASL frame encoded size too big");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -290,7 +290,7 @@ int sasl_frame_codec_encode_frame(SASL_FRAME_CODEC_HANDLE sasl_frame_codec, AMQP
             if (sasl_frame_bytes == NULL)
             {
                 LogError("Cannot allocate SASL frame bytes");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -302,7 +302,7 @@ int sasl_frame_codec_encode_frame(SASL_FRAME_CODEC_HANDLE sasl_frame_codec, AMQP
                 if (amqpvalue_encode(sasl_frame_value, encode_bytes, &payload) != 0)
                 {
                     LogError("Cannot encode SASL frame value");
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                 }
                 else
                 {
@@ -315,7 +315,7 @@ int sasl_frame_codec_encode_frame(SASL_FRAME_CODEC_HANDLE sasl_frame_codec, AMQP
                     {
                         /* Codes_SRS_SASL_FRAME_CODEC_01_034: [If any error occurs during encoding, sasl_frame_codec_encode_frame shall fail and return a non-zero value.] */
                         LogError("Cannot encode SASL frame");
-                        result = __FAILURE__;
+                        result = MU_FAILURE;
                     }
                     else
                     {

@@ -87,7 +87,7 @@ static <#= type_name.ToUpper() #>_HANDLE <#= type_name #>_create_internal(void)
 <#                      } #>
             if ((result == 0) && (amqpvalue_set_composite_item(<#= type_name #>_instance->composite_value, <#= mandatory_args[i].Value #>, <#= mandatory_arg_name #>_amqp_value) != 0))
             {
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
 <#                  } #>
 
@@ -172,7 +172,7 @@ int amqpvalue_get_<#= type_name #>(AMQP_VALUE value, <#= type_name.ToUpper() #>_
     *<#= type_name.ToLower() #>_handle = <#= type_name.ToLower() #>_instance;
     if (*<#= type_name.ToLower() #>_handle == NULL)
     {
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -180,14 +180,14 @@ int amqpvalue_get_<#= type_name #>(AMQP_VALUE value, <#= type_name.ToUpper() #>_
         if (list_value == NULL)
         {
             <#= type_name #>_destroy(*<#= type_name.ToLower() #>_handle);
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
             uint32_t list_item_count;
             if (amqpvalue_get_list_item_count(list_value, &list_item_count) != 0)
             {
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -216,7 +216,7 @@ int amqpvalue_get_<#= type_name #>(AMQP_VALUE value, <#= type_name.ToUpper() #>_
 <#                     { #>
                             {
                                 <#= type_name #>_destroy(*<#= type_name.ToLower() #>_handle);
-                                result = __FAILURE__;
+                                result = MU_FAILURE;
                                 break;
                             }
 <#                     } #>
@@ -235,7 +235,7 @@ int amqpvalue_get_<#= type_name #>(AMQP_VALUE value, <#= type_name.ToUpper() #>_
 <#                     { #>
                                 amqpvalue_destroy(item_value);
                                 <#= type_name #>_destroy(*<#= type_name.ToLower() #>_handle);
-                                result = __FAILURE__;
+                                result = MU_FAILURE;
                                 break;
 <#                     } #>
 <#                     else #>
@@ -260,7 +260,7 @@ int amqpvalue_get_<#= type_name #>(AMQP_VALUE value, <#= type_name.ToUpper() #>_
                                 {
                                     amqpvalue_destroy(item_value);
                                     <#= type_name #>_destroy(*<#= type_name.ToLower() #>_handle);
-                                    result = __FAILURE__;
+                                    result = MU_FAILURE;
                                     break;
                                 }
 <#      if (c_type == "ERROR_HANDLE") #>
@@ -283,7 +283,7 @@ int amqpvalue_get_<#= type_name #>(AMQP_VALUE value, <#= type_name.ToUpper() #>_
 <#                     { #>
                     else
                     {
-                        result = __FAILURE__;
+                        result = MU_FAILURE;
                     }
 <#                     } #>
 <#                  k++; #>
@@ -314,7 +314,7 @@ int <#= type_name #>_get_<#= field_name #>(<#= type_name.ToUpper() #>_HANDLE <#=
 
     if (<#= type_name #> == NULL)
     {
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -322,7 +322,7 @@ int <#= type_name #>_get_<#= field_name #>(<#= type_name.ToUpper() #>_HANDLE <#=
         <#= type_name.ToUpper() #>_INSTANCE* <#= type_name #>_instance = (<#= type_name.ToUpper() #>_INSTANCE*)<#= type_name #>;
         if (amqpvalue_get_composite_item_count(<#= type_name #>_instance->composite_value, &item_count) != 0)
         {
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -342,7 +342,7 @@ int <#= type_name #>_get_<#= field_name #>(<#= type_name.ToUpper() #>_HANDLE <#=
 <#                      } #>
 <#                      else #>
 <#                      { #>
-                result = __FAILURE__;
+                result = MU_FAILURE;
 <#                      } #>
             }
             else
@@ -365,7 +365,7 @@ int <#= type_name #>_get_<#= field_name #>(<#= type_name.ToUpper() #>_HANDLE <#=
 <#                      } #>
 <#                      else #>
 <#                      { #>
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
 <#                      } #>
                 }
                 else
@@ -407,7 +407,7 @@ int <#= type_name #>_get_<#= field_name #>(<#= type_name.ToUpper() #>_HANDLE <#=
 <#                      { #>
                         if (amqpvalue_get_type(item_value) != AMQP_TYPE_NULL)
                         {
-                            result = __FAILURE__;
+                            result = MU_FAILURE;
                         }
                         else
                         {
@@ -424,7 +424,7 @@ int <#= type_name #>_get_<#= field_name #>(<#= type_name.ToUpper() #>_HANDLE <#=
 <#                      } #>
 <#                      else #>
 <#                      { #>
-                        result = __FAILURE__;
+                        result = MU_FAILURE;
 <#                      } #>
                     }
                     else
@@ -436,7 +436,7 @@ int <#= type_name #>_get_<#= field_name #>(<#= type_name.ToUpper() #>_HANDLE <#=
                             *<#= field_name #>_value = amqpvalue_create_array();
                             if (*<#= field_name #>_value == NULL)
                             {
-                                result = __FAILURE__;
+                                result = MU_FAILURE;
                             }
                             else
                             {
@@ -444,7 +444,7 @@ int <#= type_name #>_get_<#= field_name #>(<#= type_name.ToUpper() #>_HANDLE <#=
                                 if (single_amqp_value == NULL)
                                 {
                                     amqpvalue_destroy(*<#= field_name #>_value);
-                                    result = __FAILURE__;
+                                    result = MU_FAILURE;
                                 }
                                 else
                                 {
@@ -452,14 +452,14 @@ int <#= type_name #>_get_<#= field_name #>(<#= type_name.ToUpper() #>_HANDLE <#=
                                     {
                                         amqpvalue_destroy(*<#= field_name #>_value);
                                         amqpvalue_destroy(single_amqp_value);
-                                        result = __FAILURE__;
+                                        result = MU_FAILURE;
                                     }
                                     else
                                     {
                                         if (amqpvalue_set_composite_item(<#= type_name #>_instance->composite_value, <#= j #>, *<#= field_name #>_value) != 0)
                                         {
                                             amqpvalue_destroy(*<#= field_name #>_value);
-                                            result = __FAILURE__;
+                                            result = MU_FAILURE;
                                         }
                                         else
                                         {
@@ -497,7 +497,7 @@ int <#= type_name #>_set_<#= field_name #>(<#= type_name.ToUpper() #>_HANDLE <#=
 
     if (<#= type_name #> == NULL)
     {
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -520,13 +520,13 @@ int <#= type_name #>_set_<#= field_name #>(<#= type_name.ToUpper() #>_HANDLE <#=
 <# } #>
         if (<#= field_name #>_amqp_value == NULL)
         {
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
             if (amqpvalue_set_composite_item(<#= type_name #>_instance->composite_value, <#= j #>, <#= field_name #>_amqp_value) != 0)
             {
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {

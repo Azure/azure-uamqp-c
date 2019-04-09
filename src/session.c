@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "azure_c_shared_utility/optimize_size.h"
+#include "azure_macro_utils/macro_utils.h"
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_uamqp_c/session.h"
 #include "azure_uamqp_c/connection.h"
@@ -139,27 +139,27 @@ static int send_end_frame(SESSION_INSTANCE* session_instance, ERROR_HANDLE error
     end_performative = end_create();
     if (end_performative == NULL)
     {
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
         if ((error_handle != NULL) &&
             (end_set_error(end_performative, error_handle) != 0))
         {
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
             AMQP_VALUE end_performative_value = amqpvalue_create_end(end_performative);
             if (end_performative_value == NULL)
             {
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
                 if (connection_encode_frame(session_instance->endpoint, end_performative_value, NULL, 0, NULL, NULL) != 0)
                 {
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                 }
                 else
                 {
@@ -210,33 +210,33 @@ static int send_begin(SESSION_INSTANCE* session_instance)
 
     if (begin == NULL)
     {
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
         uint16_t remote_channel;
         if (begin_set_handle_max(begin, session_instance->handle_max) != 0)
         {
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else if ((session_instance->session_state == SESSION_STATE_BEGIN_RCVD) &&
             ((connection_endpoint_get_incoming_channel(session_instance->endpoint, &remote_channel) != 0) ||
             (begin_set_remote_channel(begin, remote_channel) != 0)))
         {
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
             AMQP_VALUE begin_performative_value = amqpvalue_create_begin(begin);
             if (begin_performative_value == NULL)
             {
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
                 if (connection_encode_frame(session_instance->endpoint, begin_performative_value, NULL, 0, NULL, NULL) != 0)
                 {
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                 }
                 else
                 {
@@ -258,7 +258,7 @@ static int send_flow(SESSION_INSTANCE* session)
     int result;
     if (session == NULL)
     {
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -266,26 +266,26 @@ static int send_flow(SESSION_INSTANCE* session)
 
         if (flow == NULL)
         {
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
             if (flow_set_next_incoming_id(flow, session->next_incoming_id) != 0)
             {
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
                 AMQP_VALUE flow_performative_value = amqpvalue_create_flow(flow);
                 if (flow_performative_value == NULL)
                 {
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                 }
                 else
                 {
                     if (connection_encode_frame(session->endpoint, flow_performative_value, NULL, 0, NULL, NULL) != 0)
                     {
-                        result = __FAILURE__;
+                        result = MU_FAILURE;
                     }
                     else
                     {
@@ -848,7 +848,7 @@ int session_begin(SESSION_HANDLE session)
 
     if (session == NULL)
     {
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -856,7 +856,7 @@ int session_begin(SESSION_HANDLE session)
 
         if (connection_start_endpoint(session_instance->endpoint, on_frame_received, on_connection_state_changed, session_instance) != 0)
         {
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -865,7 +865,7 @@ int session_begin(SESSION_HANDLE session)
                 if (connection_open(session_instance->connection) != 0)
                 {
                     session_instance->is_underlying_connection_open = UNDERLYING_CONNECTION_NOT_OPEN;
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                 }
                 else
                 {
@@ -889,7 +889,7 @@ int session_end(SESSION_HANDLE session, const char* condition_value, const char*
 
     if (session == NULL)
     {
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -907,13 +907,13 @@ int session_end(SESSION_HANDLE session, const char* condition_value, const char*
                 error_handle = error_create(condition_value);
                 if (error_handle == NULL)
                 {
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                 }
                 else
                 {
                     if (error_set_description(error_handle, description) != 0)
                     {
-                        result = __FAILURE__;
+                        result = MU_FAILURE;
                     }
                 }
             }
@@ -922,7 +922,7 @@ int session_end(SESSION_HANDLE session, const char* condition_value, const char*
             {
                 if (send_end_frame(session_instance, error_handle) != 0)
                 {
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                 }
                 else
                 {
@@ -959,7 +959,7 @@ int session_set_incoming_window(SESSION_HANDLE session, uint32_t incoming_window
 
     if (session == NULL)
     {
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -981,7 +981,7 @@ int session_get_incoming_window(SESSION_HANDLE session, uint32_t* incoming_windo
     if ((session == NULL) ||
         (incoming_window == NULL))
     {
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1001,7 +1001,7 @@ int session_set_outgoing_window(SESSION_HANDLE session, uint32_t outgoing_window
 
     if (session == NULL)
     {
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1022,7 +1022,7 @@ int session_get_outgoing_window(SESSION_HANDLE session, uint32_t* outgoing_windo
     if ((session == NULL) ||
         (outgoing_window == NULL))
     {
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1042,7 +1042,7 @@ int session_set_handle_max(SESSION_HANDLE session, handle handle_max)
 
     if (session == NULL)
     {
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1063,7 +1063,7 @@ int session_get_handle_max(SESSION_HANDLE session, handle* handle_max)
     if ((session == NULL) ||
         (handle_max == NULL))
     {
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1184,7 +1184,7 @@ int session_start_link_endpoint(LINK_ENDPOINT_HANDLE link_endpoint, ON_ENDPOINT_
     if ((link_endpoint == NULL) ||
         (frame_received_callback == NULL))
     {
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1212,7 +1212,7 @@ static int encode_frame(LINK_ENDPOINT_HANDLE link_endpoint, AMQP_VALUE performat
     if ((link_endpoint == NULL) ||
         (performative == NULL))
     {
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1221,7 +1221,7 @@ static int encode_frame(LINK_ENDPOINT_HANDLE link_endpoint, AMQP_VALUE performat
 
         if (connection_encode_frame(session_instance->endpoint, performative, payloads, payload_count, NULL, NULL) != 0)
         {
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -1239,7 +1239,7 @@ int session_send_flow(LINK_ENDPOINT_HANDLE link_endpoint, FLOW_HANDLE flow)
     if ((link_endpoint == NULL) ||
         (flow == NULL))
     {
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1252,7 +1252,7 @@ int session_send_flow(LINK_ENDPOINT_HANDLE link_endpoint, FLOW_HANDLE flow)
         {
             if (flow_set_next_incoming_id(flow, session_instance->next_incoming_id) != 0)
             {
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
         }
 
@@ -1264,20 +1264,20 @@ int session_send_flow(LINK_ENDPOINT_HANDLE link_endpoint, FLOW_HANDLE flow)
                 (flow_set_outgoing_window(flow, session_instance->outgoing_window) != 0) ||
                 (flow_set_handle(flow, link_endpoint_instance->output_handle) != 0))
             {
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
                 AMQP_VALUE flow_performative_value = amqpvalue_create_flow(flow);
                 if (flow_performative_value == NULL)
                 {
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                 }
                 else
                 {
                     if (encode_frame(link_endpoint, flow_performative_value, NULL, 0) != 0)
                     {
-                        result = __FAILURE__;
+                        result = MU_FAILURE;
                     }
                     else
                     {
@@ -1300,7 +1300,7 @@ int session_send_attach(LINK_ENDPOINT_HANDLE link_endpoint, ATTACH_HANDLE attach
     if ((link_endpoint == NULL) ||
         (attach == NULL))
     {
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1308,20 +1308,20 @@ int session_send_attach(LINK_ENDPOINT_HANDLE link_endpoint, ATTACH_HANDLE attach
 
         if (attach_set_handle(attach, link_endpoint_instance->output_handle) != 0)
         {
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
             AMQP_VALUE attach_performative_value = amqpvalue_create_attach(attach);
             if (attach_performative_value == NULL)
             {
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
                 if (encode_frame(link_endpoint, attach_performative_value, NULL, 0) != 0)
                 {
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                 }
                 else
                 {
@@ -1343,20 +1343,20 @@ int session_send_disposition(LINK_ENDPOINT_HANDLE link_endpoint, DISPOSITION_HAN
     if ((link_endpoint == NULL) ||
         (disposition == NULL))
     {
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
         AMQP_VALUE disposition_performative_value = amqpvalue_create_disposition(disposition);
         if (disposition_performative_value == NULL)
         {
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
             if (encode_frame(link_endpoint, disposition_performative_value, NULL, 0) != 0)
             {
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -1377,7 +1377,7 @@ int session_send_detach(LINK_ENDPOINT_HANDLE link_endpoint, DETACH_HANDLE detach
     if ((link_endpoint == NULL) ||
         (detach == NULL))
     {
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1385,20 +1385,20 @@ int session_send_detach(LINK_ENDPOINT_HANDLE link_endpoint, DETACH_HANDLE detach
 
         if (detach_set_handle(detach, link_endpoint_instance->output_handle) != 0)
         {
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
             AMQP_VALUE detach_performative_value = amqpvalue_create_detach(detach);
             if (detach_performative_value == NULL)
             {
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
                 if (encode_frame(link_endpoint, detach_performative_value, NULL, 0) != 0)
                 {
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                 }
                 else
                 {

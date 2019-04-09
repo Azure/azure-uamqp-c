@@ -99,7 +99,7 @@ static TEST_MUTEX_HANDLE g_testByTest;
     role_sender,    \
     role_receiver
 
-DEFINE_ENUM_STRINGS(UMOCK_C_ERROR_CODE, UMOCK_C_ERROR_CODE_VALUES)
+MU_DEFINE_ENUM_STRINGS(UMOCK_C_ERROR_CODE, UMOCK_C_ERROR_CODE_VALUES)
 
 #ifndef __cplusplus
 TEST_DEFINE_ENUM_TYPE(role, role_VALUES);
@@ -266,7 +266,7 @@ static ASYNC_OPERATION_HANDLE my_messagesender_send_async(MESSAGE_SENDER_HANDLE 
 static void on_umock_c_error(UMOCK_C_ERROR_CODE error_code)
 {
     char temp_str[256];
-    (void)snprintf(temp_str, sizeof(temp_str), "umock_c reported error :%s", ENUM_TO_STRING(UMOCK_C_ERROR_CODE, error_code));
+    (void)snprintf(temp_str, sizeof(temp_str), "umock_c reported error :%s", MU_ENUM_TO_STRING(UMOCK_C_ERROR_CODE, error_code));
     ASSERT_FAIL(temp_str);
 }
 

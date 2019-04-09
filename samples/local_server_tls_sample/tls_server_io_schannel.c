@@ -19,7 +19,7 @@
 #include "windows.h"
 #include "sspi.h"
 #include "schannel.h"
-#include "azure_c_shared_utility/optimize_size.h"
+#include "azure_macro_utils/macro_utils.h"
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_c_shared_utility/x509_schannel.h"
 #include "azure_c_shared_utility/crt_abstractions.h"
@@ -34,8 +34,8 @@
     TLS_SERVER_IO_STATE_CLOSING,                          \
     TLS_SERVER_IO_STATE_ERROR
 
-DEFINE_ENUM(TLS_SERVER_IO_STATE, TLS_SERVER_IO_STATE_VALUES);
-DEFINE_ENUM_STRINGS(TLS_SERVER_IO_STATE, TLS_SERVER_IO_STATE_VALUES);
+MU_DEFINE_ENUM(TLS_SERVER_IO_STATE, TLS_SERVER_IO_STATE_VALUES);
+MU_DEFINE_ENUM_STRINGS(TLS_SERVER_IO_STATE, TLS_SERVER_IO_STATE_VALUES);
 
 typedef struct PENDING_SEND_TAG
 {
@@ -212,7 +212,7 @@ static int resize_receive_buffer(TLS_IO_INSTANCE* tls_io_instance, size_t needed
         if (new_buffer == NULL)
         {
             LogError("realloc failed");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {
@@ -330,7 +330,7 @@ static int set_receive_buffer(TLS_IO_INSTANCE* tls_io_instance, size_t buffer_si
     if (new_buffer == NULL)
     {
         LogError("realloc failed");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -351,15 +351,15 @@ static int send_chunk(CONCRETE_IO_HANDLE tls_io, const void* buffer, size_t size
         (size == 0))
     {
         LogError("invalid argument detected: CONCRETE_IO_HANDLE tls_io = %p, const void* buffer = %p, size_t size = %lu", tls_io, buffer, (unsigned long)size);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
         TLS_IO_INSTANCE* tls_io_instance = (TLS_IO_INSTANCE*)tls_io;
         if (tls_io_instance->tlsio_state != TLS_SERVER_IO_STATE_OPEN)
         {
-            LogError("invalid tls_io_instance->tlsio_state: %s", ENUM_TO_STRING(TLS_SERVER_IO_STATE, tls_io_instance->tlsio_state));
-            result = __FAILURE__;
+            LogError("invalid tls_io_instance->tlsio_state: %s", MU_ENUM_TO_STRING(TLS_SERVER_IO_STATE, tls_io_instance->tlsio_state));
+            result = MU_FAILURE;
         }
         else
         {
@@ -368,7 +368,7 @@ static int send_chunk(CONCRETE_IO_HANDLE tls_io, const void* buffer, size_t size
             if (status != SEC_E_OK)
             {
                 LogError("QueryContextAttributes failed: %x", status);
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -379,7 +379,7 @@ static int send_chunk(CONCRETE_IO_HANDLE tls_io, const void* buffer, size_t size
                 if (out_buffer == NULL)
                 {
                     LogError("malloc failed");
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                 }
                 else
                 {
@@ -406,14 +406,14 @@ static int send_chunk(CONCRETE_IO_HANDLE tls_io, const void* buffer, size_t size
                     if (FAILED(status))
                     {
                         LogError("EncryptMessage failed: %x", status);
-                        result = __FAILURE__;
+                        result = MU_FAILURE;
                     }
                     else
                     {
                         if (xio_send(tls_io_instance->socket_io, out_buffer, security_buffers[0].cbBuffer + security_buffers[1].cbBuffer + security_buffers[2].cbBuffer, on_send_complete, callback_context) != 0)
                         {
                             LogError("xio_send failed");
-                            result = __FAILURE__;
+                            result = MU_FAILURE;
                         }
                         else
                         {
@@ -454,7 +454,7 @@ static int internal_send(TLS_IO_INSTANCE* tls_io_instance, const void* buffer, s
     if (size > 0)
     {
         LogError("send_chunk failed");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -991,7 +991,7 @@ int tls_server_io_schannel_open(CONCRETE_IO_HANDLE tls_io, ON_IO_OPEN_COMPLETE o
     if (tls_io == NULL)
     {
         LogError("invalid argument detected: CONCRETE_IO_HANDLE tls_io = %p", tls_io);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -999,8 +999,8 @@ int tls_server_io_schannel_open(CONCRETE_IO_HANDLE tls_io, ON_IO_OPEN_COMPLETE o
 
         if (tls_io_instance->tlsio_state != TLS_SERVER_IO_STATE_NOT_OPEN)
         {
-            LogError("invalid tls_io_instance->tlsio_state = %s", ENUM_TO_STRING(TLS_SERVER_IO_STATE, tls_io_instance->tlsio_state));
-            result = __FAILURE__;
+            LogError("invalid tls_io_instance->tlsio_state = %s", MU_ENUM_TO_STRING(TLS_SERVER_IO_STATE, tls_io_instance->tlsio_state));
+            result = MU_FAILURE;
         }
         else
         {
@@ -1019,7 +1019,7 @@ int tls_server_io_schannel_open(CONCRETE_IO_HANDLE tls_io, ON_IO_OPEN_COMPLETE o
             {
                 LogError("xio_open failed");
                 tls_io_instance->tlsio_state = TLS_SERVER_IO_STATE_NOT_OPEN;
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -1038,7 +1038,7 @@ int tls_server_io_schannel_close(CONCRETE_IO_HANDLE tls_io, ON_IO_CLOSE_COMPLETE
     if (tls_io == NULL)
     {
         LogError("invalid argument detected: tls_io = %p", tls_io);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1047,8 +1047,8 @@ int tls_server_io_schannel_close(CONCRETE_IO_HANDLE tls_io, ON_IO_CLOSE_COMPLETE
         if ((tls_io_instance->tlsio_state == TLS_SERVER_IO_STATE_NOT_OPEN) ||
             (tls_io_instance->tlsio_state == TLS_SERVER_IO_STATE_CLOSING))
         {
-            LogError("invalid tls_io_instance->tlsio_state = %s", ENUM_TO_STRING(TLS_SERVER_IO_STATE, tls_io_instance->tlsio_state));
-            result = __FAILURE__;
+            LogError("invalid tls_io_instance->tlsio_state = %s", MU_ENUM_TO_STRING(TLS_SERVER_IO_STATE, tls_io_instance->tlsio_state));
+            result = MU_FAILURE;
         }
         else
         {
@@ -1058,7 +1058,7 @@ int tls_server_io_schannel_close(CONCRETE_IO_HANDLE tls_io, ON_IO_CLOSE_COMPLETE
             if (xio_close(tls_io_instance->socket_io, on_underlying_io_close_complete, tls_io_instance) != 0)
             {
                 LogError("xio_close failed");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -1076,7 +1076,7 @@ int tls_server_io_schannel_send(CONCRETE_IO_HANDLE tls_io, const void* buffer, s
     if (internal_send((TLS_IO_INSTANCE*)tls_io, buffer, size, on_send_complete, callback_context) != 0)
     {
         LogError("send failed");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1102,7 +1102,7 @@ int tls_server_io_schannel_setoption(CONCRETE_IO_HANDLE tls_io, const char* opti
     if (tls_io == NULL || optionName == NULL)
     {
         LogError("invalid argument detected: CONCRETE_IO_HANDLE tls_io = %p, const char* optionName = %p", tls_io, optionName);
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else
     {
@@ -1112,7 +1112,7 @@ int tls_server_io_schannel_setoption(CONCRETE_IO_HANDLE tls_io, const char* opti
             if (tls_io_instance->x509certificate != NULL)
             {
                 LogError("x509certificate has already been specified");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -1120,7 +1120,7 @@ int tls_server_io_schannel_setoption(CONCRETE_IO_HANDLE tls_io, const char* opti
                 if (tls_io_instance->x509certificate == NULL)
                 {
                     LogError("tls_server_io_schannel_CloneOption failed");
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                 }
                 else
                 {
@@ -1130,7 +1130,7 @@ int tls_server_io_schannel_setoption(CONCRETE_IO_HANDLE tls_io, const char* opti
                         if (tls_io_instance->x509_schannel_handle == NULL)
                         {
                             LogError("x509_schannel_create failed");
-                            result = __FAILURE__;
+                            result = MU_FAILURE;
                         }
                         else
                         {
@@ -1150,7 +1150,7 @@ int tls_server_io_schannel_setoption(CONCRETE_IO_HANDLE tls_io, const char* opti
             if (tls_io_instance->x509privatekey != NULL)
             {
                 LogError("x509privatekey has already been specified");
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
             else
             {
@@ -1158,7 +1158,7 @@ int tls_server_io_schannel_setoption(CONCRETE_IO_HANDLE tls_io, const char* opti
                 if (tls_io_instance->x509privatekey == NULL)
                 {
                     LogError("tls_server_io_schannel_CloneOption failed");
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                 }
                 else
                 {
@@ -1168,7 +1168,7 @@ int tls_server_io_schannel_setoption(CONCRETE_IO_HANDLE tls_io, const char* opti
                         if (tls_io_instance->x509_schannel_handle == NULL)
                         {
                             LogError("x509_schannel_create failed");
-                            result = __FAILURE__;
+                            result = MU_FAILURE;
                         }
                         else
                         {
@@ -1186,7 +1186,7 @@ int tls_server_io_schannel_setoption(CONCRETE_IO_HANDLE tls_io, const char* opti
         else if (tls_io_instance->socket_io == NULL)
         {
             LogError("tls_io_instance->socket_io is not set");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else
         {

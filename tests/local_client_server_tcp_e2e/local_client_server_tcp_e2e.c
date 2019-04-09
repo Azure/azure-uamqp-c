@@ -985,7 +985,7 @@ static void on_link_redirect_received(void* context, ERROR_HANDLE error)
     *redirect_received = true;
 }
 
-static bool on_new_link_attached_link_redirect(void* context, LINK_ENDPOINT_HANDLE new_link_endpoint, const char* name, role role, AMQP_VALUE source, AMQP_VALUE target)
+static bool on_new_link_attached_link_redirect(void* context, LINK_ENDPOINT_HANDLE new_link_endpoint, const char* name, role role, AMQP_VALUE source, AMQP_VALUE target, fields properties)
 {
     SERVER_SESSION* server_session = (SERVER_SESSION*)context;
 	struct SERVER_INSTANCE_TAG* server = (struct SERVER_INSTANCE_TAG*)server_session->server;
@@ -1000,6 +1000,7 @@ static bool on_new_link_attached_link_redirect(void* context, LINK_ENDPOINT_HAND
     AMQP_VALUE port_value = amqpvalue_create_ushort(test_redirect_port);
     AMQP_VALUE address_value = amqpvalue_create_string(test_redirect_address);
 
+    (void)properties;
     (void)amqpvalue_set_map_value(redirect_map, hostname_key, hostname_value);
     (void)amqpvalue_set_map_value(redirect_map, network_host_key, network_host_value);
     (void)amqpvalue_set_map_value(redirect_map, port_key, port_value);

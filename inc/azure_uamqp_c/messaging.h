@@ -13,7 +13,7 @@ extern "C" {
 #include <stdint.h>
 #endif /* __cplusplus */
 
-#include "azure_c_shared_utility/umock_c_prod.h"
+#include "umock_c/umock_c_prod.h"
 
     MOCKABLE_FUNCTION(, AMQP_VALUE, messaging_create_source, const char*, address);
     MOCKABLE_FUNCTION(, AMQP_VALUE, messaging_create_target, const char*, address);

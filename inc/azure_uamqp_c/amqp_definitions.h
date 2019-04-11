@@ -18,7 +18,7 @@ extern "C" {
 #endif
 
 #include "azure_uamqp_c/amqpvalue.h"
-#include "azure_c_shared_utility/umock_c_prod.h"
+#include "umock_c/umock_c_prod.h"
 
 #include "azure_uamqp_c/amqp_definitions_role.h"
 #include "azure_uamqp_c/amqp_definitions_sender_settle_mode.h"

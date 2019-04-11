@@ -11,7 +11,7 @@ extern "C" {
 #include "stdint.h"
 #endif /* __cplusplus */
 
-#include "azure_c_shared_utility/umock_c_prod.h"
+#include "umock_c/umock_c_prod.h"
 
     typedef struct SASL_MECHANISM_INSTANCE_TAG* SASL_MECHANISM_HANDLE;
     typedef void* CONCRETE_SASL_MECHANISM_HANDLE;

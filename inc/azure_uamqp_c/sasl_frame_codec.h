@@ -14,7 +14,7 @@ extern "C" {
 #endif /* __cplusplus */
 #include "azure_uamqp_c/frame_codec.h"
 
-#include "azure_c_shared_utility/umock_c_prod.h"
+#include "umock_c/umock_c_prod.h"
 
 #define SASL_MECHANISMS         (uint64_t)0x40
 #define SASL_INIT               (uint64_t)0x41

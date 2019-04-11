@@ -10,7 +10,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#include "azure_c_shared_utility/umock_c_prod.h"
+#include "umock_c/umock_c_prod.h"
 
     MOCKABLE_FUNCTION(, CONCRETE_SASL_MECHANISM_HANDLE, saslmssbcbs_create, void*, config);
     MOCKABLE_FUNCTION(, void, saslmssbcbs_destroy, CONCRETE_SASL_MECHANISM_HANDLE, sasl_mechanism_concrete_handle);

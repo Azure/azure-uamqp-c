@@ -10,7 +10,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#include "azure_c_shared_utility/umock_c_prod.h"
+#include "umock_c/umock_c_prod.h"
 
     typedef struct SOCKET_LISTENER_INSTANCE_TAG* SOCKET_LISTENER_HANDLE;
     typedef void(*ON_SOCKET_ACCEPTED)(void* context, const IO_INTERFACE_DESCRIPTION* interface_description, void* io_parameters);

@@ -13,7 +13,7 @@ extern "C" {
 #include <stddef.h>
 #endif /* __cplusplus */
 
-#include "azure_c_shared_utility/umock_c_prod.h"
+#include "umock_c/umock_c_prod.h"
 
 typedef struct ASYNC_OPERATION_INSTANCE_TAG* ASYNC_OPERATION_HANDLE;
 

@@ -9,8 +9,8 @@
 #include <stddef.h>
 #endif
 #include "testrunnerswitcher.h"
-#include "umock_c.h"
-#include "umock_c_negative_tests.h"
+#include "umock_c/umock_c.h"
+#include "umock_c/umock_c_negative_tests.h"
 
 // TODO: Add tests for each part of the message where the value is cleared and then read
 

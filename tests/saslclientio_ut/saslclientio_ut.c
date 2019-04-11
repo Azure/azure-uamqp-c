@@ -10,10 +10,10 @@
 #endif
 #include "azure_macro_utils/macro_utils.h"
 #include "testrunnerswitcher.h"
-#include "umock_c.h"
-#include "umocktypes_stdint.h"
-#include "umocktypes_charptr.h"
-#include "umocktypes_bool.h"
+#include "umock_c/umock_c.h"
+#include "umock_c/umocktypes_stdint.h"
+#include "umock_c/umocktypes_charptr.h"
+#include "umock_c/umocktypes_bool.h"
 
 #if defined _MSC_VER
 #pragma warning(disable: 4054) /* MSC incorrectly fires this */

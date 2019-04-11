@@ -12,7 +12,7 @@ extern "C" {
 #include "stdbool.h"
 #endif /* __cplusplus */
 
-#include "azure_c_shared_utility/umock_c_prod.h"
+#include "umock_c/umock_c_prod.h"
 
     typedef struct SASL_SERVER_MECHANISM_INSTANCE_TAG* SASL_SERVER_MECHANISM_HANDLE;
     typedef void* CONCRETE_SASL_SERVER_MECHANISM_HANDLE;

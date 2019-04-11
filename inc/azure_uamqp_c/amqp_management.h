@@ -13,7 +13,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#include "azure_c_shared_utility/umock_c_prod.h"
+#include "umock_c/umock_c_prod.h"
 
 #define AMQP_MANAGEMENT_EXECUTE_OPERATION_RESULT_VALUES \
     AMQP_MANAGEMENT_EXECUTE_OPERATION_OK, \

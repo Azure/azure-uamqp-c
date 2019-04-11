@@ -12,10 +12,10 @@
 #endif
 #include "azure_macro_utils/macro_utils.h"
 #include "testrunnerswitcher.h"
-#include "umock_c.h"
-#include "umockalloc.h"
-#include "umocktypes_charptr.h"
-#include "umocktypes_stdint.h"
+#include "umock_c/umock_c.h"
+#include "umock_c/umockalloc.h"
+#include "umock_c/umocktypes_charptr.h"
+#include "umock_c/umocktypes_stdint.h"
 
 static void* my_gballoc_malloc(size_t size)
 {

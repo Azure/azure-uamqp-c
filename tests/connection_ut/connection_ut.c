@@ -10,8 +10,8 @@
 #include <stdbool.h>
 #endif
 #include "testrunnerswitcher.h"
-#include "umock_c.h"
-#include "umocktypes_charptr.h"
+#include "umock_c/umock_c.h"
+#include "umock_c/umocktypes_charptr.h"
 
 static void* my_gballoc_malloc(size_t size)
 {

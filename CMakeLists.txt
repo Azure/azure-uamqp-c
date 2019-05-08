@@ -56,10 +56,8 @@ include("dependencies.cmake")
 include_directories(${MACRO_UTILS_INC_FOLDER})
 
 # Include the common build rules for C shared utility
-if(${use_installed_dependencies})
+if(NOT ${use_installed_dependencies})
     include(deps/azure-c-shared-utility/configs/azure_iot_build_rules.cmake)
-else()
-    include(${SHARED_UTIL_FOLDER}/configs/azure_iot_build_rules.cmake)
 endif()
 
 set_platform_files(${SHARED_UTIL_FOLDER})

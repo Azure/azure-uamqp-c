@@ -56,13 +56,12 @@ include("dependencies.cmake")
 include_directories(${MACRO_UTILS_INC_FOLDER})
 
 # Include the common build rules for C shared utility
-if(${use_installed_dependencies})
-    include(deps/azure-c-shared-utility/configs/azure_iot_build_rules.cmake)
-else()
+if(NOT ${use_installed_dependencies})
     include(${SHARED_UTIL_FOLDER}/configs/azure_iot_build_rules.cmake)
+
+    set_platform_files(${SHARED_UTIL_FOLDER})
 endif()
 
-set_platform_files(${SHARED_UTIL_FOLDER})
 
 set(run_e2e_tests ${original_run_e2e_tests})
 set(run_int_tests ${original_run_int_tests})

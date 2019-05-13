@@ -264,7 +264,7 @@ install(TARGETS uamqp EXPORT uamqpTargets
     RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}/../bin
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azureiot
 )
-install(FILES ${uamqp_h_files} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azure_uamqp_c)
+install(FILES ${uamqp_h_files} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azureiot/azure_uamqp_c)
 
 include(CMakePackageConfigHelpers)
 

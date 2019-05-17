@@ -56,7 +56,7 @@ else()
     if (NOT umock_cFOUND)
         find_package(umock_c REQUIRED CONFIG)
     endif ()
-    if (NOT azure_c_shared_utility_FOUND)
+    if (NOT azure_c_shared_utilityFOUND)
         find_package(azure_c_shared_utility REQUIRED CONFIG)
     endif ()
     

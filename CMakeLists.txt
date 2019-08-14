@@ -5,6 +5,8 @@ cmake_minimum_required(VERSION 2.8.11)
 project(uamqp)
 
 FILE(READ ${CMAKE_CURRENT_LIST_DIR}/version.txt UAMQP_VERSION)
+string(REPLACE "." ";" VERSION_LIST ${UAMQP_VERSION})
+list(GET VERSION_LIST 0 UAMQP_VERSION_MAJOR)
 
 option(run_e2e_tests "set run_e2e_tests to ON to run e2e tests (default is OFF) [if possible, they are always built]" OFF)
 option(run_unittests "set run_unittests to ON to run unittests (default is OFF)" OFF)
@@ -243,6 +245,9 @@ add_library(uamqp
     ${uamqp_h_files}
     ${socketlistener_c_files}
     )
+  set_target_properties(uamqp PROPERTIES
+    VERSION ${UAMQP_VERSION}
+    SOVERSION ${UAMQP_VERSION_MAJOR})
 setTargetBuildProperties(uamqp)
 
 target_link_libraries(uamqp aziotsharedutil)

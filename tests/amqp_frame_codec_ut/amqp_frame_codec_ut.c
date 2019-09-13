@@ -327,7 +327,7 @@ static void test_on_bytes_encoded(void* context, const unsigned char* bytes, siz
 
 static TEST_MUTEX_HANDLE g_testByTest;
 
-MU_DEFINE_ENUM_STRINGS(UMOCK_C_ERROR_CODE, UMOCK_C_ERROR_CODE_VALUES)
+MU_DEFINE_ENUM_STRINGS_WITHOUT_INVALID(UMOCK_C_ERROR_CODE, UMOCK_C_ERROR_CODE_VALUES)
 
 static void on_umock_c_error(UMOCK_C_ERROR_CODE error_code)
 {

@@ -358,7 +358,7 @@ static int send_chunk(CONCRETE_IO_HANDLE tls_io, const void* buffer, size_t size
         TLS_IO_INSTANCE* tls_io_instance = (TLS_IO_INSTANCE*)tls_io;
         if (tls_io_instance->tlsio_state != TLS_SERVER_IO_STATE_OPEN)
         {
-            LogError("invalid tls_io_instance->tlsio_state: %s", MU_ENUM_TO_STRING(TLS_SERVER_IO_STATE, tls_io_instance->tlsio_state));
+            LogError("invalid tls_io_instance->tlsio_state: %" PRI_MU_ENUM "", MU_ENUM_VALUE(TLS_SERVER_IO_STATE, tls_io_instance->tlsio_state));
             result = MU_FAILURE;
         }
         else
@@ -999,7 +999,7 @@ int tls_server_io_schannel_open(CONCRETE_IO_HANDLE tls_io, ON_IO_OPEN_COMPLETE o
 
         if (tls_io_instance->tlsio_state != TLS_SERVER_IO_STATE_NOT_OPEN)
         {
-            LogError("invalid tls_io_instance->tlsio_state = %s", MU_ENUM_TO_STRING(TLS_SERVER_IO_STATE, tls_io_instance->tlsio_state));
+            LogError("invalid tls_io_instance->tlsio_state = %" PRI_MU_ENUM "", MU_ENUM_VALUE(TLS_SERVER_IO_STATE, tls_io_instance->tlsio_state));
             result = MU_FAILURE;
         }
         else
@@ -1047,7 +1047,7 @@ int tls_server_io_schannel_close(CONCRETE_IO_HANDLE tls_io, ON_IO_CLOSE_COMPLETE
         if ((tls_io_instance->tlsio_state == TLS_SERVER_IO_STATE_NOT_OPEN) ||
             (tls_io_instance->tlsio_state == TLS_SERVER_IO_STATE_CLOSING))
         {
-            LogError("invalid tls_io_instance->tlsio_state = %s", MU_ENUM_TO_STRING(TLS_SERVER_IO_STATE, tls_io_instance->tlsio_state));
+            LogError("invalid tls_io_instance->tlsio_state = %" PRI_MU_ENUM "", MU_ENUM_VALUE(TLS_SERVER_IO_STATE, tls_io_instance->tlsio_state));
             result = MU_FAILURE;
         }
         else

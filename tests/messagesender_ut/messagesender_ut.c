@@ -467,6 +467,7 @@ TEST_FUNCTION(closing_reports_the_link_error_to_pending_sends_as_the_described_d
     AMQP_VALUE described_delivery_state = (AMQP_VALUE)0x5002;
 
     umock_c_reset_all_calls();
+    STRICT_EXPECTED_CALL(link_detach(test_link, true, NULL, NULL, NULL));
     STRICT_EXPECTED_CALL(link_get_last_error_delivery_state(test_link))
         .SetReturn(composite_delivery_state);
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_described_value(composite_delivery_state))
@@ -492,6 +493,7 @@ TEST_FUNCTION(closing_reports_NULL_delivery_state_when_the_link_recorded_no_erro
     MESSAGE_SENDER_HANDLE message_sender = create_sender_with_one_pending_send();
 
     umock_c_reset_all_calls();
+    STRICT_EXPECTED_CALL(link_detach(test_link, true, NULL, NULL, NULL));
     STRICT_EXPECTED_CALL(link_get_last_error_delivery_state(test_link))
         .SetReturn(NULL);
 

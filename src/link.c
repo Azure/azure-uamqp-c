@@ -701,7 +701,7 @@ static void on_send_complete(void* context, IO_SEND_RESULT send_result)
 
 LINK_HANDLE link_create(SESSION_HANDLE session, const char* name, role role, AMQP_VALUE source, AMQP_VALUE target)
 {
-    LINK_INSTANCE* result = (LINK_INSTANCE*)malloc(sizeof(LINK_INSTANCE));
+    LINK_INSTANCE* result = (LINK_INSTANCE*)calloc(1, sizeof(LINK_INSTANCE));
     if (result == NULL)
     {
         LogError("Cannot create link");
@@ -787,7 +787,7 @@ LINK_HANDLE link_create(SESSION_HANDLE session, const char* name, role role, AMQ
 
 LINK_HANDLE link_create_from_endpoint(SESSION_HANDLE session, LINK_ENDPOINT_HANDLE link_endpoint, const char* name, role role, AMQP_VALUE source, AMQP_VALUE target)
 {
-    LINK_INSTANCE* result = (LINK_INSTANCE*)malloc(sizeof(LINK_INSTANCE));
+    LINK_INSTANCE* result = (LINK_INSTANCE*)calloc(1, sizeof(LINK_INSTANCE));
     if (result == NULL)
     {
         LogError("Cannot create link");

@@ -517,7 +517,7 @@ static CONCRETE_IO_HANDLE header_detect_io_create(void* io_create_parameters)
             else
             {
                 /* Codes_SRS_HEADER_DETECT_IO_01_001: [ `header_detect_io_create` shall create a new header detect IO instance and on success it shall return a non-NULL handle to the newly created instance. ] */
-                result = (HEADER_DETECT_IO_INSTANCE*)malloc(sizeof(HEADER_DETECT_IO_INSTANCE));
+                result = (HEADER_DETECT_IO_INSTANCE*)calloc(1, sizeof(HEADER_DETECT_IO_INSTANCE));
                 if (result == NULL)
                 {
                     /* Codes_SRS_HEADER_DETECT_IO_01_002: [ If allocating memory for the header detect IO instance fails, `header_detect_io_create` shall fail and return NULL. ]*/
@@ -526,7 +526,7 @@ static CONCRETE_IO_HANDLE header_detect_io_create(void* io_create_parameters)
                 else
                 {
                     /* Codes_SRS_HEADER_DETECT_IO_01_009: [ The `header_detect_entries` array shall be copied so that it can be later used when detecting which header was received. ]*/
-                    result->header_detect_entries = (INTERNAL_HEADER_DETECT_ENTRY*)malloc(header_detect_io_config->header_detect_entry_count * sizeof(INTERNAL_HEADER_DETECT_ENTRY));
+                    result->header_detect_entries = (INTERNAL_HEADER_DETECT_ENTRY*)calloc(1, (header_detect_io_config->header_detect_entry_count * sizeof(INTERNAL_HEADER_DETECT_ENTRY)));
                     if (result->header_detect_entries == NULL)
                     {
                         free(result);

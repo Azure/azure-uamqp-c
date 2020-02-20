@@ -731,7 +731,7 @@ AMQP_MANAGEMENT_HANDLE amqp_management_create(SESSION_HANDLE session, const char
     else
     {
         /* Codes_SRS_AMQP_MANAGEMENT_01_001: [ `amqp_management_create` shall create a new CBS instance and on success return a non-NULL handle to it. ]*/
-        amqp_management = (AMQP_MANAGEMENT_INSTANCE*)malloc(sizeof(AMQP_MANAGEMENT_INSTANCE));
+        amqp_management = (AMQP_MANAGEMENT_INSTANCE*)calloc(1, sizeof(AMQP_MANAGEMENT_INSTANCE));
         if (amqp_management == NULL)
         {
             /* Codes_SRS_AMQP_MANAGEMENT_01_005: [ If allocating memory for the new handle fails, `amqp_management_create` shall fail and return NULL. ]*/
@@ -1184,7 +1184,7 @@ int amqp_management_execute_operation_async(AMQP_MANAGEMENT_HANDLE amqp_manageme
                         }
                         else
                         {
-                            OPERATION_MESSAGE_INSTANCE* pending_operation_message = (OPERATION_MESSAGE_INSTANCE*)malloc(sizeof(OPERATION_MESSAGE_INSTANCE));
+                            OPERATION_MESSAGE_INSTANCE* pending_operation_message = (OPERATION_MESSAGE_INSTANCE*)calloc(1, sizeof(OPERATION_MESSAGE_INSTANCE));
                             if (pending_operation_message == NULL)
                             {
                                 result = MU_FAILURE;

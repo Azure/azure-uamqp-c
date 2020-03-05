@@ -347,7 +347,7 @@ TEST_SUITE_INITIALIZE(suite_init)
     REGISTER_UMOCK_ALIAS_TYPE(ASYNC_OPERATION_HANDLE, void*);
 
     /* boo, we need uint_fast32_t in umock */
-    REGISTER_UMOCK_ALIAS_TYPE(tickcounter_ms_t, uint32_t);
+    REGISTER_UMOCK_ALIAS_TYPE(tickcounter_ms_t, unsigned long long);
 }
 
 TEST_SUITE_CLEANUP(suite_cleanup)

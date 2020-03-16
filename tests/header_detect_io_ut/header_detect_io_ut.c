@@ -22,6 +22,11 @@ static void* my_gballoc_malloc(size_t size)
     return malloc(size);
 }
 
+static void* my_gballoc_calloc(size_t nmemb, size_t size)
+{
+    return calloc(nmemb, size);
+}
+
 static void my_gballoc_free(void* ptr)
 {
     free(ptr);
@@ -319,6 +324,7 @@ TEST_SUITE_INITIALIZE(suite_init)
     ASSERT_ARE_EQUAL(int, 0, result);
 
     REGISTER_GLOBAL_MOCK_HOOK(gballoc_malloc, my_gballoc_malloc);
+    REGISTER_GLOBAL_MOCK_HOOK(gballoc_calloc, my_gballoc_calloc);
     REGISTER_GLOBAL_MOCK_HOOK(gballoc_free, my_gballoc_free);
     REGISTER_GLOBAL_MOCK_HOOK(xio_open, my_xio_open);
     REGISTER_GLOBAL_MOCK_HOOK(xio_close, my_xio_close);
@@ -398,8 +404,8 @@ TEST_FUNCTION(header_detect_io_create_with_valid_args_succeeds)
     header_detect_io_config.header_detect_entries = header_detect_entries;
     header_detect_io_config.underlying_io = test_underlying_amqp_io;
 
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_create());
 
@@ -440,8 +446,8 @@ TEST_FUNCTION(header_detect_io_create_with_2_header_detect_entries_succeeds)
     header_detect_io_config.header_detect_entries = header_detect_entries;
     header_detect_io_config.underlying_io = test_underlying_amqp_io;
 
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG)); // array
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG)); // array
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG)); // first entry
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG)); // second entry
     STRICT_EXPECTED_CALL(singlylinkedlist_create());
@@ -474,7 +480,7 @@ TEST_FUNCTION(when_allocating_memory_fails_header_detect_io_create_fails)
     header_detect_io_config.header_detect_entries = header_detect_entries;
     header_detect_io_config.underlying_io = test_underlying_amqp_io;
 
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
         .SetReturn(NULL);
 
     // act
@@ -609,8 +615,8 @@ TEST_FUNCTION(when_allocating_memory_for_the_header_detect_entries_array_fails_h
     header_detect_io_config.header_detect_entries = header_detect_entries;
     header_detect_io_config.underlying_io = test_underlying_amqp_io;
 
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
         .SetReturn(NULL);
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
@@ -639,8 +645,8 @@ TEST_FUNCTION(when_allocating_memory_for_the_header_detect_entry_fails_header_de
     header_detect_io_config.header_detect_entries = header_detect_entries;
     header_detect_io_config.underlying_io = test_underlying_amqp_io;
 
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
         .SetReturn(NULL);
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
@@ -675,8 +681,8 @@ TEST_FUNCTION(when_allocating_memory_for_the_second_header_detect_entry_fails_he
     header_detect_io_config.header_detect_entries = header_detect_entries;
     header_detect_io_config.underlying_io = test_underlying_amqp_io;
 
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
         .SetReturn(NULL);
@@ -713,8 +719,8 @@ TEST_FUNCTION(when_singlylinkedlist_create_fails_header_detect_io_create_fails)
     header_detect_io_config.header_detect_entries = header_detect_entries;
     header_detect_io_config.underlying_io = test_underlying_amqp_io;
 
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_create())
@@ -782,8 +788,8 @@ TEST_FUNCTION(two_NULL_IO_entries_are_OK_for_header_detect_io_create)
     header_detect_io_config.header_detect_entries = header_detect_entries;
     header_detect_io_config.underlying_io = test_underlying_amqp_io;
 
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG)); // array
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG)); // array
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG)); // first entry
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG)); // second entry
     STRICT_EXPECTED_CALL(singlylinkedlist_create());

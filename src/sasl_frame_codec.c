@@ -166,7 +166,7 @@ SASL_FRAME_CODEC_HANDLE sasl_frame_codec_create(FRAME_CODEC_HANDLE frame_codec, 
     else
     {
         /* Codes_SRS_SASL_FRAME_CODEC_01_018: [sasl_frame_codec_create shall create an instance of an sasl_frame_codec and return a non-NULL handle to it.] */
-        result = (SASL_FRAME_CODEC_INSTANCE*)malloc(sizeof(SASL_FRAME_CODEC_INSTANCE));
+        result = (SASL_FRAME_CODEC_INSTANCE*)calloc(1, sizeof(SASL_FRAME_CODEC_INSTANCE));
         if (result == NULL)
         {
             LogError("Cannot allocate memory for SASL frame codec");

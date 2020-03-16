@@ -738,7 +738,7 @@ SESSION_HANDLE session_create(CONNECTION_HANDLE connection, ON_LINK_ATTACHED on_
     else
     {
         /* Codes_S_R_S_SESSION_01_030: [session_create shall create a new session instance and return a non-NULL handle to it.] */
-        result = (SESSION_INSTANCE*)malloc(sizeof(SESSION_INSTANCE));
+        result = (SESSION_INSTANCE*)calloc(1, sizeof(SESSION_INSTANCE));
         /* Codes_S_R_S_SESSION_01_042: [If allocating memory for the session fails, session_create shall fail and return NULL.] */
         if (result != NULL)
         {
@@ -791,7 +791,7 @@ SESSION_HANDLE session_create_from_endpoint(CONNECTION_HANDLE connection, ENDPOI
     }
     else
     {
-        result = (SESSION_INSTANCE*)malloc(sizeof(SESSION_INSTANCE));
+        result = (SESSION_INSTANCE*)calloc(1, sizeof(SESSION_INSTANCE));
         if (result != NULL)
         {
             result->connection = connection;
@@ -1092,7 +1092,7 @@ LINK_ENDPOINT_HANDLE session_create_link_endpoint(SESSION_HANDLE session, const 
         /* Codes_S_R_S_SESSION_01_043: [session_create_link_endpoint shall create a link endpoint associated with a given session and return a non-NULL handle to it.] */
         SESSION_INSTANCE* session_instance = (SESSION_INSTANCE*)session;
 
-        result = (LINK_ENDPOINT_INSTANCE*)malloc(sizeof(LINK_ENDPOINT_INSTANCE));
+        result = (LINK_ENDPOINT_INSTANCE*)calloc(1, sizeof(LINK_ENDPOINT_INSTANCE));
         /* Codes_S_R_S_SESSION_01_045: [If allocating memory for the link endpoint fails, session_create_link_endpoint shall fail and return NULL.] */
         if (result != NULL)
         {
@@ -1584,7 +1584,7 @@ SESSION_SEND_TRANSFER_RESULT session_send_transfer(LINK_ENDPOINT_HANDLE link_end
                                         }
 
                                         transfer_frame_payload_count = (uint32_t)(temp_current_payload_index - current_payload_index + 1);
-                                        transfer_frame_payloads = (PAYLOAD*)malloc(transfer_frame_payload_count * sizeof(PAYLOAD));
+                                        transfer_frame_payloads = (PAYLOAD*)calloc(1, (transfer_frame_payload_count * sizeof(PAYLOAD)));
                                         if (transfer_frame_payloads == NULL)
                                         {
                                             amqpvalue_destroy(multi_transfer_amqp_value);

@@ -727,7 +727,7 @@ static void on_link_flow_on(void* context)
 
 MESSAGE_SENDER_HANDLE messagesender_create(LINK_HANDLE link, ON_MESSAGE_SENDER_STATE_CHANGED on_message_sender_state_changed, void* context)
 {
-    MESSAGE_SENDER_INSTANCE* message_sender = (MESSAGE_SENDER_INSTANCE*)malloc(sizeof(MESSAGE_SENDER_INSTANCE));
+    MESSAGE_SENDER_INSTANCE* message_sender = (MESSAGE_SENDER_INSTANCE*)calloc(1, sizeof(MESSAGE_SENDER_INSTANCE));
     if (message_sender == NULL)
     {
         LogError("Failed allocating message sender");

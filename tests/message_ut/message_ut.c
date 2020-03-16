@@ -21,6 +21,11 @@ static void* my_gballoc_malloc(size_t size)
     return malloc(size);
 }
 
+static void* my_gballoc_calloc(size_t nmemb, size_t size)
+{
+    return calloc(nmemb, size);
+}
+
 static void* my_gballoc_realloc(void* ptr, size_t size)
 {
     return realloc(ptr, size);
@@ -108,6 +113,7 @@ TEST_SUITE_INITIALIZE(suite_init)
     umock_c_init(on_umock_c_error);
 
     REGISTER_GLOBAL_MOCK_HOOK(gballoc_malloc, my_gballoc_malloc);
+    REGISTER_GLOBAL_MOCK_HOOK(gballoc_calloc, my_gballoc_calloc);
     REGISTER_GLOBAL_MOCK_HOOK(gballoc_realloc, my_gballoc_realloc);
     REGISTER_GLOBAL_MOCK_HOOK(gballoc_free, my_gballoc_free);
     REGISTER_GLOBAL_MOCK_RETURN(header_clone, cloned_header);
@@ -148,7 +154,7 @@ TEST_FUNCTION(message_create_succeeds)
     // arrange
     MESSAGE_HANDLE message;
 
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
 
     // act
     message = message_create();
@@ -168,8 +174,8 @@ TEST_FUNCTION(message_create_2_times_yields_2_different_message_instances)
     MESSAGE_HANDLE message1;
     MESSAGE_HANDLE message2;
 
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
 
     // act
     message1 = message_create();
@@ -191,7 +197,7 @@ TEST_FUNCTION(when_allocating_memory_for_the_message_fails_then_message_create_f
 {
     // arrange
     MESSAGE_HANDLE message;
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
         .SetReturn(NULL);
 
     // act
@@ -246,14 +252,14 @@ TEST_FUNCTION(message_clone_with_a_message_that_has_all_fields_set_and_amqp_data
     (void)message_add_body_amqp_data(source_message, binary_data);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(header_clone(cloned_header));
     STRICT_EXPECTED_CALL(annotations_clone(cloned_delivery_annotations));
     STRICT_EXPECTED_CALL(annotations_clone(cloned_message_annotations));
     STRICT_EXPECTED_CALL(properties_clone(cloned_message_properties));
     STRICT_EXPECTED_CALL(amqpvalue_clone(cloned_application_properties));
     STRICT_EXPECTED_CALL(annotations_clone(cloned_footer));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(gballoc_malloc(sizeof(data_section)));
 
     // act
@@ -306,7 +312,7 @@ TEST_FUNCTION(message_clone_with_a_message_that_has_all_fields_set_and_amqp_valu
     (void)message_set_body_amqp_value(source_message, test_amqp_value_1);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(header_clone(cloned_header));
     STRICT_EXPECTED_CALL(annotations_clone(cloned_delivery_annotations));
     STRICT_EXPECTED_CALL(annotations_clone(cloned_message_annotations));
@@ -371,14 +377,14 @@ TEST_FUNCTION(message_clone_with_a_message_that_has_all_fields_set_and_amqp_sequ
     (void)message_add_body_amqp_sequence(source_message, test_sequence_1);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(header_clone(cloned_header));
     STRICT_EXPECTED_CALL(annotations_clone(cloned_delivery_annotations));
     STRICT_EXPECTED_CALL(annotations_clone(cloned_message_annotations));
     STRICT_EXPECTED_CALL(properties_clone(cloned_message_properties));
     STRICT_EXPECTED_CALL(amqpvalue_clone(cloned_application_properties));
     STRICT_EXPECTED_CALL(annotations_clone(cloned_footer));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_clone(cloned_sequence_1));
 
     // act
@@ -432,14 +438,14 @@ TEST_FUNCTION(when_any_clone_operations_fails_message_clone_for_a_message_with_d
     (void)message_add_body_amqp_data(source_message, binary_data);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(header_clone(cloned_header));
     STRICT_EXPECTED_CALL(annotations_clone(cloned_delivery_annotations));
     STRICT_EXPECTED_CALL(annotations_clone(cloned_message_annotations));
     STRICT_EXPECTED_CALL(properties_clone(cloned_message_properties));
     STRICT_EXPECTED_CALL(amqpvalue_clone(cloned_application_properties));
     STRICT_EXPECTED_CALL(annotations_clone(cloned_footer));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(gballoc_malloc(sizeof(data_section)));
 
     umock_c_negative_tests_snapshot();
@@ -501,7 +507,7 @@ TEST_FUNCTION(when_any_clone_operations_fails_message_clone_for_a_message_with_v
     (void)message_set_body_amqp_value(source_message, test_amqp_value_1);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(header_clone(cloned_header));
     STRICT_EXPECTED_CALL(annotations_clone(cloned_delivery_annotations));
     STRICT_EXPECTED_CALL(annotations_clone(cloned_message_annotations));
@@ -569,14 +575,14 @@ TEST_FUNCTION(when_any_clone_operations_fails_message_clone_for_a_message_with_s
     (void)message_add_body_amqp_sequence(source_message, test_sequence_1);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(header_clone(cloned_header));
     STRICT_EXPECTED_CALL(annotations_clone(cloned_delivery_annotations));
     STRICT_EXPECTED_CALL(annotations_clone(cloned_message_annotations));
     STRICT_EXPECTED_CALL(properties_clone(cloned_message_properties));
     STRICT_EXPECTED_CALL(amqpvalue_clone(cloned_application_properties));
     STRICT_EXPECTED_CALL(annotations_clone(cloned_footer));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_clone(cloned_sequence_1));
 
     umock_c_negative_tests_snapshot();
@@ -624,7 +630,7 @@ TEST_FUNCTION(when_allocating_memory_fails_then_message_clone_fails)
     MESSAGE_HANDLE source_message = message_create();
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
         .SetReturn(NULL);
 
     // act

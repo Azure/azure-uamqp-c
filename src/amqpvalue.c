@@ -4862,7 +4862,7 @@ void amqpvalue_destroy(AMQP_VALUE value)
 
 static INTERNAL_DECODER_DATA* internal_decoder_create(ON_VALUE_DECODED on_value_decoded, void* callback_context, AMQP_VALUE_DATA* value_data, bool is_internal)
 {
-    INTERNAL_DECODER_DATA* internal_decoder_data = (INTERNAL_DECODER_DATA*)malloc(sizeof(INTERNAL_DECODER_DATA));
+    INTERNAL_DECODER_DATA* internal_decoder_data = (INTERNAL_DECODER_DATA*)calloc(1, sizeof(INTERNAL_DECODER_DATA));
     if (internal_decoder_data == NULL)
     {
         LogError("Cannot allocate memory for internal decoder structure");
@@ -6270,7 +6270,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                             else
                             {
                                 uint32_t i;
-                                internal_decoder_data->decode_to_value->value.list_value.items = (AMQP_VALUE*)malloc(sizeof(AMQP_VALUE) * internal_decoder_data->decode_to_value->value.list_value.count);
+                                internal_decoder_data->decode_to_value->value.list_value.items = (AMQP_VALUE*)calloc(1, (sizeof(AMQP_VALUE) * internal_decoder_data->decode_to_value->value.list_value.count));
                                 if (internal_decoder_data->decode_to_value->value.list_value.items == NULL)
                                 {
                                     LogError("Could not allocate memory for decoded list value");
@@ -6309,7 +6309,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                                 {
                                     uint32_t i;
 
-                                    internal_decoder_data->decode_to_value->value.list_value.items = (AMQP_VALUE*)malloc(sizeof(AMQP_VALUE) * internal_decoder_data->decode_to_value->value.list_value.count);
+                                    internal_decoder_data->decode_to_value->value.list_value.items = (AMQP_VALUE*)calloc(1, (sizeof(AMQP_VALUE) * internal_decoder_data->decode_to_value->value.list_value.count));
                                     if (internal_decoder_data->decode_to_value->value.list_value.items == NULL)
                                     {
                                         LogError("Could not allocate memory for decoded list value");
@@ -6690,7 +6690,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                             else
                             {
                                 uint32_t i;
-                                internal_decoder_data->decode_to_value->value.array_value.items = (AMQP_VALUE*)malloc(sizeof(AMQP_VALUE) * internal_decoder_data->decode_to_value->value.array_value.count);
+                                internal_decoder_data->decode_to_value->value.array_value.items = (AMQP_VALUE*)calloc(1, (sizeof(AMQP_VALUE) * internal_decoder_data->decode_to_value->value.array_value.count));
                                 if (internal_decoder_data->decode_to_value->value.array_value.items == NULL)
                                 {
                                     LogError("Could not allocate memory for array items");
@@ -6724,7 +6724,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                                 else
                                 {
                                     uint32_t i;
-                                    internal_decoder_data->decode_to_value->value.array_value.items = (AMQP_VALUE*)malloc(sizeof(AMQP_VALUE) * internal_decoder_data->decode_to_value->value.array_value.count);
+                                    internal_decoder_data->decode_to_value->value.array_value.items = (AMQP_VALUE*)calloc(1, (sizeof(AMQP_VALUE) * internal_decoder_data->decode_to_value->value.array_value.count));
                                     if (internal_decoder_data->decode_to_value->value.array_value.items == NULL)
                                     {
                                         LogError("Could not allocate memory for array items");

@@ -535,7 +535,7 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                     settled = false;
                 }
 
-                if (settled)
+                if (settled && link_instance->pending_deliveries)
                 {
                     LIST_ITEM_HANDLE pending_delivery = singlylinkedlist_get_head_item(link_instance->pending_deliveries);
                     while (pending_delivery != NULL)

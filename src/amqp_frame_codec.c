@@ -155,7 +155,7 @@ AMQP_FRAME_CODEC_HANDLE amqp_frame_codec_create(FRAME_CODEC_HANDLE frame_codec, 
     }
     else
     {
-        result = (AMQP_FRAME_CODEC_HANDLE)malloc(sizeof(AMQP_FRAME_CODEC));
+        result = (AMQP_FRAME_CODEC_HANDLE)calloc(1, sizeof(AMQP_FRAME_CODEC));
         /* Codes_SRS_AMQP_FRAME_CODEC_01_020: [If allocating memory for the new amqp_frame_codec fails, then amqp_frame_codec_create shall fail and return NULL.] */
         if (result == NULL)
         {
@@ -274,7 +274,7 @@ int amqp_frame_codec_encode_frame(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec, uint
             }
             else
             {
-                PAYLOAD* new_payloads = (PAYLOAD*)malloc(sizeof(PAYLOAD) * (payload_count + 1));
+                PAYLOAD* new_payloads = (PAYLOAD*)calloc(1, (sizeof(PAYLOAD) * (payload_count + 1)));
                 if (new_payloads == NULL)
                 {
                     LogError("Could not allocate frame payloads");

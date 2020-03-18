@@ -23,6 +23,11 @@ static void* my_gballoc_malloc(size_t size)
     return malloc(size);
 }
 
+static void* my_gballoc_calloc(size_t nmemb, size_t size)
+{
+    return calloc(nmemb, size);
+}
+
 static void* my_gballoc_realloc(void* ptr, size_t size)
 {
     return realloc(ptr, size);
@@ -295,6 +300,7 @@ TEST_SUITE_INITIALIZE(suite_init)
     REGISTER_TYPE(AMQP_MANAGEMENT_EXECUTE_OPERATION_RESULT, AMQP_MANAGEMENT_EXECUTE_OPERATION_RESULT);
 
     REGISTER_GLOBAL_MOCK_HOOK(gballoc_malloc, my_gballoc_malloc);
+    REGISTER_GLOBAL_MOCK_HOOK(gballoc_calloc, my_gballoc_calloc);
     REGISTER_GLOBAL_MOCK_HOOK(gballoc_free, my_gballoc_free);
     REGISTER_GLOBAL_MOCK_RETURN(singlylinkedlist_create, test_singlylinkedlist_handle);
     REGISTER_GLOBAL_MOCK_HOOK(singlylinkedlist_get_head_item, my_singlylinkedlist_get_head_item);
@@ -407,7 +413,7 @@ TEST_FUNCTION(amqp_management_create_returns_a_valid_handle)
     // arrange
     AMQP_MANAGEMENT_HANDLE amqp_management;
 
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_create());
     STRICT_EXPECTED_CALL(mallocAndStrcpy_s(IGNORED_PTR_ARG, "statusCode"));
     STRICT_EXPECTED_CALL(mallocAndStrcpy_s(IGNORED_PTR_ARG, "statusDescription"));
@@ -496,7 +502,7 @@ TEST_FUNCTION(when_any_underlying_function_call_fails_amqp_management_create_fai
     size_t index;
     ASSERT_ARE_EQUAL(int, 0, negativeTestsInitResult);
 
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
         .SetFailReturn(NULL);
     STRICT_EXPECTED_CALL(singlylinkedlist_create())
         .SetFailReturn(NULL);
@@ -557,7 +563,7 @@ TEST_FUNCTION(amqp_management_destroy_frees_all_the_allocated_resources)
     // arrange
     AMQP_MANAGEMENT_HANDLE amqp_management;
 
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_create());
     STRICT_EXPECTED_CALL(mallocAndStrcpy_s(IGNORED_PTR_ARG, "statusCode"));
     STRICT_EXPECTED_CALL(mallocAndStrcpy_s(IGNORED_PTR_ARG, "statusDescription"));
@@ -1109,7 +1115,7 @@ TEST_FUNCTION(amqp_management_execute_operation_async_starts_the_operation)
     STRICT_EXPECTED_CALL(message_set_properties(test_cloned_message, test_properties));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_message_id_value));
     STRICT_EXPECTED_CALL(properties_destroy(test_properties));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist_handle, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(messagesender_send_async(test_message_sender, test_cloned_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG, 0));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_application_properties));
@@ -1170,7 +1176,7 @@ TEST_FUNCTION(amqp_management_execute_operation_async_with_NULL_context_starts_t
     STRICT_EXPECTED_CALL(message_set_properties(test_cloned_message, test_properties));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_message_id_value));
     STRICT_EXPECTED_CALL(properties_destroy(test_properties));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist_handle, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(messagesender_send_async(test_message_sender, test_cloned_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG, 0));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_application_properties));
@@ -1314,7 +1320,7 @@ TEST_FUNCTION(amqp_management_execute_operation_async_with_NULL_message_creates_
     STRICT_EXPECTED_CALL(message_set_properties(test_message, test_properties));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_message_id_value));
     STRICT_EXPECTED_CALL(properties_destroy(test_properties));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist_handle, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(messagesender_send_async(test_message_sender, test_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG, 0));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_application_properties));
@@ -1446,7 +1452,7 @@ TEST_FUNCTION(when_no_application_properties_were_set_on_the_message_a_new_map_i
     STRICT_EXPECTED_CALL(message_set_properties(test_cloned_message, test_properties));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_message_id_value));
     STRICT_EXPECTED_CALL(properties_destroy(test_properties));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist_handle, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(messagesender_send_async(test_message_sender, test_cloned_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG, 0));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_application_properties));
@@ -1500,7 +1506,7 @@ TEST_FUNCTION(amqp_management_execute_operation_async_with_NULL_locales_does_not
     STRICT_EXPECTED_CALL(message_set_properties(test_cloned_message, test_properties));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_message_id_value));
     STRICT_EXPECTED_CALL(properties_destroy(test_properties));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist_handle, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(messagesender_send_async(test_message_sender, test_cloned_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG, 0));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_application_properties));
@@ -1563,7 +1569,7 @@ TEST_FUNCTION(when_no_properties_were_set_on_the_message_a_new_properties_instan
     STRICT_EXPECTED_CALL(message_set_properties(test_cloned_message, test_properties));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_message_id_value));
     STRICT_EXPECTED_CALL(properties_destroy(test_properties));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist_handle, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(messagesender_send_async(test_message_sender, test_cloned_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG, 0));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_application_properties));
@@ -1641,7 +1647,7 @@ TEST_FUNCTION(when_any_underlying_function_call_fails_amqp_management_execute_op
         .SetFailReturn(1);
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_message_id_value));
     STRICT_EXPECTED_CALL(properties_destroy(test_properties));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
         .SetFailReturn(NULL);
     STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist_handle, IGNORED_PTR_ARG))
         .SetFailReturn(NULL);
@@ -1821,7 +1827,7 @@ TEST_FUNCTION(amqp_management_execute_operation_async_the_2nd_time_uses_the_next
     STRICT_EXPECTED_CALL(message_set_properties(test_cloned_message, test_properties));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_message_id_value));
     STRICT_EXPECTED_CALL(properties_destroy(test_properties));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist_handle, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(messagesender_send_async(test_message_sender, test_cloned_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG, 0));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_application_properties));

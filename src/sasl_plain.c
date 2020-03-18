@@ -57,7 +57,7 @@ CONCRETE_SASL_MECHANISM_HANDLE saslplain_create(void* config)
             else
             {
                 /* Codes_SRS_SASL_PLAIN_01_001: [`saslplain_create` shall return on success a non-NULL handle to a new SASL plain mechanism.] */
-                result = (SASL_PLAIN_INSTANCE*)malloc(sizeof(SASL_PLAIN_INSTANCE));
+                result = (SASL_PLAIN_INSTANCE*)calloc(1, sizeof(SASL_PLAIN_INSTANCE));
                 if (result == NULL)
                 {
                     /* Codes_SRS_SASL_PLAIN_01_002: [If allocating the memory needed for the saslplain instance fails then `saslplain_create` shall return NULL.] */

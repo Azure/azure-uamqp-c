@@ -85,7 +85,7 @@ FRAME_CODEC_HANDLE frame_codec_create(ON_FRAME_CODEC_ERROR on_frame_codec_error,
     }
     else
     {
-        result = (FRAME_CODEC_INSTANCE*)malloc(sizeof(FRAME_CODEC_INSTANCE));
+        result = (FRAME_CODEC_INSTANCE*)calloc(1, sizeof(FRAME_CODEC_INSTANCE));
         /* Codes_SRS_FRAME_CODEC_01_022: [If allocating memory for the frame_codec instance fails, frame_codec_create shall return NULL.] */
         if (result == NULL)
         {
@@ -468,7 +468,7 @@ int frame_codec_subscribe(FRAME_CODEC_HANDLE frame_codec, uint8_t type, ON_FRAME
         else
         {
             /* add a new subscription */
-            subscription = (SUBSCRIPTION*)malloc(sizeof(SUBSCRIPTION));
+            subscription = (SUBSCRIPTION*)calloc(1, sizeof(SUBSCRIPTION));
             /* Codes_SRS_FRAME_CODEC_01_037: [If any failure occurs while performing the subscribe operation, frame_codec_subscribe shall return a non-zero value.] */
             if (subscription == NULL)
             {

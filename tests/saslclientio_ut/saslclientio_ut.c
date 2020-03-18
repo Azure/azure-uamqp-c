@@ -25,6 +25,11 @@ static void* my_gballoc_malloc(size_t size)
     return malloc(size);
 }
 
+static void* my_gballoc_calloc(size_t nmemb, size_t size)
+{
+    return calloc(nmemb, size);
+}
+
 static void my_gballoc_free(void* ptr)
 {
     free(ptr);
@@ -620,6 +625,7 @@ TEST_SUITE_INITIALIZE(suite_init)
     ASSERT_ARE_EQUAL(int, 0, result, "Failed registering bool types");
 
     REGISTER_GLOBAL_MOCK_HOOK(gballoc_malloc, my_gballoc_malloc);
+    REGISTER_GLOBAL_MOCK_HOOK(gballoc_calloc, my_gballoc_calloc);
     REGISTER_GLOBAL_MOCK_HOOK(gballoc_free, my_gballoc_free);
     REGISTER_GLOBAL_MOCK_HOOK(frame_codec_create, my_frame_codec_create);
     REGISTER_GLOBAL_MOCK_HOOK(frame_codec_receive_bytes, my_frame_codec_receive_bytes);
@@ -730,7 +736,7 @@ TEST_FUNCTION(saslclientio_create_with_valid_args_succeeds)
     sasl_client_io_config.underlying_io = test_underlying_io;
     sasl_client_io_config.sasl_mechanism = test_sasl_mechanism;
 
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(sasl_frame_codec_create(test_frame_codec, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
 
@@ -767,7 +773,7 @@ TEST_FUNCTION(when_allocating_memory_for_the_new_instance_fails_then_saslclienti
     sasl_client_io_config.underlying_io = test_underlying_io;
     sasl_client_io_config.sasl_mechanism = test_sasl_mechanism;
 
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
         .SetReturn(NULL);
 
     // act
@@ -787,7 +793,7 @@ TEST_FUNCTION(when_creating_the_frame_codec_fails_then_saslclientio_create_fails
     sasl_client_io_config.underlying_io = test_underlying_io;
     sasl_client_io_config.sasl_mechanism = test_sasl_mechanism;
 
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .SetReturn(NULL);
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
@@ -809,7 +815,7 @@ TEST_FUNCTION(when_creating_the_sasl_frame_codec_fails_then_saslclientio_create_
     sasl_client_io_config.underlying_io = test_underlying_io;
     sasl_client_io_config.sasl_mechanism = test_sasl_mechanism;
 
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(sasl_frame_codec_create(test_frame_codec, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .SetReturn(NULL);

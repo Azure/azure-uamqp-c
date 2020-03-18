@@ -266,7 +266,7 @@ CBS_HANDLE cbs_create(SESSION_HANDLE session)
     }
     else
     {
-        cbs = (CBS_INSTANCE*)malloc(sizeof(CBS_INSTANCE));
+        cbs = (CBS_INSTANCE*)calloc(1, sizeof(CBS_INSTANCE));
         if (cbs == NULL)
         {
             /* Codes_SRS_CBS_01_076: [ If allocating memory for the new handle fails, `cbs_create` shall fail and return NULL. ]*/

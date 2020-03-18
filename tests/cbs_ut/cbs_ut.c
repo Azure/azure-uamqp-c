@@ -22,6 +22,11 @@ static void* my_gballoc_malloc(size_t size)
     return malloc(size);
 }
 
+static void* my_gballoc_calloc(size_t nmemb, size_t size)
+{
+    return calloc(nmemb, size);
+}
+
 static void* my_gballoc_realloc(void* ptr, size_t size)
 {
     return realloc(ptr, size);
@@ -200,6 +205,7 @@ TEST_SUITE_INITIALIZE(suite_init)
     ASSERT_ARE_EQUAL(int, 0, result);
 
     REGISTER_GLOBAL_MOCK_HOOK(gballoc_malloc, my_gballoc_malloc);
+    REGISTER_GLOBAL_MOCK_HOOK(gballoc_calloc, my_gballoc_calloc);
     REGISTER_GLOBAL_MOCK_HOOK(gballoc_free, my_gballoc_free);
     REGISTER_GLOBAL_MOCK_HOOK(amqp_management_create, my_amqp_management_create);
     REGISTER_GLOBAL_MOCK_HOOK(amqp_management_open_async, my_amqp_management_open_async);
@@ -267,7 +273,7 @@ TEST_FUNCTION(cbs_create_returns_a_valid_handle)
 {
     // arrange
     CBS_HANDLE cbs;
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_create());
     STRICT_EXPECTED_CALL(amqp_management_create(test_session_handle, "$cbs"));
     STRICT_EXPECTED_CALL(amqp_management_set_override_status_code_key_name(test_amqp_management_handle, "status-code"));
@@ -310,7 +316,7 @@ TEST_FUNCTION(when_one_of_the_functions_called_by_cbs_create_fails_then_cbs_crea
     size_t index;
     ASSERT_ARE_EQUAL(int, 0, negativeTestsInitResult);
 
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
         .SetFailReturn(NULL);
     STRICT_EXPECTED_CALL(singlylinkedlist_create())
         .SetReturn(NULL);

@@ -978,7 +978,7 @@ CONCRETE_IO_HANDLE saslclientio_create(void* io_create_parameters)
     }
     else
     {
-        result = (SASL_CLIENT_IO_INSTANCE*)malloc(sizeof(SASL_CLIENT_IO_INSTANCE));
+        result = (SASL_CLIENT_IO_INSTANCE*)calloc(1, sizeof(SASL_CLIENT_IO_INSTANCE));
         if (result == NULL)
         {
             /* Codes_SRS_SASLCLIENTIO_01_006: [If memory cannot be allocated for the new instance, `saslclientio_create` shall fail and return NULL.] */

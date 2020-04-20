@@ -1163,17 +1163,8 @@ void session_destroy_link_endpoint(LINK_ENDPOINT_HANDLE link_endpoint)
 {
     if (link_endpoint != NULL)
     {
-        LINK_ENDPOINT_INSTANCE* endpoint_instance = (LINK_ENDPOINT_INSTANCE*)link_endpoint;
-
-        if (endpoint_instance->link_endpoint_state == LINK_ENDPOINT_STATE_ATTACHED)
-        {
-            endpoint_instance->link_endpoint_state = LINK_ENDPOINT_STATE_DETACHING;
-        }
-        else
-        {
-            remove_link_endpoint(link_endpoint);
-            free_link_endpoint(link_endpoint);
-        }
+        remove_link_endpoint(link_endpoint);
+        free_link_endpoint(link_endpoint);
     }
 }
 

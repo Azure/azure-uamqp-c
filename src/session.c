@@ -627,7 +627,8 @@ static void on_frame_received(void* context, AMQP_VALUE performative, uint32_t p
                 while ((session_instance->remote_incoming_window > 0) && (i < session_instance->link_endpoint_count))
                 {
                     /* notify the caller that it can send here */
-                    if (session_instance->link_endpoints[i]->on_session_flow_on != NULL)
+                    if (session_instance->link_endpoints[i]->link_endpoint_state != LINK_ENDPOINT_STATE_DETACHING &&
+                        session_instance->link_endpoints[i]->on_session_flow_on != NULL)
                     {
                         session_instance->link_endpoints[i]->on_session_flow_on(session_instance->link_endpoints[i]->callback_context);
                     }

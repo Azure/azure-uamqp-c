@@ -142,7 +142,7 @@ ERROR_HANDLE error_create(const char* condition_value)
             condition_amqp_value = amqpvalue_create_symbol(condition_value);
             if ((result == 0) && (amqpvalue_set_composite_item(error_instance->composite_value, 0, condition_amqp_value) != 0))
             {
-                result = 348;
+                result = MU_FAILURE;
             }
 
             amqpvalue_destroy(condition_amqp_value);

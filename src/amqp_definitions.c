@@ -7,7 +7,7 @@
 // The generator that produces it is located at /uamqp_generator/uamqp_generator.sln
 
 #include <stdlib.h>
-#include "azure_macro_utils/macro_utils.h"
+#include "azure_c_shared_utility/optimize_size.h"
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_uamqp_c/amqpvalue.h"
 #include "azure_uamqp_c/amqp_definitions.h"
@@ -345,7 +345,7 @@ int amqpvalue_get_error(AMQP_VALUE value, ERROR_HANDLE* error_handle)
                     error_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while((void)0,0);
+                } while(0);
             }
         }
     }
@@ -1082,7 +1082,7 @@ int amqpvalue_get_open(AMQP_VALUE value, OPEN_HANDLE* open_handle)
                     open_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while((void)0,0);
+                } while(0);
             }
         }
     }
@@ -2622,7 +2622,7 @@ int amqpvalue_get_begin(AMQP_VALUE value, BEGIN_HANDLE* begin_handle)
                     begin_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while((void)0,0);
+                } while(0);
             }
         }
     }
@@ -4000,7 +4000,7 @@ int amqpvalue_get_attach(AMQP_VALUE value, ATTACH_HANDLE* attach_handle)
                     attach_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while((void)0,0);
+                } while(0);
             }
         }
     }
@@ -5847,7 +5847,7 @@ int amqpvalue_get_flow(AMQP_VALUE value, FLOW_HANDLE* flow_handle)
                     flow_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while((void)0,0);
+                } while(0);
             }
         }
     }
@@ -7245,7 +7245,7 @@ int amqpvalue_get_transfer(AMQP_VALUE value, TRANSFER_HANDLE* transfer_handle)
                     transfer_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while((void)0,0);
+                } while(0);
             }
         }
     }
@@ -8537,7 +8537,7 @@ int amqpvalue_get_disposition(AMQP_VALUE value, DISPOSITION_HANDLE* disposition_
                     disposition_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while((void)0,0);
+                } while(0);
             }
         }
     }
@@ -9309,7 +9309,7 @@ int amqpvalue_get_detach(AMQP_VALUE value, DETACH_HANDLE* detach_handle)
                     detach_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while((void)0,0);
+                } while(0);
             }
         }
     }
@@ -9739,7 +9739,7 @@ int amqpvalue_get_end(AMQP_VALUE value, END_HANDLE* end_handle)
                     end_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while((void)0,0);
+                } while(0);
             }
         }
     }
@@ -9993,7 +9993,7 @@ int amqpvalue_get_close(AMQP_VALUE value, CLOSE_HANDLE* close_handle)
                     close_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while((void)0,0);
+                } while(0);
             }
         }
     }
@@ -10276,7 +10276,7 @@ int amqpvalue_get_sasl_mechanisms(AMQP_VALUE value, SASL_MECHANISMS_HANDLE* sasl
                     sasl_mechanisms_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while((void)0,0);
+                } while(0);
             }
         }
     }
@@ -10672,7 +10672,7 @@ int amqpvalue_get_sasl_init(AMQP_VALUE value, SASL_INIT_HANDLE* sasl_init_handle
                     sasl_init_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while((void)0,0);
+                } while(0);
             }
         }
     }
@@ -11112,7 +11112,7 @@ int amqpvalue_get_sasl_challenge(AMQP_VALUE value, SASL_CHALLENGE_HANDLE* sasl_c
                     sasl_challenge_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while((void)0,0);
+                } while(0);
             }
         }
     }
@@ -11386,7 +11386,7 @@ int amqpvalue_get_sasl_response(AMQP_VALUE value, SASL_RESPONSE_HANDLE* sasl_res
                     sasl_response_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while((void)0,0);
+                } while(0);
             }
         }
     }
@@ -11689,7 +11689,7 @@ int amqpvalue_get_sasl_outcome(AMQP_VALUE value, SASL_OUTCOME_HANDLE* sasl_outco
                     sasl_outcome_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while((void)0,0);
+                } while(0);
             }
         }
     }
@@ -12312,7 +12312,7 @@ int amqpvalue_get_source(AMQP_VALUE value, SOURCE_HANDLE* source_handle)
                     source_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while((void)0,0);
+                } while(0);
             }
         }
     }
@@ -13722,7 +13722,7 @@ int amqpvalue_get_target(AMQP_VALUE value, TARGET_HANDLE* target_handle)
                     target_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while((void)0,0);
+                } while(0);
             }
         }
     }
@@ -14733,7 +14733,7 @@ int amqpvalue_get_header(AMQP_VALUE value, HEADER_HANDLE* header_handle)
                     header_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while((void)0,0);
+                } while(0);
             }
         }
     }
@@ -15975,7 +15975,7 @@ int amqpvalue_get_properties(AMQP_VALUE value, PROPERTIES_HANDLE* properties_han
                     properties_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while((void)0,0);
+                } while(0);
             }
         }
     }
@@ -17296,7 +17296,7 @@ int amqpvalue_get_received(AMQP_VALUE value, RECEIVED_HANDLE* received_handle)
                     received_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while((void)0,0);
+                } while(0);
             }
         }
     }
@@ -17599,7 +17599,7 @@ int amqpvalue_get_accepted(AMQP_VALUE value, ACCEPTED_HANDLE* accepted_handle)
                     accepted_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while((void)0,0);
+                } while(0);
             }
         }
     }
@@ -17770,7 +17770,7 @@ int amqpvalue_get_rejected(AMQP_VALUE value, REJECTED_HANDLE* rejected_handle)
                     rejected_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while((void)0,0);
+                } while(0);
             }
         }
     }
@@ -17990,7 +17990,7 @@ int amqpvalue_get_released(AMQP_VALUE value, RELEASED_HANDLE* released_handle)
                     released_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while((void)0,0);
+                } while(0);
             }
         }
     }
@@ -18215,7 +18215,7 @@ int amqpvalue_get_modified(AMQP_VALUE value, MODIFIED_HANDLE* modified_handle)
                     modified_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while((void)0,0);
+                } while(0);
             }
         }
     }

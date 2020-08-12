@@ -292,7 +292,7 @@ int amqpvalue_get_<#= type_name #>(AMQP_VALUE value, <#= type_name.ToUpper() #>_
                     <#= type_name.ToLower() #>_instance->composite_value = amqpvalue_clone(value);
 
                     result = 0;
-                } while((void)0,0);
+                } while(0);
             }
         }
     }

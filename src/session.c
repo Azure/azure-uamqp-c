@@ -27,6 +27,8 @@ typedef struct LINK_ENDPOINT_INSTANCE_TAG
     void* callback_context;
     SESSION_HANDLE session;
     LINK_ENDPOINT_STATE link_endpoint_state;
+    ON_LINK_ENDPOINT_DESTROYED_CALLBACK on_link_endpoint_destroyed_callback;
+    void* on_link_endpoint_destroyed_context;
 } LINK_ENDPOINT_INSTANCE;
 
 typedef struct SESSION_INSTANCE_TAG
@@ -104,6 +106,16 @@ static void remove_link_endpoint(LINK_ENDPOINT_HANDLE link_endpoint)
 
 static void free_link_endpoint(LINK_ENDPOINT_HANDLE link_endpoint)
 {
+    // The link endpoint handle can be managed by both uamqp and the upper layer.
+    // uamqp may destroy a link endpoint if a DETACH is received from the remote endpoint,
+    // so in this case the upper layer must be notified so it does not attempt to destroy the link endpoint as well.
+    // Ref counting would not suffice to address this situation as uamqp does not destroy link endpoints by itself 
+    // every time, only when receiving a DETACH.
+    if (link_endpoint->on_link_endpoint_destroyed_callback != NULL)
+    {
+        link_endpoint->on_link_endpoint_destroyed_callback(link_endpoint, link_endpoint->on_link_endpoint_destroyed_context);
+    }
+
     if (link_endpoint->name != NULL)
     {
         free(link_endpoint->name);
@@ -1121,6 +1133,8 @@ LINK_ENDPOINT_HANDLE session_create_link_endpoint(SESSION_HANDLE session, const 
             result->link_endpoint_state = LINK_ENDPOINT_STATE_NOT_ATTACHED;
             name_length = strlen(name);
             result->name = (char*)malloc(name_length + 1);
+            result->on_link_endpoint_destroyed_callback = NULL;
+            result->on_link_endpoint_destroyed_context = NULL;
             if (result->name == NULL)
             {
                 /* Codes_S_R_S_SESSION_01_045: [If allocating memory for the link endpoint fails, session_create_link_endpoint shall fail and return NULL.] */
@@ -1158,6 +1172,15 @@ LINK_ENDPOINT_HANDLE session_create_link_endpoint(SESSION_HANDLE session, const 
     }
 
     return result;
+}
+
+void session_set_link_endpoint_callback(LINK_ENDPOINT_HANDLE link_endpoint, ON_LINK_ENDPOINT_DESTROYED_CALLBACK on_link_endpoint_destroyed, void* context)
+{
+    if (link_endpoint != NULL)
+    {
+        link_endpoint->on_link_endpoint_destroyed_callback = on_link_endpoint_destroyed;
+        link_endpoint->on_link_endpoint_destroyed_context = context;
+    }
 }
 
 void session_destroy_link_endpoint(LINK_ENDPOINT_HANDLE link_endpoint)

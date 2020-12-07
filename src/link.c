@@ -701,6 +701,20 @@ static void on_send_complete(void* context, IO_SEND_RESULT send_result)
     }
 }
 
+static void on_link_endpoint_destroyed(LINK_ENDPOINT_HANDLE handle, void* context)
+{
+    if (context != NULL)
+    {
+        LINK_INSTANCE* link = (LINK_INSTANCE*)context;
+
+        if (link->link_endpoint == handle)
+        {
+            // In this case the link endpoint has been destroyed by the session, and link should not try to free it.
+            link->link_endpoint = NULL;
+        }
+    }
+}
+
 LINK_HANDLE link_create(SESSION_HANDLE session, const char* name, role role, AMQP_VALUE source, AMQP_VALUE target)
 {
     LINK_INSTANCE* result = (LINK_INSTANCE*)calloc(1, sizeof(LINK_INSTANCE));
@@ -778,6 +792,12 @@ LINK_HANDLE link_create(SESSION_HANDLE session, const char* name, role role, AMQ
                         free(result->name);
                         free(result);
                         result = NULL;
+                    }
+                    else
+                    {
+                        // This ensures link.c gets notified if the link endpoint is destroyed
+                        // by uamqp (due to a DETACH from the hub, e.g.) to prevent a double free.
+                        session_set_link_endpoint_callback(result->link_endpoint, on_link_endpoint_destroyed, result);
                     }
                 }
             }
@@ -883,6 +903,9 @@ void link_destroy(LINK_HANDLE link)
 
         link->on_link_state_changed = NULL;
         (void)link_detach(link, true, NULL, NULL, NULL);
+        // This is required to suppress the link destroyed callback, since this function is 
+        // actively requesting that (in the following line).
+        session_set_link_endpoint_callback(link->link_endpoint, NULL, NULL);
         session_destroy_link_endpoint(link->link_endpoint);
         amqpvalue_destroy(link->source);
         amqpvalue_destroy(link->target);

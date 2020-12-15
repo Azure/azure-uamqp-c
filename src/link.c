@@ -61,6 +61,7 @@ typedef struct LINK_INSTANCE_TAG
     uint32_t max_link_credit;
     uint32_t available;
     fields attach_properties;
+    AMQP_VALUE desired_capabilities;
     bool is_underlying_session_begun;
     bool is_closed;
     unsigned char* received_payload;
@@ -277,6 +278,15 @@ static int send_attach(LINK_INSTANCE* link, const char* name, handle handle, rol
         if (link->attach_properties != NULL)
         {
             (void)attach_set_properties(attach, link->attach_properties);
+        }
+
+        if (link->desired_capabilities != NULL)
+        {
+            if(attach_set_desired_capabilities(attach, link->desired_capabilities) != 0)
+            {
+                LogError("Cannot set attach desired capabilities");
+                result = MU_FAILURE;
+            }
         }
 
         if (role == role_sender)
@@ -741,6 +751,7 @@ LINK_HANDLE link_create(SESSION_HANDLE session, const char* name, role role, AMQ
         result->is_underlying_session_begun = false;
         result->is_closed = false;
         result->attach_properties = NULL;
+        result->desired_capabilities = NULL;
         result->received_payload = NULL;
         result->received_payload_size = 0;
         result->received_delivery_id = 0;
@@ -830,6 +841,7 @@ LINK_HANDLE link_create_from_endpoint(SESSION_HANDLE session, LINK_ENDPOINT_HAND
         result->is_underlying_session_begun = false;
         result->is_closed = false;
         result->attach_properties = NULL;
+        result->desired_capabilities = NULL;
         result->received_payload = NULL;
         result->received_payload_size = 0;
         result->received_delivery_id = 0;
@@ -1103,6 +1115,59 @@ int link_get_peer_max_message_size(LINK_HANDLE link, uint64_t* peer_max_message_
     {
         *peer_max_message_size = link->peer_max_message_size;
         result = 0;
+    }
+
+    return result;
+}
+
+int link_get_desired_capabilities(LINK_HANDLE link, AMQP_VALUE* desired_capabilities)
+{
+    int result;
+    if((link == NULL) ||
+        (desired_capabilities == NULL))
+    {
+        LogError("Bad arguments: link = %p, desired_capabilities = %p",
+            link, desired_capabilities);
+        result = MU_FAILURE;
+    }
+    else
+    {
+        AMQP_VALUE link_desired_capabilties = amqpvalue_clone(link->desired_capabilities);
+        if(link_desired_capabilties == NULL)
+        {
+            LogError("Failed to clone link desired capabilities");
+            result = MU_FAILURE;
+        }
+        else
+        {
+            *desired_capabilities = link_desired_capabilties;
+            result = 0;
+        }
+    }
+    return result;
+}
+
+int link_set_desired_capabilities(LINK_HANDLE link, AMQP_VALUE desired_capabilities)
+{
+    int result;
+
+    if (link == NULL)
+    {
+        LogError("NULL link");
+        result = MU_FAILURE;
+    }
+    else
+    {
+        link->desired_capabilities = amqpvalue_clone(desired_capabilities);
+        if (link->desired_capabilities == NULL)
+        {
+            LogError("Failed cloning desired capabilities");
+            result = MU_FAILURE;
+        }
+        else
+        {
+            result = 0;
+        }
     }
 
     return result;

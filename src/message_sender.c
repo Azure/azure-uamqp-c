@@ -208,6 +208,8 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
         AMQP_VALUE body_amqp_value = NULL;
         size_t body_data_count = 0;
         AMQP_VALUE msg_annotations = NULL;
+        AMQP_VALUE footer = NULL;
+        AMQP_VALUE delivery_annotations = NULL;
         bool is_error = false;
 
         // message header
@@ -298,6 +300,38 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
                 {
                     total_encoded_size += encoded_size;
                 }
+            }
+        }
+
+        // footer
+        if ((!is_error) &&
+            (message_get_footer(message, &footer) == 0) &&
+            (footer != NULL))
+        {
+            if (amqpvalue_get_encoded_size(footer, &encoded_size) != 0)
+            {
+                LogError("Cannot obtain footer encoded size");
+                is_error = true;
+            }
+            else
+            {
+                total_encoded_size += encoded_size;
+            }
+        }
+
+        // delivery annotations
+        if ((!is_error) &&
+            (message_get_delivery_annotations(message, &delivery_annotations) == 0) &&
+            (delivery_annotations != NULL))
+        {
+            if (amqpvalue_get_encoded_size(delivery_annotations, &encoded_size) != 0)
+            {
+                LogError("Cannot obtain delivery annotations encoded size");
+                is_error = true;
+            }
+            else
+            {
+                total_encoded_size += encoded_size;
             }
         }
 
@@ -462,6 +496,28 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
                     log_message_chunk(message_sender, "Application properties:", application_properties_value);
                 }
 
+                if ((result == SEND_ONE_MESSAGE_OK) && (footer != NULL))
+                {
+                    if (amqpvalue_encode(footer, encode_bytes, &payload) != 0)
+                    {
+                        LogError("Cannot encode footer value");
+                        result = SEND_ONE_MESSAGE_ERROR;
+                    }
+
+                    log_message_chunk(message_sender, "Footer:", footer);
+                }
+
+                if ((result == SEND_ONE_MESSAGE_OK) && (delivery_annotations != NULL))
+                {
+                    if (amqpvalue_encode(delivery_annotations, encode_bytes, &payload) != 0)
+                    {
+                        LogError("Cannot encode delivery annotations value");
+                        result = SEND_ONE_MESSAGE_ERROR;
+                    }
+
+                    log_message_chunk(message_sender, "Delivery annotations:", delivery_annotations);
+                }
+
                 if (result == SEND_ONE_MESSAGE_OK)
                 {
                     switch (message_body_type)
@@ -593,6 +649,16 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
         if (properties != NULL)
         {
             properties_destroy(properties);
+        }
+
+        if (footer != NULL)
+        {
+            annotations_destroy(footer);
+        }
+
+        if (delivery_annotations != NULL)
+        {
+            annotations_destroy(delivery_annotations);
         }
     }
 

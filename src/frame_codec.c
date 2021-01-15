@@ -42,6 +42,7 @@ typedef struct FRAME_CODEC_INSTANCE_TAG
     RECEIVE_FRAME_STATE receive_frame_state;
     size_t receive_frame_pos;
     uint32_t receive_frame_size;
+    uint32_t receive_frame_malloc_size;
     uint32_t type_specific_size;
     uint8_t receive_frame_doff;
     uint8_t receive_frame_type;
@@ -99,6 +100,7 @@ FRAME_CODEC_HANDLE frame_codec_create(ON_FRAME_CODEC_ERROR on_frame_codec_error,
             result->on_frame_codec_error_callback_context = callback_context;
             result->receive_frame_pos = 0;
             result->receive_frame_size = 0;
+            result->receive_frame_malloc_size = 0;
             result->receive_frame_bytes = NULL;
             result->subscription_list = singlylinkedlist_create();
 
@@ -302,7 +304,8 @@ int frame_codec_receive_bytes(FRAME_CODEC_HANDLE frame_codec, const unsigned cha
                         frame_codec_data->receive_frame_pos = 0;
 
                         /* Codes_SRS_FRAME_CODEC_01_102: [frame_codec_receive_bytes shall allocate memory to hold the frame_body bytes.] */
-                        frame_codec_data->receive_frame_bytes = (unsigned char*)malloc(frame_codec_data->receive_frame_size - 6);
+                        frame_codec_data->receive_frame_malloc_size = frame_codec_data->receive_frame_size - 6;
+                        frame_codec_data->receive_frame_bytes = (unsigned char*)malloc(frame_codec_data->receive_frame_malloc_size);
                         if (frame_codec_data->receive_frame_bytes == NULL)
                         {
                             /* Codes_SRS_FRAME_CODEC_01_101: [If the memory for the frame_body bytes cannot be allocated, frame_codec_receive_bytes shall fail and return a non-zero value.] */
@@ -313,7 +316,7 @@ int frame_codec_receive_bytes(FRAME_CODEC_HANDLE frame_codec, const unsigned cha
                             /* Codes_SRS_FRAME_CODEC_01_103: [Upon any decode error, if an error callback has been passed to frame_codec_create, then the error callback shall be called with the context argument being the on_frame_codec_error_callback_context argument passed to frame_codec_create.] */
                             frame_codec_data->on_frame_codec_error(frame_codec_data->on_frame_codec_error_callback_context);
 
-                            LogError("Cannot allocate memort for frame bytes");
+                            LogError("Cannot allocate memory for frame bytes");
                             result = MU_FAILURE;
                             break;
                         }
@@ -335,9 +338,23 @@ int frame_codec_receive_bytes(FRAME_CODEC_HANDLE frame_codec, const unsigned cha
                     to_copy = size;
                 }
 
+                // [bug:8781089] WRITE address points to the zero page - SEGV
+                if (frame_codec_data->receive_frame_bytes == NULL)
+                {
+                    LogError("Frame bytes memory was not allocated");
+                    result = MU_FAILURE;
+                    size = 0;
+                    break;
+                }
+
                 if (frame_codec_data->receive_frame_subscription != NULL)
                 {
-                    (void)memcpy(&frame_codec_data->receive_frame_bytes[frame_codec_data->receive_frame_pos], buffer, to_copy);
+                    if (frame_codec_data->receive_frame_pos + to_copy > frame_codec_data->receive_frame_malloc_size)
+                    {
+                        result = MU_FAILURE;
+                        size = 0;
+                        break;
+                    }                    (void)memcpy(&frame_codec_data->receive_frame_bytes[frame_codec_data->receive_frame_pos], buffer, to_copy);
                     frame_codec_data->receive_frame_pos += to_copy;
                     buffer += to_copy;
                     size -= to_copy;

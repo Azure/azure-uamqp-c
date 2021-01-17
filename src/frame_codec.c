@@ -338,23 +338,23 @@ int frame_codec_receive_bytes(FRAME_CODEC_HANDLE frame_codec, const unsigned cha
                     to_copy = size;
                 }
 
-                // [bug:8781089] WRITE address points to the zero page - SEGV
-                if (frame_codec_data->receive_frame_bytes == NULL)
-                {
-                    LogError("Frame bytes memory was not allocated");
-                    result = MU_FAILURE;
-                    size = 0;
-                    break;
-                }
-
                 if (frame_codec_data->receive_frame_subscription != NULL)
                 {
-                    if (frame_codec_data->receive_frame_pos + to_copy > frame_codec_data->receive_frame_malloc_size)
+                    // [bug:8781089] WRITE address points to the zero page - SEGV
+                    if (frame_codec_data->receive_frame_bytes == NULL)
+                    {
+                        LogError("Frame bytes memory was not allocated");
+                        result = MU_FAILURE;
+                        size = 0;
+                        break;
+                    }
+                    else if (frame_codec_data->receive_frame_pos + to_copy > frame_codec_data->receive_frame_malloc_size)
                     {
                         result = MU_FAILURE;
                         size = 0;
                         break;
-                    }                    (void)memcpy(&frame_codec_data->receive_frame_bytes[frame_codec_data->receive_frame_pos], buffer, to_copy);
+                    }                    
+                    (void)memcpy(&frame_codec_data->receive_frame_bytes[frame_codec_data->receive_frame_pos], buffer, to_copy);
                     frame_codec_data->receive_frame_pos += to_copy;
                     buffer += to_copy;
                     size -= to_copy;

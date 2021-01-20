@@ -407,6 +407,13 @@ int frame_codec_receive_bytes(FRAME_CODEC_HANDLE frame_codec, const unsigned cha
                     to_copy = size;
                 }
 
+                if (frame_codec_data->receive_frame_bytes == NULL)
+                {
+                    result = MU_FAILURE;
+                    size = 0;
+                    break;
+                }
+
                 (void)memcpy(frame_codec_data->receive_frame_bytes + frame_codec_data->receive_frame_pos + frame_codec_data->type_specific_size, buffer, to_copy);
 
                 buffer += to_copy;

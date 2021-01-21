@@ -6594,6 +6594,14 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                             else
                             {
                                 map_item->type = AMQP_TYPE_UNKNOWN;
+                                if (internal_decoder_data->decode_value_state.map_value_state.item >= internal_decoder_data->decode_to_value->value.map_value.pair_count)
+                                {
+                                    LogError("Map item index is out of range");
+                                    internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
+                                    result = MU_FAILURE;
+                                    break;
+                                }
+                                
                                 if (internal_decoder_data->decode_to_value->value.map_value.pairs[internal_decoder_data->decode_value_state.map_value_state.item].key == NULL)
                                 {
                                     internal_decoder_data->decode_to_value->value.map_value.pairs[internal_decoder_data->decode_value_state.map_value_state.item].key = map_item;

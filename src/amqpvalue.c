@@ -5911,7 +5911,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                             }
                             else
                             {
-                                internal_decoder_data->decode_to_value->value.binary_value.bytes = (unsigned char*)malloc(internal_decoder_data->decode_to_value->value.binary_value.length + 1);
+                                internal_decoder_data->decode_to_value->value.binary_value.bytes = (unsigned char*)malloc((size_t)internal_decoder_data->decode_to_value->value.binary_value.length + 1);
                                 if (internal_decoder_data->decode_to_value->value.binary_value.bytes == NULL)
                                 {
                                     /* Codes_SRS_AMQPVALUE_01_326: [If any allocation failure occurs during decoding, amqpvalue_decode_bytes shall fail and return a non-zero value.] */
@@ -6027,7 +6027,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
 
                         if (internal_decoder_data->bytes_decoded == 4)
                         {
-                            internal_decoder_data->decode_to_value->value.string_value.chars = (char*)malloc(internal_decoder_data->decode_value_state.string_value_state.length + 1);
+                            internal_decoder_data->decode_to_value->value.string_value.chars = (char*)malloc((size_t)internal_decoder_data->decode_value_state.string_value_state.length + 1);
                             if (internal_decoder_data->decode_to_value->value.string_value.chars == NULL)
                             {
                                 /* Codes_SRS_AMQPVALUE_01_326: [If any allocation failure occurs during decoding, amqpvalue_decode_bytes shall fail and return a non-zero value.] */
@@ -6156,7 +6156,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
 
                         if (internal_decoder_data->bytes_decoded == 4)
                         {
-                            internal_decoder_data->decode_to_value->value.symbol_value.chars = (char*)malloc(internal_decoder_data->decode_value_state.symbol_value_state.length + 1);
+                            internal_decoder_data->decode_to_value->value.symbol_value.chars = (char*)malloc((size_t)internal_decoder_data->decode_value_state.symbol_value_state.length + 1);
                             if (internal_decoder_data->decode_to_value->value.symbol_value.chars == NULL)
                             {
                                 /* Codes_SRS_AMQPVALUE_01_326: [If any allocation failure occurs during decoding, amqpvalue_decode_bytes shall fail and return a non-zero value.] */

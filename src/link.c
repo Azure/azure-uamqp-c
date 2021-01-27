@@ -689,15 +689,22 @@ static void on_send_complete(void* context, IO_SEND_RESULT send_result)
 {
     LIST_ITEM_HANDLE delivery_instance_list_item = (LIST_ITEM_HANDLE)context;
     ASYNC_OPERATION_HANDLE pending_delivery_operation = (ASYNC_OPERATION_HANDLE)singlylinkedlist_item_get_value(delivery_instance_list_item);
-    DELIVERY_INSTANCE* delivery_instance = (DELIVERY_INSTANCE*)GET_ASYNC_OPERATION_CONTEXT(DELIVERY_INSTANCE, pending_delivery_operation);
-    LINK_HANDLE link = (LINK_HANDLE)delivery_instance->link;
-
-    (void)send_result;
-    if (link->snd_settle_mode == sender_settle_mode_settled)
+    if (pending_delivery_operation != NULL)
     {
-        delivery_instance->on_delivery_settled(delivery_instance->callback_context, delivery_instance->delivery_id, send_result == IO_SEND_OK ? LINK_DELIVERY_SETTLE_REASON_SETTLED : LINK_DELIVERY_SETTLE_REASON_NOT_DELIVERED, NULL);
-        async_operation_destroy(pending_delivery_operation);
-        (void)singlylinkedlist_remove(link->pending_deliveries, delivery_instance_list_item);
+        DELIVERY_INSTANCE* delivery_instance = (DELIVERY_INSTANCE*)GET_ASYNC_OPERATION_CONTEXT(DELIVERY_INSTANCE, pending_delivery_operation);
+        if (delivery_instance != NULL)
+        {
+            LINK_HANDLE link = (LINK_HANDLE)delivery_instance->link;
+
+            (void)send_result;
+            if (link != NULL && 
+                link->snd_settle_mode == sender_settle_mode_settled)
+            {
+                delivery_instance->on_delivery_settled(delivery_instance->callback_context, delivery_instance->delivery_id, send_result == IO_SEND_OK ? LINK_DELIVERY_SETTLE_REASON_SETTLED : LINK_DELIVERY_SETTLE_REASON_NOT_DELIVERED, NULL);
+                async_operation_destroy(pending_delivery_operation);
+                (void)singlylinkedlist_remove(link->pending_deliveries, delivery_instance_list_item);
+            }
+        }
     }
 }
 
@@ -1612,22 +1619,26 @@ void link_dowork(LINK_HANDLE link)
             {
                 LIST_ITEM_HANDLE next_item = singlylinkedlist_get_next_item(item);
                 ASYNC_OPERATION_HANDLE delivery_instance_async_operation = (ASYNC_OPERATION_HANDLE)singlylinkedlist_item_get_value(item);
-                DELIVERY_INSTANCE* delivery_instance = (DELIVERY_INSTANCE*)GET_ASYNC_OPERATION_CONTEXT(DELIVERY_INSTANCE, delivery_instance_async_operation);
-
-                if ((delivery_instance->timeout != 0) &&
-                    (current_tick - delivery_instance->start_tick >= delivery_instance->timeout))
+                if (delivery_instance_async_operation != NULL)
                 {
-                    if (delivery_instance->on_delivery_settled != NULL)
-                    {
-                        delivery_instance->on_delivery_settled(delivery_instance->callback_context, delivery_instance->delivery_id, LINK_DELIVERY_SETTLE_REASON_TIMEOUT, NULL);
-                    }
+                    DELIVERY_INSTANCE* delivery_instance = (DELIVERY_INSTANCE*)GET_ASYNC_OPERATION_CONTEXT(DELIVERY_INSTANCE, delivery_instance_async_operation);
 
-                    if (singlylinkedlist_remove(link->pending_deliveries, item) != 0)
+                    if ((delivery_instance != NULL) &&
+                        (delivery_instance->timeout != 0) &&
+                        (current_tick - delivery_instance->start_tick >= delivery_instance->timeout))
                     {
-                        LogError("Cannot remove item from list");
-                    }
+                        if (delivery_instance->on_delivery_settled != NULL)
+                        {
+                            delivery_instance->on_delivery_settled(delivery_instance->callback_context, delivery_instance->delivery_id, LINK_DELIVERY_SETTLE_REASON_TIMEOUT, NULL);
+                        }
 
-                    async_operation_destroy(delivery_instance_async_operation);
+                        if (singlylinkedlist_remove(link->pending_deliveries, item) != 0)
+                        {
+                            LogError("Cannot remove item from list");
+                        }
+
+                        async_operation_destroy(delivery_instance_async_operation);
+                    }
                 }
 
                 item = next_item;

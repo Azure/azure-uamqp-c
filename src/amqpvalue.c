@@ -4953,6 +4953,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                     break;
                 }
 
+                memset(internal_decoder_data->decode_to_value, 0, sizeof(AMQP_VALUE_DATA));
                 internal_decoder_data->constructor_byte = buffer[0];
                 buffer++;
                 size--;
@@ -4969,7 +4970,6 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                 {
                     AMQP_VALUE_DATA* descriptor;
                     internal_decoder_data->decode_to_value->type = AMQP_TYPE_DESCRIBED;
-                    internal_decoder_data->decode_to_value->value.described_value.value = NULL;
                     descriptor = REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
                     if (descriptor == NULL)
                     {

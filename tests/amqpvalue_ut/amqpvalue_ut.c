@@ -10439,7 +10439,6 @@ TEST_FUNCTION(amqpvalue_destroy_frees_the_memory_for_empty_list_value)
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
     amqpvalue_destroy(value);
@@ -10565,7 +10564,6 @@ TEST_FUNCTION(amqpvalue_destroy_frees_the_memory_for_empty_array_value)
     AMQP_VALUE value = amqpvalue_create_array();
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
@@ -11273,7 +11271,6 @@ TEST_FUNCTION(amqpvalue_destroy_frees_the_memory_for_empty_list_cloned_value_las
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
     amqpvalue_destroy(cloned_value);
@@ -11556,7 +11553,6 @@ TEST_FUNCTION(amqpvalue_destroy_frees_the_memory_for_empty_array_cloned_value_la
     amqpvalue_destroy(value);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act

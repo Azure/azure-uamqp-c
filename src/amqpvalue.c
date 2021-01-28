@@ -12,6 +12,10 @@
 #include "azure_uamqp_c/amqpvalue.h"
 #include "azure_c_shared_utility/refcount.h"
 
+// max alloc size 100MB
+#define MAX_AMQPVALUE_MALLOC_SIZE_BYTES (100 * 1024 * 1024) 
+#define MAX_AMQPVALUE_ITEM_COUNT 65536
+
 /* Requirements satisfied by the current implementation without any code:
 Codes_SRS_AMQPVALUE_01_270: [<encoding code="0x56" category="fixed" width="1" label="boolean with the octet 0x00 being false and octet 0x01 being true"/>]
 Codes_SRS_AMQPVALUE_01_099: [Represents an approximate point in time using the Unix time t [IEEE1003] encoding of UTC, but with a precision of milliseconds.]
@@ -4796,14 +4800,17 @@ static void amqpvalue_clear(AMQP_VALUE_DATA* value_data)
         break;
     case AMQP_TYPE_LIST:
     {
-        size_t i;
-        for (i = 0; i < value_data->value.list_value.count; i++)
+        if (value_data->value.list_value.items != NULL)
         {
-            amqpvalue_destroy(value_data->value.list_value.items[i]);
-        }
+            size_t i;
+            for (i = 0; i < value_data->value.list_value.count; i++)
+            {
+                amqpvalue_destroy(value_data->value.list_value.items[i]);
+            }
 
-        free(value_data->value.list_value.items);
-        value_data->value.list_value.items = NULL;
+            free(value_data->value.list_value.items);
+            value_data->value.list_value.items = NULL;
+        }
         break;
     }
     case AMQP_TYPE_MAP:
@@ -4821,14 +4828,17 @@ static void amqpvalue_clear(AMQP_VALUE_DATA* value_data)
     }
     case AMQP_TYPE_ARRAY:
     {
-        size_t i;
-        for (i = 0; i < value_data->value.array_value.count; i++)
+        if (value_data->value.array_value.items != NULL)
         {
-            amqpvalue_destroy(value_data->value.array_value.items[i]);
-        }
+            size_t i;
+            for (i = 0; i < value_data->value.array_value.count; i++)
+            {
+                amqpvalue_destroy(value_data->value.array_value.items[i]);
+            }
 
-        free(value_data->value.array_value.items);
-        value_data->value.array_value.items = NULL;
+            free(value_data->value.array_value.items);
+            value_data->value.array_value.items = NULL;
+        }
         break;
     }
     case AMQP_TYPE_COMPOSITE:
@@ -4943,6 +4953,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                     break;
                 }
 
+                memset(internal_decoder_data->decode_to_value, 0, sizeof(AMQP_VALUE_DATA));
                 internal_decoder_data->constructor_byte = buffer[0];
                 buffer++;
                 size--;
@@ -5397,6 +5408,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                         if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, buffer, size, &inner_used_bytes) != 0)
                         {
                             LogError("Decoding bytes for described value failed");
+                            internal_decoder_data->decode_to_value->type = AMQP_TYPE_UNKNOWN;
                             result = MU_FAILURE;
                         }
                         else
@@ -6254,6 +6266,13 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                         internal_decoder_data->bytes_decoded++;
                         buffer++;
                         size--;
+                        if (internal_decoder_data->decode_to_value->value.list_value.count > MAX_AMQPVALUE_ITEM_COUNT)
+                        {
+                            LogError("AMQP list item count exceeded MAX_AMQPVALUE_ITEM_COUNT");
+                            result = MU_FAILURE;
+                            size = 0;
+                            break;
+                        }
 
                         if (internal_decoder_data->constructor_byte == 0xC0)
                         {
@@ -6308,8 +6327,18 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                                 else
                                 {
                                     uint32_t i;
+                                    size_t calloc_size = (sizeof(AMQP_VALUE) * internal_decoder_data->decode_to_value->value.list_value.count);
+                                    // bug 8819364: [FuzzAMQP] AddressSanitizer: allocator is out of memory trying to allocate 0x7fff80070 bytes
+                                    if (calloc_size < MAX_AMQPVALUE_MALLOC_SIZE_BYTES)
+                                    {
+                                        internal_decoder_data->decode_to_value->value.list_value.items = (AMQP_VALUE*)calloc(1, calloc_size);
+                                    }
+                                    else
+                                    {
+                                        LogError("Large memory allocation exceeded MAX_AMQPVALUE_MALLOC_SIZE_BYTES");
+                                        internal_decoder_data->decode_to_value->value.list_value.items = NULL;
+                                    }
 
-                                    internal_decoder_data->decode_to_value->value.list_value.items = (AMQP_VALUE*)calloc(1, (sizeof(AMQP_VALUE) * internal_decoder_data->decode_to_value->value.list_value.count));
                                     if (internal_decoder_data->decode_to_value->value.list_value.items == NULL)
                                     {
                                         LogError("Could not allocate memory for decoded list value");
@@ -6677,6 +6706,13 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                         internal_decoder_data->bytes_decoded++;
                         buffer++;
                         size--;
+                        if (internal_decoder_data->decode_to_value->value.array_value.count > MAX_AMQPVALUE_ITEM_COUNT)
+                        {
+                            LogError("AMQP array item count exceeded MAX_AMQPVALUE_ITEM_COUNT");
+                            result = MU_FAILURE;
+                            size = 0;
+                            break;
+                        }
 
                         if (internal_decoder_data->constructor_byte == 0xE0)
                         {

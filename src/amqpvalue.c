@@ -4952,6 +4952,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                     break;
                 }
 
+                memset(internal_decoder_data->decode_to_value, 0, sizeof(AMQP_VALUE_DATA));
                 internal_decoder_data->constructor_byte = buffer[0];
                 buffer++;
                 size--;

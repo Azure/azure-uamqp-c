@@ -559,19 +559,20 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                                 {
                                     delivery_instance->on_delivery_settled(delivery_instance->callback_context, delivery_instance->delivery_id, LINK_DELIVERY_SETTLE_REASON_DISPOSITION_RECEIVED, delivery_state);
                                     async_operation_destroy(pending_delivery_operation);
-                                    if (singlylinkedlist_remove(link_instance->pending_deliveries, pending_delivery) != 0)
-                                    {
-                                        LogError("Cannot remove pending delivery");
-                                        break;
-                                    }
+                                }
+                                else
+                                {
+                                    LogError("failed getting the disposition state");
+                                }
 
-                                    pending_delivery = next_pending_delivery;
+                                if (singlylinkedlist_remove(link_instance->pending_deliveries, pending_delivery) != 0)
+                                {
+                                    LogError("Cannot remove pending delivery");
+                                    break;
                                 }
                             }
-                            else
-                            {
-                                pending_delivery = next_pending_delivery;
-                            }
+
+                            pending_delivery = next_pending_delivery;
                         }
                     }
                 }

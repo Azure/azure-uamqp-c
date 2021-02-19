@@ -562,7 +562,7 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                                 }
                                 else
                                 {
-                                    LogError("failed getting the disposition state");
+                                    LogError("Failed getting the disposition state");
                                 }
 
                                 if (singlylinkedlist_remove(link_instance->pending_deliveries, pending_delivery) != 0)

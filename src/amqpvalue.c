@@ -4815,15 +4815,18 @@ static void amqpvalue_clear(AMQP_VALUE_DATA* value_data)
     }
     case AMQP_TYPE_MAP:
     {
-        size_t i;
-        for (i = 0; i < value_data->value.map_value.pair_count; i++)
+        if (value_data->value.map_value.pairs != NULL)
         {
-            amqpvalue_destroy(value_data->value.map_value.pairs[i].key);
-            amqpvalue_destroy(value_data->value.map_value.pairs[i].value);
-        }
+            size_t i;
+            for (i = 0; i < value_data->value.map_value.pair_count; i++)
+            {
+                amqpvalue_destroy(value_data->value.map_value.pairs[i].key);
+                amqpvalue_destroy(value_data->value.map_value.pairs[i].value);
+            }
 
-        free(value_data->value.map_value.pairs);
-        value_data->value.map_value.pairs = NULL;
+            free(value_data->value.map_value.pairs);
+            value_data->value.map_value.pairs = NULL;
+        }
         break;
     }
     case AMQP_TYPE_ARRAY:
@@ -4854,11 +4857,7 @@ static void amqpvalue_clear(AMQP_VALUE_DATA* value_data)
 void amqpvalue_destroy(AMQP_VALUE value)
 {
     /* Codes_SRS_AMQPVALUE_01_315: [If the value argument is NULL, amqpvalue_destroy shall do nothing.] */
-    if (value == NULL)
-    {
-        LogError("NULL value");
-    }
-    else
+    if (value != NULL)
     {
         if (DEC_REF(AMQP_VALUE_DATA, value) == DEC_RETURN_ZERO)
         {
@@ -4970,6 +4969,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                 {
                     AMQP_VALUE_DATA* descriptor;
                     internal_decoder_data->decode_to_value->type = AMQP_TYPE_DESCRIBED;
+                    internal_decoder_data->decode_to_value->value.described_value.value = NULL;
                     descriptor = REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
                     if (descriptor == NULL)
                     {
@@ -5912,7 +5912,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                             }
                             else
                             {
-                                internal_decoder_data->decode_to_value->value.binary_value.bytes = (unsigned char*)malloc(internal_decoder_data->decode_to_value->value.binary_value.length + 1);
+                                internal_decoder_data->decode_to_value->value.binary_value.bytes = (unsigned char*)malloc((size_t)internal_decoder_data->decode_to_value->value.binary_value.length + 1);
                                 if (internal_decoder_data->decode_to_value->value.binary_value.bytes == NULL)
                                 {
                                     /* Codes_SRS_AMQPVALUE_01_326: [If any allocation failure occurs during decoding, amqpvalue_decode_bytes shall fail and return a non-zero value.] */
@@ -6028,7 +6028,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
 
                         if (internal_decoder_data->bytes_decoded == 4)
                         {
-                            internal_decoder_data->decode_to_value->value.string_value.chars = (char*)malloc(internal_decoder_data->decode_value_state.string_value_state.length + 1);
+                            internal_decoder_data->decode_to_value->value.string_value.chars = (char*)malloc((size_t)internal_decoder_data->decode_value_state.string_value_state.length + 1);
                             if (internal_decoder_data->decode_to_value->value.string_value.chars == NULL)
                             {
                                 /* Codes_SRS_AMQPVALUE_01_326: [If any allocation failure occurs during decoding, amqpvalue_decode_bytes shall fail and return a non-zero value.] */
@@ -6157,7 +6157,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
 
                         if (internal_decoder_data->bytes_decoded == 4)
                         {
-                            internal_decoder_data->decode_to_value->value.symbol_value.chars = (char*)malloc(internal_decoder_data->decode_value_state.symbol_value_state.length + 1);
+                            internal_decoder_data->decode_to_value->value.symbol_value.chars = (char*)malloc((size_t)internal_decoder_data->decode_value_state.symbol_value_state.length + 1);
                             if (internal_decoder_data->decode_to_value->value.symbol_value.chars == NULL)
                             {
                                 /* Codes_SRS_AMQPVALUE_01_326: [If any allocation failure occurs during decoding, amqpvalue_decode_bytes shall fail and return a non-zero value.] */
@@ -6544,9 +6544,14 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                                     uint32_t i;
 
                                     internal_decoder_data->decode_to_value->value.map_value.pair_count /= 2;
-
-                                    internal_decoder_data->decode_to_value->value.map_value.pairs = (AMQP_MAP_KEY_VALUE_PAIR*)malloc(sizeof(AMQP_MAP_KEY_VALUE_PAIR) * (internal_decoder_data->decode_to_value->value.map_value.pair_count * 2));
-                                    if (internal_decoder_data->decode_to_value->value.map_value.pairs == NULL)
+                                    if (internal_decoder_data->decode_to_value->value.map_value.pair_count > MAX_AMQPVALUE_ITEM_COUNT)
+                                    {
+                                        LogError("AMQP list map count exceeded MAX_AMQPVALUE_ITEM_COUNT");
+                                        result = MU_FAILURE;
+                                    }
+                                    else if ((internal_decoder_data->decode_to_value->value.map_value.pairs = 
+                                        (AMQP_MAP_KEY_VALUE_PAIR*)malloc(sizeof(AMQP_MAP_KEY_VALUE_PAIR) * (internal_decoder_data->decode_to_value->value.map_value.pair_count * 2)))
+                                        == NULL)
                                     {
                                         LogError("Could not allocate memory for map value items");
                                         result = MU_FAILURE;
@@ -6580,6 +6585,14 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
 
                         if (internal_decoder_data->bytes_decoded == 0)
                         {
+                            if (internal_decoder_data->decode_value_state.map_value_state.item >= internal_decoder_data->decode_to_value->value.map_value.pair_count)
+                            {
+                                LogError("Map item index is out of range");
+                                internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
+                                result = MU_FAILURE;
+                                break;
+                            }
+
                             AMQP_VALUE_DATA* map_item = (AMQP_VALUE_DATA*)REFCOUNT_TYPE_CREATE(AMQP_VALUE_DATA);
                             if (map_item == NULL)
                             {
@@ -6590,6 +6603,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                             else
                             {
                                 map_item->type = AMQP_TYPE_UNKNOWN;
+                                
                                 if (internal_decoder_data->decode_to_value->value.map_value.pairs[internal_decoder_data->decode_value_state.map_value_state.item].key == NULL)
                                 {
                                     internal_decoder_data->decode_to_value->value.map_value.pairs[internal_decoder_data->decode_value_state.map_value_state.item].key = map_item;

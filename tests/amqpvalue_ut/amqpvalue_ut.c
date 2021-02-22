@@ -10499,7 +10499,6 @@ TEST_FUNCTION(amqpvalue_destroy_frees_the_memory_for_empty_map_value)
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
     amqpvalue_destroy(value);
@@ -11406,7 +11405,6 @@ TEST_FUNCTION(amqpvalue_destroy_frees_the_memory_for_empty_map_cloned_value_last
     amqpvalue_destroy(value);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act

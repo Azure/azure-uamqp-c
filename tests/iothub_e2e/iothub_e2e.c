@@ -221,7 +221,7 @@ TEST_FUNCTION(send_1_message_to_iothub_unsettled_auth_with_cbs)
     ASSERT_IS_NOT_NULL(client_session, "Could not create client session");
 
     const char* eh_testdevice_device_key;
-    eh_testdevice_device_key = getenv("UAMQP-E2E-DEVICE-KEY");
+    eh_testdevice_device_key = getenv("UAMQP_E2E_DEVICE_KEY");
     ASSERT_IS_NOT_NULL(eh_testdevice_device_key, "Could not get eh_testdevice device key");
 
     key_string = STRING_new();

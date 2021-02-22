@@ -220,9 +220,13 @@ TEST_FUNCTION(send_1_message_to_iothub_unsettled_auth_with_cbs)
     client_session = session_create(client_connection, NULL, NULL);
     ASSERT_IS_NOT_NULL(client_session, "Could not create client session");
 
+    const char* eh_testdevice_device_key;
+    eh_testdevice_device_key = getenv("UAMQP-E2E-DEVICE-KEY");
+    ASSERT_IS_NOT_NULL(eh_testdevice_device_key, "Could not get eh_testdevice device key");
+
     key_string = STRING_new();
     ASSERT_IS_NOT_NULL(key_string, "Could not create key_string");
-    result = STRING_concat(key_string, "LueeXZDJxzDoL6EoNv6Mi1hccyj2zZrmjHc1lUXeJT4=");
+    result = STRING_concat(key_string, eh_testdevice_device_key);
     ASSERT_ARE_EQUAL(int, 0, result, "Could not create key_string");
     scope_string = STRING_new();
     ASSERT_IS_NOT_NULL(scope_string, "Could not create scope string");

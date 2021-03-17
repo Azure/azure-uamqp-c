@@ -27,7 +27,9 @@ typedef struct OPERATION_MESSAGE_INSTANCE_TAG
     ON_AMQP_MANAGEMENT_EXECUTE_OPERATION_COMPLETE on_execute_operation_complete;
     void* callback_context;
     uint64_t message_id;
+    bool message_sent;
     AMQP_MANAGEMENT_HANDLE amqp_management;
+    ASYNC_OPERATION_HANDLE async_operation;
 } OPERATION_MESSAGE_INSTANCE;
 
 typedef enum AMQP_MANAGEMENT_STATE_TAG
@@ -234,8 +236,19 @@ static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE messag
                                                     /* Codes_SRS_AMQP_MANAGEMENT_01_069: [ else the message-id from the request message. ]*/
                                                     if (correlation_id == operation_message->message_id)
                                                     {
+                                                        if (!operation_message->message_sent)
+                                                        {
+                                                            LogError("Did not receive send confirmation for pending operation");
+                                                            execute_operation_result = AMQP_MANAGEMENT_EXECUTE_OPERATION_FAILED_BAD_STATUS;
+
+                                                            if (async_operation_cancel(operation_message->async_operation) != 0)
+                                                            {
+                                                                LogError("Failed cancelling pending send operation");
+                                                                is_error = true;
+                                                            }
+                                                        }
                                                         /* Codes_SRS_AMQP_MANAGEMENT_01_074: [ Successful operations MUST result in a statusCode in the 2xx range as defined in Section 10.2 of [RFC2616]. ]*/
-                                                        if ((status_code < 200) || (status_code > 299))
+                                                        else if ((status_code < 200) || (status_code > 299))
                                                         {
                                                             /* Codes_SRS_AMQP_MANAGEMENT_01_128: [ If the status indicates that the operation failed, the result callback argument shall be `AMQP_MANAGEMENT_EXECUTE_OPERATION_FAILED_BAD_STATUS`. ]*/
                                                             /* Codes_SRS_AMQP_MANAGEMENT_01_075: [ Unsuccessful operations MUST NOT result in a statusCode in the 2xx range as defined in Section 10.2 of [RFC2616]. ]*/
@@ -258,7 +271,6 @@ static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE messag
                                                         {
                                                             LogError("Cannot remove pending operation");
                                                             is_error = true;
-                                                            break;
                                                         }
                                                         else
                                                         {
@@ -343,18 +355,24 @@ static void on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_res
     }
     else
     {
+        /* Codes_SRS_AMQP_MANAGEMENT_01_168: [ - `context` shall be used as a LIST_ITEM_HANDLE containing the pending operation. ]*/
+        LIST_ITEM_HANDLE pending_operation_list_item_handle = (LIST_ITEM_HANDLE)context;
+
+        /* Codes_SRS_AMQP_MANAGEMENT_01_169: [ - `on_message_send_complete` shall obtain the pending operation by calling `singlylinkedlist_item_get_value`. ]*/
+        OPERATION_MESSAGE_INSTANCE* pending_operation_message = (OPERATION_MESSAGE_INSTANCE*)singlylinkedlist_item_get_value(pending_operation_list_item_handle);
+
         if (send_result == MESSAGE_SEND_OK)
         {
             /* Codes_SRS_AMQP_MANAGEMENT_01_170: [ If `send_result` is `MESSAGE_SEND_OK`, `on_message_send_complete` shall return. ]*/
+            pending_operation_message->message_sent = true;
+        }
+        else if (send_result == MESSAGE_SEND_CANCELLED)
+        {
+            // Nothing to be done.
         }
         else
         {
             /* Codes_SRS_AMQP_MANAGEMENT_01_172: [ If `send_result` is different then `MESSAGE_SEND_OK`: ]*/
-            /* Codes_SRS_AMQP_MANAGEMENT_01_168: [ - `context` shall be used as a LIST_ITEM_HANDLE containing the pending operation. ]*/
-            LIST_ITEM_HANDLE pending_operation_list_item_handle = (LIST_ITEM_HANDLE)context;
-
-            /* Codes_SRS_AMQP_MANAGEMENT_01_169: [ - `on_message_send_complete` shall obtain the pending operation by calling `singlylinkedlist_item_get_value`. ]*/
-            OPERATION_MESSAGE_INSTANCE* pending_operation_message = (OPERATION_MESSAGE_INSTANCE*)singlylinkedlist_item_get_value(pending_operation_list_item_handle);
             AMQP_MANAGEMENT_HANDLE amqp_management = pending_operation_message->amqp_management;
 
             /* Codes_SRS_AMQP_MANAGEMENT_01_171: [ - `on_message_send_complete` shall removed the pending operation from the pending operations list. ]*/
@@ -1196,6 +1214,7 @@ int amqp_management_execute_operation_async(AMQP_MANAGEMENT_HANDLE amqp_manageme
                                 pending_operation_message->on_execute_operation_complete = on_execute_operation_complete;
                                 pending_operation_message->message_id = amqp_management->next_message_id;
                                 pending_operation_message->amqp_management = amqp_management;
+                                pending_operation_message->message_sent = false;
 
                                 /* Codes_SRS_AMQP_MANAGEMENT_01_091: [ Once the request message has been sent, an entry shall be stored in the pending operations list by calling `singlylinkedlist_add`. ]*/
                                 added_item = singlylinkedlist_add(amqp_management->pending_operations, pending_operation_message);
@@ -1210,7 +1229,8 @@ int amqp_management_execute_operation_async(AMQP_MANAGEMENT_HANDLE amqp_manageme
                                 {
                                     /* Codes_SRS_AMQP_MANAGEMENT_01_088: [ `amqp_management_execute_operation_async` shall send the message by calling `messagesender_send_async`. ]*/
                                     /* Codes_SRS_AMQP_MANAGEMENT_01_166: [ The `on_message_send_complete` callback shall be passed to the `messagesender_send_async` call. ]*/
-                                    if (messagesender_send_async(amqp_management->message_sender, cloned_message, on_message_send_complete, added_item, 0) == NULL)
+                                    pending_operation_message->async_operation = messagesender_send_async(amqp_management->message_sender, cloned_message, on_message_send_complete, added_item, 0);
+                                    if (pending_operation_message->async_operation == NULL)
                                     {
                                         /* Codes_SRS_AMQP_MANAGEMENT_01_089: [ If `messagesender_send_async` fails, `amqp_management_execute_operation_async` shall fail and return a non-zero value. ]*/
                                         LogError("Could not send request message");

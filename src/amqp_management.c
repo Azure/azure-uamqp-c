@@ -27,7 +27,7 @@ typedef struct OPERATION_MESSAGE_INSTANCE_TAG
     ON_AMQP_MANAGEMENT_EXECUTE_OPERATION_COMPLETE on_execute_operation_complete;
     void* callback_context;
     uint64_t message_id;
-    bool message_sent;
+    bool message_send_confirmed;
     AMQP_MANAGEMENT_HANDLE amqp_management;
     ASYNC_OPERATION_HANDLE async_operation;
 } OPERATION_MESSAGE_INSTANCE;
@@ -236,7 +236,7 @@ static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE messag
                                                     /* Codes_SRS_AMQP_MANAGEMENT_01_069: [ else the message-id from the request message. ]*/
                                                     if (correlation_id == operation_message->message_id)
                                                     {
-                                                        if (!operation_message->message_sent)
+                                                        if (!operation_message->message_send_confirmed)
                                                         {
                                                             LogError("Did not receive send confirmation for pending operation");
                                                             execute_operation_result = AMQP_MANAGEMENT_EXECUTE_OPERATION_FAILED_BAD_STATUS;
@@ -364,7 +364,7 @@ static void on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_res
         if (send_result == MESSAGE_SEND_OK)
         {
             /* Codes_SRS_AMQP_MANAGEMENT_01_170: [ If `send_result` is `MESSAGE_SEND_OK`, `on_message_send_complete` shall return. ]*/
-            pending_operation_message->message_sent = true;
+            pending_operation_message->message_send_confirmed = true;
         }
         else if (send_result == MESSAGE_SEND_CANCELLED)
         {
@@ -1214,7 +1214,7 @@ int amqp_management_execute_operation_async(AMQP_MANAGEMENT_HANDLE amqp_manageme
                                 pending_operation_message->on_execute_operation_complete = on_execute_operation_complete;
                                 pending_operation_message->message_id = amqp_management->next_message_id;
                                 pending_operation_message->amqp_management = amqp_management;
-                                pending_operation_message->message_sent = false;
+                                pending_operation_message->message_send_confirmed = false;
 
                                 /* Codes_SRS_AMQP_MANAGEMENT_01_091: [ Once the request message has been sent, an entry shall be stored in the pending operations list by calling `singlylinkedlist_add`. ]*/
                                 added_item = singlylinkedlist_add(amqp_management->pending_operations, pending_operation_message);

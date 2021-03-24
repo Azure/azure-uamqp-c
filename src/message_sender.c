@@ -108,7 +108,8 @@ static void on_delivery_settled(void* context, delivery_number delivery_no, LINK
     MESSAGE_SENDER_INSTANCE* message_sender = (MESSAGE_SENDER_INSTANCE*)message_with_callback->message_sender;
     (void)delivery_no;
 
-    if (message_with_callback->on_message_send_complete != NULL)
+    if (message_with_callback != NULL && 
+        message_with_callback->on_message_send_complete != NULL)
     {
         switch (reason)
         {

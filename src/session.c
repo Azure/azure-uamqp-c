@@ -512,7 +512,7 @@ static void on_frame_received(void* context, AMQP_VALUE performative, uint32_t p
                         }
                     }
                 }
-                else
+                else if (link_endpoint->link_endpoint_state != LINK_ENDPOINT_STATE_DETACHING)
                 {
                     if (attach_get_handle(attach_handle, &link_endpoint->input_handle) != 0)
                     {

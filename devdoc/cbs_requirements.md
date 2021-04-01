@@ -102,7 +102,7 @@ MOCKABLE_FUNCTION(, int, cbs_put_token_async, CBS_HANDLE, cbs, const char*, type
 ```
 
 **SRS_CBS_01_049: [** `cbs_put_token_async` shall construct a request message for the `put-token` operation. **]**
-**SRS_CBS_01_081: [** On success `cbs_put_token_async` shall return 0. **]**
+**SRS_CBS_01_081: [** On success `cbs_put_token_async` shall return an ASYNC_OPERATION_HANDLE. **]**
 **SRS_CBS_01_050: [** If any of the arguments `cbs`, `type`, `audience`, `token` or `on_cbs_put_token_complete` is NULL `cbs_put_token_async` shall fail and return a non-zero value. **]**
 **SRS_CBS_01_083: [** `on_cbs_put_token_complete_context` shall be allowed to be NULL. **]**
 **SRS_CBS_01_051: [** `cbs_put_token_async` shall start the AMQP management operation by calling `amqp_management_execute_operation_async`, while passing to it: **]**
@@ -123,7 +123,7 @@ MOCKABLE_FUNCTION(, int, cbs_delete_token_async, CBS_HANDLE, cbs, const char*, t
 ```
 
 **SRS_CBS_01_059: [** `cbs_delete_token_async` shall construct a request message for the `delete-token` operation. **]**
-**SRS_CBS_01_082: [** On success `cbs_delete_token_async` shall return 0. **]**
+**SRS_CBS_01_082: [** On success `cbs_delete_token_async` shall return an ASYNC_OPERATION_HANDLE. **]**
 **SRS_CBS_01_060: [** If any of the arguments `cbs`, `type`, `audience` or `on_cbs_delete_token_complete` is NULL `cbs_put_token_async` shall fail and return a non-zero value. **]**
 **SRS_CBS_01_086: [** `on_cbs_delete_token_complete_context` shall be allowed to be NULL. **]**
 **SRS_CBS_01_061: [** `cbs_delete_token_async` shall start the AMQP management operation by calling `amqp_management_execute_operation_async`, while passing to it: **]**

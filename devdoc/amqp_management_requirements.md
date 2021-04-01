@@ -180,9 +180,9 @@ int amqp_management_execute_operation_async(AMQP_MANAGEMENT_HANDLE amqp_manageme
 
 **SRS_AMQP_MANAGEMENT_01_055: [** `amqp_management_execute_operation_async` shall start an AMQP management operation. **]**
 
-**SRS_AMQP_MANAGEMENT_01_056: [** On success it shall return 0. **]**
+**SRS_AMQP_MANAGEMENT_01_056: [** On success it shall return an ASYNC_OPERATION_HANDLE. **]**
 
-**SRS_AMQP_MANAGEMENT_01_057: [** If `amqp_management`, `operation`, `type` or `on_execute_operation_complete` is NULL, `amqp_management_execute_operation_async` shall fail and return a non-zero value. **]**
+**SRS_AMQP_MANAGEMENT_01_057: [** If `amqp_management`, `operation`, `type` or `on_execute_operation_complete` is NULL, `amqp_management_execute_operation_async` shall fail and return NULL. **]**
 
 **SRS_AMQP_MANAGEMENT_01_105: [** `on_execute_operation_complete_context` shall be allowed to be NULL. **]**
 
@@ -190,7 +190,7 @@ int amqp_management_execute_operation_async(AMQP_MANAGEMENT_HANDLE amqp_manageme
 
 **SRS_AMQP_MANAGEMENT_01_103: [** Otherwise the existing message shall be cloned by using `message_clone` before being modified accordingly and used for the pending operation. **]**
 
-**SRS_AMQP_MANAGEMENT_01_081: [** If `amqp_management_execute_operation_async` is called when not OPEN, it shall fail and return a non-zero value. **]**
+**SRS_AMQP_MANAGEMENT_01_081: [** If `amqp_management_execute_operation_async` is called when not OPEN, it shall fail and return NULL. **]**
 
 **SRS_AMQP_MANAGEMENT_01_104: [** If `amqp_management_execute_operation_async` is called when the AMQP management is in error, it shall fail and return a non-zero value. **]**
 
@@ -210,7 +210,7 @@ int amqp_management_execute_operation_async(AMQP_MANAGEMENT_HANDLE amqp_manageme
 
 **SRS_AMQP_MANAGEMENT_01_101: [** After setting the application properties, the application properties instance shall be freed by `amqpvalue_destroy`. **]**
 
-**SRS_AMQP_MANAGEMENT_01_090: [** If any APIs used to create and set the application properties on the message fails, `amqp_management_execute_operation_async` shall fail and return a non-zero value. **]**
+**SRS_AMQP_MANAGEMENT_01_090: [** If any APIs used to create and set the application properties on the message fails, `amqp_management_execute_operation_async` shall fail and return NULL. **]**
 
 **SRS_AMQP_MANAGEMENT_01_094: [** In order to set the message Id on the message, the properties shall be obtained by calling `message_get_properties`. **]**
 
@@ -230,7 +230,7 @@ int amqp_management_execute_operation_async(AMQP_MANAGEMENT_HANDLE amqp_manageme
 
 **SRS_AMQP_MANAGEMENT_01_166: [** The `on_message_send_complete` callback shall be passed to the `messagesender_send_async` call. **]**
 
-**SRS_AMQP_MANAGEMENT_01_089: [** If `messagesender_send_async` fails, `amqp_management_execute_operation_async` shall fail and return a non-zero value. **]**
+**SRS_AMQP_MANAGEMENT_01_089: [** If `messagesender_send_async` fails, `amqp_management_execute_operation_async` shall fail and return NULL. **]**
 
 **SRS_AMQP_MANAGEMENT_01_091: [** Once the request message has been sent, an entry shall be stored in the pending operations list by calling `singlylinkedlist_add`. **]**
 

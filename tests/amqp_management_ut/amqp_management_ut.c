@@ -97,6 +97,8 @@ static AMQP_VALUE test_delivery_accepted = (AMQP_VALUE)0x4500;
 static AMQP_VALUE test_delivery_rejected = (AMQP_VALUE)0x4501;
 static AMQP_VALUE test_delivery_released = (AMQP_VALUE)0x4502;
 
+#define SIZE_OF_OPERATION_MESSAGE_INSTANCE_STRUCT 64
+
 MOCK_FUNCTION_WITH_CODE(, void, test_amqp_management_open_complete, void*, context, AMQP_MANAGEMENT_OPEN_RESULT, open_result)
 MOCK_FUNCTION_END()
 
@@ -284,7 +286,7 @@ static int ASYNC_OPERATION_HANDLE_Compare(ASYNC_OPERATION_HANDLE left, ASYNC_OPE
 typedef struct ASYNC_OPERATION_CONTEXT_STRUCT_TEST_TAG
 {
     ASYNC_OPERATION_CANCEL_HANDLER_FUNC async_operation_cancel_handler;
-    unsigned char context[64]; // 64 is the size of OPERATION_MESSAGE_INSTANCE.
+    unsigned char context[SIZE_OF_OPERATION_MESSAGE_INSTANCE_STRUCT]; // This block of memory will be used in amqp_management.c for the OPERATION_MESSAGE_INSTANCE instance.
 } ASYNC_OPERATION_CONTEXT_STRUCT_TEST;
 
 static ASYNC_OPERATION_HANDLE my_async_operation_create(ASYNC_OPERATION_CANCEL_HANDLER_FUNC async_operation_cancel_handler, size_t context_size)

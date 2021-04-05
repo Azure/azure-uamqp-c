@@ -716,7 +716,6 @@ ASYNC_OPERATION_HANDLE cbs_delete_token_async(CBS_HANDLE cbs, const char* type, 
                             list_item = singlylinkedlist_add(cbs->pending_operations, cbs_operation);
                             if (list_item == NULL)
                             {
-                                //free(cbs_operation);
                                 LogError("Failed adding pending operation to list");
                                 async_operation_destroy(result);
                                 result = NULL;
@@ -740,7 +739,6 @@ ASYNC_OPERATION_HANDLE cbs_delete_token_async(CBS_HANDLE cbs, const char* type, 
                                 {
                                     /* Codes_SRS_CBS_01_087: [ If `amqp_management_execute_operation_async` fails `cbs_put_token_async` shall fail and return a non-zero value. ]*/
                                     singlylinkedlist_remove(cbs->pending_operations, list_item);
-                                    //free(cbs_operation);
                                     LogError("Failed starting AMQP management operation");
                                     async_operation_destroy(result);
                                     result = NULL;

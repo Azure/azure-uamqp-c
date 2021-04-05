@@ -69,6 +69,8 @@ static ON_AMQP_MANAGEMENT_EXECUTE_OPERATION_COMPLETE saved_on_execute_operation_
 static void* saved_on_execute_operation_complete_context;
 static ASYNC_OPERATION_HANDLE test_my_amqp_management_execute_operation_async_result = (ASYNC_OPERATION_HANDLE)0x4308;
 
+#define SIZE_OF_CBS_OPERATION_STRUCT 48
+
 MOCK_FUNCTION_WITH_CODE(, void, test_on_cbs_open_complete, void*, context, CBS_OPEN_COMPLETE_RESULT, open_complete_result);
 MOCK_FUNCTION_END();
 MOCK_FUNCTION_WITH_CODE(, void, test_on_cbs_error, void*, context);
@@ -195,11 +197,10 @@ static int ASYNC_OPERATION_HANDLE_Compare(ASYNC_OPERATION_HANDLE left, ASYNC_OPE
     return left != right;
 }
 
-
 typedef struct ASYNC_OPERATION_CONTEXT_STRUCT_TEST_TAG
 {
     ASYNC_OPERATION_CANCEL_HANDLER_FUNC async_operation_cancel_handler;
-    unsigned char context[48]; // 48 is the size of CBS_OPERATION.
+    unsigned char context[SIZE_OF_CBS_OPERATION_STRUCT]; // This block of memory will be used in cbs.c for the CBS_OPERATION instance.
 } ASYNC_OPERATION_CONTEXT_STRUCT_TEST;
 
 static ASYNC_OPERATION_HANDLE my_async_operation_create(ASYNC_OPERATION_CANCEL_HANDLER_FUNC async_operation_cancel_handler, size_t context_size)

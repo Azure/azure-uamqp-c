@@ -168,6 +168,7 @@ TEST_FUNCTION(send_1_message_to_iothub_unsettled_auth_with_cbs)
 {
     // arrange
     int result;
+    ASYNC_OPERATION_HANDLE async_operation;
     CONNECTION_HANDLE client_connection;
     SESSION_HANDLE client_session;
     LINK_HANDLE client_link;
@@ -246,8 +247,8 @@ TEST_FUNCTION(send_1_message_to_iothub_unsettled_auth_with_cbs)
 
     auth = false;
 
-    result = cbs_put_token_async(cbs, "servicebus.windows.net:sastoken", STRING_c_str(scope_string), STRING_c_str(sas_token), on_cbs_put_token_complete, cbs);
-    ASSERT_ARE_EQUAL(int, 0, result, "cannot put cbs token");
+    async_operation = cbs_put_token_async(cbs, "servicebus.windows.net:sastoken", STRING_c_str(scope_string), STRING_c_str(sas_token), on_cbs_put_token_complete, cbs);
+    ASSERT_ARE_NOT_EQUAL(void_ptr, NULL, async_operation, "cannot put cbs token");
 
     start_time = time(NULL);
     while ((now_time = time(NULL)),

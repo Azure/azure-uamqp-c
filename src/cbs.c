@@ -465,29 +465,39 @@ int cbs_close(CBS_HANDLE cbs)
     return result;
 }
 
+static bool remove_pending_cbs_operation(const void* item, const void* match_context, bool* continue_processing)
+{
+    bool result;
+
+    if (item == match_context)
+    {
+        async_operation_destroy(((CBS_OPERATION*)match_context)->token_operation_async_context);
+
+        result = true;
+        *continue_processing = false;
+    }
+    else
+    {
+        result = false;
+        *continue_processing = true;
+    }
+
+    return result;
+}
+
+// Codes_SRS_CBS_09_001: [ The `ASYNC_OPERATION_HANDLE` cancel function shall cancel the underlying amqp management operation, remove this operation from the pending list, destroy this async operation. ]
 static void cbs_put_token_cancel_handler(ASYNC_OPERATION_HANDLE put_token_operation)
 {
     CBS_OPERATION* cbs_operation = GET_ASYNC_OPERATION_CONTEXT(CBS_OPERATION, put_token_operation);
 
-    (void)async_operation_cancel(cbs_operation->amqp_management_async_context);
-
-    LIST_ITEM_HANDLE list_node = singlylinkedlist_get_head_item(cbs_operation->pending_operations);
-
-    while (list_node != NULL)
+    if (async_operation_cancel(cbs_operation->amqp_management_async_context) != 0)
     {
-        if (singlylinkedlist_item_get_value(list_node) == cbs_operation)
-        {
-            if (singlylinkedlist_remove(cbs_operation->pending_operations, list_node) != 0)
-            {
-                LogError("Failed removing pending operation from list.");
-            }
+        LogError("Failed canceling the put token async operation.");
+    }
 
-            async_operation_destroy(cbs_operation->token_operation_async_context);
-
-            break;
-        }
-
-        list_node = singlylinkedlist_get_next_item(list_node);
+    if (singlylinkedlist_remove_if(cbs_operation->pending_operations, remove_pending_cbs_operation, cbs_operation) != 0)
+    {
+        LogError("Failed removing CBS_OPERATION from pending list");
     }
 }
 
@@ -510,7 +520,7 @@ ASYNC_OPERATION_HANDLE cbs_put_token_async(CBS_HANDLE cbs, const char* type, con
     else if ((cbs->cbs_state == CBS_STATE_CLOSED) ||
         (cbs->cbs_state == CBS_STATE_ERROR))
     {
-        /* Codes_SRS_CBS_01_058: [ If `cbs_put_token_async` is called when the CBS instance is not yet open or in error, it shall fail and return a non-zero value. ]*/
+        /* Codes_SRS_CBS_01_058: [ If `cbs_put_token_async` is called when the CBS instance is not yet open or in error, it shall fail and return `NULL`. ]*/
         LogError("put token called while closed or in error");
         result = NULL;
     }
@@ -655,7 +665,7 @@ ASYNC_OPERATION_HANDLE cbs_delete_token_async(CBS_HANDLE cbs, const char* type, 
     else if ((cbs->cbs_state == CBS_STATE_CLOSED) ||
         (cbs->cbs_state == CBS_STATE_ERROR))
     {
-        /* Codes_SRS_CBS_01_067: [ If `cbs_delete_token_async` is called when the CBS instance is not yet open or in error, it shall fail and return a non-zero value. ]*/
+        /* Codes_SRS_CBS_01_067: [ If `cbs_delete_token_async` is called when the CBS instance is not yet open or in error, it shall fail and return `NULL`. ]*/
         LogError("put token called while closed or in error");
         result = NULL;
     }

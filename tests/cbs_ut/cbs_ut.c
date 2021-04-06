@@ -180,6 +180,21 @@ static LIST_ITEM_HANDLE my_singlylinkedlist_find(SINGLYLINKEDLIST_HANDLE handle,
     return (LIST_ITEM_HANDLE)found_item;
 }
 
+static int my_singlylinkedlist_remove_if(SINGLYLINKEDLIST_HANDLE list, LIST_CONDITION_FUNCTION condition_function, const void* match_context)
+{
+    bool continue_processing = true;
+
+    for (size_t index = 0; continue_processing && index < list_item_count; index++)
+    {
+        if (condition_function(list_items[index], match_context, &continue_processing))
+        {
+            (void)mock_hook_singlylinkedlist_remove(list, (LIST_ITEM_HANDLE)(index + 1)); // See my_singlylinkedlist_remove to see why.
+        }
+    }
+
+    return 0;
+}
+
 MU_DEFINE_ENUM_STRINGS(UMOCK_C_ERROR_CODE, UMOCK_C_ERROR_CODE_VALUES)
 TEST_DEFINE_ENUM_TYPE(CBS_OPEN_COMPLETE_RESULT, CBS_OPEN_COMPLETE_RESULT_VALUES);
 IMPLEMENT_UMOCK_C_ENUM_TYPE(CBS_OPEN_COMPLETE_RESULT, CBS_OPEN_COMPLETE_RESULT_VALUES);
@@ -258,6 +273,7 @@ TEST_SUITE_INITIALIZE(suite_init)
     REGISTER_GLOBAL_MOCK_HOOK(singlylinkedlist_add, my_singlylinkedlist_add);
     REGISTER_GLOBAL_MOCK_HOOK(singlylinkedlist_item_get_value, my_singlylinkedlist_item_get_value);
     REGISTER_GLOBAL_MOCK_HOOK(singlylinkedlist_find, my_singlylinkedlist_find);
+    REGISTER_GLOBAL_MOCK_HOOK(singlylinkedlist_remove_if, my_singlylinkedlist_remove_if);
     REGISTER_UMOCKC_PAIRED_CREATE_DESTROY_CALLS(amqp_management_create, amqp_management_destroy);
     REGISTER_UMOCKC_PAIRED_CREATE_DESTROY_CALLS(message_create, message_destroy);
     REGISTER_UMOCKC_PAIRED_CREATE_DESTROY_CALLS(properties_create, properties_destroy);
@@ -274,6 +290,7 @@ TEST_SUITE_INITIALIZE(suite_init)
     REGISTER_UMOCK_ALIAS_TYPE(ON_AMQP_MANAGEMENT_EXECUTE_OPERATION_COMPLETE, void*);
     REGISTER_UMOCK_ALIAS_TYPE(SINGLYLINKEDLIST_HANDLE, void*);
     REGISTER_UMOCK_ALIAS_TYPE(LIST_ITEM_HANDLE, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(LIST_CONDITION_FUNCTION, void*);
     REGISTER_UMOCK_ALIAS_TYPE(ASYNC_OPERATION_HANDLE, void*);
     REGISTER_UMOCK_ALIAS_TYPE(ASYNC_OPERATION_CANCEL_HANDLER_FUNC, void*);
 }
@@ -913,6 +930,55 @@ TEST_FUNCTION(cbs_put_token_async_creates_the_message_and_starts_the_amqp_manage
     cbs_destroy(cbs);
 }
 
+/* Tests_SRS_CBS_09_001: [ The `ASYNC_OPERATION_HANDLE` cancel function shall cancel the underlying amqp management operation, remove this operation from the pending list, destroy this async operation. ] */
+TEST_FUNCTION(when_cbs_put_token_async_is_cancelled_succeeds)
+{
+    // arrange
+    CBS_HANDLE cbs;
+    ASYNC_OPERATION_HANDLE result;
+    cbs = cbs_create(test_session_handle);
+    (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(message_create());
+    STRICT_EXPECTED_CALL(amqpvalue_create_string("blah_token"))
+        .SetReturn(test_token_value);
+    STRICT_EXPECTED_CALL(message_set_body_amqp_value(test_message, test_token_value));
+    STRICT_EXPECTED_CALL(amqpvalue_create_map())
+        .SetReturn(test_map_value);
+    STRICT_EXPECTED_CALL(amqpvalue_create_string("name"))
+        .SetReturn(test_name_propery_key);
+    STRICT_EXPECTED_CALL(amqpvalue_create_string("my_audience"))
+        .SetReturn(test_name_propery_value);
+    STRICT_EXPECTED_CALL(amqpvalue_set_map_value(test_map_value, test_name_propery_key, test_name_propery_value));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(test_name_propery_value));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(test_name_propery_key));
+    STRICT_EXPECTED_CALL(message_set_application_properties(test_message, test_map_value));
+    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqp_management_execute_operation_async(test_amqp_management_handle, "put-token", "some_type", NULL, test_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(test_map_value));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(test_token_value));
+    STRICT_EXPECTED_CALL(message_destroy(test_message));
+    result = cbs_put_token_async(cbs, "some_type", "my_audience", "blah_token", test_on_cbs_put_token_complete, (void*)0x4244);
+
+    umock_c_reset_all_calls();
+    STRICT_EXPECTED_CALL(async_operation_cancel(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove_if(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(async_operation_destroy(result));
+
+    // act
+    ((ASYNC_OPERATION_CONTEXT_STRUCT_TEST*)result)->async_operation_cancel_handler(result);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    cbs_destroy(cbs);
+}
+
+
 /* Tests_SRS_CBS_01_050: [ If any of the arguments `cbs`, `type`, `audience`, `token` or `on_cbs_put_token_complete` is NULL `cbs_put_token_async` shall fail and return a non-zero value. ]*/
 TEST_FUNCTION(cbs_put_token_async_with_NULL_cbs_handle_fails)
 {
@@ -1130,7 +1196,7 @@ TEST_FUNCTION(when_any_underlying_call_fails_cbs_put_token_async_fails)
     cbs_destroy(cbs);
 }
 
-/* Tests_SRS_CBS_01_058: [ If `cbs_put_token_async` is called when the CBS instance is not yet open or in error, it shall fail and return a non-zero value. ]*/
+/* Tests_SRS_CBS_01_058: [ If `cbs_put_token_async` is called when the CBS instance is not yet open or in error, it shall fail and return `NULL`. ]*/
 TEST_FUNCTION(cbs_put_token_async_when_not_open_fails)
 {
     // arrange
@@ -1150,7 +1216,7 @@ TEST_FUNCTION(cbs_put_token_async_when_not_open_fails)
     cbs_destroy(cbs);
 }
 
-/* Tests_SRS_CBS_01_058: [ If `cbs_put_token_async` is called when the CBS instance is not yet open or in error, it shall fail and return a non-zero value. ]*/
+/* Tests_SRS_CBS_01_058: [ If `cbs_put_token_async` is called when the CBS instance is not yet open or in error, it shall fail and return `NULL`. ]*/
 TEST_FUNCTION(cbs_put_token_async_while_opening_succeeds)
 {
     // arrange
@@ -1192,7 +1258,7 @@ TEST_FUNCTION(cbs_put_token_async_while_opening_succeeds)
     cbs_destroy(cbs);
 }
 
-/* Tests_SRS_CBS_01_058: [ If `cbs_put_token_async` is called when the CBS instance is not yet open or in error, it shall fail and return a non-zero value. ]*/
+/* Tests_SRS_CBS_01_058: [ If `cbs_put_token_async` is called when the CBS instance is not yet open or in error, it shall fail and return `NULL`. ]*/
 TEST_FUNCTION(cbs_put_token_async_when_in_error_fails)
 {
     // arrange
@@ -1265,6 +1331,50 @@ TEST_FUNCTION(cbs_delete_token_async_creates_the_message_and_starts_the_amqp_man
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
     ASSERT_ARE_NOT_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+
+    // cleanup
+    cbs_destroy(cbs);
+}
+
+/* Tests_SRS_CBS_09_001: [ The `ASYNC_OPERATION_HANDLE` cancel function shall cancel the underlying amqp management operation, remove this operation from the pending list, destroy this async operation. ] */
+TEST_FUNCTION(when_cbs_delete_token_async_is_cancelled)
+{
+    // arrange
+    CBS_HANDLE cbs;
+    ASYNC_OPERATION_HANDLE result;
+    cbs = cbs_create(test_session_handle);
+    (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(message_create());
+    STRICT_EXPECTED_CALL(amqpvalue_create_map())
+        .SetReturn(test_map_value);
+    STRICT_EXPECTED_CALL(amqpvalue_create_string("name"))
+        .SetReturn(test_name_propery_key);
+    STRICT_EXPECTED_CALL(amqpvalue_create_string("my_audience"))
+        .SetReturn(test_name_propery_value);
+    STRICT_EXPECTED_CALL(amqpvalue_set_map_value(test_map_value, test_name_propery_key, test_name_propery_value));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(test_name_propery_value));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(test_name_propery_key));
+    STRICT_EXPECTED_CALL(message_set_application_properties(test_message, test_map_value));
+    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqp_management_execute_operation_async(test_amqp_management_handle, "delete-token", "some_type", NULL, test_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(test_map_value));
+    STRICT_EXPECTED_CALL(message_destroy(test_message));
+    result = cbs_delete_token_async(cbs, "some_type", "my_audience", test_on_cbs_delete_token_complete, (void*)0x4244);
+
+    umock_c_reset_all_calls();
+    STRICT_EXPECTED_CALL(async_operation_cancel(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove_if(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(async_operation_destroy(result));
+
+    // act
+    ((ASYNC_OPERATION_CONTEXT_STRUCT_TEST*)result)->async_operation_cancel_handler(result);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
     // cleanup
     cbs_destroy(cbs);
@@ -1457,7 +1567,7 @@ TEST_FUNCTION(when_any_underlying_call_fails_cbs_delete_token_async_fails)
     cbs_destroy(cbs);
 }
 
-/* Tests_SRS_CBS_01_067: [ If `cbs_delete_token_async` is called when the CBS instance is not yet open or in error, it shall fail and return a non-zero value. ]*/
+/* Tests_SRS_CBS_01_067: [ If `cbs_delete_token_async` is called when the CBS instance is not yet open or in error, it shall fail and return `NULL`. ]*/
 TEST_FUNCTION(cbs_delete_token_async_when_not_open_fails)
 {
     // arrange
@@ -1477,7 +1587,7 @@ TEST_FUNCTION(cbs_delete_token_async_when_not_open_fails)
     cbs_destroy(cbs);
 }
 
-/* Tests_SRS_CBS_01_067: [ If `cbs_delete_token_async` is called when the CBS instance is not yet open or in error, it shall fail and return a non-zero value. ]*/
+/* Tests_SRS_CBS_01_067: [ If `cbs_delete_token_async` is called when the CBS instance is not yet open or in error, it shall fail and return `NULL`. ]*/
 TEST_FUNCTION(cbs_delete_token_async_while_opening_succeeds)
 {
     // arrange
@@ -1515,7 +1625,7 @@ TEST_FUNCTION(cbs_delete_token_async_while_opening_succeeds)
     cbs_destroy(cbs);
 }
 
-/* Tests_SRS_CBS_01_067: [ If `cbs_delete_token_async` is called when the CBS instance is not yet open or in error, it shall fail and return a non-zero value. ]*/
+/* Tests_SRS_CBS_01_067: [ If `cbs_delete_token_async` is called when the CBS instance is not yet open or in error, it shall fail and return `NULL`. ]*/
 TEST_FUNCTION(cbs_delete_token_async_when_in_error_fails)
 {
     // arrange

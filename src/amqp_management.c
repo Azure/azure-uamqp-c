@@ -1119,32 +1119,42 @@ int amqp_management_close(AMQP_MANAGEMENT_HANDLE amqp_management)
     return result;
 }
 
+static bool remove_pending_amqp_management_operation(const void* item, const void* match_context, bool* continue_processing)
+{
+    bool result;
+
+    if (item == match_context)
+    {
+        async_operation_destroy(((OPERATION_MESSAGE_INSTANCE*)match_context)->execute_async_operation);
+
+        result = true;
+        *continue_processing = false;
+    }
+    else
+    {
+        result = false;
+        *continue_processing = true;
+    }
+
+    return result;
+}
+
+// Codes_SRS_AMQP_MANAGEMENT_09_004: [ The `ASYNC_OPERATION_HANDLE` cancel function shall cancel the underlying send async operation, remove this operation from the pending list, destroy this async operation. ]
 static void amqp_management_execute_cancel_handler(ASYNC_OPERATION_HANDLE execute_operation)
 {
     OPERATION_MESSAGE_INSTANCE* instance = GET_ASYNC_OPERATION_CONTEXT(OPERATION_MESSAGE_INSTANCE, execute_operation);
 
     if (instance->send_async_context != NULL)
     {
-        (void)async_operation_cancel(instance->send_async_context);
+        if (async_operation_cancel(instance->send_async_context) != 0)
+        {
+            LogError("Failed cancelling async send operation.");
+        }
     }
 
-    LIST_ITEM_HANDLE list_node = singlylinkedlist_get_head_item(instance->amqp_management->pending_operations);
-
-    while (list_node != NULL)
+    if (singlylinkedlist_remove_if(instance->amqp_management->pending_operations, remove_pending_amqp_management_operation, instance) != 0)
     {
-        if (singlylinkedlist_item_get_value(list_node) == instance)
-        {
-            if (singlylinkedlist_remove(instance->amqp_management->pending_operations, list_node) != 0)
-            {
-                LogError("Failed removing pending operation from list.");
-            }
-
-            async_operation_destroy(instance->execute_async_operation);
-
-            break;
-        }
-
-        list_node = singlylinkedlist_get_next_item(list_node);
+        LogError("Failed removing OPERATION_MESSAGE_INSTANCE from pending list");
     }
 }
 

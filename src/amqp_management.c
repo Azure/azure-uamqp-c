@@ -29,8 +29,11 @@ typedef struct OPERATION_MESSAGE_INSTANCE_TAG
     uint64_t message_id;
     bool message_send_confirmed;
     AMQP_MANAGEMENT_HANDLE amqp_management;
-    ASYNC_OPERATION_HANDLE async_operation;
+    ASYNC_OPERATION_HANDLE send_async_context;
+    ASYNC_OPERATION_HANDLE execute_async_operation;
 } OPERATION_MESSAGE_INSTANCE;
+
+DEFINE_ASYNC_OPERATION_CONTEXT(OPERATION_MESSAGE_INSTANCE);
 
 typedef enum AMQP_MANAGEMENT_STATE_TAG
 {
@@ -241,7 +244,7 @@ static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE messag
                                                             LogError("Did not receive send confirmation for pending operation");
                                                             execute_operation_result = AMQP_MANAGEMENT_EXECUTE_OPERATION_FAILED_BAD_STATUS;
 
-                                                            if (async_operation_cancel(operation_message->async_operation) != 0)
+                                                            if (async_operation_cancel(operation_message->send_async_context) != 0)
                                                             {
                                                                 LogError("Failed cancelling pending send operation");
                                                                 is_error = true;
@@ -262,9 +265,13 @@ static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE messag
 
                                                         /* Codes_SRS_AMQP_MANAGEMENT_01_126: [ If a corresponding correlation Id is found in the pending operations list, the callback associated with the pending operation shall be called. ]*/
                                                         /* Codes_SRS_AMQP_MANAGEMENT_01_166: [ The `message` shall be passed as argument to the callback. ]*/
-                                                        operation_message->on_execute_operation_complete(operation_message->callback_context, execute_operation_result, status_code, status_description, message);
+                                                        if (operation_message->on_execute_operation_complete != NULL)
+                                                        {
+                                                            // Check for NULL in case operation has been cancelled.
+                                                            operation_message->on_execute_operation_complete(operation_message->callback_context, execute_operation_result, status_code, status_description, message);
+                                                        }
 
-                                                        free(operation_message);
+                                                        async_operation_destroy(operation_message->execute_async_operation);
 
                                                         /* Codes_SRS_AMQP_MANAGEMENT_01_129: [ After calling the callback, the pending operation shall be removed from the pending operations list by calling `singlylinkedlist_remove`. ]*/
                                                         if (singlylinkedlist_remove(amqp_management->pending_operations, list_item_handle) != 0)
@@ -365,6 +372,7 @@ static void on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_res
         {
             /* Codes_SRS_AMQP_MANAGEMENT_01_170: [ If `send_result` is `MESSAGE_SEND_OK`, `on_message_send_complete` shall return. ]*/
             pending_operation_message->message_send_confirmed = true;
+            pending_operation_message->send_async_context = NULL;
         }
         else if (send_result == MESSAGE_SEND_CANCELLED)
         {
@@ -385,8 +393,13 @@ static void on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_res
             else
             {
                 /* Codes_SRS_AMQP_MANAGEMENT_01_173: [ - The callback associated with the pending operation shall be called with `AMQP_MANAGEMENT_EXECUTE_OPERATION_ERROR`. ]*/
-                pending_operation_message->on_execute_operation_complete(pending_operation_message->callback_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_ERROR, 0, NULL, NULL);
-                free(pending_operation_message);
+                if (pending_operation_message->on_execute_operation_complete != NULL)
+                {
+                    // Check for NULL in case operation has been cancelled.
+                    pending_operation_message->on_execute_operation_complete(pending_operation_message->callback_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_ERROR, 0, NULL, NULL);
+                }
+
+                async_operation_destroy(pending_operation_message->execute_async_operation);
             }
         }
     }
@@ -928,6 +941,7 @@ AMQP_MANAGEMENT_HANDLE amqp_management_create(SESSION_HANDLE session, const char
     }
 
 all_ok:
+    /* Codes_SRS_AMQP_MANAGEMENT_01_056: [ On success it shall return an ASYNC_OPERATION_HANDLE. ] */
     return amqp_management;
 }
 
@@ -1079,8 +1093,12 @@ int amqp_management_close(AMQP_MANAGEMENT_HANDLE amqp_management)
                 else
                 {
                     /* Codes_SRS_AMQP_MANAGEMENT_01_054: [ All pending operations shall be indicated complete with the code `AMQP_MANAGEMENT_EXECUTE_OPERATION_INSTANCE_CLOSED`. ]*/
-                    operation_message->on_execute_operation_complete(operation_message->callback_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_INSTANCE_CLOSED, 0, NULL, NULL);
-                    free(operation_message);
+                    if (operation_message->on_execute_operation_complete != NULL)
+                    {
+                        // Check for NULL in case operation has been cancelled.
+                        operation_message->on_execute_operation_complete(operation_message->callback_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_INSTANCE_CLOSED, 0, NULL, NULL);
+                    }
+                    async_operation_destroy(operation_message->execute_async_operation);
                 }
 
                 if (singlylinkedlist_remove(amqp_management->pending_operations, list_item_handle) != 0)
@@ -1101,27 +1119,66 @@ int amqp_management_close(AMQP_MANAGEMENT_HANDLE amqp_management)
     return result;
 }
 
-int amqp_management_execute_operation_async(AMQP_MANAGEMENT_HANDLE amqp_management, const char* operation, const char* type, const char* locales, MESSAGE_HANDLE message, ON_AMQP_MANAGEMENT_EXECUTE_OPERATION_COMPLETE on_execute_operation_complete, void* on_execute_operation_complete_context)
+static bool remove_pending_amqp_management_operation(const void* item, const void* match_context, bool* continue_processing)
 {
-    int result;
+    bool result;
 
+    if (item == match_context)
+    {
+        async_operation_destroy(((OPERATION_MESSAGE_INSTANCE*)match_context)->execute_async_operation);
+
+        result = true;
+        *continue_processing = false;
+    }
+    else
+    {
+        result = false;
+        *continue_processing = true;
+    }
+
+    return result;
+}
+
+// Codes_SRS_AMQP_MANAGEMENT_09_004: [ The `ASYNC_OPERATION_HANDLE` cancel function shall cancel the underlying send async operation, remove this operation from the pending list, destroy this async operation. ]
+static void amqp_management_execute_cancel_handler(ASYNC_OPERATION_HANDLE execute_operation)
+{
+    OPERATION_MESSAGE_INSTANCE* instance = GET_ASYNC_OPERATION_CONTEXT(OPERATION_MESSAGE_INSTANCE, execute_operation);
+
+    if (instance->send_async_context != NULL)
+    {
+        if (async_operation_cancel(instance->send_async_context) != 0)
+        {
+            LogError("Failed cancelling async send operation.");
+        }
+    }
+
+    if (singlylinkedlist_remove_if(instance->amqp_management->pending_operations, remove_pending_amqp_management_operation, instance) != 0)
+    {
+        LogError("Failed removing OPERATION_MESSAGE_INSTANCE from pending list");
+    }
+}
+
+ASYNC_OPERATION_HANDLE amqp_management_execute_operation_async(AMQP_MANAGEMENT_HANDLE amqp_management, const char* operation, const char* type, const char* locales, MESSAGE_HANDLE message, ON_AMQP_MANAGEMENT_EXECUTE_OPERATION_COMPLETE on_execute_operation_complete, void* on_execute_operation_complete_context)
+{
+    ASYNC_OPERATION_HANDLE result;
+    
     if ((amqp_management == NULL) ||
         (operation == NULL) ||
         (type == NULL) ||
         (on_execute_operation_complete == NULL))
     {
-        /* Codes_SRS_AMQP_MANAGEMENT_01_057: [ If `amqp_management`, `operation`, `type` or `on_execute_operation_complete` is NULL, `amqp_management_execute_operation_async` shall fail and return a non-zero value. ]*/
+        /* Codes_SRS_AMQP_MANAGEMENT_01_057: [ If `amqp_management`, `operation`, `type` or `on_execute_operation_complete` is NULL, `amqp_management_execute_operation_async` shall fail and return NULL. ]*/
         LogError("Bad arguments: amqp_management = %p, operation = %p, type = %p",
             amqp_management, operation, type);
-        result = MU_FAILURE;
+        result = NULL;
     }
-    /* Codes_SRS_AMQP_MANAGEMENT_01_081: [ If `amqp_management_execute_operation_async` is called when not OPEN, it shall fail and return a non-zero value. ]*/
+    /* Codes_SRS_AMQP_MANAGEMENT_01_081: [ If `amqp_management_execute_operation_async` is called when not OPEN, it shall fail and return NULL. ]*/
     else if ((amqp_management->amqp_management_state == AMQP_MANAGEMENT_STATE_IDLE) ||
         /* Codes_SRS_AMQP_MANAGEMENT_01_104: [ If `amqp_management_execute_operation_async` is called when the AMQP management is in error, it shall fail and return a non-zero value. ]*/
         (amqp_management->amqp_management_state == AMQP_MANAGEMENT_STATE_ERROR))
     {
         LogError("amqp_management_execute_operation_async called while not open or in error");
-        result = MU_FAILURE;
+        result = NULL;
     }
     else
     {
@@ -1145,7 +1202,7 @@ int amqp_management_execute_operation_async(AMQP_MANAGEMENT_HANDLE amqp_manageme
 
         if (cloned_message == NULL)
         {
-            result = MU_FAILURE;
+            result = NULL;
         }
         else
         {
@@ -1154,7 +1211,7 @@ int amqp_management_execute_operation_async(AMQP_MANAGEMENT_HANDLE amqp_manageme
             if (message_get_application_properties(cloned_message, &application_properties) != 0)
             {
                 LogError("Could not get application properties");
-                result = MU_FAILURE;
+                result = NULL;
             }
             else
             {
@@ -1170,7 +1227,7 @@ int amqp_management_execute_operation_async(AMQP_MANAGEMENT_HANDLE amqp_manageme
 
                 if (application_properties == NULL)
                 {
-                    result = MU_FAILURE;
+                    result = NULL;
                 }
                 else
                 {
@@ -1185,36 +1242,40 @@ int amqp_management_execute_operation_async(AMQP_MANAGEMENT_HANDLE amqp_manageme
                         /* Codes_SRS_AMQP_MANAGEMENT_01_063: [ locales string No A list of locales that the sending peer permits for incoming informational text in response messages. ]*/
                         ((locales != NULL) && (add_string_key_value_pair_to_map(application_properties, "locales", locales) != 0)))
                     {
-                        result = MU_FAILURE;
+                        result = NULL;
                     }
                     else
                     {
                         /* Codes_SRS_AMQP_MANAGEMENT_01_087: [ The application properties obtained after adding the key/value pairs shall be set on the message by calling `message_set_application_properties`. ]*/
                         if (message_set_application_properties(cloned_message, application_properties) != 0)
                         {
-                            /* Codes_SRS_AMQP_MANAGEMENT_01_090: [ If any APIs used to create and set the application properties on the message fails, `amqp_management_execute_operation_async` shall fail and return a non-zero value. ]*/
+                            /* Codes_SRS_AMQP_MANAGEMENT_01_090: [ If any APIs used to create and set the application properties on the message fails, `amqp_management_execute_operation_async` shall fail and return NULL. ]*/
                             LogError("Could not set application properties");
-                            result = MU_FAILURE;
+                            result = NULL;
                         }
                         else if (set_message_id(cloned_message, amqp_management->next_message_id) != 0)
                         {
-                            result = MU_FAILURE;
+                            result = NULL;
                         }
                         else
                         {
-                            OPERATION_MESSAGE_INSTANCE* pending_operation_message = (OPERATION_MESSAGE_INSTANCE*)calloc(1, sizeof(OPERATION_MESSAGE_INSTANCE));
-                            if (pending_operation_message == NULL)
+                            result = CREATE_ASYNC_OPERATION(OPERATION_MESSAGE_INSTANCE, amqp_management_execute_cancel_handler);
+
+                            if (result == NULL)
                             {
-                                result = MU_FAILURE;
+                                LogError("Failed allocating async result");
                             }
                             else
                             {
+                                OPERATION_MESSAGE_INSTANCE* pending_operation_message = GET_ASYNC_OPERATION_CONTEXT(OPERATION_MESSAGE_INSTANCE, result);
+
                                 LIST_ITEM_HANDLE added_item;
                                 pending_operation_message->callback_context = on_execute_operation_complete_context;
                                 pending_operation_message->on_execute_operation_complete = on_execute_operation_complete;
                                 pending_operation_message->message_id = amqp_management->next_message_id;
                                 pending_operation_message->amqp_management = amqp_management;
                                 pending_operation_message->message_send_confirmed = false;
+                                pending_operation_message->execute_async_operation = result;
 
                                 /* Codes_SRS_AMQP_MANAGEMENT_01_091: [ Once the request message has been sent, an entry shall be stored in the pending operations list by calling `singlylinkedlist_add`. ]*/
                                 added_item = singlylinkedlist_add(amqp_management->pending_operations, pending_operation_message);
@@ -1222,29 +1283,26 @@ int amqp_management_execute_operation_async(AMQP_MANAGEMENT_HANDLE amqp_manageme
                                 {
                                     /* Codes_SRS_AMQP_MANAGEMENT_01_092: [ If `singlylinkedlist_add` fails then `amqp_management_execute_operation_async` shall fail and return a non-zero value. ]*/
                                     LogError("Could not add the operation to the pending operations list.");
-                                    free(pending_operation_message);
-                                    result = MU_FAILURE;
+                                    async_operation_destroy(result);
+                                    result = NULL;
                                 }
                                 else
                                 {
                                     /* Codes_SRS_AMQP_MANAGEMENT_01_088: [ `amqp_management_execute_operation_async` shall send the message by calling `messagesender_send_async`. ]*/
                                     /* Codes_SRS_AMQP_MANAGEMENT_01_166: [ The `on_message_send_complete` callback shall be passed to the `messagesender_send_async` call. ]*/
-                                    pending_operation_message->async_operation = messagesender_send_async(amqp_management->message_sender, cloned_message, on_message_send_complete, added_item, 0);
-                                    if (pending_operation_message->async_operation == NULL)
+                                    pending_operation_message->send_async_context = messagesender_send_async(amqp_management->message_sender, cloned_message, on_message_send_complete, added_item, 0);
+                                    if (pending_operation_message->send_async_context == NULL)
                                     {
-                                        /* Codes_SRS_AMQP_MANAGEMENT_01_089: [ If `messagesender_send_async` fails, `amqp_management_execute_operation_async` shall fail and return a non-zero value. ]*/
+                                        /* Codes_SRS_AMQP_MANAGEMENT_01_089: [ If `messagesender_send_async` fails, `amqp_management_execute_operation_async` shall fail and return NULL. ]*/
                                         LogError("Could not send request message");
                                         (void)singlylinkedlist_remove(amqp_management->pending_operations, added_item);
-                                        free(pending_operation_message);
-                                        result = MU_FAILURE;
+                                        async_operation_destroy(result);
+                                        result = NULL;
                                     }
                                     else
                                     {
                                         /* Codes_SRS_AMQP_MANAGEMENT_01_107: [ The message Id set on the message properties shall be incremented with each operation. ]*/
                                         amqp_management->next_message_id++;
-
-                                        /* Codes_SRS_AMQP_MANAGEMENT_01_056: [ On success it shall return 0. ]*/
-                                        result = 0;
                                     }
                                 }
                             }

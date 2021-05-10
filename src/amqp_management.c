@@ -227,7 +227,7 @@ static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE messag
                                                     LogError("Could not create status-description amqp value");
                                                     amqp_management->on_amqp_management_error(amqp_management->on_amqp_management_error_context);
                                                     /* Codes_SRS_AMQP_MANAGEMENT_01_135: [ When an error occurs in creating AMQP values (for status code, etc.) `on_message_received` shall call `messaging_delivery_released` and return the created delivery AMQP value. ]*/
-                                                    result = messaging_delivery_released();
+                                                    messaging_delivery_released();
                                                     break;
                                                 }
                                                 else

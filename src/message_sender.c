@@ -127,31 +127,37 @@ static void on_delivery_settled(void* context, delivery_number delivery_no, LINK
                 {
                     LogError("Error getting descriptor for delivery state");
                 }
-                else if (is_accepted_type_by_descriptor(descriptor))
-                {
-                    message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_OK, described);
-                }
                 else
                 {
-                    message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_ERROR, described);
+                    if (is_accepted_type_by_descriptor(descriptor))
+                    {
+                        message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_OK, described);
+                    }
+                    else
+                    {
+                        message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_ERROR, described);
+                    }
+
+                    remove_pending_message(message_sender, pending_send);
                 }
             }
 
             break;
         case LINK_DELIVERY_SETTLE_REASON_SETTLED:
             message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_OK, NULL);
+            remove_pending_message(message_sender, pending_send);
             break;
         case LINK_DELIVERY_SETTLE_REASON_TIMEOUT:
             message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_TIMEOUT, NULL);
+            remove_pending_message(message_sender, pending_send);
             break;
         case LINK_DELIVERY_SETTLE_REASON_NOT_DELIVERED:
         default:
             message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_ERROR, NULL);
+            remove_pending_message(message_sender, pending_send);
             break;
         }
     }
-
-    remove_pending_message(message_sender, pending_send);
 }
 
 static int encode_bytes(void* context, const unsigned char* bytes, size_t length)

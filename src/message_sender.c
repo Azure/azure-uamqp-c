@@ -812,8 +812,6 @@ int messagesender_close(MESSAGE_SENDER_HANDLE message_sender)
     }
     else
     {
-        indicate_all_messages_as_error(message_sender);
-
         if ((message_sender->message_sender_state == MESSAGE_SENDER_STATE_OPENING) ||
             (message_sender->message_sender_state == MESSAGE_SENDER_STATE_OPEN))
         {
@@ -833,6 +831,8 @@ int messagesender_close(MESSAGE_SENDER_HANDLE message_sender)
         {
             result = 0;
         }
+
+        indicate_all_messages_as_error(message_sender);
     }
 
     return result;

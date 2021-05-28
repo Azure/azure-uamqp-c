@@ -225,7 +225,6 @@ static AMQP_VALUE on_transfer_received(void* context, TRANSFER_HANDLE transfer, 
     AMQP_VALUE result = NULL;
     MESSAGE_RECEIVER_INSTANCE* message_receiver = (MESSAGE_RECEIVER_INSTANCE*)context;
 
-    (void)transfer;
     if (message_receiver->on_message_received != NULL)
     {
         MESSAGE_HANDLE message = message_create();
@@ -236,7 +235,25 @@ static AMQP_VALUE on_transfer_received(void* context, TRANSFER_HANDLE transfer, 
         }
         else
         {
-            AMQPVALUE_DECODER_HANDLE amqpvalue_decoder = amqpvalue_decoder_create(decode_message_value_callback, message_receiver);
+            delivery_tag received_message_tag;
+            AMQP_VALUE delivery_tag_value;
+            AMQPVALUE_DECODER_HANDLE amqpvalue_decoder;
+
+            if (transfer_get_delivery_tag(transfer, &received_message_tag) == 0)
+            {
+                delivery_tag_value = amqpvalue_create_delivery_tag(received_message_tag);
+                if ((delivery_tag_value != NULL) && (message_set_delivery_tag(message, delivery_tag_value) != 0))
+                {
+                    LogError("Could not set message delivery tag");
+                    set_message_receiver_state(message_receiver, MESSAGE_RECEIVER_STATE_ERROR);
+                }
+            }
+            else
+            {
+                delivery_tag_value = NULL;
+            }
+
+            amqpvalue_decoder = amqpvalue_decoder_create(decode_message_value_callback, message_receiver);
             if (amqpvalue_decoder == NULL)
             {
                 LogError("Cannot create AMQP value decoder");
@@ -266,7 +283,9 @@ static AMQP_VALUE on_transfer_received(void* context, TRANSFER_HANDLE transfer, 
 
                 amqpvalue_decoder_destroy(amqpvalue_decoder);
             }
-
+            if ( delivery_tag_value != NULL ) {
+                amqpvalue_destroy(delivery_tag_value);
+            }
             message_destroy(message);
         }
     }

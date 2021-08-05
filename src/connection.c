@@ -1428,6 +1428,7 @@ int connection_close(CONNECTION_HANDLE connection, const char* condition_value, 
     {
         if (condition_value != NULL)
         {
+            LogInfo("Calling close_connection_with_error because condition_value is != NULL [%s]", condition_value);
             close_connection_with_error(connection, condition_value, description, info);
         }
         else
@@ -1794,6 +1795,7 @@ uint64_t connection_handle_deadlines(CONNECTION_HANDLE connection)
                     local_deadline = 0;
 
                     /* close connection */
+                    LogInfo("Calling close_connection_with_error time_since_last_received > connection->idle_timeout", );
                     close_connection_with_error(connection, "amqp:internal-error", "No frame received for the idle timeout", NULL);
                 }
             }

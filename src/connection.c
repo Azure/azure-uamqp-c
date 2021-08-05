@@ -222,11 +222,12 @@ static void log_incoming_frame(AMQP_VALUE performative)
     {
         time_t rawtime;
         time(&rawtime);
+        char* timestr = ctime(&rawtime);
         char* performative_as_string;
         LOG(AZ_LOG_TRACE, 0, "<- ");
         LOG(AZ_LOG_TRACE, 0, "%s", (char*)get_frame_type_as_string(descriptor));
         performative_as_string = NULL;
-        LOG(AZ_LOG_TRACE, LOG_LINE, "%s [%.24s]", (performative_as_string = amqpvalue_to_string(performative)), ctime(&time));
+        LOG(AZ_LOG_TRACE, LOG_LINE, "%s [%.24s]", (performative_as_string = amqpvalue_to_string(performative)), timestr);
         if (performative_as_string != NULL)
         {
             free(performative_as_string);
@@ -249,11 +250,12 @@ static void log_outgoing_frame(AMQP_VALUE performative)
     {
         time_t rawtime;
         time(&rawtime);
+        char* timestr = ctime(&rawtime);
         char* performative_as_string;
         LOG(AZ_LOG_TRACE, 0, "-> ");
         LOG(AZ_LOG_TRACE, 0, "%s", (char*)get_frame_type_as_string(descriptor));
         performative_as_string = NULL;
-        LOG(AZ_LOG_TRACE, LOG_LINE, "%s [%.24s]", (performative_as_string = amqpvalue_to_string(performative)), ctime(&time));
+        LOG(AZ_LOG_TRACE, LOG_LINE, "%s [%.24s]", (performative_as_string = amqpvalue_to_string(performative)), timestr);
         if (performative_as_string != NULL)
         {
             free(performative_as_string);
@@ -808,7 +810,7 @@ static void on_empty_amqp_frame_received(void* context, uint16_t channel)
     {
         time_t rawtime;
         time(&rawtime);
-        LOG(AZ_LOG_TRACE, LOG_LINE, "<- Empty frame [%.24s]", ctime(&time));
+        LOG(AZ_LOG_TRACE, LOG_LINE, "<- Empty frame [%.24s]", ctime(&rawtime));
     }
     if (tickcounter_get_current_ms(connection->tick_counter, &connection->last_frame_received_time) != 0)
     {
@@ -1822,7 +1824,7 @@ uint64_t connection_handle_deadlines(CONNECTION_HANDLE connection)
                         {
                             time_t rawtime;
                             time(&rawtime);
-                            LOG(AZ_LOG_TRACE, LOG_LINE, "-> Empty frame [%.24s]", ctime(&time));
+                            LOG(AZ_LOG_TRACE, LOG_LINE, "-> Empty frame [%.24s]", ctime(&rawtime));
                         }
 
                         connection->last_frame_sent_time = current_ms;

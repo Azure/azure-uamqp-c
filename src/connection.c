@@ -1795,7 +1795,7 @@ uint64_t connection_handle_deadlines(CONNECTION_HANDLE connection)
                     local_deadline = 0;
 
                     /* close connection */
-                    LogInfo("Calling close_connection_with_error time_since_last_received > connection->idle_timeout", );
+                    LogInfo("Calling close_connection_with_error time_since_last_received > connection->idle_timeout");
                     close_connection_with_error(connection, "amqp:internal-error", "No frame received for the idle timeout", NULL);
                 }
             }

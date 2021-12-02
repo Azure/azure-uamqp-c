@@ -1608,13 +1608,13 @@ SESSION_SEND_TRANSFER_RESULT session_send_transfer(LINK_ENDPOINT_HANDLE link_end
                                             }
                                         }
 
-                                        //transfer_frame_payload_count = (uint32_t)(temp_current_payload_index - current_payload_index + 1); // use safe int
+                                        //transfer_frame_payload_len = (uint32_t)(temp_current_payload_index - current_payload_index + 1); // use safe int
                                         size_t size = safe_subtract_size_t(temp_current_payload_index, current_payload_index);
                                         size = safe_add_size_t(size, 1);
-                                        transfer_frame_payload_count = size < UINT32_MAX ? size : UINT32_MAX;  
+                                        uint32_t transfer_frame_payload_len = size < UINT32_MAX ? size : UINT32_MAX;
 
-                                        if (transfer_frame_payload_count == UINT32_MAX || 
-                                           (transfer_frame_payloads = (PAYLOAD*)calloc(1, (transfer_frame_payload_count * sizeof(PAYLOAD)))) == NULL)
+                                        if (transfer_frame_payload_len == UINT32_MAX ||
+                                           (transfer_frame_payloads = (PAYLOAD*)calloc(1, (transfer_frame_payload_len * sizeof(PAYLOAD)))) == NULL)
                                         {
                                             amqpvalue_destroy(multi_transfer_amqp_value);
                                             break;
@@ -1624,7 +1624,7 @@ SESSION_SEND_TRANSFER_RESULT session_send_transfer(LINK_ENDPOINT_HANDLE link_end
                                         byte_counter = current_transfer_frame_payload_size;
                                         transfer_frame_payload_count = 0;
 
-                                        while (byte_counter > 0)
+                                        while (byte_counter > 0 && transfer_frame_payload_count < transfer_frame_payload_len)
                                         {
                                             if (payloads[current_payload_index].length - current_payload_pos > byte_counter)
                                             {

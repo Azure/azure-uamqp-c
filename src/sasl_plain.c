@@ -7,6 +7,7 @@
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_uamqp_c/sasl_plain.h"
+#include "azure_c_shared_utility/safe_math.h"
 
 typedef struct SASL_PLAIN_INSTANCE_TAG
 {
@@ -66,8 +67,17 @@ CONCRETE_SASL_MECHANISM_HANDLE saslplain_create(void* config)
                 else
                 {
                     /* Ignore UTF8 for now */
-                    result->init_bytes = (unsigned char*)malloc(authzid_length + authcid_length + passwd_length + 2);
-                    if (result->init_bytes == NULL)
+                    //size_t malloc_size = authzid_length + authcid_length + passwd_length + 2);  // use safe add
+                    size_t malloc_size = safe_add_size_t(authzid_length, authcid_length);
+                    malloc_size = safe_add_size_t(malloc_size, passwd_length);
+                    malloc_size = safe_add_size_t(malloc_size, 2);
+
+                    if (malloc_size == SIZE_MAX)
+                    {
+                        LogError("malloc size overflow");
+                        result = NULL;
+                    }
+                    else if ((result->init_bytes = (unsigned char*)malloc(malloc_size)) == NULL)
                     {
                         /* Codes_SRS_SASL_PLAIN_01_002: [If allocating the memory needed for the saslplain instance fails then `saslplain_create` shall return NULL.] */
                         LogError("Cannot allocate init bytes");

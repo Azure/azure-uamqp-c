@@ -8,6 +8,7 @@
 #include "azure_uamqp_c/session.h"
 #include "azure_uamqp_c/connection.h"
 #include "azure_uamqp_c/amqp_definitions.h"
+#include "azure_c_shared_utility/safe_math.h"
 
 typedef enum LINK_ENDPOINT_STATE_TAG
 {
@@ -1607,9 +1608,13 @@ SESSION_SEND_TRANSFER_RESULT session_send_transfer(LINK_ENDPOINT_HANDLE link_end
                                             }
                                         }
 
-                                        transfer_frame_payload_count = (uint32_t)(temp_current_payload_index - current_payload_index + 1);
-                                        transfer_frame_payloads = (PAYLOAD*)calloc(1, (transfer_frame_payload_count * sizeof(PAYLOAD)));
-                                        if (transfer_frame_payloads == NULL)
+                                        //transfer_frame_payload_count = (uint32_t)(temp_current_payload_index - current_payload_index + 1); // use safe int
+                                        size_t size = safe_subtract_size_t(temp_current_payload_index, current_payload_index);
+                                        size = safe_add_size_t(size, 1);
+                                        transfer_frame_payload_count = size < UINT32_MAX ? size : UINT32_MAX;  
+
+                                        if (transfer_frame_payload_count == UINT32_MAX || 
+                                           (transfer_frame_payloads = (PAYLOAD*)calloc(1, (transfer_frame_payload_count * sizeof(PAYLOAD)))) == NULL)
                                         {
                                             amqpvalue_destroy(multi_transfer_amqp_value);
                                             break;

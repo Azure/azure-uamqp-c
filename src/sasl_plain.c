@@ -72,9 +72,7 @@ CONCRETE_SASL_MECHANISM_HANDLE saslplain_create(void* config)
                     malloc_size = safe_add_size_t(malloc_size, passwd_length);
                     malloc_size = safe_add_size_t(malloc_size, 2);
 
-                    size_t authz_length = safe_add_size_t(safe_add_size_t(authzid_length, authcid_length), 1);
-
-                    if (malloc_size == SIZE_MAX || authz_length == SIZE_MAX)
+                    if (malloc_size == SIZE_MAX)
                     {
                         LogError("malloc size overflow");
                         result = NULL;
@@ -100,11 +98,22 @@ CONCRETE_SASL_MECHANISM_HANDLE saslplain_create(void* config)
                             (void)memcpy(result->init_bytes, sasl_plain_config->authzid, authzid_length);
                         }
 
-                        result->init_bytes[authzid_length] = 0;
-                        (void)memcpy(result->init_bytes + authzid_length + 1, sasl_plain_config->authcid, authcid_length);
-                        result->init_bytes[authz_length] = 0;
-                        (void)memcpy(result->init_bytes + authzid_length + authcid_length + 2, sasl_plain_config->passwd, passwd_length);
-                        result->init_bytes_length = (uint32_t)(authzid_length + authcid_length + passwd_length + 2);
+                        size_t init_bytes_length = safe_add_size_t(safe_add_size_t(authzid_length, authcid_length), 1);
+                        if (authzid_length < malloc_size && init_bytes_length < malloc_size)
+                        {
+                            result->init_bytes[authzid_length] = 0;
+                            (void)memcpy(result->init_bytes + authzid_length + 1, sasl_plain_config->authcid, authcid_length);
+                            result->init_bytes[init_bytes_length] = 0;
+                            (void)memcpy(result->init_bytes + authzid_length + authcid_length + 2, sasl_plain_config->passwd, passwd_length);
+                            result->init_bytes_length = (uint32_t)(authzid_length + authcid_length + passwd_length + 2);
+                        }
+                        else
+                        {
+                            LogError("invalid buffer size");
+                            free(result->init_bytes);
+                            free(result);
+                            result = NULL;
+                        }
                     }
                 }
             }

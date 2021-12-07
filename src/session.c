@@ -8,6 +8,7 @@
 #include "azure_uamqp_c/session.h"
 #include "azure_uamqp_c/connection.h"
 #include "azure_uamqp_c/amqp_definitions.h"
+#include "azure_c_shared_utility/safe_math.h"
 
 typedef enum LINK_ENDPOINT_STATE_TAG
 {
@@ -1607,9 +1608,13 @@ SESSION_SEND_TRANSFER_RESULT session_send_transfer(LINK_ENDPOINT_HANDLE link_end
                                             }
                                         }
 
-                                        transfer_frame_payload_count = (uint32_t)(temp_current_payload_index - current_payload_index + 1);
-                                        transfer_frame_payloads = (PAYLOAD*)calloc(1, (transfer_frame_payload_count * sizeof(PAYLOAD)));
-                                        if (transfer_frame_payloads == NULL)
+                                        //transfer_frame_payload_len = (uint32_t)(temp_current_payload_index - current_payload_index + 1); // use safe int
+                                        size_t payload_len = safe_subtract_size_t(temp_current_payload_index, current_payload_index);
+                                        payload_len = safe_add_size_t(payload_len, 1);
+                                        uint32_t transfer_frame_payload_len = payload_len < UINT32_MAX ? (uint32_t)payload_len : UINT32_MAX;
+
+                                        if (transfer_frame_payload_len == UINT32_MAX ||
+                                           (transfer_frame_payloads = (PAYLOAD*)calloc(1, (transfer_frame_payload_len * sizeof(PAYLOAD)))) == NULL)
                                         {
                                             amqpvalue_destroy(multi_transfer_amqp_value);
                                             break;
@@ -1619,7 +1624,7 @@ SESSION_SEND_TRANSFER_RESULT session_send_transfer(LINK_ENDPOINT_HANDLE link_end
                                         byte_counter = current_transfer_frame_payload_size;
                                         transfer_frame_payload_count = 0;
 
-                                        while (byte_counter > 0)
+                                        while (byte_counter > 0 && transfer_frame_payload_count < transfer_frame_payload_len)
                                         {
                                             if (payloads[current_payload_index].length - current_payload_pos > byte_counter)
                                             {

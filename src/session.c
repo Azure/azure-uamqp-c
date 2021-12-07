@@ -1609,9 +1609,9 @@ SESSION_SEND_TRANSFER_RESULT session_send_transfer(LINK_ENDPOINT_HANDLE link_end
                                         }
 
                                         //transfer_frame_payload_len = (uint32_t)(temp_current_payload_index - current_payload_index + 1); // use safe int
-                                        size_t size = safe_subtract_size_t(temp_current_payload_index, current_payload_index);
-                                        size = safe_add_size_t(size, 1);
-                                        uint32_t transfer_frame_payload_len = size < UINT32_MAX ? (uint32_t)size : UINT32_MAX;
+                                        size_t payload_len = safe_subtract_size_t(temp_current_payload_index, current_payload_index);
+                                        payload_len = safe_add_size_t(payload_len, 1);
+                                        uint32_t transfer_frame_payload_len = payload_len < UINT32_MAX ? (uint32_t)payload_len : UINT32_MAX;
 
                                         if (transfer_frame_payload_len == UINT32_MAX ||
                                            (transfer_frame_payloads = (PAYLOAD*)calloc(1, (transfer_frame_payload_len * sizeof(PAYLOAD)))) == NULL)

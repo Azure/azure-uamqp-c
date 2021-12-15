@@ -204,6 +204,7 @@ static bool is_message_in_queue(MESSAGE_SENDER_HANDLE message_sender, ASYNC_OPER
         if (message_sender->messages[i] == message)
         {
             result = true;
+            break;
         }
     }
 

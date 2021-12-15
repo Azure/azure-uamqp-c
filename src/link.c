@@ -1343,7 +1343,7 @@ static void link_transfer_cancel_handler(ASYNC_OPERATION_HANDLE link_transfer_op
         pending_delivery->on_delivery_settled(pending_delivery->callback_context, pending_delivery->delivery_id, LINK_DELIVERY_SETTLE_REASON_CANCELLED, NULL);
     }
 
-    (void)singlylinkedlist_remove_if(((LINK_HANDLE)pending_delivery->link)->pending_deliveries, remove_pending_delivery_condition_function, pending_delivery);
+    (void)singlylinkedlist_remove_if(((LINK_HANDLE)pending_delivery->link)->pending_deliveries, remove_pending_delivery_condition_function, link_transfer_operation);
 
     async_operation_destroy(link_transfer_operation);
 }

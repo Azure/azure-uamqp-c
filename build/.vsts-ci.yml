@@ -23,6 +23,7 @@ resources:
     image: csdkcontainerregistry.azurecr.io/raspberrypi-c-buster:brown
 jobs:
 - job: checksubmodule
+  displayName: Check Submodules
   pool:
     vmImage: 'ubuntu-20.04'
   steps:
@@ -41,6 +42,7 @@ jobs:
       ./../../node_modules/.bin/check_submodules . master
     displayName: 'build'
 - job: windowsx86
+  displayName: Windows x86
   pool:
     name: 'sdk-c--win-vs2017'
   steps:
@@ -72,7 +74,7 @@ jobs:
   container: raspberrypi-c-buster
   pool: 
     name: 'sdk-c--ubuntu-18'
-  displayName: raspberrypi
+  displayName: Raspberry Pi
   steps:
   - script: |
      chmod +x jenkins/raspberrypi_c_buster.sh
@@ -97,6 +99,7 @@ jobs:
     displayName: 'cleanup'
     condition: always()
 - job: windowsdynamic
+  displayName: Windows Dynamic
   pool:
     name: 'sdk-c--win-vs2017'
   steps:
@@ -127,6 +130,7 @@ jobs:
     displayName: 'cleanup'
     condition: always()
 - job: OSX
+  displayName: OSX
   pool:
     name: OSX
   steps:
@@ -306,7 +310,7 @@ jobs:
   container: linux-c-ubuntu-wolfssl
   pool: 
     name: 'sdk-c--ubuntu-18'
-  displayName: 'wolfssl'
+  displayName: 'WolfSSL'
   steps:
   - script: |
      if [ -f "jenkins/linux_wolfssl.sh" ]
@@ -341,7 +345,7 @@ jobs:
 - job: windowsx64
   pool:
     name: 'sdk-c--win-vs2017'
-  displayName: 'windowsx64'
+  displayName: 'Windows x64'
   steps:
   - script: |
      if exist jenkins\windows_c.cmd (
@@ -371,6 +375,7 @@ jobs:
     displayName: 'cleanup'
     condition: always()
 - job: xcodenative
+  displayName: XCode Native
   pool:
     name: OSX
   steps:

@@ -1,5 +1,5 @@
 {
-  <insert_a_suppression_name_here>
+  suppress mutex destroy
   Helgrind:Misc
   obj:/usr/lib/x86_64-linux-gnu/valgrind/vgpreload_helgrind-amd64-linux.so
   obj:/usr/lib/x86_64-linux-gnu/libp11-kit.so.0.3.0
@@ -9,7 +9,7 @@
   fun:(below main)
 }
 {
-   <insert_a_suppression_name_here>
+   suppress mutex destroy
    Helgrind:Misc
    obj:/usr/lib/x86_64-linux-gnu/valgrind/vgpreload_helgrind-amd64-linux.so
    fun:_dl_fini
@@ -18,7 +18,7 @@
    fun:(below main)
 }
 {
-   <insert_a_suppression_name_here>
+   suppress mutex destroy
    drd:MutexErr
    fun:pthread_mutex_destroy
    obj:/usr/lib/x86_64-linux-gnu/libp11-kit.so.0.3.0

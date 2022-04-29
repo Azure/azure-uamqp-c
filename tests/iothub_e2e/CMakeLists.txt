@@ -12,6 +12,12 @@ set(${theseTestsName}_c_files
 set(${theseTestsName}_h_files
 )
 
-build_c_test_artifacts(${theseTestsName} ON "tests/uamqp_tests" ADDITIONAL_LIBS uamqp)
+file(COPY ../valgrind_suppressions.supp DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+build_c_test_artifacts(${theseTestsName} ON "tests/uamqp_tests"
+  ADDITIONAL_LIBS
+    uamqp
+  VALGRIND_SUPPRESSIONS_FILE
+    valgrind_suppressions.supp
+)
 
 compile_c_test_artifacts_as(${theseTestsName} C99)

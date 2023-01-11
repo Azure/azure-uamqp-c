@@ -350,7 +350,7 @@ static int saslclientio_receive_byte(SASL_CLIENT_IO_INSTANCE* sasl_client_io_ins
     switch (sasl_client_io_instance->sasl_header_exchange_state)
     {
     default:
-        LogError("Byte being received in unexpected state: %s", MU_ENUM_TO_STRING(SASL_HEADER_EXCHANGE_STATE, sasl_client_io_instance->sasl_header_exchange_state));
+        LogError("Byte being received in unexpected state: %" PRI_MU_ENUM "", MU_ENUM_VALUE(SASL_HEADER_EXCHANGE_STATE, sasl_client_io_instance->sasl_header_exchange_state));
         result = MU_FAILURE;
         break;
 
@@ -358,7 +358,7 @@ static int saslclientio_receive_byte(SASL_CLIENT_IO_INSTANCE* sasl_client_io_ins
         switch (sasl_client_io_instance->sasl_client_negotiation_state)
         {
         case SASL_CLIENT_NEGOTIATION_ERROR:
-            LogError("Byte being received in unexpected state: %s", MU_ENUM_TO_STRING(SASL_CLIENT_NEGOTIATION_STATE, SASL_CLIENT_NEGOTIATION_ERROR));
+            LogError("Byte being received in unexpected state: %" PRI_MU_ENUM "", MU_ENUM_VALUE(SASL_CLIENT_NEGOTIATION_STATE, SASL_CLIENT_NEGOTIATION_ERROR));
             result = MU_FAILURE;
             break;
 
@@ -405,7 +405,7 @@ static int saslclientio_receive_byte(SASL_CLIENT_IO_INSTANCE* sasl_client_io_ins
                 switch (sasl_client_io_instance->sasl_header_exchange_state)
                 {
                 default:
-                    LogError("Invalid SASL header exchange state: %s", MU_ENUM_TO_STRING(SASL_HEADER_EXCHANGE_STATE, sasl_client_io_instance->sasl_header_exchange_state));
+                    LogError("Invalid SASL header exchange state: %" PRI_MU_ENUM "", MU_ENUM_VALUE(SASL_HEADER_EXCHANGE_STATE, sasl_client_io_instance->sasl_header_exchange_state));
                     result = MU_FAILURE;
                     break;
 
@@ -691,7 +691,7 @@ static void on_sasl_frame_received_callback(void* context, AMQP_VALUE sasl_frame
                     switch (sasl_client_io_instance->sasl_client_negotiation_state)
                     {
                     default:
-                        LogError("SASL mechanisms frame received in %s state", MU_ENUM_TO_STRING(SASL_CLIENT_NEGOTIATION_STATE, sasl_client_io_instance->sasl_client_negotiation_state));
+                        LogError("SASL mechanisms frame received in %" PRI_MU_ENUM " state", MU_ENUM_VALUE(SASL_CLIENT_NEGOTIATION_STATE, sasl_client_io_instance->sasl_client_negotiation_state));
                         handle_error(sasl_client_io_instance);
                         break;
 
@@ -804,7 +804,7 @@ static void on_sasl_frame_received_callback(void* context, AMQP_VALUE sasl_frame
                     if ((sasl_client_io_instance->sasl_client_negotiation_state != SASL_CLIENT_NEGOTIATION_INIT_SENT) &&
                         (sasl_client_io_instance->sasl_client_negotiation_state != SASL_CLIENT_NEGOTIATION_RESPONSE_SENT))
                     {
-                        LogError("SASL challenge received in a bad state: %s", MU_ENUM_TO_STRING(SASL_CLIENT_NEGOTIATION_STATE, sasl_client_io_instance->sasl_client_negotiation_state));
+                        LogError("SASL challenge received in a bad state: %" PRI_MU_ENUM "", MU_ENUM_VALUE(SASL_CLIENT_NEGOTIATION_STATE, sasl_client_io_instance->sasl_client_negotiation_state));
                         handle_error(sasl_client_io_instance);
                     }
                     else
@@ -852,7 +852,7 @@ static void on_sasl_frame_received_callback(void* context, AMQP_VALUE sasl_frame
                                 else if (send_sasl_response(sasl_client_io_instance, response_bytes) != 0)
                                 {
                                     /* Codes_SRS_SASLCLIENTIO_01_119: [If any error is encountered when parsing the received frame, the `on_io_open_complete` callback shall be triggered with `IO_OPEN_ERROR`.]*/
-                                    LogError("Cannot send SASL reponse");
+                                    LogError("Cannot send SASL response");
                                     handle_error(sasl_client_io_instance);
                                 }
                             }
@@ -869,7 +869,7 @@ static void on_sasl_frame_received_callback(void* context, AMQP_VALUE sasl_frame
                     if ((sasl_client_io_instance->sasl_client_negotiation_state != SASL_CLIENT_NEGOTIATION_INIT_SENT) &&
                         (sasl_client_io_instance->sasl_client_negotiation_state != SASL_CLIENT_NEGOTIATION_RESPONSE_SENT))
                     {
-                        LogError("SASL outcome received in a bad state: %s", MU_ENUM_TO_STRING(SASL_CLIENT_NEGOTIATION_STATE, sasl_client_io_instance->sasl_client_negotiation_state));
+                        LogError("SASL outcome received in a bad state: %" PRI_MU_ENUM "", MU_ENUM_VALUE(SASL_CLIENT_NEGOTIATION_STATE, sasl_client_io_instance->sasl_client_negotiation_state));
                         handle_error(sasl_client_io_instance);
                     }
                     else
@@ -978,7 +978,7 @@ CONCRETE_IO_HANDLE saslclientio_create(void* io_create_parameters)
     }
     else
     {
-        result = (SASL_CLIENT_IO_INSTANCE*)malloc(sizeof(SASL_CLIENT_IO_INSTANCE));
+        result = (SASL_CLIENT_IO_INSTANCE*)calloc(1, sizeof(SASL_CLIENT_IO_INSTANCE));
         if (result == NULL)
         {
             /* Codes_SRS_SASLCLIENTIO_01_006: [If memory cannot be allocated for the new instance, `saslclientio_create` shall fail and return NULL.] */

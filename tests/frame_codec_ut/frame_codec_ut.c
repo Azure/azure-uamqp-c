@@ -9,6 +9,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 #endif
+
+#include "azure_macro_utils/macro_utils.h"
 #include "testrunnerswitcher.h"
 #include "umock_c/umock_c.h"
 #include "umock_c/umocktypes_stdint.h"
@@ -17,6 +19,11 @@
 static void* my_gballoc_malloc(size_t size)
 {
     return malloc(size);
+}
+
+static void* my_gballoc_calloc(size_t nmemb, size_t size)
+{
+    return calloc(nmemb, size);
 }
 
 static void* my_gballoc_realloc(void* ptr, size_t size)
@@ -167,9 +174,7 @@ MU_DEFINE_ENUM_STRINGS(UMOCK_C_ERROR_CODE, UMOCK_C_ERROR_CODE_VALUES)
 
 static void on_umock_c_error(UMOCK_C_ERROR_CODE error_code)
 {
-    char temp_str[256];
-    (void)snprintf(temp_str, sizeof(temp_str), "umock_c reported error :%s", MU_ENUM_TO_STRING(UMOCK_C_ERROR_CODE, error_code));
-    ASSERT_FAIL(temp_str);
+    ASSERT_FAIL("umock_c reported error :%" PRI_MU_ENUM "", MU_ENUM_VALUE(UMOCK_C_ERROR_CODE, error_code));
 }
 
 BEGIN_TEST_SUITE(frame_codec_ut)
@@ -189,6 +194,7 @@ TEST_SUITE_INITIALIZE(suite_init)
     ASSERT_ARE_EQUAL(int, 0, result, "Failed registering bool types");
 
     REGISTER_GLOBAL_MOCK_HOOK(gballoc_malloc, my_gballoc_malloc);
+    REGISTER_GLOBAL_MOCK_HOOK(gballoc_calloc, my_gballoc_calloc);
     REGISTER_GLOBAL_MOCK_HOOK(gballoc_free, my_gballoc_free);
     REGISTER_GLOBAL_MOCK_HOOK(gballoc_realloc, my_gballoc_realloc);
     REGISTER_GLOBAL_MOCK_RETURN(singlylinkedlist_create, TEST_LIST_HANDLE);
@@ -247,7 +253,7 @@ TEST_FUNCTION(frame_codec_create_with_valid_args_succeeds)
 {
     // arrange
     FRAME_CODEC_HANDLE frame_codec;
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_create());
 
     // act
@@ -279,7 +285,7 @@ TEST_FUNCTION(frame_codec_create_with_NULL_frame_codec_decode_error_calback_cont
 {
     // arrange
     FRAME_CODEC_HANDLE frame_codec;
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_create());
 
     // act
@@ -298,7 +304,7 @@ TEST_FUNCTION(when_allocating_memory_for_the_frame_codec_fails_frame_code_create
 {
     // arrange
     FRAME_CODEC_HANDLE frame_codec;
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
         .SetReturn(NULL);
 
     // act
@@ -1455,7 +1461,7 @@ TEST_FUNCTION(frame_codec_subscribe_with_valid_args_succeeds)
 
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame_type, 1);
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_add(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
 
     // act
@@ -1483,7 +1489,7 @@ TEST_FUNCTION(when_list_find_returns_NULL_a_new_subscription_is_created)
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame_type, 1)
         .SetReturn(NULL);
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_add(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
 
     // act
@@ -1746,7 +1752,7 @@ TEST_FUNCTION(when_allocating_memory_for_the_subscription_fails_frame_codec_subs
 
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame_type, 1);
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
         .SetReturn(NULL);
 
     // act
@@ -1771,7 +1777,7 @@ TEST_FUNCTION(when_adding_the_subscription_fails_then_frame_codec_subscribe_fail
 
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame_type, 1);
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_add(TEST_LIST_HANDLE, IGNORED_PTR_ARG))
         .SetReturn(NULL);
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
@@ -1976,7 +1982,7 @@ TEST_FUNCTION(subscribe_unsubscribe_subscribe_succeeds)
 
     STRICT_EXPECTED_CALL(singlylinkedlist_find(TEST_LIST_HANDLE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .ValidateArgumentBuffer(3, &frame_type, 1);
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_add(TEST_LIST_HANDLE, IGNORED_PTR_ARG));
 
     // act

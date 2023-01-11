@@ -12,6 +12,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #endif
+
+#include "azure_macro_utils/macro_utils.h"
 #include "testrunnerswitcher.h"
 #include "umock_c/umock_c.h"
 #include "umock_c/umocktypes_charptr.h"
@@ -20,6 +22,11 @@
 static void* my_gballoc_malloc(size_t size)
 {
     return malloc(size);
+}
+
+static void* my_gballoc_calloc(size_t nmemb, size_t size)
+{
+    return calloc(nmemb, size);
 }
 
 static void* my_gballoc_realloc(void* ptr, size_t size)
@@ -128,9 +135,7 @@ MU_DEFINE_ENUM_STRINGS(UMOCK_C_ERROR_CODE, UMOCK_C_ERROR_CODE_VALUES)
 
 static void on_umock_c_error(UMOCK_C_ERROR_CODE error_code)
 {
-    char temp_str[256];
-    (void)snprintf(temp_str, sizeof(temp_str), "umock_c reported error :%s", MU_ENUM_TO_STRING(UMOCK_C_ERROR_CODE, error_code));
-    ASSERT_FAIL(temp_str);
+    ASSERT_FAIL("umock_c reported error :%" PRI_MU_ENUM "", MU_ENUM_VALUE(UMOCK_C_ERROR_CODE, error_code));
 }
 
 BEGIN_TEST_SUITE(amqpvalue_ut)
@@ -148,6 +153,7 @@ TEST_SUITE_INITIALIZE(setsBufferTempSize)
     ASSERT_ARE_EQUAL(int, 0, result);
 
     REGISTER_GLOBAL_MOCK_HOOK(gballoc_malloc, my_gballoc_malloc);
+    REGISTER_GLOBAL_MOCK_HOOK(gballoc_calloc, my_gballoc_calloc);
     REGISTER_GLOBAL_MOCK_HOOK(gballoc_realloc, my_gballoc_realloc);
     REGISTER_GLOBAL_MOCK_HOOK(gballoc_free, my_gballoc_free);
 
@@ -10433,7 +10439,6 @@ TEST_FUNCTION(amqpvalue_destroy_frees_the_memory_for_empty_list_value)
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
     amqpvalue_destroy(value);
@@ -10493,7 +10498,6 @@ TEST_FUNCTION(amqpvalue_destroy_frees_the_memory_for_empty_map_value)
     AMQP_VALUE value = amqpvalue_create_map();
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
@@ -10559,7 +10563,6 @@ TEST_FUNCTION(amqpvalue_destroy_frees_the_memory_for_empty_array_value)
     AMQP_VALUE value = amqpvalue_create_array();
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
@@ -11267,7 +11270,6 @@ TEST_FUNCTION(amqpvalue_destroy_frees_the_memory_for_empty_list_cloned_value_las
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
     amqpvalue_destroy(cloned_value);
@@ -11403,7 +11405,6 @@ TEST_FUNCTION(amqpvalue_destroy_frees_the_memory_for_empty_map_cloned_value_last
     amqpvalue_destroy(value);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
@@ -11551,7 +11552,6 @@ TEST_FUNCTION(amqpvalue_destroy_frees_the_memory_for_empty_array_cloned_value_la
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 
     // act
     amqpvalue_destroy(cloned_value);
@@ -11668,6 +11668,8 @@ TEST_FUNCTION(amqpvalue_decoder_create_returns_a_non_NULL_handle)
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
         .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
 
     // act
     result = amqpvalue_decoder_create(value_decoded_callback, test_context);
@@ -11735,7 +11737,7 @@ TEST_FUNCTION(when_allocating_memoory_fails_amqpvalue_decoder_create_fails)
     AMQPVALUE_DECODER_HANDLE result;
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
         .SetReturn(NULL);
 
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
@@ -15531,6 +15533,8 @@ TEST_FUNCTION(amqpvalue_decode_list_0xC0_1_null_item_succeeds)
 
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
         .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
         .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG));
@@ -15566,6 +15570,8 @@ TEST_FUNCTION(amqpvalue_decode_list_0xC0_2_null_items_succeeds)
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
         .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
         .IgnoreAllCalls();
@@ -15606,6 +15612,8 @@ TEST_FUNCTION(amqpvalue_decode_list_0xC0_255_null_items_succeeds)
 
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
         .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
         .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG));
@@ -15643,6 +15651,8 @@ TEST_FUNCTION(amqpvalue_decode_list_0xC0_255_null_items_byte_by_byte_succeeds)
     (void)memset(&bytes[3], 0x40, 255);
 
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
         .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
         .IgnoreAllCalls();
@@ -15707,6 +15717,8 @@ TEST_FUNCTION(amqpvalue_decode_list_0xC0_1_item_not_enough_bytes_does_not_trigge
 
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
         .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
         .IgnoreAllCalls();
 
@@ -15732,6 +15744,8 @@ TEST_FUNCTION(amqpvalue_decode_list_0xC0_255_null_items_not_enough_bytes_does_no
     (void)memset(&bytes[3], 0x40, 254);
 
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
         .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
         .IgnoreAllCalls();
@@ -15792,6 +15806,8 @@ TEST_FUNCTION(amqpvalue_decode_list_0xD0_1_null_item_succeeds)
 
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
         .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
         .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG));
@@ -15826,6 +15842,8 @@ TEST_FUNCTION(amqpvalue_decode_list_0xD0_2_null_items_succeeds)
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
         .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
         .IgnoreAllCalls();
@@ -15866,6 +15884,8 @@ TEST_FUNCTION(amqpvalue_decode_list_0xD0_255_null_items_succeeds)
 
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
         .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
         .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG));
@@ -15905,6 +15925,8 @@ TEST_FUNCTION(amqpvalue_decode_list_0xD0_256_null_items_succeeds)
 
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
         .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
         .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG));
@@ -15942,6 +15964,8 @@ TEST_FUNCTION(amqpvalue_decode_list_0xD0_256_null_items_byte_by_byte_succeeds)
     (void)memset(bytes + 9, 0x40, 256);
 
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
         .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
         .IgnoreAllCalls();
@@ -15981,6 +16005,8 @@ TEST_FUNCTION(amqpvalue_decode_list_0xD0_zero_items_not_enough_bytes_does_not_tr
 
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
         .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
         .IgnoreAllCalls();
 
@@ -16005,6 +16031,8 @@ TEST_FUNCTION(amqpvalue_decode_list_0xD0_1_item_not_enough_bytes_does_not_trigge
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
         .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
         .IgnoreAllCalls();
@@ -16031,6 +16059,8 @@ TEST_FUNCTION(amqpvalue_decode_list_0xD0_256_null_items_not_enough_bytes_does_no
     (void)memset(bytes + 9, 0x40, 255);
 
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
         .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
         .IgnoreAllCalls();
@@ -16122,6 +16152,8 @@ TEST_FUNCTION(amqpvalue_decode_array_0xE0_1_null_item_succeeds)
 
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
         .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
         .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG));
@@ -16157,6 +16189,8 @@ TEST_FUNCTION(amqpvalue_decode_array_0xE0_2_null_items_succeeds)
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
         .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
         .IgnoreAllCalls();
@@ -16198,6 +16232,8 @@ TEST_FUNCTION(amqpvalue_decode_array_0xE0_1_long_item_succeeds)
 
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
         .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
         .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG));
@@ -16234,6 +16270,8 @@ TEST_FUNCTION(amqpvalue_decode_array_0xE0_2_long_items_succeeds)
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
         .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
         .IgnoreAllCalls();
@@ -16272,6 +16310,8 @@ TEST_FUNCTION(amqpvalue_decode_array_0xE0_255_null_items_succeeds)
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
         .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
         .IgnoreAllCalls();
@@ -16343,6 +16383,8 @@ TEST_FUNCTION(amqpvalue_decode_array_0xF0_1_null_item_succeeds)
 
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
         .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
         .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG));
@@ -16377,6 +16419,8 @@ TEST_FUNCTION(amqpvalue_decode_array_0xF0_2_null_items_succeeds)
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
         .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
         .IgnoreAllCalls();
@@ -16417,6 +16461,8 @@ TEST_FUNCTION(amqpvalue_decode_array_0xF0_255_null_items_succeeds)
 
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
         .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
         .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG))
@@ -16453,8 +16499,9 @@ TEST_FUNCTION(amqpvalue_decode_array_0xF0_256_null_items_succeeds)
     int i;
     uint32_t item_count;
     umock_c_reset_all_calls();
-
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
         .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
         .IgnoreAllCalls();

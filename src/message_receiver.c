@@ -218,6 +218,11 @@ static void decode_message_value_callback(void* context, AMQP_VALUE decoded_valu
             }
         }
     }
+    else
+    {
+        LogError("Failed decoding descriptor");
+        message_receiver->decode_error = true;
+    }
 }
 
 static AMQP_VALUE on_transfer_received(void* context, TRANSFER_HANDLE transfer, uint32_t payload_size, const unsigned char* payload_bytes)
@@ -314,7 +319,7 @@ static void on_link_state_changed(void* context, LINK_STATE new_link_state, LINK
 
 MESSAGE_RECEIVER_HANDLE messagereceiver_create(LINK_HANDLE link, ON_MESSAGE_RECEIVER_STATE_CHANGED on_message_receiver_state_changed, void* context)
 {
-    MESSAGE_RECEIVER_INSTANCE* message_receiver = (MESSAGE_RECEIVER_INSTANCE*)malloc(sizeof(MESSAGE_RECEIVER_INSTANCE));
+    MESSAGE_RECEIVER_INSTANCE* message_receiver = (MESSAGE_RECEIVER_INSTANCE*)calloc(1, sizeof(MESSAGE_RECEIVER_INSTANCE));
     if (message_receiver == NULL)
     {
         LogError("Error creating message receiver");

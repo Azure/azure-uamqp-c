@@ -1110,7 +1110,7 @@ static void frame_codec_error(void* context)
 {
     /* Bug: some error handling should happen here
     Filed: uAMQP: frame_codec error and amqp_frame_codec_error should handle the errors */
-    LogError("A frame_codec_error occured");
+    LogError("A frame_codec_error occurred");
     (void)context;
 }
 
@@ -1118,7 +1118,7 @@ static void amqp_frame_codec_error(void* context)
 {
     /* Bug: some error handling should happen here
     Filed: uAMQP: frame_codec error and amqp_frame_codec_error should handle the errors */
-    LogError("An amqp_frame_codec_error occured");
+    LogError("An amqp_frame_codec_error occurred");
     (void)context;
 }
 
@@ -1144,7 +1144,7 @@ CONNECTION_HANDLE connection_create2(XIO_HANDLE xio, const char* hostname, const
     }
     else
     {
-        connection = (CONNECTION_HANDLE)malloc(sizeof(CONNECTION_INSTANCE));
+        connection = (CONNECTION_HANDLE)calloc(1, sizeof(CONNECTION_INSTANCE));
         /* Codes_S_R_S_CONNECTION_01_081: [If allocating the memory for the connection fails then connection_create shall return NULL.] */
         if (connection == NULL)
         {
@@ -1880,7 +1880,7 @@ ENDPOINT_HANDLE connection_create_endpoint(CONNECTION_HANDLE connection)
             }
 
             /* Codes_S_R_S_CONNECTION_01_127: [On success, connection_create_endpoint shall return a non-NULL handle to the newly created endpoint.] */
-            result = (ENDPOINT_HANDLE)malloc(sizeof(ENDPOINT_INSTANCE));
+            result = (ENDPOINT_HANDLE)calloc(1, sizeof(ENDPOINT_INSTANCE));
             /* Codes_S_R_S_CONNECTION_01_196: [If memory cannot be allocated for the new endpoint, connection_create_endpoint shall fail and return NULL.] */
             if (result == NULL)
             {

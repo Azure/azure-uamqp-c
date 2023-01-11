@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 #endif
+
+#include "azure_macro_utils/macro_utils.h"
 #include "testrunnerswitcher.h"
 #include "umock_c/umock_c.h"
 #include "umock_c/umocktypes_charptr.h"
@@ -15,6 +17,11 @@
 static void* my_gballoc_malloc(size_t size)
 {
     return malloc(size);
+}
+
+static void* my_gballoc_calloc(size_t nmemb, size_t size)
+{
+    return calloc(nmemb, size);
 }
 
 static void* my_gballoc_realloc(void* ptr, size_t size)
@@ -87,9 +94,7 @@ MU_DEFINE_ENUM_STRINGS(UMOCK_C_ERROR_CODE, UMOCK_C_ERROR_CODE_VALUES)
 
 static void on_umock_c_error(UMOCK_C_ERROR_CODE error_code)
 {
-    char temp_str[256];
-    (void)snprintf(temp_str, sizeof(temp_str), "umock_c reported error :%s", MU_ENUM_TO_STRING(UMOCK_C_ERROR_CODE, error_code));
-    ASSERT_FAIL(temp_str);
+    ASSERT_FAIL("umock_c reported error :%" PRI_MU_ENUM "", MU_ENUM_VALUE(UMOCK_C_ERROR_CODE, error_code));
 }
 
 BEGIN_TEST_SUITE(session_ut)
@@ -107,6 +112,7 @@ TEST_SUITE_INITIALIZE(suite_init)
     ASSERT_ARE_EQUAL(int, 0, result);
 
     REGISTER_GLOBAL_MOCK_HOOK(gballoc_malloc, my_gballoc_malloc);
+    REGISTER_GLOBAL_MOCK_HOOK(gballoc_calloc, my_gballoc_calloc);
     REGISTER_GLOBAL_MOCK_HOOK(gballoc_realloc, my_gballoc_realloc);
     REGISTER_GLOBAL_MOCK_HOOK(gballoc_free, my_gballoc_free);
     REGISTER_GLOBAL_MOCK_HOOK(amqpvalue_get_ulong, my_amqpvalue_get_ulong);
@@ -159,7 +165,7 @@ TEST_FUNCTION(session_create_with_valid_args_succeeds)
 {
     // arrange
     SESSION_HANDLE session;
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(connection_create_endpoint(TEST_CONNECTION_HANDLE));
 
     // act
@@ -180,9 +186,9 @@ TEST_FUNCTION(session_create_twice_on_the_same_connection_works)
     // arrange
     SESSION_HANDLE session1;
     SESSION_HANDLE session2;
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(connection_create_endpoint(TEST_CONNECTION_HANDLE));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(connection_create_endpoint(TEST_CONNECTION_HANDLE));
 
     // act
@@ -218,7 +224,7 @@ TEST_FUNCTION(when_allocating_memory_for_the_session_fails_session_create_fails)
 {
     // arrange
     SESSION_HANDLE session;
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
         .SetReturn(NULL);
 
     // act
@@ -234,7 +240,7 @@ TEST_FUNCTION(when_connection_create_endpoint_fails_session_create_fails)
 {
     // arrange
     SESSION_HANDLE session;
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(connection_create_endpoint(TEST_CONNECTION_HANDLE))
         .SetReturn(NULL);
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
@@ -290,7 +296,7 @@ TEST_FUNCTION(session_create_link_endpoint_creates_a_link_endpoint)
     SESSION_HANDLE session = session_create(TEST_CONNECTION_HANDLE, NULL, NULL);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
 
@@ -346,7 +352,7 @@ TEST_FUNCTION(when_allocating_memory_for_the_link_endpoint_fails_then_session_cr
     SESSION_HANDLE session = session_create(TEST_CONNECTION_HANDLE, NULL, NULL);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
         .SetReturn(NULL);
 
     // act
@@ -368,7 +374,7 @@ TEST_FUNCTION(when_allocating_the_link_name_fails_then_session_create_link_endpo
     SESSION_HANDLE session = session_create(TEST_CONNECTION_HANDLE, NULL, NULL);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
         .SetReturn(NULL);
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
@@ -392,7 +398,7 @@ TEST_FUNCTION(when_reallocating_the_endpoint_array_for_the_link_endpoint_fails_t
     SESSION_HANDLE session = session_create(TEST_CONNECTION_HANDLE, NULL, NULL);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG))
         .SetReturn(NULL);

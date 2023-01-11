@@ -100,7 +100,7 @@ static void free_all_body_sequence_items(MESSAGE_HANDLE message)
 
 MESSAGE_HANDLE message_create(void)
 {
-    MESSAGE_HANDLE result = (MESSAGE_HANDLE)malloc(sizeof(MESSAGE_INSTANCE));
+    MESSAGE_HANDLE result = (MESSAGE_HANDLE)calloc(1, sizeof(MESSAGE_INSTANCE));
     if (result == NULL)
     {
         /* Codes_SRS_MESSAGE_01_002: [If allocating memory for the message fails, `message_create` shall fail and return NULL.] */
@@ -233,7 +233,7 @@ MESSAGE_HANDLE message_clone(MESSAGE_HANDLE source_message)
             {
                 size_t i;
 
-                result->body_amqp_data_items = (BODY_AMQP_DATA*)malloc(source_message->body_amqp_data_count * sizeof(BODY_AMQP_DATA));
+                result->body_amqp_data_items = (BODY_AMQP_DATA*)calloc(1, (source_message->body_amqp_data_count * sizeof(BODY_AMQP_DATA)));
                 if (result->body_amqp_data_items == NULL)
                 {
                     /* Codes_SRS_MESSAGE_01_012: [ If any cloning operation for the members of the source message fails, then `message_clone` shall fail and return NULL. ]*/
@@ -274,7 +274,7 @@ MESSAGE_HANDLE message_clone(MESSAGE_HANDLE source_message)
             {
                 size_t i;
 
-                result->body_amqp_sequence_items = (AMQP_VALUE*)malloc(source_message->body_amqp_sequence_count * sizeof(AMQP_VALUE));
+                result->body_amqp_sequence_items = (AMQP_VALUE*)calloc(1, (source_message->body_amqp_sequence_count * sizeof(AMQP_VALUE)));
                 if (result->body_amqp_sequence_items == NULL)
                 {
                     /* Codes_SRS_MESSAGE_01_012: [ If any cloning operation for the members of the source message fails, then `message_clone` shall fail and return NULL. ]*/

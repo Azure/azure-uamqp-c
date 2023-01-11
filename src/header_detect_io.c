@@ -70,8 +70,11 @@ static void destroy_io_chain(HEADER_DETECT_IO_INSTANCE* header_detect_io)
             LogError("Cannot remove detected IO from list");
         }
 
-        xio_destroy(chained_io->detected_io);
-        free(chained_io);
+        if (chained_io != NULL)
+        {
+            xio_destroy(chained_io->detected_io);
+            free(chained_io);
+        }
 
         list_item = singlylinkedlist_get_head_item(header_detect_io->chained_io_list);
     }
@@ -517,7 +520,7 @@ static CONCRETE_IO_HANDLE header_detect_io_create(void* io_create_parameters)
             else
             {
                 /* Codes_SRS_HEADER_DETECT_IO_01_001: [ `header_detect_io_create` shall create a new header detect IO instance and on success it shall return a non-NULL handle to the newly created instance. ] */
-                result = (HEADER_DETECT_IO_INSTANCE*)malloc(sizeof(HEADER_DETECT_IO_INSTANCE));
+                result = (HEADER_DETECT_IO_INSTANCE*)calloc(1, sizeof(HEADER_DETECT_IO_INSTANCE));
                 if (result == NULL)
                 {
                     /* Codes_SRS_HEADER_DETECT_IO_01_002: [ If allocating memory for the header detect IO instance fails, `header_detect_io_create` shall fail and return NULL. ]*/
@@ -526,7 +529,7 @@ static CONCRETE_IO_HANDLE header_detect_io_create(void* io_create_parameters)
                 else
                 {
                     /* Codes_SRS_HEADER_DETECT_IO_01_009: [ The `header_detect_entries` array shall be copied so that it can be later used when detecting which header was received. ]*/
-                    result->header_detect_entries = (INTERNAL_HEADER_DETECT_ENTRY*)malloc(header_detect_io_config->header_detect_entry_count * sizeof(INTERNAL_HEADER_DETECT_ENTRY));
+                    result->header_detect_entries = (INTERNAL_HEADER_DETECT_ENTRY*)calloc(1, (header_detect_io_config->header_detect_entry_count * sizeof(INTERNAL_HEADER_DETECT_ENTRY)));
                     if (result->header_detect_entries == NULL)
                     {
                         free(result);
@@ -825,7 +828,10 @@ static void header_detect_io_dowork(CONCRETE_IO_HANDLE header_detect_io)
             while (list_item != NULL)
             {
                 CHAINED_IO* chained_io = (CHAINED_IO*)singlylinkedlist_item_get_value(list_item);
-                xio_dowork(chained_io->detected_io);
+                if (chained_io != NULL)
+                {
+                    xio_dowork(chained_io->detected_io);
+                }
 
                 list_item = singlylinkedlist_get_next_item(list_item);
             }

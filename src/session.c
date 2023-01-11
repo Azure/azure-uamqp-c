@@ -8,6 +8,7 @@
 #include "azure_uamqp_c/session.h"
 #include "azure_uamqp_c/connection.h"
 #include "azure_uamqp_c/amqp_definitions.h"
+#include "azure_c_shared_utility/safe_math.h"
 
 typedef enum LINK_ENDPOINT_STATE_TAG
 {
@@ -27,6 +28,8 @@ typedef struct LINK_ENDPOINT_INSTANCE_TAG
     void* callback_context;
     SESSION_HANDLE session;
     LINK_ENDPOINT_STATE link_endpoint_state;
+    ON_LINK_ENDPOINT_DESTROYED_CALLBACK on_link_endpoint_destroyed_callback;
+    void* on_link_endpoint_destroyed_context;
 } LINK_ENDPOINT_INSTANCE;
 
 typedef struct SESSION_INSTANCE_TAG
@@ -104,6 +107,16 @@ static void remove_link_endpoint(LINK_ENDPOINT_HANDLE link_endpoint)
 
 static void free_link_endpoint(LINK_ENDPOINT_HANDLE link_endpoint)
 {
+    // The link endpoint handle can be managed by both uamqp and the upper layer.
+    // uamqp may destroy a link endpoint if a DETACH is received from the remote endpoint,
+    // so in this case the upper layer must be notified so it does not attempt to destroy the link endpoint as well.
+    // Ref counting would not suffice to address this situation as uamqp does not destroy link endpoints by itself 
+    // every time, only when receiving a DETACH.
+    if (link_endpoint->on_link_endpoint_destroyed_callback != NULL)
+    {
+        link_endpoint->on_link_endpoint_destroyed_callback(link_endpoint, link_endpoint->on_link_endpoint_destroyed_context);
+    }
+
     if (link_endpoint->name != NULL)
     {
         free(link_endpoint->name);
@@ -500,7 +513,7 @@ static void on_frame_received(void* context, AMQP_VALUE performative, uint32_t p
                         }
                     }
                 }
-                else
+                else if (link_endpoint->link_endpoint_state != LINK_ENDPOINT_STATE_DETACHING)
                 {
                     if (attach_get_handle(attach_handle, &link_endpoint->input_handle) != 0)
                     {
@@ -627,7 +640,8 @@ static void on_frame_received(void* context, AMQP_VALUE performative, uint32_t p
                 while ((session_instance->remote_incoming_window > 0) && (i < session_instance->link_endpoint_count))
                 {
                     /* notify the caller that it can send here */
-                    if (session_instance->link_endpoints[i]->on_session_flow_on != NULL)
+                    if (session_instance->link_endpoints[i]->link_endpoint_state != LINK_ENDPOINT_STATE_DETACHING &&
+                        session_instance->link_endpoints[i]->on_session_flow_on != NULL)
                     {
                         session_instance->link_endpoints[i]->on_session_flow_on(session_instance->link_endpoints[i]->callback_context);
                     }
@@ -738,7 +752,7 @@ SESSION_HANDLE session_create(CONNECTION_HANDLE connection, ON_LINK_ATTACHED on_
     else
     {
         /* Codes_S_R_S_SESSION_01_030: [session_create shall create a new session instance and return a non-NULL handle to it.] */
-        result = (SESSION_INSTANCE*)malloc(sizeof(SESSION_INSTANCE));
+        result = (SESSION_INSTANCE*)calloc(1, sizeof(SESSION_INSTANCE));
         /* Codes_S_R_S_SESSION_01_042: [If allocating memory for the session fails, session_create shall fail and return NULL.] */
         if (result != NULL)
         {
@@ -791,7 +805,7 @@ SESSION_HANDLE session_create_from_endpoint(CONNECTION_HANDLE connection, ENDPOI
     }
     else
     {
-        result = (SESSION_INSTANCE*)malloc(sizeof(SESSION_INSTANCE));
+        result = (SESSION_INSTANCE*)calloc(1, sizeof(SESSION_INSTANCE));
         if (result != NULL)
         {
             result->connection = connection;
@@ -1092,7 +1106,7 @@ LINK_ENDPOINT_HANDLE session_create_link_endpoint(SESSION_HANDLE session, const 
         /* Codes_S_R_S_SESSION_01_043: [session_create_link_endpoint shall create a link endpoint associated with a given session and return a non-NULL handle to it.] */
         SESSION_INSTANCE* session_instance = (SESSION_INSTANCE*)session;
 
-        result = (LINK_ENDPOINT_INSTANCE*)malloc(sizeof(LINK_ENDPOINT_INSTANCE));
+        result = (LINK_ENDPOINT_INSTANCE*)calloc(1, sizeof(LINK_ENDPOINT_INSTANCE));
         /* Codes_S_R_S_SESSION_01_045: [If allocating memory for the link endpoint fails, session_create_link_endpoint shall fail and return NULL.] */
         if (result != NULL)
         {
@@ -1120,6 +1134,8 @@ LINK_ENDPOINT_HANDLE session_create_link_endpoint(SESSION_HANDLE session, const 
             result->link_endpoint_state = LINK_ENDPOINT_STATE_NOT_ATTACHED;
             name_length = strlen(name);
             result->name = (char*)malloc(name_length + 1);
+            result->on_link_endpoint_destroyed_callback = NULL;
+            result->on_link_endpoint_destroyed_context = NULL;
             if (result->name == NULL)
             {
                 /* Codes_S_R_S_SESSION_01_045: [If allocating memory for the link endpoint fails, session_create_link_endpoint shall fail and return NULL.] */
@@ -1157,6 +1173,15 @@ LINK_ENDPOINT_HANDLE session_create_link_endpoint(SESSION_HANDLE session, const 
     }
 
     return result;
+}
+
+void session_set_link_endpoint_callback(LINK_ENDPOINT_HANDLE link_endpoint, ON_LINK_ENDPOINT_DESTROYED_CALLBACK on_link_endpoint_destroyed, void* context)
+{
+    if (link_endpoint != NULL)
+    {
+        link_endpoint->on_link_endpoint_destroyed_callback = on_link_endpoint_destroyed;
+        link_endpoint->on_link_endpoint_destroyed_context = context;
+    }
 }
 
 void session_destroy_link_endpoint(LINK_ENDPOINT_HANDLE link_endpoint)
@@ -1583,9 +1608,13 @@ SESSION_SEND_TRANSFER_RESULT session_send_transfer(LINK_ENDPOINT_HANDLE link_end
                                             }
                                         }
 
-                                        transfer_frame_payload_count = (uint32_t)(temp_current_payload_index - current_payload_index + 1);
-                                        transfer_frame_payloads = (PAYLOAD*)malloc(transfer_frame_payload_count * sizeof(PAYLOAD));
-                                        if (transfer_frame_payloads == NULL)
+                                        //transfer_frame_payload_len = (uint32_t)(temp_current_payload_index - current_payload_index + 1); // use safe int
+                                        size_t payload_len = safe_subtract_size_t(temp_current_payload_index, current_payload_index);
+                                        payload_len = safe_add_size_t(payload_len, 1);
+                                        uint32_t transfer_frame_payload_len = payload_len < UINT32_MAX ? (uint32_t)payload_len : UINT32_MAX;
+
+                                        if (transfer_frame_payload_len == UINT32_MAX ||
+                                           (transfer_frame_payloads = (PAYLOAD*)calloc(1, (transfer_frame_payload_len * sizeof(PAYLOAD)))) == NULL)
                                         {
                                             amqpvalue_destroy(multi_transfer_amqp_value);
                                             break;
@@ -1595,7 +1624,7 @@ SESSION_SEND_TRANSFER_RESULT session_send_transfer(LINK_ENDPOINT_HANDLE link_end
                                         byte_counter = current_transfer_frame_payload_size;
                                         transfer_frame_payload_count = 0;
 
-                                        while (byte_counter > 0)
+                                        while (byte_counter > 0 && transfer_frame_payload_count < transfer_frame_payload_len)
                                         {
                                             if (payloads[current_payload_index].length - current_payload_pos > byte_counter)
                                             {
@@ -1618,7 +1647,10 @@ SESSION_SEND_TRANSFER_RESULT session_send_transfer(LINK_ENDPOINT_HANDLE link_end
                                             transfer_frame_payload_count++;
                                         }
 
-                                        if (connection_encode_frame(session_instance->endpoint, multi_transfer_amqp_value, transfer_frame_payloads, transfer_frame_payload_count, on_send_complete, callback_context) != 0)
+                                        if (connection_encode_frame(session_instance->endpoint, multi_transfer_amqp_value, transfer_frame_payloads, transfer_frame_payload_count,
+                                            /* only fire the send complete calllback on the last frame of the multi frame transfer */
+                                            more ? NULL : on_send_complete,
+                                            callback_context) != 0)
                                         {
                                             free(transfer_frame_payloads);
                                             amqpvalue_destroy(multi_transfer_amqp_value);

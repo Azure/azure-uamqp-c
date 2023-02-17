@@ -83,8 +83,9 @@ static void remove_pending_message_by_index(MESSAGE_SENDER_HANDLE message_sender
     }
     else
     {
-        free(message_sender->messages);
+        ASYNC_OPERATION_HANDLE *messages = message_sender->messages;
         message_sender->messages = NULL;
+        free(messages);
     }
 }
 
@@ -712,8 +713,9 @@ static void indicate_all_messages_as_error(MESSAGE_SENDER_INSTANCE* message_send
     {
         message_sender->message_count = 0;
 
-        free(message_sender->messages);
+        ASYNC_OPERATION_HANDLE *messages = message_sender->messages;
         message_sender->messages = NULL;
+        free(messages);
     }
 }
 

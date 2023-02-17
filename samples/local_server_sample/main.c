@@ -39,7 +39,6 @@ static bool on_new_link_attached(void* context, LINK_ENDPOINT_HANDLE new_link_en
     link_set_rcv_settle_mode(link, receiver_settle_mode_first);
     message_receiver = messagereceiver_create(link, on_message_receiver_state_changed, NULL);
     messagereceiver_open(message_receiver, on_message_received, NULL);
-//	messagereceiver_set_trace(message_receiver, true);
     return true;
 }
 
@@ -73,7 +72,6 @@ static void on_socket_accepted(void* context, const IO_INTERFACE_DESCRIPTION* in
     header_detect_io = xio_create(header_detect_io_get_interface_description(), &header_detect_io_config);
     connection = connection_create(header_detect_io, NULL, "1", on_new_session_endpoint, NULL);
     connection_listen(connection);
-//	connection_set_trace(connection, true);
 }
 
 int main(int argc, char** argv)

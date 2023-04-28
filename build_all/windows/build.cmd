@@ -119,7 +119,7 @@ if %MAKE_NUGET_PKG% == yes (
     )
     mkdir %build-root%\cmake\uamqp_x64
     pushd %build-root%\cmake\uamqp_x64
-    cmake %build-root% -G "Visual Studio 15 2017" -A x64
+    cmake %build-root% -A x64
     if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
     popd
 
@@ -129,20 +129,20 @@ if %MAKE_NUGET_PKG% == yes (
     )
     mkdir %build-root%\cmake\uamqp_arm
     pushd %build-root%\cmake\uamqp_arm
-    cmake %build-root% -G "Visual Studio 15 2017" -A ARM
+    cmake %build-root% -A ARM
     if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
 
 ) else if %build-platform% == Win32 (
     echo ***Running CMAKE for Win32***
-    cmake %build-root% -Drun_unittests:BOOL=ON -Drun_e2e_tests:BOOL=ON -G "Visual Studio 15 2017" -A Win32
+    cmake %build-root% -Drun_unittests:BOOL=ON -Drun_e2e_tests:BOOL=ON -A Win32
     if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
 ) else if %build-platform% == arm (
     echo ***Running CMAKE for ARM***
-    cmake %build-root% -Drun_unittests:BOOL=ON -Drun_e2e_tests:BOOL=ON -G "Visual Studio 15 2017" -A ARM
+    cmake %build-root% -Drun_unittests:BOOL=ON -Drun_e2e_tests:BOOL=ON -A ARM
     if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
 ) else (
     echo ***Running CMAKE for Win64***
-    cmake %build-root% -Drun_unittests:BOOL=ON -Drun_e2e_tests:BOOL=ON -G "Visual Studio 15 2017" -A x64
+    cmake %build-root% -Drun_unittests:BOOL=ON -Drun_e2e_tests:BOOL=ON -A x64
     if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
 )
 

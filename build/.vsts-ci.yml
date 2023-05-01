@@ -48,7 +48,7 @@ jobs:
   steps:
   - script: |
       if exist jenkins\windows_c.cmd (
-       call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\VsDevCmd.bat"
+      call jenkins\windows_c_VsDevCmd.cmd
        call jenkins\windows_c.cmd)
     displayName: 'build'
     env:
@@ -74,7 +74,7 @@ jobs:
   steps:
   - script: |
      if exist jenkins\windows_c.cmd (
-      call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\VsDevCmd.bat"
+      call jenkins\windows_c_VsDevCmd.cmd
       call jenkins\windows_c.cmd --platform x64)
     displayName: 'build'
     env:
@@ -103,7 +103,7 @@ jobs:
   steps:
   - script: |
      if exist jenkins\windows_c_build_as_dynamic.cmd (
-      call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\VsDevCmd.bat"
+      call jenkins\windows_c_VsDevCmd.cmd
       call jenkins\windows_c_build_as_dynamic.cmd)
     displayName: 'build'
     env:

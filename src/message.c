@@ -66,6 +66,7 @@ static void free_all_body_data_items(MESSAGE_HANDLE message)
         if (message->body_amqp_data_items[i].body_data_section_bytes != NULL)
         {
             free(message->body_amqp_data_items[i].body_data_section_bytes);
+            message->body_amqp_data_items[i].body_data_section_bytes = NULL;
         }
     }
 

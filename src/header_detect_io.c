@@ -582,6 +582,7 @@ static CONCRETE_IO_HANDLE header_detect_io_create(void* io_create_parameters)
                                 for (i = 0; i < result->header_detect_entry_count; i++)
                                 {
                                     free(result->header_detect_entries[i].header_bytes);
+                                    result->header_detect_entries[i].header_bytes = NULL;
                                 }
 
                                 free(result->header_detect_entries);
@@ -641,6 +642,7 @@ static void header_detect_io_destroy(CONCRETE_IO_HANDLE header_detect_io)
         {
             /* Codes_SRS_HEADER_DETECT_IO_01_013: [ `header_detect_io_destroy` shall free the memory allocated for the `header_detect_entries`. ]*/
             free(header_detect_io_instance->header_detect_entries[i].header_bytes);
+            header_detect_io_instance->header_detect_entries[i].header_bytes = NULL;
         }
 
         free(header_detect_io_instance->header_detect_entries);

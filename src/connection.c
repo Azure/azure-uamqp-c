@@ -225,6 +225,7 @@ static void log_incoming_frame(AMQP_VALUE performative)
         LOG(AZ_LOG_TRACE, 0, "%s", (char*)get_frame_type_as_string(descriptor));
         performative_as_string = NULL;
         LOG(AZ_LOG_TRACE, LOG_LINE, "%s", (performative_as_string = amqpvalue_to_string(performative)));
+        fflush(stdout);
         if (performative_as_string != NULL)
         {
             free(performative_as_string);

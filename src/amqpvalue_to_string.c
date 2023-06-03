@@ -66,8 +66,6 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
             break;
 
         case AMQP_TYPE_NULL:
-            LOG(AZ_LOG_TRACE, 0, "==AMQP_TYPE_NULL==");
-            fflush(stdout);
             if (string_concat(&result, "NULL") != 0)
             {
                 LogError("Failure building amqp value string");
@@ -77,8 +75,6 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
             break;
         case AMQP_TYPE_BOOL:
         {
-            LOG(AZ_LOG_TRACE, 0, "==AMQP_TYPE_BOOL==");
-            fflush(stdout);
             bool value;
             if (amqpvalue_get_boolean(amqp_value, &value) != 0)
             {
@@ -96,8 +92,6 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
         }
         case AMQP_TYPE_UBYTE:
         {
-            LOG(AZ_LOG_TRACE, 0, "==AMQP_TYPE_UBYTE==");
-            fflush(stdout);
             char str_value[4];
             uint8_t value;
             if (amqpvalue_get_ubyte(amqp_value, &value) != 0)
@@ -117,8 +111,6 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
         }
         case AMQP_TYPE_USHORT:
         {
-            LOG(AZ_LOG_TRACE, 0, "==AMQP_TYPE_USHORT==");
-            fflush(stdout);
             char str_value[6];
             uint16_t value;
             if (amqpvalue_get_ushort(amqp_value, &value) != 0)
@@ -138,8 +130,6 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
         }
         case AMQP_TYPE_UINT:
         {
-            LOG(AZ_LOG_TRACE, 0, "==AMQP_TYPE_UINT==");
-            fflush(stdout);
             char str_value[11];
             uint32_t value;
             if (amqpvalue_get_uint(amqp_value, &value) != 0)
@@ -159,8 +149,6 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
         }
         case AMQP_TYPE_ULONG:
         {
-            LOG(AZ_LOG_TRACE, 0, "==AMQP_TYPE_ULONG==");
-            fflush(stdout);
             char str_value[21];
             uint64_t value;
             if (amqpvalue_get_ulong(amqp_value, &value) != 0)
@@ -180,8 +168,6 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
         }
         case AMQP_TYPE_BYTE:
         {
-            LOG(AZ_LOG_TRACE, 0, "==AMQP_TYPE_BYTE==");
-            fflush(stdout);
             char str_value[5];
             char value;
             if (amqpvalue_get_byte(amqp_value, &value) != 0)
@@ -201,8 +187,6 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
         }
         case AMQP_TYPE_SHORT:
         {
-            LOG(AZ_LOG_TRACE, 0, "==AMQP_TYPE_SHORT==");
-            fflush(stdout);
             char str_value[7];
             int16_t value;
             if (amqpvalue_get_short(amqp_value, &value) != 0)
@@ -222,8 +206,6 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
         }
         case AMQP_TYPE_INT:
         {
-            LOG(AZ_LOG_TRACE, 0, "==AMQP_TYPE_INT==");
-            fflush(stdout);
             char str_value[12];
             int32_t value;
             if (amqpvalue_get_int(amqp_value, &value) != 0)
@@ -243,8 +225,6 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
         }
         case AMQP_TYPE_LONG:
         {
-            LOG(AZ_LOG_TRACE, 0, "==AMQP_TYPE_LONG==");
-            fflush(stdout);
             char str_value[21];
             int64_t value;
             if (amqpvalue_get_long(amqp_value, &value) != 0)
@@ -264,8 +244,6 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
         }
         case AMQP_TYPE_FLOAT:
         {
-            LOG(AZ_LOG_TRACE, 0, "==AMQP_TYPE_FLOAT==");
-            fflush(stdout);
             float float_value;
             if (amqpvalue_get_float(amqp_value, &float_value) != 0)
             {
@@ -288,8 +266,6 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
         }
         case AMQP_TYPE_DOUBLE:
         {
-            LOG(AZ_LOG_TRACE, 0, "==AMQP_TYPE_DOUBLE==");
-            fflush(stdout);
             double double_value;
             if (amqpvalue_get_double(amqp_value, &double_value) != 0)
             {
@@ -312,8 +288,6 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
         }
         case AMQP_TYPE_CHAR:
         {
-            LOG(AZ_LOG_TRACE, 0, "==AMQP_TYPE_CHAR==");
-            fflush(stdout);
             uint32_t char_code;
             if (amqpvalue_get_char(amqp_value, &char_code) != 0)
             {
@@ -336,8 +310,6 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
         }
         case AMQP_TYPE_TIMESTAMP:
         {
-            LOG(AZ_LOG_TRACE, 0, "==AMQP_TYPE_TIMESTAMP==");
-            fflush(stdout);
             char str_value[21];
             int64_t value;
             if (amqpvalue_get_timestamp(amqp_value, &value) != 0)
@@ -357,8 +329,6 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
         }
         case AMQP_TYPE_UUID:
         {
-            LOG(AZ_LOG_TRACE, 0, "==AMQP_TYPE_UUID==");
-            fflush(stdout);
             uuid uuid_value;
             if (amqpvalue_get_uuid(amqp_value, &uuid_value) != 0)
             {
@@ -393,8 +363,6 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
 
         case AMQP_TYPE_BINARY:
         {
-            LOG(AZ_LOG_TRACE, 0, "==AMQP_TYPE_BINARY==");
-            fflush(stdout);
             amqp_binary binary_value;
             if (amqpvalue_get_binary(amqp_value, &binary_value) != 0)
             {
@@ -437,8 +405,6 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
         }
         case AMQP_TYPE_STRING:
         {
-            LOG(AZ_LOG_TRACE, 0, "==AMQP_TYPE_STRING==");
-            fflush(stdout);
             const char* string_value;
             if (amqpvalue_get_string(amqp_value, &string_value) != 0)
             {
@@ -459,8 +425,6 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
         }
         case AMQP_TYPE_SYMBOL:
         {
-            LOG(AZ_LOG_TRACE, 0, "==AMQP_TYPE_SYMBOL==");
-            fflush(stdout);
             const char* string_value;
             if (amqpvalue_get_symbol(amqp_value, &string_value) != 0)
             {
@@ -481,8 +445,6 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
         }
         case AMQP_TYPE_LIST:
         {
-            LOG(AZ_LOG_TRACE, 0, "==AMQP_TYPE_LIST==");
-            fflush(stdout);
             uint32_t count;
             if (amqpvalue_get_list_item_count(amqp_value, &count) != 0)
             {
@@ -551,8 +513,6 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
         }
         case AMQP_TYPE_MAP:
         {
-            LOG(AZ_LOG_TRACE, 0, "==AMQP_TYPE_MAP==");
-            fflush(stdout);
             uint32_t count;
             if (amqpvalue_get_map_pair_count(amqp_value, &count) != 0)
             {
@@ -644,8 +604,6 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
         }
         case AMQP_TYPE_ARRAY:
         {
-            LOG(AZ_LOG_TRACE, 0, "==AMQP_TYPE_ARRAY==");
-            fflush(stdout);
             uint32_t count;
             if (amqpvalue_get_array_item_count(amqp_value, &count) != 0)
             {
@@ -715,8 +673,6 @@ char* amqpvalue_to_string(AMQP_VALUE amqp_value)
         case AMQP_TYPE_COMPOSITE:
         case AMQP_TYPE_DESCRIBED:
         {
-            LOG(AZ_LOG_TRACE, 0, "==AMQP_TYPE_COMPOSITE/AMQP_TYPE_DESCRIBED==");
-            fflush(stdout);
             AMQP_VALUE described_value = amqpvalue_get_inplace_described_value(amqp_value);
             if (described_value == NULL)
             {

@@ -57,15 +57,19 @@ static void remove_pending_message_by_index(MESSAGE_SENDER_HANDLE message_sender
 {
     ASYNC_OPERATION_HANDLE* new_messages;
     MESSAGE_WITH_CALLBACK* message_with_callback = GET_ASYNC_OPERATION_CONTEXT(MESSAGE_WITH_CALLBACK, message_sender->messages[index]);
-    LogInfo("remove_pending_message_by_index() index:%u", (int)index);
+    LogInfo("remove_pending_message_by_index() index:%u handle:%p, context:%p", (int)index, message_sender->messages[index], message_with_callback->context);
 
     if (message_with_callback->message != NULL)
     {
+        LogInfo("remove_pending_message_by_index() message_destroy START index:%u", (int)index);
         message_destroy(message_with_callback->message);
         message_with_callback->message = NULL;
+        LogInfo("remove_pending_message_by_index() message_destroy END index:%u", (int)index);
     }
 
+    LogInfo("remove_pending_message_by_index() async_operation_destroy START index:%u", (int)index);
     async_operation_destroy(message_sender->messages[index]);
+    LogInfo("remove_pending_message_by_index() async_operation_destroy END index:%u", (int)index);
 
     if (message_sender->message_count - index > 1)
     {
@@ -86,6 +90,11 @@ static void remove_pending_message_by_index(MESSAGE_SENDER_HANDLE message_sender
     {
         free(message_sender->messages);
         message_sender->messages = NULL;
+    }
+
+    for (int i = 0; i < message_sender->message_count; i++)
+    {
+        LogInfo("  remove_pending_message_by_index() [i]:%u handle:%p", i, message_sender->messages[i]);
     }
 }
 
@@ -122,6 +131,8 @@ static void on_delivery_settled(void* context, delivery_number delivery_no, LINK
             }
             else
             {
+                LogInfo("LINK_DELIVERY_SETTLE_REASON_DISPOSITION_RECEIVED() delivery_no:%u", (int)delivery_no);
+
                 AMQP_VALUE descriptor = amqpvalue_get_inplace_descriptor(delivery_state);
                 AMQP_VALUE described = amqpvalue_get_inplace_described_value(delivery_state);
 
@@ -142,7 +153,7 @@ static void on_delivery_settled(void* context, delivery_number delivery_no, LINK
                     }
                 }
 
-                LogInfo("remove_pending_message() index:%u", (int)delivery_no);
+                LogInfo("remove_pending_message() delivery_no:%u", (int)delivery_no);
 
                 remove_pending_message(message_sender, pending_send);
             }
@@ -649,6 +660,8 @@ static void send_all_pending_messages(MESSAGE_SENDER_HANDLE message_sender)
         MESSAGE_WITH_CALLBACK* message_with_callback = GET_ASYNC_OPERATION_CONTEXT(MESSAGE_WITH_CALLBACK, message_sender->messages[i]);
         if (message_with_callback->message_send_state == MESSAGE_SEND_STATE_NOT_SENT)
         {
+            LogInfo("send_all_pending_messages() send_one_message i:%u, handle:%p", (int)i, message_sender->messages[i]);
+
             switch (send_one_message(message_sender, message_sender->messages[i], message_with_callback->message))
             {
             default:
@@ -952,10 +965,10 @@ ASYNC_OPERATION_HANDLE messagesender_send_async(MESSAGE_SENDER_HANDLE message_se
                         message_with_callback->context = callback_context;
                         message_with_callback->message_sender = message_sender;
 
-                        LogInfo("messagesender_send_async() index:%u, context:%p", (int)message_sender->message_count, message_with_callback->context);
-
                         message_sender->messages[message_sender->message_count] = result;
                         message_sender->message_count++;
+
+                        LogInfo("messagesender_send_async() message_count:%u, context:%p handle:%p", (int)message_sender->message_count, message_with_callback->context, result);
 
                         if (message_sender->message_sender_state == MESSAGE_SENDER_STATE_OPEN)
                         {

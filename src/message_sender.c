@@ -57,6 +57,7 @@ static void remove_pending_message_by_index(MESSAGE_SENDER_HANDLE message_sender
 {
     ASYNC_OPERATION_HANDLE* new_messages;
     MESSAGE_WITH_CALLBACK* message_with_callback = GET_ASYNC_OPERATION_CONTEXT(MESSAGE_WITH_CALLBACK, message_sender->messages[index]);
+    LogInfo("remove_pending_message_by_index() index:%u", (int)index);
 
     if (message_with_callback->message != NULL)
     {
@@ -140,6 +141,8 @@ static void on_delivery_settled(void* context, delivery_number delivery_no, LINK
                         message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_ERROR, described);
                     }
                 }
+
+                LogInfo("remove_pending_message() index:%u", (int)delivery_no);
 
                 remove_pending_message(message_sender, pending_send);
             }
@@ -948,6 +951,8 @@ ASYNC_OPERATION_HANDLE messagesender_send_async(MESSAGE_SENDER_HANDLE message_se
                         message_with_callback->on_message_send_complete = on_message_send_complete;
                         message_with_callback->context = callback_context;
                         message_with_callback->message_sender = message_sender;
+
+                        LogInfo("messagesender_send_async() index:%u, context:%p", (int)message_sender->message_count, message_with_callback->context);
 
                         message_sender->messages[message_sender->message_count] = result;
                         message_sender->message_count++;

@@ -94,7 +94,8 @@ static void remove_pending_message_by_index(MESSAGE_SENDER_HANDLE message_sender
 
     for (int i = 0; i < message_sender->message_count; i++)
     {
-        LogInfo("  remove_pending_message_by_index() [i]:%u handle:%p", i, message_sender->messages[i]);
+        MESSAGE_WITH_CALLBACK* message_with_callback2 = GET_ASYNC_OPERATION_CONTEXT(MESSAGE_WITH_CALLBACK, message_sender->messages[i]);
+        LogInfo("  remove_pending_message_by_index() [i]:%u handle:%p ctx:%p", i, message_sender->messages[i], message_with_callback2);
     }
 }
 
@@ -969,6 +970,11 @@ ASYNC_OPERATION_HANDLE messagesender_send_async(MESSAGE_SENDER_HANDLE message_se
                         message_sender->message_count++;
 
                         LogInfo("messagesender_send_async() message_count:%u, context:%p handle:%p", (int)message_sender->message_count, message_with_callback->context, result);
+                        for (int i = 0; i < message_sender->message_count; i++)
+                        {
+                            MESSAGE_WITH_CALLBACK* message_with_callback2 = GET_ASYNC_OPERATION_CONTEXT(MESSAGE_WITH_CALLBACK, message_sender->messages[i]);
+                            LogInfo("  messagesender_send_async() [i]:%u handle:%p ctx:%p", i, message_sender->messages[i], message_with_callback2);
+                        }
 
                         if (message_sender->message_sender_state == MESSAGE_SENDER_STATE_OPEN)
                         {

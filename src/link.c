@@ -551,6 +551,7 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                         else
                         {
                             DELIVERY_INSTANCE* delivery_instance = (DELIVERY_INSTANCE*)GET_ASYNC_OPERATION_CONTEXT(DELIVERY_INSTANCE, pending_delivery_operation);
+                            LogInfo(">>>> link_frame_received() delivery_instance:%p, delivery_id:%d, first:%d, last:%d", delivery_instance, (int)delivery_instance->delivery_id,(int)first, (int)last);
 
                             if ((delivery_instance->delivery_id >= first) && (delivery_instance->delivery_id <= last))
                             {
@@ -1480,6 +1481,7 @@ ASYNC_OPERATION_HANDLE link_transfer_async(LINK_HANDLE link, message_format mess
                                     pending_delivery->callback_context = callback_context;
                                     pending_delivery->link = link;
                                     delivery_instance_list_item = singlylinkedlist_add(link->pending_deliveries, result);
+                                    LogInfo(">>>> link_transfer_async() pending_deliveries ADD callback_context:%p, result:%p", callback_context, result);
 
                                     if (delivery_instance_list_item == NULL)
                                     {

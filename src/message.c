@@ -102,6 +102,8 @@ static void free_all_body_sequence_items(MESSAGE_HANDLE message)
 MESSAGE_HANDLE message_create(void)
 {
     MESSAGE_HANDLE result = (MESSAGE_HANDLE)calloc(1, sizeof(MESSAGE_INSTANCE));
+    LogInfo("message_create() calloc:%p", result);
+
     if (result == NULL)
     {
         /* Codes_SRS_MESSAGE_01_002: [If allocating memory for the message fails, `message_create` shall fail and return NULL.] */
@@ -150,6 +152,8 @@ MESSAGE_HANDLE message_clone(MESSAGE_HANDLE source_message)
         }
         else
         {
+            LogInfo("message_clone() clone:%p", result);
+
             result->message_format = source_message->message_format;
 
             if (source_message->header != NULL)
@@ -381,6 +385,7 @@ void message_destroy(MESSAGE_HANDLE message)
 
         /* Codes_SRS_MESSAGE_01_136: [ If the message body is made of several AMQP sequences, they shall all be freed. ]*/
         free_all_body_sequence_items(message);
+        LogInfo("message_destroy() free:%p", message);
         free(message);
     }
 }

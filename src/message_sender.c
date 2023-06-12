@@ -61,7 +61,7 @@ static void remove_pending_message_by_index(MESSAGE_SENDER_HANDLE message_sender
 
     if (message_with_callback->message != NULL)
     {
-        LogInfo("remove_pending_message_by_index() message_destroy START index:%u", (int)index);
+        LogInfo("remove_pending_message_by_index() message_destroy START index:%u message:%p", (int)index, message_with_callback->message);
         message_destroy(message_with_callback->message);
         message_with_callback->message = NULL;
         LogInfo("remove_pending_message_by_index() message_destroy END index:%u", (int)index);
@@ -720,6 +720,7 @@ static void indicate_all_messages_as_error(MESSAGE_SENDER_INSTANCE* message_send
 
         if (message_with_callback->message != NULL)
         {
+            LogInfo("indicate_all_messages_as_error() message_destroy message:%p", message_with_callback->message);
             message_destroy(message_with_callback->message);
         }
         async_operation_destroy(message_sender->messages[i]);

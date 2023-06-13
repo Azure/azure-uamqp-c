@@ -387,7 +387,7 @@ void message_destroy(MESSAGE_HANDLE message)
         free_all_body_sequence_items(message);
         LogInfo("message_destroy() free:%p", message);
         memset(message, 0, sizeof(MESSAGE_INSTANCE));
-        //free(message);
+        free(message);
     }
 }
 

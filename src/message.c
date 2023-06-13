@@ -386,7 +386,8 @@ void message_destroy(MESSAGE_HANDLE message)
         /* Codes_SRS_MESSAGE_01_136: [ If the message body is made of several AMQP sequences, they shall all be freed. ]*/
         free_all_body_sequence_items(message);
         LogInfo("message_destroy() free:%p", message);
-        free(message);
+        memset(message, 0, sizeof(MESSAGE_INSTANCE));
+        //free(message);
     }
 }
 

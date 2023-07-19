@@ -127,7 +127,7 @@ jobs:
 - job: clang
   container: linux-c-ubuntu-clang
   pool: 
-    name: 'sdk-c--ubuntu-18'
+    name: 'sdk-c--ubuntu-22'
   displayName: 'Linux Ubuntu Clang'
   steps:
   - script: |
@@ -160,7 +160,7 @@ jobs:
 - job: ubuntu2004
   container: linux-c-ubuntu-2004
   pool: 
-    name: 'sdk-c--ubuntu-18'
+    name: 'sdk-c--ubuntu-22'
   displayName: 'Linux Ubuntu 20.04'
   steps:
   - script: |
@@ -193,7 +193,7 @@ jobs:
 - job: linuxoptions
   container: linux-c-ubuntu-2004
   pool: 
-    name: 'sdk-c--ubuntu-18'
+    name: 'sdk-c--ubuntu-22'
   displayName: 'Linux Ubuntu 20.04 with Options'
   steps:
   - script: |
@@ -206,7 +206,7 @@ jobs:
 - job: wolfssl
   container: linux-c-ubuntu-wolfssl
   pool: 
-    name: 'sdk-c--ubuntu-18'
+    name: 'sdk-c--ubuntu-22'
   displayName: 'Linux Ubuntu with WolfSSL'
   steps:
   - script: |
@@ -239,7 +239,7 @@ jobs:
 - job: debian
   container: linux-c-debian
   pool: 
-    name: 'sdk-c--ubuntu-18'
+    name: 'sdk-c--ubuntu-22'
   displayName: 'Linux Debian'
   steps:
   - script: |
@@ -272,7 +272,7 @@ jobs:
 - job: linux_install_deps
   container: linux-c-debian
   pool: 
-    name: 'sdk-c--ubuntu-18'
+    name: 'sdk-c--ubuntu-22'
   displayName: 'Linux Debian with Installed Deps'
   steps:
   - script: |
@@ -369,7 +369,7 @@ jobs:
 - job: raspberrypi
   container: raspberrypi-c-buster
   pool: 
-    name: 'sdk-c--ubuntu-18'
+    name: 'sdk-c--ubuntu-22'
   displayName: Raspberry Pi
   steps:
   - script: |

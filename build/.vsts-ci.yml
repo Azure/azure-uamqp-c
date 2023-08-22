@@ -306,7 +306,7 @@ jobs:
   variables:
     CodeQL.Enabled: false
   pool:
-    name: OSX
+   vmImage: 'macOS-13'
   steps:
   - script: |
      if [ -f "jenkins/osx_gcc_openssl.sh" ]
@@ -338,7 +338,7 @@ jobs:
   variables:
     CodeQL.Enabled: false
   pool:
-    name: OSX
+    vmImage: 'macOS-13'
   steps:
   - script: |
      if [ -f "jenkins/osx_xcode_native.sh" ]

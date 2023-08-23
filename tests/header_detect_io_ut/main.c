@@ -7,5 +7,5 @@ int main(void)
 {
     size_t failedTestCount = 0;
     RUN_TEST_SUITE(header_detect_io_ut, failedTestCount);
-    return failedTestCount;
+    return (int)failedTestCount;
 }

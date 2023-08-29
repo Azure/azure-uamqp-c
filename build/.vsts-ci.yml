@@ -9,6 +9,9 @@ resources:
   - container: linux-c-ubuntu-clang
     endpoint: csdk-containers
     image: csdkcontainerregistry.azurecr.io/linux-c-ubuntu-clang:latest
+  - container: linux-c-debian-buster
+    endpoint: csdk-containers
+    image: csdkcontainerregistry.azurecr.io/linux-c-debian-buster:latest
   - container: linux-c-ubuntu-wolfssl
     endpoint: csdk-containers
     image: csdkcontainerregistry.azurecr.io/linux-c-ubuntu-wolfssl:latest
@@ -234,10 +237,10 @@ jobs:
       PROVISIONING_CONNECTION_STRING_INVALIDCERT: $(PROVISIONING-CONNECTION-STRING-INVALIDCERT)
       UAMQP_E2E_DEVICE_KEY: $(UAMQP-E2E-DEVICE-KEY)
 - job: debian
-  container: raspberrypi-c-buster
+  container: linux-c-debian-buster
   pool: 
     name: 'sdk-c--ubuntu-22'
-  displayName: 'Linux Debian'
+  displayName: 'Linux Debian (Buster)'
   steps:
   - script: |
      if [ -f "jenkins/debian_c.sh" ]

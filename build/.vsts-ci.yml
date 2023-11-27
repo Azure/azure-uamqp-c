@@ -36,7 +36,7 @@ jobs:
     displayName: 'setup'
   - script: |
       npm install check_submodules
-      ./../../node_modules/.bin/check_submodules . master
+      node_modules/.bin/check_submodules . master
     displayName: 'build'
 - job: windowsx86
   displayName: Windows x86

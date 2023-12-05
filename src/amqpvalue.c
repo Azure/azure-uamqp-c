@@ -5919,7 +5919,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                                 }
                                 else
                                 {
-                                    internal_decoder_data->decode_to_value->value.binary_value.bytes = (unsigned char*)malloc((size_t)internal_decoder_data->decode_to_value->value.binary_value.length + 1);
+                                    internal_decoder_data->decode_to_value->value.binary_value.bytes = (unsigned char*)malloc(malloc_size);
                                 }
 
                                 if (internal_decoder_data->decode_to_value->value.binary_value.bytes == NULL)

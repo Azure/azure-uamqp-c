@@ -5916,6 +5916,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                                 if (malloc_size == 0)
                                 {
                                     internal_decoder_data->decode_to_value->value.binary_value.bytes = NULL;
+                                    LogError("Invalid binary_value size exceeded max allocation");
                                 }
                                 else
                                 {

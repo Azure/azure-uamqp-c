@@ -5912,7 +5912,16 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                             }
                             else
                             {
-                                internal_decoder_data->decode_to_value->value.binary_value.bytes = (unsigned char*)malloc((size_t)internal_decoder_data->decode_to_value->value.binary_value.length + 1);
+                                size_t malloc_size = (size_t)internal_decoder_data->decode_to_value->value.binary_value.length + 1;
+                                if (malloc_size == 0)
+                                {
+                                    internal_decoder_data->decode_to_value->value.binary_value.bytes = NULL;
+                                }
+                                else
+                                {
+                                    internal_decoder_data->decode_to_value->value.binary_value.bytes = (unsigned char*)malloc((size_t)internal_decoder_data->decode_to_value->value.binary_value.length + 1);
+                                }
+
                                 if (internal_decoder_data->decode_to_value->value.binary_value.bytes == NULL)
                                 {
                                     /* Codes_SRS_AMQPVALUE_01_326: [If any allocation failure occurs during decoding, amqpvalue_decode_bytes shall fail and return a non-zero value.] */

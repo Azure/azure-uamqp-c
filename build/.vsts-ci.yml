@@ -20,6 +20,8 @@ resources:
     image: csdkcontainerregistry.azurecr.io/raspberrypi-c-buster:brown
 jobs:
 - job: checksubmodule
+  variables:
+    CodeQL.Enabled: false
   displayName: Check Submodules
   pool:
     vmImage: 'ubuntu-20.04'

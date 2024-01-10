@@ -11,6 +11,7 @@
 #include "azure_uamqp_c/amqp_types.h"
 #include "azure_uamqp_c/amqpvalue.h"
 #include "azure_c_shared_utility/refcount.h"
+#include "azure_c_shared_utility/safe_math.h"
 
 // max alloc size 100MB
 #define MAX_AMQPVALUE_MALLOC_SIZE_BYTES (100 * 1024 * 1024) 

@@ -5988,6 +5988,8 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                         size--;
 
                         size_t malloc_size = (size_t)internal_decoder_data->decode_value_state.string_value_state.length + 1;
+                        // If the result of malloc_size is zero it means it had a type overflow (size_t is an unsigned type).
+                        // It is very unlikely but could happen.
                         if (malloc_size == 0)
                         {
                             internal_decoder_data->decode_to_value->value.string_value.chars = NULL;

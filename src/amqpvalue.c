@@ -1071,6 +1071,8 @@ AMQP_VALUE amqpvalue_create_string(const char* value)
         size_t length = strlen(value);
         size_t malloc_size = length + 1;
 
+        // If the result of malloc_size is zero it means it had a type overflow (size_t is an unsigned type).
+        // It is very unlikely but could happen.
         if (malloc_size == 0)
         {
             LogError("Invalid string size exceeded max allocation");

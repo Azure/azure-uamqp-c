@@ -6577,7 +6577,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                                 if (malloc_size == SIZE_MAX)
                                 {
                                     LogError("Invalid map_value size exceeded max allocation");
-                                    internal_decoder_data->decode_to_value->value.map_value.pairs = NULL);
+                                    internal_decoder_data->decode_to_value->value.map_value.pairs = NULL;
                                 }
                                 else
                                 {

@@ -6150,7 +6150,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                         }
                         else
                         {
-                            internal_decoder_data->decode_to_value->value.symbol_value.chars = (char*)malloc(malloc_size1);
+                            internal_decoder_data->decode_to_value->value.symbol_value.chars = (char*)malloc(malloc_size);
                         }
 
                         if (internal_decoder_data->decode_to_value->value.symbol_value.chars == NULL)
@@ -6571,7 +6571,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                                 uint32_t i;
 
                                 internal_decoder_data->decode_to_value->value.map_value.pair_count /= 2;
-                                size_t malloc_size = safe_multiply_size_t(sizeof(AMQP_MAP_KEY_VALUE_PAIR), ((size_t)internal_decoder_data->decode_to_value->value.map_value.pair_count);
+                                size_t malloc_size = safe_multiply_size_t(sizeof(AMQP_MAP_KEY_VALUE_PAIR), (size_t)internal_decoder_data->decode_to_value->value.map_value.pair_count);
                                 malloc_size = safe_multiply_size_t(malloc_size, 2);
 
                                 if (malloc_size == SIZE_MAX)
@@ -6581,7 +6581,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                                 }
                                 else
                                 {
-                                    internal_decoder_data->decode_to_value->value.map_value.pairs = (AMQP_MAP_KEY_VALUE_PAIR*)malloc(malloc_size));
+                                    internal_decoder_data->decode_to_value->value.map_value.pairs = (AMQP_MAP_KEY_VALUE_PAIR*)malloc(malloc_size);
                                 }
 
                                 if (internal_decoder_data->decode_to_value->value.map_value.pairs == NULL)

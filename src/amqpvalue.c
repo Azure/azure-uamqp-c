@@ -1158,7 +1158,7 @@ AMQP_VALUE amqpvalue_create_symbol(const char* value)
     else
     {
         size_t length = strlen(value);
-        if (length > UINT32_MAX)
+        if (length >= UINT32_MAX)
         {
             /* Codes_SRS_AMQPVALUE_01_401: [ If the string pointed to by value is longer than 2^32-1 then amqpvalue_create_symbol shall return NULL. ]*/
             LogError("string too long to be represented as a symbol");

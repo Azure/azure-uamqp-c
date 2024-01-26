@@ -12,6 +12,7 @@
 #include "azure_uamqp_c/frame_codec.h"
 #include "azure_uamqp_c/amqpvalue.h"
 #include "azure_uamqp_c/amqp_definitions.h"
+#include "azure_c_shared_utility/safe_math.h"
 
 /* Requirements implemented by design or by other modules */
 /* Codes_SRS_SASL_FRAME_CODEC_01_011: [A SASL frame has a type code of 0x01.] */
@@ -82,7 +83,9 @@ static void frame_received(void* context, const unsigned char* type_specific, ui
     /* Codes_SRS_SASL_FRAME_CODEC_01_007: [The extended header is ignored.] */
 
     /* Codes_SRS_SASL_FRAME_CODEC_01_008: [The maximum size of a SASL frame is defined by MIN-MAX-FRAME-SIZE.] */
-    if ((type_specific_size + frame_body_size + 6 > MIX_MAX_FRAME_SIZE) ||
+    size_t size = safe_add_size_t(type_specific_size, frame_body_size);
+    size = safe_add_size_t(size, 6);
+    if ((size > MIX_MAX_FRAME_SIZE) ||
         /* Codes_SRS_SASL_FRAME_CODEC_01_010: [Receipt of an empty frame is an irrecoverable error.] */
         (frame_body_size == 0))
     {

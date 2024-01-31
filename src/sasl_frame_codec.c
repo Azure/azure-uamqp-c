@@ -17,7 +17,8 @@
 /* Requirements implemented by design or by other modules */
 /* Codes_SRS_SASL_FRAME_CODEC_01_011: [A SASL frame has a type code of 0x01.] */
 /* Codes_SRS_SASL_FRAME_CODEC_01_016: [The maximum size of a SASL frame is defined by MIN-MAX-FRAME-SIZE.] */
-
+/* Codes_SRS_SASL_FRAME_CODEC_01_017: [The minimum size of a SASL frame is defined by MIN_FRAME_SIZE (1 byte).] */
+#define MIN_FRAME_SIZE     1
 #define MIX_MAX_FRAME_SIZE 512
 
 typedef enum SASL_FRAME_DECODE_STATE_TAG
@@ -280,11 +281,12 @@ int sasl_frame_codec_encode_frame(SASL_FRAME_CODEC_HANDLE sasl_frame_codec, AMQP
             LogError("Cannot get SASL frame encoded size");
             result = MU_FAILURE;
         }
-            /* Codes_SRS_SASL_FRAME_CODEC_01_016: [The maximum size of a SASL frame is defined by MIN-MAX-FRAME-SIZE.] */
-        else if (encoded_size > MIX_MAX_FRAME_SIZE - 8)
+        /* Codes_SRS_SASL_FRAME_CODEC_01_016: [The maximum size of a SASL frame is defined by MIN-MAX-FRAME-SIZE.] */
+        /* Codes_SRS_SASL_FRAME_CODEC_01_017: [The minimum size of a SASL frame is defined by MIN_FRAME_SIZE (1 byte).] */
+        else if (encoded_size < MIN_FRAME_SIZE || encoded_size > (MIX_MAX_FRAME_SIZE - 8))
         {
             /* Codes_SRS_SASL_FRAME_CODEC_01_034: [If any error occurs during encoding, sasl_frame_codec_encode_frame shall fail and return a non-zero value.] */
-            LogError("SASL frame encoded size too big");
+            LogError("SASL frame encoded size out of bounds (%u)", (unsigned int)encoded_size);
             result = MU_FAILURE;
         }
         else

@@ -58,6 +58,7 @@ static void my_gballoc_free(void* ptr)
 #define TEST_AMQP_VALUE                    (AMQP_VALUE)0x4246
 #define TEST_CONTEXT                    (void*)0x4247
 
+#define TEST_MIN_FRAME_SIZE                1
 #define TEST_MIX_MAX_FRAME_SIZE            512
 
 static const unsigned char default_test_encoded_bytes[2] = { 0x42, 0x43 };
@@ -860,6 +861,43 @@ TEST_FUNCTION(when_encoding_a_sasl_frame_value_that_makes_the_frame_be_the_max_s
     sasl_frame_codec_destroy(sasl_frame_codec);
 }
 
+/* Tests_SRS_SASL_FRAME_CODEC_01_017: [The minimum size of a SASL frame is defined by MIN_FRAME_SIZE (1 byte).] */
+TEST_FUNCTION(when_encoding_a_sasl_frame_value_that_makes_the_frame_be_the_min_size_sasl_frame_codec_encode_frame_succeeds)
+{
+    // arrange
+    SASL_FRAME_CODEC_HANDLE sasl_frame_codec = sasl_frame_codec_create(TEST_FRAME_CODEC_HANDLE, test_on_sasl_frame_received, test_on_sasl_frame_codec_error, TEST_CONTEXT);
+    PAYLOAD payload;
+    size_t sasl_frame_value_size;
+    unsigned char encoded_bytes[TEST_MIN_FRAME_SIZE] = { 0 };
+    int result;
+    umock_c_reset_all_calls();
+
+    test_encoded_bytes = encoded_bytes;
+    test_encoded_bytes_size = sizeof(encoded_bytes);
+    payload.bytes = test_encoded_bytes;
+    payload.length = test_encoded_bytes_size;
+
+    sasl_frame_value_size = test_encoded_bytes_size;
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE));
+    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_get_encoded_size(TEST_AMQP_VALUE, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &sasl_frame_value_size, sizeof(sasl_frame_value_size));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_encode(TEST_AMQP_VALUE, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(frame_codec_encode_frame(TEST_FRAME_CODEC_HANDLE, FRAME_TYPE_SASL, &payload, 1, NULL, 0, test_on_bytes_encoded, (void*)0x4242));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+
+    // act
+    result = sasl_frame_codec_encode_frame(sasl_frame_codec, TEST_AMQP_VALUE, test_on_bytes_encoded, (void*)0x4242);
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    sasl_frame_codec_destroy(sasl_frame_codec);
+}
+
 /* Tests_SRS_SASL_FRAME_CODEC_01_016: [The maximum size of a SASL frame is defined by MIN-MAX-FRAME-SIZE.] */
 TEST_FUNCTION(when_encoding_a_sasl_frame_value_that_makes_the_frame_exceed_the_allowed_size_sasl_frame_codec_encode_frame_fails)
 {
@@ -877,6 +915,40 @@ TEST_FUNCTION(when_encoding_a_sasl_frame_value_that_makes_the_frame_exceed_the_a
     test_encoded_bytes = encoded_bytes;
     test_encoded_bytes_size = sizeof(encoded_bytes);
     sasl_frame_value_size = test_encoded_bytes_size;
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE));
+    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_get_encoded_size(TEST_AMQP_VALUE, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &sasl_frame_value_size, sizeof(sasl_frame_value_size));
+
+    // act
+    result = sasl_frame_codec_encode_frame(sasl_frame_codec, TEST_AMQP_VALUE, test_on_bytes_encoded, (void*)0x4242);
+
+    // assert
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    sasl_frame_codec_destroy(sasl_frame_codec);
+}
+
+/* Tests_SRS_SASL_FRAME_CODEC_01_017: [The minimum size of a SASL frame is defined by MIN_FRAME_SIZE (1 byte).] */
+TEST_FUNCTION(when_encoding_a_sasl_frame_value_that_makes_the_frame_short_of_the_min_size_sasl_frame_codec_encode_frame_fails)
+{
+    // arrange
+    SASL_FRAME_CODEC_HANDLE sasl_frame_codec = sasl_frame_codec_create(TEST_FRAME_CODEC_HANDLE, test_on_sasl_frame_received, test_on_sasl_frame_codec_error, TEST_CONTEXT);
+    // PAYLOAD payload;
+    // unsigned char encoded_bytes[0];
+    size_t sasl_frame_value_size;
+    int result;
+    umock_c_reset_all_calls();
+
+    // payload.bytes = test_encoded_bytes;
+    // payload.length = test_encoded_bytes_size;
+
+    // test_encoded_bytes = encoded_bytes;
+    // test_encoded_bytes_size = sizeof(encoded_bytes);
+    // sasl_frame_value_size = test_encoded_bytes_size;
+    sasl_frame_value_size = 0;
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE));
     STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_get_encoded_size(TEST_AMQP_VALUE, IGNORED_PTR_ARG))

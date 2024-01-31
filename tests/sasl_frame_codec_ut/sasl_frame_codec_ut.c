@@ -936,18 +936,19 @@ TEST_FUNCTION(when_encoding_a_sasl_frame_value_that_makes_the_frame_short_of_the
 {
     // arrange
     SASL_FRAME_CODEC_HANDLE sasl_frame_codec = sasl_frame_codec_create(TEST_FRAME_CODEC_HANDLE, test_on_sasl_frame_received, test_on_sasl_frame_codec_error, TEST_CONTEXT);
-    PAYLOAD payload;
-    unsigned char encoded_bytes[0];
+    // PAYLOAD payload;
+    // unsigned char encoded_bytes[0];
     size_t sasl_frame_value_size;
     int result;
     umock_c_reset_all_calls();
 
-    payload.bytes = test_encoded_bytes;
-    payload.length = test_encoded_bytes_size;
+    // payload.bytes = test_encoded_bytes;
+    // payload.length = test_encoded_bytes_size;
 
-    test_encoded_bytes = encoded_bytes;
-    test_encoded_bytes_size = sizeof(encoded_bytes);
-    sasl_frame_value_size = test_encoded_bytes_size;
+    // test_encoded_bytes = encoded_bytes;
+    // test_encoded_bytes_size = sizeof(encoded_bytes);
+    // sasl_frame_value_size = test_encoded_bytes_size;
+    sasl_frame_value_size = 0;
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE));
     STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_get_encoded_size(TEST_AMQP_VALUE, IGNORED_PTR_ARG))

@@ -5,6 +5,8 @@ cmake_minimum_required(VERSION 3.5)
 project(uamqp)
 
 FILE(READ ${CMAKE_CURRENT_LIST_DIR}/version.txt UAMQP_VERSION)
+string(REPLACE "." ";" VERSION_LIST ${UAMQP_VERSION})
+list(GET VERSION_LIST 0 UAMQP_VERSION_MAJOR)
 
 option(run_e2e_tests "set run_e2e_tests to ON to run e2e tests (default is OFF) [if possible, they are always built]" OFF)
 option(run_unittests "set run_unittests to ON to run unittests (default is OFF)" OFF)
@@ -243,6 +245,9 @@ add_library(uamqp
     ${uamqp_h_files}
     ${socketlistener_c_files}
     )
+  set_target_properties(uamqp PROPERTIES
+    VERSION ${UAMQP_VERSION}
+    SOVERSION ${UAMQP_VERSION_MAJOR})
 setTargetBuildProperties(uamqp)
 
 target_link_libraries(uamqp aziotsharedutil)
@@ -264,7 +269,7 @@ set(UAMQP_SRC_FOLDER ${CMAKE_CURRENT_LIST_DIR}/src CACHE INTERNAL "This is the l
 include(GNUInstallDirs)
 
 # Install uamqp
-set(package_location "cmake")
+set(package_location "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
 
 if(NOT DEFINED CMAKE_INSTALL_LIBDIR)
     set(CMAKE_INSTALL_LIBDIR "lib")
@@ -273,7 +278,7 @@ endif()
 install(TARGETS uamqp EXPORT uamqpTargets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}/../bin
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azureiot
 )
 install(FILES ${uamqp_h_files} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/azureiot/azure_uamqp_c)

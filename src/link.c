@@ -448,10 +448,12 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                     /* If this is a continuation transfer or if this is the first chunk of a multi frame transfer */
                     if ((link_instance->received_payload_size > 0) || more)
                     {
-                        unsigned char* new_received_payload = (unsigned char*)realloc(link_instance->received_payload, (size_t)link_instance->received_payload_size + payload_size);
-                        if (new_received_payload == NULL)
+                        unsigned char* new_received_payload;;
+                        size_t realloc_size = safe_add_size_t((size_t)link_instance->received_payload_size, payload_size);
+                        if (realloc_size == SIZE_MAX ||
+                            (new_received_payload = (unsigned char*)realloc(link_instance->received_payload, realloc_size)) == NULL)
                         {
-                            LogError("Could not allocate memory for the received payload");
+                            LogError("Could not allocate memory for the received payload, size:%zu", realloc_size);
                         }
                         else
                         {

@@ -35,10 +35,11 @@ static int string_concat(char** string, const char* to_concat)
         src_length = 0;
     }
 
-    new_string = (char*)realloc(*string, src_length + length);
-    if (new_string == NULL)
+    size_t realloc_size = safe_add_size_t(src_length, length);
+    if (realloc_size == SIZE_MAX ||
+        (new_string = (char*)realloc(*string, realloc_size)) == NULL)
     {
-        LogError("Cannot allocate memory for the new string");
+        LogError("Cannot allocate memory for the new string, size:%zu", realloc_size);
         result = MU_FAILURE;
     }
     else

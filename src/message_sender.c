@@ -75,8 +75,9 @@ static void remove_pending_message_by_index(MESSAGE_SENDER_HANDLE message_sender
 
     if (message_sender->message_count > 0)
     {
-        new_messages = (ASYNC_OPERATION_HANDLE*)realloc(message_sender->messages, sizeof(ASYNC_OPERATION_HANDLE) * (message_sender->message_count));
-        if (new_messages != NULL)
+        size_t realloc_size = safe_add_size_t(sizeof(ASYNC_OPERATION_HANDLE), (message_sender->message_count));
+        if (realloc_size != SIZE_MAX &&
+            (new_messages = (ASYNC_OPERATION_HANDLE*)realloc(message_sender->messages, realloc_size)) != NULL)
         {
             message_sender->messages = new_messages;
         }
@@ -913,11 +914,14 @@ ASYNC_OPERATION_HANDLE messagesender_send_async(MESSAGE_SENDER_HANDLE message_se
             }
             else
             {
+                ASYNC_OPERATION_HANDLE* new_messages;
                 MESSAGE_WITH_CALLBACK* message_with_callback = GET_ASYNC_OPERATION_CONTEXT(MESSAGE_WITH_CALLBACK, result);
-                ASYNC_OPERATION_HANDLE* new_messages = (ASYNC_OPERATION_HANDLE*)realloc(message_sender->messages, sizeof(ASYNC_OPERATION_HANDLE) * (message_sender->message_count + 1));
-                if (new_messages == NULL)
+                size_t realloc_size = safe_add_size_t(message_sender->message_count, 1);
+                realloc_size = safe_multiply_size_t(realloc_size, sizeof(ASYNC_OPERATION_HANDLE));
+                if (realloc_size == SIZE_MAX ||
+                    (new_messages = (ASYNC_OPERATION_HANDLE*)realloc(message_sender->messages, realloc_size)) == NULL)
                 {
-                    LogError("Failed allocating memory for pending sends");
+                    LogError("Failed allocating memory for pending sends, size:%zu", realloc_size);
                     async_operation_destroy(result);
                     result = NULL;
                 }

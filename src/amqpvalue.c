@@ -1416,6 +1416,7 @@ int amqpvalue_set_list_item(AMQP_VALUE value, uint32_t index, AMQP_VALUE list_it
             {
                 if (index >= value_data->value.list_value.count)
                 {
+                    AMQP_VALUE* new_list;
                     size_t realloc_size = safe_add_size_t((size_t)index, 1);
                     realloc_size = safe_multiply_size_t(realloc_size, sizeof(AMQP_VALUE));
                     if (realloc_size == SIZE_MAX ||
@@ -1616,6 +1617,7 @@ int amqpvalue_set_map_value(AMQP_VALUE map, AMQP_VALUE key, AMQP_VALUE value)
                     }
                     else
                     {
+                        AMQP_MAP_KEY_VALUE_PAIR* new_pairs;
                         size_t realloc_size = safe_add_size_t((size_t)value_data->value.map_value.pair_count, 1);
                         realloc_size = safe_multiply_size_t(realloc_size, sizeof(AMQP_MAP_KEY_VALUE_PAIR));
                         if (realloc_size == SIZE_MAX ||
@@ -1923,6 +1925,7 @@ int amqpvalue_add_array_item(AMQP_VALUE value, AMQP_VALUE array_item_value)
                 }
                 else
                 {
+                    AMQP_VALUE* new_array;
                     size_t realloc_size = safe_add_size_t((size_t)value_data->value.array_value.count, 1);
                     realloc_size = safe_multiply_size_t(realloc_size, sizeof(AMQP_VALUE));
                     if (realloc_size == SIZE_MAX ||
@@ -6367,9 +6370,9 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                             else
                             {
                                 uint32_t i;
-                                size_t calloc_size = safe_multiply_size_t((sizeof(AMQP_VALUE), internal_decoder_data->decode_to_value->value.list_value.count);
+                                size_t calloc_size = safe_multiply_size_t(sizeof(AMQP_VALUE), internal_decoder_data->decode_to_value->value.list_value.count);
                                 if (calloc_size == SIZE_MAX ||
-                                    (internal_decoder_data->decode_to_value->value.list_value.items = (AMQP_VALUE*)calloc(1, calloc_size))) == NULL)
+                                    (internal_decoder_data->decode_to_value->value.list_value.items = (AMQP_VALUE*)calloc(1, calloc_size)) == NULL)
                                 {
                                     LogError("Could not allocate memory for decoded list value, size:%zu", calloc_size);
                                     result = MU_FAILURE;
@@ -6836,7 +6839,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                                 uint32_t i;
                                 size_t calloc_size = safe_multiply_size_t(sizeof(AMQP_VALUE), internal_decoder_data->decode_to_value->value.array_value.count);
                                 if (calloc_size == SIZE_MAX ||
-                                    internal_decoder_data->decode_to_value->value.array_value.items = (AMQP_VALUE*)calloc(1, calloc_size) == NULL)
+                                    (internal_decoder_data->decode_to_value->value.array_value.items = (AMQP_VALUE*)calloc(1, calloc_size)) == NULL)
                                 {
                                     LogError("Could not allocate memory for array items, size:%zu", calloc_size);
                                     result = MU_FAILURE;
@@ -6870,7 +6873,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                                 {
                                     uint32_t i;
                                     size_t calloc_size = safe_multiply_size_t(sizeof(AMQP_VALUE), internal_decoder_data->decode_to_value->value.array_value.count);
-                                    if (calloc_size == MAZ_SIZE ||
+                                    if (calloc_size == SIZE_MAX ||
                                         (internal_decoder_data->decode_to_value->value.array_value.items = (AMQP_VALUE*)calloc(1, calloc_size)) == NULL)
                                     {
                                         LogError("Could not allocate memory for array items, size:%zu", calloc_size);

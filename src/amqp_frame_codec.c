@@ -278,8 +278,8 @@ int amqp_frame_codec_encode_frame(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec, uint
                 PAYLOAD* new_payloads;
                 size_t calloc_size = safe_add_size_t(payload_count, 1);
                 calloc_size = safe_multiply_size_t(calloc_size, sizeof(PAYLOAD));
-                if (calloc_size == MAZ_SIZE ||
-                    (new_payloads new_payloads = (PAYLOAD*)calloc(1, calloc_size)) == NULL)
+                if (calloc_size == SIZE_MAX ||
+                    (new_payloads = (PAYLOAD*)calloc(1, calloc_size)) == NULL)
                 {
                     LogError("Could not allocate frame payloads, size:%zu", calloc_size);
                     result = MU_FAILURE;

@@ -234,12 +234,11 @@ MESSAGE_HANDLE message_clone(MESSAGE_HANDLE source_message)
             {
                 size_t i;
 
-                size_t calloc_size = safe_multiply_size_t(source_message->body_amqp_data_count, sizeof(BODY_AMQP_DATA));
-                if (calloc_size = SIZE_MAX ||
-                    (result->body_amqp_data_items = (BODY_AMQP_DATA*)calloc(1, calloc_size)) == NULL)
+                result->body_amqp_data_items = (BODY_AMQP_DATA*)calloc(1, (source_message->body_amqp_data_count * sizeof(BODY_AMQP_DATA)));
+                if (result->body_amqp_data_items == NULL)
                 {
                     /* Codes_SRS_MESSAGE_01_012: [ If any cloning operation for the members of the source message fails, then `message_clone` shall fail and return NULL. ]*/
-                    LogError("Cannot allocate memory for body data sections, size:%zu", calloc_size);
+                    LogError("Cannot allocate memory for body data sections");
                     message_destroy(result);
                     result = NULL;
                 }
@@ -276,12 +275,11 @@ MESSAGE_HANDLE message_clone(MESSAGE_HANDLE source_message)
             {
                 size_t i;
 
-                size_t calloc_size = safe_multiply_size_t(source_message->body_amqp_sequence_count, sizeof(AMQP_VALUE));
-                if (calloc_size == SIZE_MAX ||
-                    (result->body_amqp_sequence_items = (AMQP_VALUE*)calloc(1, calloc_size)) == NULL)
+                result->body_amqp_sequence_items = (AMQP_VALUE*)calloc(1, (source_message->body_amqp_sequence_count * sizeof(AMQP_VALUE)));
+                if (result->body_amqp_sequence_items == NULL)
                 {
                     /* Codes_SRS_MESSAGE_01_012: [ If any cloning operation for the members of the source message fails, then `message_clone` shall fail and return NULL. ]*/
-                    LogError("Cannot allocate memory for body AMQP sequences, size:%zu", calloc_size);
+                    LogError("Cannot allocate memory for body AMQP sequences");
                     message_destroy(result);
                     result = NULL;
                 }
@@ -1001,7 +999,7 @@ int message_add_body_amqp_data(MESSAGE_HANDLE message, BINARY_DATA amqp_data)
     if ((message == NULL) ||
         /* Tests_SRS_MESSAGE_01_089: [ If the `bytes` member of `amqp_data` is NULL and the `size` member is non-zero, `message_add_body_amqp_data` shall fail and return a non-zero value. ]*/
         ((amqp_data.bytes == NULL) &&
-         (amqp_data.length != 0)))
+            (amqp_data.length != 0)))
     {
         LogError("Bad arguments: message = %p, bytes = %p, length = %u",
             message, amqp_data.bytes, (unsigned int)amqp_data.length);
@@ -1020,14 +1018,11 @@ int message_add_body_amqp_data(MESSAGE_HANDLE message, BINARY_DATA amqp_data)
         else
         {
             /* Codes_SRS_MESSAGE_01_086: [ `message_add_body_amqp_data` shall add the contents of `amqp_data` to the list of AMQP data values for the body of the message identified by `message`. ]*/
-            BODY_AMQP_DATA* new_body_amqp_data_items;
-            size_t realloc_size = safe_add_size_t(message->body_amqp_data_count, 1);
-            realloc_size = safe_multiply_size_t(realloc_size, sizeof(BODY_AMQP_DATA));
-            if (realloc_size == SIZE_MAX ||
-                (new_body_amqp_data_items = (BODY_AMQP_DATA*)realloc(message->body_amqp_data_items, realloc_size)) == NULL)
+            BODY_AMQP_DATA* new_body_amqp_data_items = (BODY_AMQP_DATA*)realloc(message->body_amqp_data_items, sizeof(BODY_AMQP_DATA) * (message->body_amqp_data_count + 1));
+            if (new_body_amqp_data_items == NULL)
             {
                 /* Codes_SRS_MESSAGE_01_153: [ If allocating memory to store the added AMQP data fails, `message_add_body_amqp_data` shall fail and return a non-zero value. ]*/
-                LogError("Cannot allocate memory for body AMQP data items, size:%zu", realloc_size);
+                LogError("Cannot allocate memory for body AMQP data items");
                 result = MU_FAILURE;
             }
             else
@@ -1255,11 +1250,8 @@ int message_add_body_amqp_sequence(MESSAGE_HANDLE message, AMQP_VALUE sequence_l
         }
         else
         {
-            AMQP_VALUE* new_body_amqp_sequence_items;
-            size_t realloc_size = safe_add_size_t(message->body_amqp_sequence_count, 1);
-            realloc_size = safe_multiply_size_t(realloc_size, sizeof(AMQP_VALUE));
-            if (realloc_size == SIZE_MAX ||
-                (new_body_amqp_sequence_items = (AMQP_VALUE*)realloc(message->body_amqp_sequence_items, realloc_size)) == NULL)
+            AMQP_VALUE* new_body_amqp_sequence_items = (AMQP_VALUE*)realloc(message->body_amqp_sequence_items, sizeof(AMQP_VALUE) * (message->body_amqp_sequence_count + 1));
+            if (new_body_amqp_sequence_items == NULL)
             {
                 /* Codes_SRS_MESSAGE_01_158: [ If allocating memory in order to store the sequence fails, `message_add_body_amqp_sequence` shall fail and return a non-zero value. ]*/
                 LogError("Cannot allocate enough memory for sequence items");
@@ -1433,7 +1425,7 @@ int message_set_message_format(MESSAGE_HANDLE message, uint32_t message_format)
     return result;
 }
 
-int message_get_message_format(MESSAGE_HANDLE message, uint32_t *message_format)
+int message_get_message_format(MESSAGE_HANDLE message, uint32_t* message_format)
 {
     int result;
 

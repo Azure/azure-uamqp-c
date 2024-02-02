@@ -238,6 +238,7 @@ MESSAGE_HANDLE message_clone(MESSAGE_HANDLE source_message)
                 if (calloc_size == SIZE_MAX)
                 {
                     LogError("Invalid size for body_amqp_data_items");
+                    message_destroy(result);
                     result = NULL;
                 }
                 else

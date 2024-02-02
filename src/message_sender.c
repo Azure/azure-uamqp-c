@@ -15,6 +15,7 @@
 #include "azure_uamqp_c/amqpvalue_to_string.h"
 #include "azure_uamqp_c/async_operation.h"
 #include "azure_uamqp_c/amqp_definitions.h"
+#include "azure_c_shared_utility/safe_math.h"
 
 typedef enum MESSAGE_SEND_STATE_TAG
 {

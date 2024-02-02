@@ -10,6 +10,7 @@
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_c_shared_utility/singlylinkedlist.h"
 #include "azure_c_shared_utility/tickcounter.h"
+#include "azure_c_shared_utility/safe_math.h"
 #include "azure_uamqp_c/link.h"
 #include "azure_uamqp_c/session.h"
 #include "azure_uamqp_c/amqpvalue.h"

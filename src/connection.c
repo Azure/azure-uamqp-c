@@ -9,6 +9,7 @@
 #include "azure_c_shared_utility/xio.h"
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_c_shared_utility/tickcounter.h"
+#include "azure_c_shared_utility/safe_math.h"
 
 #include "azure_uamqp_c/connection.h"
 #include "azure_uamqp_c/frame_codec.h"

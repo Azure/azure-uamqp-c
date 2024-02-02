@@ -8,6 +8,7 @@
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_c_shared_utility/singlylinkedlist.h"
+#include "azure_c_shared_utility/safe_math.h"
 #include "azure_uamqp_c/header_detect_io.h"
 #include "azure_uamqp_c/server_protocol_io.h"
 

@@ -1904,7 +1904,7 @@ ENDPOINT_HANDLE connection_create_endpoint(CONNECTION_HANDLE connection)
                     (new_endpoints = (ENDPOINT_HANDLE*)realloc(connection->endpoints, realloc_size)) == NULL)
                 {
                     /* Tests_S_R_S_CONNECTION_01_198: [If adding the endpoint to the endpoints list tracked by the connection fails, connection_create_endpoint shall fail and return NULL.] */
-                    LogError("Cannot reallocate memory for connection endpoints, size:%zu", realloc);
+                    LogError("Cannot reallocate memory for connection endpoints, size:%zu", realloc_size);
                     free(result);
                     result = NULL;
                 }

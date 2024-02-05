@@ -1626,7 +1626,7 @@ int amqpvalue_set_map_value(AMQP_VALUE map, AMQP_VALUE key, AMQP_VALUE value)
                             /* Codes_SRS_AMQPVALUE_01_186: [If allocating memory to hold a new key/value pair fails, amqpvalue_set_map_value shall fail and return a non-zero value.] */
                             amqpvalue_destroy(cloned_key);
                             amqpvalue_destroy(cloned_value);
-                            LogError("Could not reallocate memory for map, size:%zu", realloc_size);
+                            LogError("Could not reallocate memory for new_pairs map, size:%zu", realloc_size);
                             result = MU_FAILURE;
                         }
                         else

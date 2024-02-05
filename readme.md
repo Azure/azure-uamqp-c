@@ -2,7 +2,7 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 
 # uAMQP
 
-`uAMQP` is a general purpose C library for AMQP 1.0.
+`uAMQP` is a C library for AMQP 1.0 communication to Azure Cloud Services.
 
 The goals are:
 
@@ -10,10 +10,7 @@ The goals are:
 - Optimizing for low RAM footprint
 - Be as portable as possible
 
-It is currently mostly a client side implementation only.
-Although much of the standard is symmetrical, there are parts that are asymmetrical, like the SASL handshake.
-
-The server side support of `uAMQP` (for example for SASL) is currently work in progress.
+It is currently a client side implementation only.
 
 ## Dependencies
 

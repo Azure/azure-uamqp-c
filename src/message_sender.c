@@ -76,7 +76,7 @@ static void remove_pending_message_by_index(MESSAGE_SENDER_HANDLE message_sender
 
     if (message_sender->message_count > 0)
     {
-        size_t realloc_size = safe_add_size_t(sizeof(ASYNC_OPERATION_HANDLE), (message_sender->message_count));
+        size_t realloc_size = safe_multiply_size_t(sizeof(ASYNC_OPERATION_HANDLE), (message_sender->message_count));
         if (realloc_size != SIZE_MAX &&
             (new_messages = (ASYNC_OPERATION_HANDLE*)realloc(message_sender->messages, realloc_size)) != NULL)
         {

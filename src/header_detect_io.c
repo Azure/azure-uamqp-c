@@ -534,7 +534,7 @@ static CONCRETE_IO_HANDLE header_detect_io_create(void* io_create_parameters)
                     if (calloc_size == SIZE_MAX ||
                         (result->header_detect_entries = (INTERNAL_HEADER_DETECT_ENTRY*)calloc(1, calloc_size)) == NULL)
                     {
-                        LogError("Could not allocate memory, size:%zu", calloc_size);
+                        LogError("Could not allocate header_detect_entries, size:%zu", calloc_size);
                         free(result);
                         result = NULL;
                     }

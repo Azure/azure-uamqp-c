@@ -2013,7 +2013,8 @@ void connection_destroy_endpoint(ENDPOINT_HANDLE endpoint)
                 {
                     size_t memmove_dest = safe_add_size_t(connection->endpoints, i);
                     size_t memmove_src = safe_add_size_t(safe_add_size_t(connection->endpoints, i), 1);
-                    size_t memmove_size = safe_multiply_size_t(new_count, sizeof(ENDPOINT_HANDLE));
+                    size_t memmove_size = safe_multiply_size_t(safe_subtract_size_t(safe_subtract_size_t(connection->endpoint_count, i), 1), sizeof(ENDPOINT_HANDLE));
+
                     (void)memmove((void*)memmove_dest, (void*)memmove_src, memmove_size);
                 }
 

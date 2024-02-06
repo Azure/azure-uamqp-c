@@ -1157,7 +1157,7 @@ LINK_ENDPOINT_HANDLE session_create_link_endpoint(SESSION_HANDLE session, const 
                     (new_link_endpoints = (LINK_ENDPOINT_INSTANCE**)realloc(session_instance->link_endpoints, realloc_size)) == NULL)
                 {
                     /* Codes_S_R_S_SESSION_01_045: [If allocating memory for the link endpoint fails, session_create_link_endpoint shall fail and return NULL.] */
-                    LogError("Cannot realloc memory, size:%zu", realloc_size);
+                    LogError("Cannot realloc new_link_endpoints, size:%zu", realloc_size);
                     free(result->name);
                     free(result);
                     result = NULL;

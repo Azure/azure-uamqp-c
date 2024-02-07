@@ -108,12 +108,12 @@ static void on_delivery_settled(void* context, delivery_number delivery_no, LINK
 {
     ASYNC_OPERATION_HANDLE pending_send = (ASYNC_OPERATION_HANDLE)context;
     MESSAGE_WITH_CALLBACK* message_with_callback = GET_ASYNC_OPERATION_CONTEXT(MESSAGE_WITH_CALLBACK, pending_send);
-    MESSAGE_SENDER_INSTANCE* message_sender = (MESSAGE_SENDER_INSTANCE*)message_with_callback->message_sender;
     (void)delivery_no;
 
     if (message_with_callback != NULL && 
         message_with_callback->on_message_send_complete != NULL)
     {
+        MESSAGE_SENDER_INSTANCE *message_sender = (MESSAGE_SENDER_INSTANCE *)message_with_callback->message_sender;
         switch (reason)
         {
         case LINK_DELIVERY_SETTLE_REASON_DISPOSITION_RECEIVED:

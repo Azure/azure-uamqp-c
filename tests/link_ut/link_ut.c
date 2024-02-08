@@ -208,6 +208,8 @@ static AMQP_VALUE test_on_transfer_received(void* context, TRANSFER_HANDLE trans
     test_on_transfer_received_transfer = transfer;
     test_on_transfer_received_payload_size = payload_size;
     memcpy(test_on_transfer_received_payload_bytes, payload_bytes, payload_size);
+
+    return (AMQP_VALUE)0x6000;
 }
 
 static LINK_STATE test_on_link_state_changed_new_link_state;

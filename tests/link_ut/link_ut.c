@@ -124,7 +124,7 @@ TEST_FUNCTION(link_create_succeeds)
     STRICT_EXPECTED_CALL(amqpvalue_clone(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(tickcounter_create());
     STRICT_EXPECTED_CALL(singlylinkedlist_create());
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
     STRICT_EXPECTED_CALL(session_create_link_endpoint(TEST_SESSION_HANDLE, TEST_LINK_NAME_1));
     STRICT_EXPECTED_CALL(session_set_link_endpoint_callback(TEST_LINK_ENDPOINT, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
 

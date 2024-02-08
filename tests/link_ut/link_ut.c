@@ -54,6 +54,8 @@ const char* TEST_LINK_NAME_1 = "test_link_name_1";
 static TICK_COUNTER_HANDLE TEST_TICK_COUNTER_HANDLE = (TICK_COUNTER_HANDLE)0x4001;
 static SINGLYLINKEDLIST_HANDLE TEST_SINGLYLINKEDLIST_HANDLE = (SINGLYLINKEDLIST_HANDLE)0x4002;
 static LINK_ENDPOINT_HANDLE TEST_LINK_ENDPOINT = (LINK_ENDPOINT_HANDLE)0x4003;
+const AMQP_VALUE TEST_LINK_SOURCE = (AMQP_VALUE)0x4004;
+const AMQP_VALUE TEST_LINK_TARGET = (AMQP_VALUE)0x4005;
 
 static TEST_MUTEX_HANDLE g_testByTest;
 
@@ -62,6 +64,31 @@ MU_DEFINE_ENUM_STRINGS(UMOCK_C_ERROR_CODE, UMOCK_C_ERROR_CODE_VALUES)
 static void on_umock_c_error(UMOCK_C_ERROR_CODE error_code)
 {
     ASSERT_FAIL("umock_c reported error :%" PRI_MU_ENUM "", MU_ENUM_VALUE(UMOCK_C_ERROR_CODE, error_code));
+}
+
+static TRANSFER_HANDLE on_transfer_received_transfer;
+static uint32_t on_transfer_received_payload_size;
+static unsigned char on_transfer_received_payload_bytes[2048];
+static AMQP_VALUE on_transfer_received(void* context, TRANSFER_HANDLE transfer, uint32_t payload_size, const unsigned char* payload_bytes)
+{
+    (void)context;
+    on_transfer_received_transfer = transfer;
+    on_transfer_received_payload_size = payload_size;
+    memcpy(on_transfer_received_payload_bytes, payload_bytes, payload_size);
+}
+
+static LINK_STATE on_link_state_changed_new_link_state;
+LINK_STATE on_link_state_changed_previous_link_state;
+static void on_link_state_changed(void* context, LINK_STATE new_link_state, LINK_STATE previous_link_state)
+{
+    (void)context;
+    on_link_state_changed_new_link_state = new_link_state;
+    on_link_state_changed_previous_link_state = previous_link_state;
+}
+
+static void on_link_flow_on(void* context)
+{
+    (void)context;
 }
 
 BEGIN_TEST_SUITE(link_ut)
@@ -83,10 +110,17 @@ TEST_SUITE_INITIALIZE(suite_init)
     REGISTER_UMOCK_ALIAS_TYPE(SESSION_HANDLE, void*);
     REGISTER_UMOCK_ALIAS_TYPE(LINK_ENDPOINT_HANDLE, void*);
     REGISTER_UMOCK_ALIAS_TYPE(ON_LINK_ENDPOINT_DESTROYED_CALLBACK, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(ON_ENDPOINT_FRAME_RECEIVED, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(ON_TRANSFER_RECEIVED, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(ON_LINK_STATE_CHANGED, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(ON_LINK_FLOW_ON, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(ON_SESSION_STATE_CHANGED, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(ON_SESSION_FLOW_ON, void*);
 
     REGISTER_GLOBAL_MOCK_RETURNS(tickcounter_create, TEST_TICK_COUNTER_HANDLE, NULL);
     REGISTER_GLOBAL_MOCK_RETURNS(singlylinkedlist_create, TEST_SINGLYLINKEDLIST_HANDLE, NULL);
     REGISTER_GLOBAL_MOCK_RETURNS(session_create_link_endpoint, TEST_LINK_ENDPOINT, NULL);
+    REGISTER_GLOBAL_MOCK_RETURNS(session_start_link_endpoint, 0, 1);
 }
 
 TEST_SUITE_CLEANUP(suite_cleanup)
@@ -109,6 +143,22 @@ TEST_FUNCTION_INITIALIZE(test_init)
 TEST_FUNCTION_CLEANUP(test_cleanup)
 {
     TEST_MUTEX_RELEASE(g_testByTest);
+}
+
+static LINK_HANDLE create_link()
+{
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_clone(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_clone(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(tickcounter_create());
+    STRICT_EXPECTED_CALL(singlylinkedlist_create());
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(session_create_link_endpoint(TEST_SESSION_HANDLE, TEST_LINK_NAME_1));
+    STRICT_EXPECTED_CALL(session_set_link_endpoint_callback(TEST_LINK_ENDPOINT, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+
+    return link_create(TEST_SESSION_HANDLE, TEST_LINK_NAME_1, role_receiver, TEST_LINK_SOURCE, TEST_LINK_TARGET);
 }
 
 TEST_FUNCTION(link_create_succeeds)
@@ -134,6 +184,30 @@ TEST_FUNCTION(link_create_succeeds)
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
     ASSERT_IS_NOT_NULL(link);
+
+    // cleanup
+    link_destroy(link);
+}
+
+TEST_FUNCTION(link_attach_succeeds)
+{
+    // arrange
+
+    LINK_HANDLE link = create_link();
+
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(session_begin(TEST_SESSION_HANDLE));
+    STRICT_EXPECTED_CALL(session_start_link_endpoint(TEST_LINK_ENDPOINT, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, link));
+
+    // TODO: save link_frame_received (2nd arg)
+
+    // act
+    int result = link_attach(link, on_transfer_received, on_link_state_changed, on_link_flow_on, NULL);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_EQUAL(int, 0, result);
 
     // cleanup
     link_destroy(link);

@@ -144,8 +144,6 @@ static int umocktypes_are_equal_bool_ptr(bool** left, bool** right)
     return result;
 }
 
-// 8888888888
-
 static int umocktypes_copy_FLOW_HANDLE(FLOW_HANDLE* destination, const FLOW_HANDLE* source)
 {
     int result = 0;
@@ -157,10 +155,7 @@ static int umocktypes_copy_FLOW_HANDLE(FLOW_HANDLE* destination, const FLOW_HAND
 
 static void umocktypes_free_FLOW_HANDLE(FLOW_HANDLE* value)
 {
-    if (*value != NULL)
-    {
-        // my_gballoc_free(*value);
-    }
+    (void)value;
 }
 
 static char* umocktypes_stringify_FLOW_HANDLE(const FLOW_HANDLE* value)
@@ -242,7 +237,7 @@ static LINK_HANDLE create_link(role link_role)
     return link_create(TEST_SESSION_HANDLE, TEST_LINK_NAME_1, link_role, TEST_LINK_SOURCE, TEST_LINK_TARGET);
 }
 
-static void attach_link(LINK_HANDLE link, ON_ENDPOINT_FRAME_RECEIVED* on_frame_received)
+static int attach_link(LINK_HANDLE link, ON_ENDPOINT_FRAME_RECEIVED* on_frame_received)
 {
     umock_c_reset_all_calls();
 
@@ -250,8 +245,7 @@ static void attach_link(LINK_HANDLE link, ON_ENDPOINT_FRAME_RECEIVED* on_frame_r
     STRICT_EXPECTED_CALL(session_start_link_endpoint(TEST_LINK_ENDPOINT, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, link))
         .CaptureArgumentValue_frame_received_callback(on_frame_received);
 
-    // act
-    int result = link_attach(link, test_on_transfer_received, test_on_link_state_changed, test_on_link_flow_on, NULL);
+    return link_attach(link, test_on_transfer_received, test_on_link_state_changed, test_on_link_flow_on, NULL);
 }
 
 BEGIN_TEST_SUITE(link_ut)
@@ -373,7 +367,8 @@ TEST_FUNCTION(link_receiver_frame_received_succeeds)
     // arrange
     LINK_HANDLE link = create_link(role_receiver);
     ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
-    attach_link(link, &on_frame_received);
+    int attach_result = attach_link(link, &on_frame_received);
+    ASSERT_ARE_EQUAL(int, 0, attach_result);
 
     AMQP_VALUE performative = (AMQP_VALUE)0x5000;
     AMQP_VALUE descriptor = (AMQP_VALUE)0x5001;
@@ -407,7 +402,8 @@ TEST_FUNCTION(link_sender_frame_received_succeeds)
     // arrange
     LINK_HANDLE link = create_link(role_sender);
     ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
-    attach_link(link, &on_frame_received);
+    int attach_result = attach_link(link, &on_frame_received);
+    ASSERT_ARE_EQUAL(int, 0, attach_result);
 
     AMQP_VALUE performative = (AMQP_VALUE)0x5000;
     AMQP_VALUE descriptor = (AMQP_VALUE)0x5001;
@@ -447,7 +443,8 @@ TEST_FUNCTION(link_receiver_frame_received_get_flow_fails_no_double_free_fails)
     // arrange
     LINK_HANDLE link = create_link(role_receiver);
     ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
-    attach_link(link, &on_frame_received);
+    int attach_result = attach_link(link, &on_frame_received);
+    ASSERT_ARE_EQUAL(int, 0, attach_result);
 
     AMQP_VALUE performative = (AMQP_VALUE)0x5000;
     AMQP_VALUE descriptor = (AMQP_VALUE)0x5001;

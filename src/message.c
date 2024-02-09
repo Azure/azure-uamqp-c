@@ -238,6 +238,7 @@ MESSAGE_HANDLE message_clone(MESSAGE_HANDLE source_message)
                 if (calloc_size == SIZE_MAX)
                 {
                     LogError("Invalid size for body_amqp_data_items");
+                    message_destroy(result);
                     result = NULL;
                 }
                 else
@@ -1022,7 +1023,7 @@ int message_add_body_amqp_data(MESSAGE_HANDLE message, BINARY_DATA amqp_data)
     if ((message == NULL) ||
         /* Tests_SRS_MESSAGE_01_089: [ If the `bytes` member of `amqp_data` is NULL and the `size` member is non-zero, `message_add_body_amqp_data` shall fail and return a non-zero value. ]*/
         ((amqp_data.bytes == NULL) &&
-         (amqp_data.length != 0)))
+            (amqp_data.length != 0)))
     {
         LogError("Bad arguments: message = %p, bytes = %p, length = %u",
             message, amqp_data.bytes, (unsigned int)amqp_data.length);
@@ -1471,7 +1472,7 @@ int message_set_message_format(MESSAGE_HANDLE message, uint32_t message_format)
     return result;
 }
 
-int message_get_message_format(MESSAGE_HANDLE message, uint32_t *message_format)
+int message_get_message_format(MESSAGE_HANDLE message, uint32_t* message_format)
 {
     int result;
 

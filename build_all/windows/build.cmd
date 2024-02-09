@@ -134,15 +134,15 @@ if %MAKE_NUGET_PKG% == yes (
 
 ) else if %build-platform% == Win32 (
     echo ***Running CMAKE for Win32***
-    cmake %build-root% -Drun_unittests:BOOL=ON -Drun_e2e_tests:BOOL=ON -A Win32
+    cmake %build-root% -Drun_unittests:BOOL=ON -Drun_e2e_tests:BOOL=ON -A Win32 -G %VSVERSION%
     if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
 ) else if %build-platform% == arm (
     echo ***Running CMAKE for ARM***
-    cmake %build-root% -Drun_unittests:BOOL=ON -Drun_e2e_tests:BOOL=ON -A ARM
+    cmake %build-root% -Drun_unittests:BOOL=ON -Drun_e2e_tests:BOOL=ON -A ARM -G %VSVERSION%
     if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
 ) else (
     echo ***Running CMAKE for Win64***
-    cmake %build-root% -Drun_unittests:BOOL=ON -Drun_e2e_tests:BOOL=ON -A x64
+    cmake %build-root% -Drun_unittests:BOOL=ON -Drun_e2e_tests:BOOL=ON -A x64 -G %VSVERSION%
     if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
 )
 

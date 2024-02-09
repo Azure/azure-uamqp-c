@@ -9,6 +9,7 @@
 #include "azure_c_shared_utility/xio.h"
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_c_shared_utility/tickcounter.h"
+#include "azure_c_shared_utility/safe_math.h"
 
 #include "azure_uamqp_c/connection.h"
 #include "azure_uamqp_c/frame_codec.h"
@@ -1897,11 +1898,13 @@ ENDPOINT_HANDLE connection_create_endpoint(CONNECTION_HANDLE connection)
                 result->connection = connection;
 
                 /* Codes_S_R_S_CONNECTION_01_197: [The newly created endpoint shall be added to the endpoints list, so that it can be tracked.] */
-                new_endpoints = (ENDPOINT_HANDLE*)realloc(connection->endpoints, sizeof(ENDPOINT_HANDLE) * ((size_t)connection->endpoint_count + 1));
-                if (new_endpoints == NULL)
+                size_t realloc_size = safe_add_size_t((size_t)connection->endpoint_count, 1);
+                realloc_size = safe_multiply_size_t(realloc_size, sizeof(ENDPOINT_HANDLE));
+                if (realloc_size == SIZE_MAX ||
+                    (new_endpoints = (ENDPOINT_HANDLE*)realloc(connection->endpoints, realloc_size)) == NULL)
                 {
                     /* Tests_S_R_S_CONNECTION_01_198: [If adding the endpoint to the endpoints list tracked by the connection fails, connection_create_endpoint shall fail and return NULL.] */
-                    LogError("Cannot reallocate memory for connection endpoints");
+                    LogError("Cannot reallocate memory for connection endpoints, size:%zu", realloc_size);
                     free(result);
                     result = NULL;
                 }
@@ -1911,7 +1914,15 @@ ENDPOINT_HANDLE connection_create_endpoint(CONNECTION_HANDLE connection)
 
                     if (i < connection->endpoint_count)
                     {
-                        (void)memmove(&connection->endpoints[i + 1], &connection->endpoints[i], sizeof(ENDPOINT_INSTANCE*) * (connection->endpoint_count - i));
+                        size_t memmove_size = safe_multiply_size_t(safe_subtract_size_t(connection->endpoint_count, i), sizeof(ENDPOINT_INSTANCE*));
+                        if (memmove_size != SIZE_MAX)
+                        {
+                            (void)memmove(&connection->endpoints[i + 1], &connection->endpoints[i], memmove_size);
+                        }
+                        else
+                        {
+                            LogError("Cannot memmove endpoints, size:%zu", memmove_size);
+                        }
                     }
 
                     connection->endpoints[i] = result;
@@ -2004,14 +2015,28 @@ void connection_destroy_endpoint(ENDPOINT_HANDLE endpoint)
             else
             {
                 ENDPOINT_HANDLE* new_endpoints;
-
-                if ((connection->endpoint_count - i - 1) > 0)
+                size_t new_count = safe_subtract_size_t(safe_subtract_size_t(connection->endpoint_count, i), 1);
+                if (new_count > 0)
                 {
-                    (void)memmove(connection->endpoints + i, connection->endpoints + i + 1, sizeof(ENDPOINT_HANDLE) * (connection->endpoint_count - i - 1));
+                    size_t memmove_size = safe_multiply_size_t(safe_subtract_size_t(safe_subtract_size_t(connection->endpoint_count, i), 1), sizeof(ENDPOINT_HANDLE));
+                    if (memmove_size != SIZE_MAX)
+                    {
+                        (void)memmove(connection->endpoints + i, connection->endpoints + i + 1, memmove_size);
+                    }
+                    else
+                    {
+                        LogError("Cannot memmove endpoints, size:%zu", memmove_size);
+                    }
                 }
 
-                new_endpoints = (ENDPOINT_HANDLE*)realloc(connection->endpoints, (connection->endpoint_count - 1) * sizeof(ENDPOINT_HANDLE));
-                if (new_endpoints != NULL)
+                size_t realloc_size = safe_subtract_size_t(connection->endpoint_count, 1);
+                realloc_size = safe_multiply_size_t(realloc_size, sizeof(ENDPOINT_HANDLE));
+                if (realloc_size == SIZE_MAX ||
+                    (new_endpoints = (ENDPOINT_HANDLE*)realloc(connection->endpoints, realloc_size)) == NULL)
+                {
+                    LogError("Memory realloc failed, size:%zu", realloc_size);
+                }
+                else
                 {
                     connection->endpoints = new_endpoints;
                 }

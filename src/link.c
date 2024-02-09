@@ -404,9 +404,9 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                     }
                 }
             }
-        }
 
-        flow_destroy(flow_handle);
+            flow_destroy(flow_handle);
+        }
     }
     else if (is_transfer_type_by_descriptor(descriptor))
     {

@@ -8,6 +8,7 @@
 #include "azure_macro_utils/macro_utils.h"
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/xlogging.h"
+#include "azure_c_shared_utility/safe_math.h"
 #include "azure_uamqp_c/amqp_frame_codec.h"
 #include "azure_uamqp_c/frame_codec.h"
 #include "azure_uamqp_c/amqpvalue.h"
@@ -274,10 +275,13 @@ int amqp_frame_codec_encode_frame(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec, uint
             }
             else
             {
-                PAYLOAD* new_payloads = (PAYLOAD*)calloc(1, (sizeof(PAYLOAD) * (payload_count + 1)));
-                if (new_payloads == NULL)
+                PAYLOAD* new_payloads;
+                size_t calloc_size = safe_add_size_t(payload_count, 1);
+                calloc_size = safe_multiply_size_t(calloc_size, sizeof(PAYLOAD));
+                if (calloc_size == SIZE_MAX ||
+                    (new_payloads = (PAYLOAD*)calloc(1, calloc_size)) == NULL)
                 {
-                    LogError("Could not allocate frame payloads");
+                    LogError("Could not allocate frame payloads, size:%zu", calloc_size);
                     result = MU_FAILURE;
                 }
                 else

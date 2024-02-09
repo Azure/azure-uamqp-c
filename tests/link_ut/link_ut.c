@@ -313,8 +313,8 @@ TEST_FUNCTION_CLEANUP(test_cleanup)
 TEST_FUNCTION(link_create_succeeds)
 {
     // arrange
-    AMQP_VALUE link_source;
-    AMQP_VALUE link_target;
+    AMQP_VALUE link_source = TEST_LINK_SOURCE;
+    AMQP_VALUE link_target = TEST_LINK_TARGET;
 
     umock_c_reset_all_calls();
 

@@ -1212,7 +1212,7 @@ int message_set_body_amqp_value(MESSAGE_HANDLE message, AMQP_VALUE body_amqp_val
                 /* Only free the previous value when cloning is succesfull */
                 if (message->body_amqp_value != NULL)
                 {
-                    amqpvalue_destroy(body_amqp_value);
+                    amqpvalue_destroy(message->body_amqp_value);
                 }
 
                 /* Codes_SRS_MESSAGE_01_101: [ `message_set_body_amqp_value` shall set the contents of body as being the AMQP value indicate by `body_amqp_value`. ]*/

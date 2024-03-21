@@ -75,6 +75,7 @@ MOCKABLE_FUNCTION(, int, link_attach, LINK_HANDLE, link, ON_TRANSFER_RECEIVED, o
 MOCKABLE_FUNCTION(, int, link_detach, LINK_HANDLE, link, bool, close, const char*, error_condition, const char*, error_description, AMQP_VALUE, info);
 MOCKABLE_FUNCTION(, ASYNC_OPERATION_HANDLE, link_transfer_async, LINK_HANDLE, handle, message_format, message_format, PAYLOAD*, payloads, size_t, payload_count, ON_DELIVERY_SETTLED, on_delivery_settled, void*, callback_context, LINK_TRANSFER_RESULT*, link_transfer_result,tickcounter_ms_t, timeout);
 MOCKABLE_FUNCTION(, void, link_dowork, LINK_HANDLE, link);
+MOCKABLE_FUNCTION(, int, link_reset_link_credit, LINK_HANDLE, link, uint32_t, link_credit, bool, drain);
 
 MOCKABLE_FUNCTION(, ON_LINK_DETACH_EVENT_SUBSCRIPTION_HANDLE, link_subscribe_on_link_detach_received, LINK_HANDLE, link, ON_LINK_DETACH_RECEIVED, on_link_detach_received, void*, context);
 MOCKABLE_FUNCTION(, void, link_unsubscribe_on_link_detach_received, ON_LINK_DETACH_EVENT_SUBSCRIPTION_HANDLE, event_subscription);

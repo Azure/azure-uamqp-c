@@ -18,7 +18,8 @@
 #include "azure_uamqp_c/amqp_frame_codec.h"
 #include "azure_uamqp_c/async_operation.h"
 
-#define DEFAULT_LINK_CREDIT 10000
+#define DEFAULT_LINK_CREDIT 10
+#define RECEIVER_MIN_LINK_CREDIT 1
 
 typedef struct DELIVERY_INSTANCE_TAG
 {
@@ -423,7 +424,7 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                 bool more;
                 bool is_error;
 
-                if (link_instance->current_link_credit == 0)
+                if (link_instance->current_link_credit <= RECEIVER_MIN_LINK_CREDIT)
                 {
                     link_instance->current_link_credit = link_instance->max_link_credit;
                     send_flow(link_instance);

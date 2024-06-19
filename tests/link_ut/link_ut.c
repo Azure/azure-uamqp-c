@@ -649,7 +649,6 @@ TEST_FUNCTION(link_receiver_link_credit_replenish_succeeds)
             .SetReturn(true);
         STRICT_EXPECTED_CALL(amqpvalue_get_transfer(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
             .CopyOutArgumentBuffer(2, &transfer, sizeof(transfer));
-        bool more = false;
         STRICT_EXPECTED_CALL(transfer_get_more(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
             .CopyOutArgumentBuffer(2, &more, sizeof(bool));
         STRICT_EXPECTED_CALL(transfer_get_delivery_id(IGNORED_PTR_ARG, IGNORED_PTR_ARG));

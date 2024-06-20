@@ -246,7 +246,7 @@
     <type name="application-properties" class="restricted" source="map" provides="section">
       <descriptor name="amqp:application-properties:map" code="0x00000000:0x00000074"/>
     </type>
-    <type name="data" class="restricted" source="binary" provides="section">
+    <type name="amqp-data" class="restricted" source="binary" provides="section">
       <descriptor name="amqp:data:binary" code="0x00000000:0x00000075"/>
     </type>
     <type name="amqp-sequence" class="restricted" source="list" provides="section">

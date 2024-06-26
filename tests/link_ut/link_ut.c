@@ -547,6 +547,101 @@ TEST_FUNCTION(link_receiver_frame_received_get_flow_fails_no_double_free_fails)
     link_destroy(link);
 }
 
+TEST_FUNCTION(link_receiver_default_max_credit_succeeds)
+{
+    // arrange
+    const int DEFAULT_LINK_CREDIT = 10000;
+
+    LINK_HANDLE link = create_link(role_receiver);
+
+    ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
+    ON_SESSION_STATE_CHANGED on_session_state_changed = NULL;
+    int attach_result = attach_link(link, &on_frame_received, &on_session_state_changed);
+    ASSERT_ARE_EQUAL(int, 0, attach_result);
+
+    ATTACH_HANDLE attach = (ATTACH_HANDLE)0x4999;
+    AMQP_VALUE performative = (AMQP_VALUE)0x5000;
+    AMQP_VALUE descriptor = (AMQP_VALUE)0x5001;
+    FLOW_HANDLE flow = (FLOW_HANDLE)0x5002;
+    TRANSFER_HANDLE transfer = (TRANSFER_HANDLE)0x5003;
+    uint32_t frame_payload_size = 30;
+    const unsigned char payload_bytes[30] = { 0 };
+    bool more = false;
+    DISPOSITION_HANDLE disposition = (DISPOSITION_HANDLE)0x5005;
+
+    umock_c_reset_all_calls();
+    STRICT_EXPECTED_CALL(attach_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+        .SetReturn(attach);
+    STRICT_EXPECTED_CALL(attach_set_snd_settle_mode(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(attach_set_rcv_settle_mode(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(attach_set_role(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(attach_set_source(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(attach_set_target(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+
+    STRICT_EXPECTED_CALL(attach_set_max_message_size(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(session_send_attach(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(attach_destroy(IGNORED_PTR_ARG));
+
+    on_session_state_changed(link, SESSION_STATE_MAPPED, SESSION_STATE_UNMAPPED);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    umock_c_reset_all_calls();
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(performative))
+        .SetReturn(descriptor);
+    STRICT_EXPECTED_CALL(is_attach_type_by_descriptor(IGNORED_PTR_ARG))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_flow_type_by_descriptor(IGNORED_PTR_ARG))
+        .SetReturn(1);
+    STRICT_EXPECTED_CALL(amqpvalue_get_flow(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &flow, sizeof(flow));
+    STRICT_EXPECTED_CALL(flow_destroy(IGNORED_PTR_ARG));
+    on_frame_received(link, performative, frame_payload_size, payload_bytes);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    umock_c_reset_all_calls();
+    // First transfer results in FLOW to set link credit.
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(performative))
+        .SetReturn(descriptor);
+    STRICT_EXPECTED_CALL(is_attach_type_by_descriptor(IGNORED_PTR_ARG))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_flow_type_by_descriptor(IGNORED_PTR_ARG))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_transfer_type_by_descriptor(IGNORED_PTR_ARG))
+        .SetReturn(true);
+    STRICT_EXPECTED_CALL(amqpvalue_get_transfer(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &transfer, sizeof(transfer));
+    // send_flow
+    STRICT_EXPECTED_CALL(flow_create(IGNORED_NUM_ARG, IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+        .SetReturn(flow);
+    STRICT_EXPECTED_CALL(flow_set_link_credit(IGNORED_PTR_ARG, DEFAULT_LINK_CREDIT));
+    STRICT_EXPECTED_CALL(flow_set_handle(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(flow_set_delivery_count(IGNORED_PTR_ARG, 0));
+    STRICT_EXPECTED_CALL(session_send_flow(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(flow_destroy(IGNORED_PTR_ARG));
+    // continue processing TRANSFER
+    STRICT_EXPECTED_CALL(transfer_get_more(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .CopyOutArgumentBuffer(2, &more, sizeof(bool));
+    STRICT_EXPECTED_CALL(transfer_get_delivery_id(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(disposition_create(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+        .SetReturn(disposition);
+    STRICT_EXPECTED_CALL(disposition_set_last(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(disposition_set_settled(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(disposition_set_state(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(session_send_disposition(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(disposition_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(transfer_destroy(IGNORED_PTR_ARG));
+
+    // act
+    on_frame_received(link, performative, frame_payload_size, payload_bytes);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    link_destroy(link);
+}
+
 TEST_FUNCTION(link_receiver_link_credit_replenish_succeeds)
 {
     // arrange

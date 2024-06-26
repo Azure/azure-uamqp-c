@@ -18,7 +18,7 @@
 #include "azure_uamqp_c/amqp_frame_codec.h"
 #include "azure_uamqp_c/async_operation.h"
 
-#define DEFAULT_LINK_CREDIT 10
+#define DEFAULT_LINK_CREDIT 10000
 #define RECEIVER_MIN_LINK_CREDIT 1
 
 typedef struct DELIVERY_INSTANCE_TAG

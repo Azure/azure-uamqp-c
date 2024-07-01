@@ -8,9 +8,9 @@
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_c_shared_utility/singlylinkedlist.h"
-#include "azure_c_shared_utility/safe_math.h"
 #include "azure_uamqp_c/header_detect_io.h"
 #include "azure_uamqp_c/server_protocol_io.h"
+#include "azure_c_shared_utility/safe_math.h"
 
 static const unsigned char amqp_header_bytes[] = { 'A', 'M', 'Q', 'P', 0, 1, 0, 0 };
 static const unsigned char sasl_amqp_header_bytes[] = { 'A', 'M', 'Q', 'P', 3, 1, 0, 0 };

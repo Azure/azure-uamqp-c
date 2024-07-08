@@ -5,12 +5,11 @@
 #include <string.h>
 #include "azure_macro_utils/macro_utils.h"
 #include "azure_c_shared_utility/gballoc.h"
-#include "azure_c_shared_utility/safe_math.h"
 #include "azure_c_shared_utility/xlogging.h"
 #include "azure_uamqp_c/session.h"
 #include "azure_uamqp_c/connection.h"
 #include "azure_uamqp_c/amqp_definitions.h"
-
+#include "azure_c_shared_utility/safe_math.h"
 
 typedef enum LINK_ENDPOINT_STATE_TAG
 {

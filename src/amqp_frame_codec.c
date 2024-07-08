@@ -8,10 +8,10 @@
 #include "azure_macro_utils/macro_utils.h"
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/xlogging.h"
-#include "azure_c_shared_utility/safe_math.h"
 #include "azure_uamqp_c/amqp_frame_codec.h"
 #include "azure_uamqp_c/frame_codec.h"
 #include "azure_uamqp_c/amqpvalue.h"
+#include "azure_c_shared_utility/safe_math.h"
 
 typedef enum AMQP_FRAME_DECODE_STATE_TAG
 {

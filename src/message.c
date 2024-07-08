@@ -7,10 +7,10 @@
 #include "azure_macro_utils/macro_utils.h"
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/xlogging.h"
-#include "azure_c_shared_utility/safe_math.h"
 #include "azure_uamqp_c/amqp_definitions.h"
 #include "azure_uamqp_c/message.h"
 #include "azure_uamqp_c/amqpvalue.h"
+#include "azure_c_shared_utility/safe_math.h"
 
 typedef struct BODY_AMQP_DATA_TAG
 {

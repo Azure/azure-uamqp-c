@@ -50,6 +50,12 @@ static void my_gballoc_free(void* ptr)
 #include "azure_uamqp_c/amqp_frame_codec.h"
 #include "azure_uamqp_c/async_operation.h"
 
+#undef ENABLE_MOCK_FILTERING_SWITCH
+#define ENABLE_MOCK_FILTERING
+#define please_mock_transfer_set_delivery_tag MOCK_ENABLED
+#undef ENABLE_MOCK_FILTERING_SWITCH
+#undef ENABLE_MOCK_FILTERING
+
 #undef ENABLE_MOCKS
 
 #include "azure_uamqp_c/link.h"
@@ -61,6 +67,10 @@ static SINGLYLINKEDLIST_HANDLE TEST_SINGLYLINKEDLIST_HANDLE = (SINGLYLINKEDLIST_
 static LINK_ENDPOINT_HANDLE TEST_LINK_ENDPOINT = (LINK_ENDPOINT_HANDLE)0x4003;
 const AMQP_VALUE TEST_LINK_SOURCE = (AMQP_VALUE)0x4004;
 const AMQP_VALUE TEST_LINK_TARGET = (AMQP_VALUE)0x4005;
+const AMQP_VALUE TEST_AMQP_VALUE = (AMQP_VALUE)0x4006;
+const LIST_ITEM_HANDLE TEST_LIST_ITEM_HANDLE = (LIST_ITEM_HANDLE)0x4007;
+const TRANSFER_HANDLE TEST_TRANSFER_HANDLE = (TRANSFER_HANDLE)0x4008;
+#define AMQP_BATCHING_FORMAT_CODE 0x80013700
 
 static TEST_MUTEX_HANDLE g_testByTest;
 
@@ -250,6 +260,66 @@ static int umocktypes_are_equal_TRANSFER_HANDLE(TRANSFER_HANDLE* left, TRANSFER_
     return result;
 }
 
+// delivery_tag mocks
+
+static char* umock_stringify_delivery_tag(const delivery_tag* value)
+{
+    char* result = (char*)my_gballoc_malloc(1);
+    (void)value;
+    result[0] = '\0';
+    return result;
+}
+
+static int umock_are_equal_delivery_tag(const delivery_tag* left, const delivery_tag* right)
+{
+    int result;
+
+    if (left->length != right->length)
+    {
+        result = 0;
+    }
+    else
+    {
+        if (memcmp(left->bytes, right->bytes, left->length) == 0)
+        {
+            result = 1;
+        }
+        else
+        {
+            result = 0;
+        }
+    }
+
+    return result;
+}
+
+static int umock_copy_delivery_tag(delivery_tag* destination, const delivery_tag* source)
+{
+    int result;
+
+    destination->bytes = (const unsigned char*)my_gballoc_malloc(source->length);
+    if (destination->bytes == NULL)
+    {
+        result = -1;
+    }
+    else
+    {
+        (void)memcpy((void*)destination->bytes, source->bytes, source->length);
+        destination->length = source->length;
+        result = 0;
+    }
+
+    return result;
+}
+
+static void umock_free_delivery_tag(delivery_tag* value)
+{
+    my_gballoc_free((void*)value->bytes);
+    value->bytes = NULL;
+    value->length = 0;
+}
+
+
 static TRANSFER_HANDLE test_on_transfer_received_transfer;
 static uint32_t test_on_transfer_received_payload_size;
 static unsigned char test_on_transfer_received_payload_bytes[2048];
@@ -293,16 +363,112 @@ static LINK_HANDLE create_link(role link_role)
     return link_create(TEST_SESSION_HANDLE, TEST_LINK_NAME_1, link_role, TEST_LINK_SOURCE, TEST_LINK_TARGET);
 }
 
-static int attach_link(LINK_HANDLE link, ON_ENDPOINT_FRAME_RECEIVED* on_frame_received, ON_SESSION_STATE_CHANGED* on_session_state_changed)
+// If on_session_state_changed it does the full attach, including receiving the ATTACH response.
+static int attach_link(LINK_HANDLE link, role link_role, ON_ENDPOINT_FRAME_RECEIVED* on_frame_received, ON_SESSION_STATE_CHANGED* on_session_state_changed)
 {
+    int result;
+
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(session_begin(TEST_SESSION_HANDLE));
-    STRICT_EXPECTED_CALL(session_start_link_endpoint(TEST_LINK_ENDPOINT, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, link))
-        .CaptureArgumentValue_frame_received_callback(on_frame_received)
-        .CaptureArgumentValue_on_session_state_changed(on_session_state_changed);
+    ATTACH_HANDLE attach = (ATTACH_HANDLE)0x4999;
 
-    return link_attach(link, test_on_transfer_received, test_on_link_state_changed, test_on_link_flow_on, NULL);
+    STRICT_EXPECTED_CALL(session_begin(TEST_SESSION_HANDLE));
+
+    if (on_session_state_changed != NULL)
+    {
+        STRICT_EXPECTED_CALL(session_start_link_endpoint(TEST_LINK_ENDPOINT, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, link))
+            .CaptureArgumentValue_frame_received_callback(on_frame_received)
+            .CaptureArgumentValue_on_session_state_changed(on_session_state_changed);
+
+        result = link_attach(link, test_on_transfer_received, test_on_link_state_changed, test_on_link_flow_on, NULL);
+    }
+    else
+    {
+        ON_SESSION_STATE_CHANGED local_on_session_state_changed = NULL;
+        ON_ENDPOINT_FRAME_RECEIVED local_on_frame_received = NULL;
+        AMQP_VALUE performative = (AMQP_VALUE)0x5000;
+        AMQP_VALUE descriptor = (AMQP_VALUE)0x5001;
+        FLOW_HANDLE flow = (FLOW_HANDLE)0x5002;
+        uint32_t frame_payload_size = 30;
+        const unsigned char payload_bytes[30] = { 0 };
+        uint64_t max_message_size = 123456;
+
+        STRICT_EXPECTED_CALL(session_start_link_endpoint(TEST_LINK_ENDPOINT, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, link))
+            .CaptureArgumentValue_frame_received_callback(&local_on_frame_received)
+            .CaptureArgumentValue_on_session_state_changed(&local_on_session_state_changed);
+
+        result = link_attach(link, test_on_transfer_received, test_on_link_state_changed, test_on_link_flow_on, NULL);
+
+        umock_c_reset_all_calls();
+        STRICT_EXPECTED_CALL(attach_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+            .SetReturn(attach);
+        STRICT_EXPECTED_CALL(attach_set_snd_settle_mode(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(attach_set_rcv_settle_mode(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(attach_set_role(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(attach_set_source(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(attach_set_target(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+
+        if (link_role == role_sender)
+        {
+            STRICT_EXPECTED_CALL(attach_set_initial_delivery_count(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        }
+
+        STRICT_EXPECTED_CALL(attach_set_max_message_size(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(session_send_attach(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(attach_destroy(IGNORED_PTR_ARG));
+
+        local_on_session_state_changed(link, SESSION_STATE_MAPPED, SESSION_STATE_UNMAPPED);
+        ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+        umock_c_reset_all_calls();
+        // ATTACH response
+        STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(performative))
+            .SetReturn(descriptor);
+        STRICT_EXPECTED_CALL(is_attach_type_by_descriptor(IGNORED_PTR_ARG))
+            .SetReturn(true);
+        STRICT_EXPECTED_CALL(amqpvalue_get_attach(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(attach_get_max_message_size(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+            .CopyOutArgumentBuffer(2, &max_message_size, sizeof(max_message_size));
+        STRICT_EXPECTED_CALL(attach_destroy(IGNORED_PTR_ARG));
+
+        local_on_frame_received(link, performative, frame_payload_size, payload_bytes);
+
+        // FLOW received from remote endpoint.
+
+        if (link_role == role_sender)
+        {
+            FLOW_HANDLE flow = (FLOW_HANDLE)0x5679;
+            uint32_t link_credit = 10000;
+            delivery_number delivery_count = 0;
+
+            STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(performative))
+                .SetReturn(descriptor);
+            STRICT_EXPECTED_CALL(is_attach_type_by_descriptor(IGNORED_PTR_ARG))
+                .SetReturn(false);
+            STRICT_EXPECTED_CALL(is_flow_type_by_descriptor(IGNORED_PTR_ARG))
+                .SetReturn(true);
+            STRICT_EXPECTED_CALL(amqpvalue_get_flow(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+                .CopyOutArgumentBuffer(2, &flow, sizeof(flow));
+            STRICT_EXPECTED_CALL(flow_get_link_credit(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+                .CopyOutArgumentBuffer(2, &link_credit, sizeof(link_credit))
+                .SetReturn(0);
+            STRICT_EXPECTED_CALL(flow_get_delivery_count(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+                .CopyOutArgumentBuffer(2, &delivery_count, sizeof(delivery_count))
+                .SetReturn(0);
+            STRICT_EXPECTED_CALL(flow_destroy(IGNORED_PTR_ARG));
+
+            local_on_frame_received(link, performative, frame_payload_size, payload_bytes);
+        }
+
+        ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+        if (on_frame_received != NULL)
+        {
+            *on_frame_received = local_on_frame_received;
+        }
+    }
+
+    return result;
 }
 
 BEGIN_TEST_SUITE(link_ut)
@@ -337,6 +503,7 @@ TEST_SUITE_INITIALIZE(suite_init)
     REGISTER_UMOCK_ALIAS_TYPE(AMQP_VALUE, void*);
     REGISTER_UMOCK_ALIAS_TYPE(TICK_COUNTER_HANDLE, void*);
     REGISTER_UMOCK_ALIAS_TYPE(SINGLYLINKEDLIST_HANDLE, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(LIST_ITEM_HANDLE, void*);
     REGISTER_UMOCK_ALIAS_TYPE(SESSION_HANDLE, void*);
     REGISTER_UMOCK_ALIAS_TYPE(ATTACH_HANDLE, void*);
     REGISTER_UMOCK_ALIAS_TYPE(LINK_ENDPOINT_HANDLE, void*);
@@ -347,16 +514,34 @@ TEST_SUITE_INITIALIZE(suite_init)
     REGISTER_UMOCK_ALIAS_TYPE(ON_LINK_FLOW_ON, void*);
     REGISTER_UMOCK_ALIAS_TYPE(ON_SESSION_STATE_CHANGED, void*);
     REGISTER_UMOCK_ALIAS_TYPE(ON_SESSION_FLOW_ON, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(ASYNC_OPERATION_CANCEL_HANDLER_FUNC, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(ASYNC_OPERATION_HANDLE, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(message_format, uint32_t);
+    REGISTER_UMOCK_ALIAS_TYPE(ON_SEND_COMPLETE, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(SESSION_SEND_TRANSFER_RESULT, int);
 
     REGISTER_GLOBAL_MOCK_RETURNS(tickcounter_create, TEST_TICK_COUNTER_HANDLE, NULL);
     REGISTER_GLOBAL_MOCK_RETURNS(singlylinkedlist_create, TEST_SINGLYLINKEDLIST_HANDLE, NULL);
     REGISTER_GLOBAL_MOCK_RETURNS(session_create_link_endpoint, TEST_LINK_ENDPOINT, NULL);
     REGISTER_GLOBAL_MOCK_RETURNS(session_start_link_endpoint, 0, 1);
 
+    REGISTER_GLOBAL_MOCK_FAIL_RETURN(async_operation_create, NULL);
+    REGISTER_GLOBAL_MOCK_RETURNS(transfer_create, TEST_TRANSFER_HANDLE, NULL);
+    REGISTER_GLOBAL_MOCK_RETURNS(transfer_set_delivery_tag, 0, 1);
+    REGISTER_GLOBAL_MOCK_RETURNS(transfer_set_message_format, 0, 1);
+    REGISTER_GLOBAL_MOCK_RETURNS(transfer_set_settled, 0, 1);
+    REGISTER_GLOBAL_MOCK_RETURNS(amqpvalue_create_transfer, TEST_AMQP_VALUE, NULL);
+    REGISTER_GLOBAL_MOCK_RETURNS(tickcounter_get_current_ms, 0, 1);
+    REGISTER_GLOBAL_MOCK_RETURNS(singlylinkedlist_add, TEST_LIST_ITEM_HANDLE, NULL);
+    REGISTER_GLOBAL_MOCK_RETURNS(singlylinkedlist_remove, 0, 1);
+    REGISTER_GLOBAL_MOCK_RETURNS(session_send_transfer, 0, 1);
+
     REGISTER_TYPE(FLOW_HANDLE, FLOW_HANDLE);
     REGISTER_TYPE(TRANSFER_HANDLE, TRANSFER_HANDLE);
     REGISTER_TYPE(bool*, bool_ptr);
     REGISTER_TYPE(uint32_t, uint32_t);
+
+    REGISTER_UMOCK_VALUE_TYPE(delivery_tag);
 }
 
 TEST_SUITE_CLEANUP(suite_cleanup)
@@ -439,7 +624,7 @@ TEST_FUNCTION(link_receiver_frame_received_succeeds)
     LINK_HANDLE link = create_link(role_receiver);
     ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
     ON_SESSION_STATE_CHANGED on_session_state_changed = NULL;
-    int attach_result = attach_link(link, &on_frame_received, &on_session_state_changed);
+    int attach_result = attach_link(link, role_receiver, &on_frame_received, &on_session_state_changed);
     ASSERT_ARE_EQUAL(int, 0, attach_result);
 
     AMQP_VALUE performative = (AMQP_VALUE)0x5000;
@@ -475,7 +660,7 @@ TEST_FUNCTION(link_sender_frame_received_succeeds)
     LINK_HANDLE link = create_link(role_sender);
     ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
     ON_SESSION_STATE_CHANGED on_session_state_changed = NULL;
-    int attach_result = attach_link(link, &on_frame_received, &on_session_state_changed);
+    int attach_result = attach_link(link, role_sender, &on_frame_received, &on_session_state_changed);
     ASSERT_ARE_EQUAL(int, 0, attach_result);
 
     AMQP_VALUE performative = (AMQP_VALUE)0x5000;
@@ -517,7 +702,7 @@ TEST_FUNCTION(link_receiver_frame_received_get_flow_fails_no_double_free_fails)
     LINK_HANDLE link = create_link(role_receiver);
     ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
     ON_SESSION_STATE_CHANGED on_session_state_changed = NULL;
-    int attach_result = attach_link(link, &on_frame_received, &on_session_state_changed);
+    int attach_result = attach_link(link, role_receiver, &on_frame_received, &on_session_state_changed);
     ASSERT_ARE_EQUAL(int, 0, attach_result);
 
     AMQP_VALUE performative = (AMQP_VALUE)0x5000;
@@ -556,7 +741,7 @@ TEST_FUNCTION(link_receiver_default_max_credit_succeeds)
 
     ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
     ON_SESSION_STATE_CHANGED on_session_state_changed = NULL;
-    int attach_result = attach_link(link, &on_frame_received, &on_session_state_changed);
+    int attach_result = attach_link(link, role_receiver, &on_frame_received, &on_session_state_changed);
     ASSERT_ARE_EQUAL(int, 0, attach_result);
 
     ATTACH_HANDLE attach = (ATTACH_HANDLE)0x4999;
@@ -650,7 +835,7 @@ TEST_FUNCTION(link_receiver_link_credit_replenish_succeeds)
 
     ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
     ON_SESSION_STATE_CHANGED on_session_state_changed = NULL;
-    int attach_result = attach_link(link, &on_frame_received, &on_session_state_changed);
+    int attach_result = attach_link(link, role_receiver, &on_frame_received, &on_session_state_changed);
     ASSERT_ARE_EQUAL(int, 0, attach_result);
 
     ATTACH_HANDLE attach = (ATTACH_HANDLE)0x4999;
@@ -792,6 +977,270 @@ TEST_FUNCTION(link_receiver_link_credit_replenish_succeeds)
     STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(transfer_destroy(IGNORED_PTR_ARG));
     on_frame_received(link, performative, frame_payload_size, payload_bytes);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    link_destroy(link);
+}
+
+static void on_delivery_settled(void* context, delivery_number delivery_no, LINK_DELIVERY_SETTLE_REASON reason, AMQP_VALUE delivery_state)
+{
+    (void)context;
+    (void)delivery_no;
+    (void)reason;
+    (void)delivery_state;
+}
+
+TEST_FUNCTION(link_transfer_async_success)
+{
+    // arrange
+    LINK_HANDLE link = create_link(role_sender);
+
+    ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
+    LINK_TRANSFER_RESULT link_transfer_error;
+    tickcounter_ms_t send_timeout = 1000;
+    uint8_t data_bytes[16];
+    PAYLOAD payload;
+    payload.bytes = (const unsigned char*)data_bytes;
+    payload.length = 0;
+    const size_t message_count = 1;
+    uint8_t async_op_result[128];
+    unsigned char delivery_tag_bytes[10];
+    delivery_tag moot_delivery_tag;
+    moot_delivery_tag.bytes = delivery_tag_bytes;
+    moot_delivery_tag.length = sizeof(delivery_tag_bytes);
+
+    int attach_result = attach_link(link, role_sender, &on_frame_received, NULL);
+    ASSERT_ARE_EQUAL(int, 0, attach_result);
+
+    umock_c_reset_all_calls();
+    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG))
+        .SetReturn((ASYNC_OPERATION_HANDLE)async_op_result);
+    STRICT_EXPECTED_CALL(transfer_create(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(transfer_set_delivery_tag(IGNORED_PTR_ARG, moot_delivery_tag))
+        .IgnoreArgument_delivery_tag_value(); // Important for making umock-c work with custom value arguments.
+    STRICT_EXPECTED_CALL(transfer_set_message_format(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(transfer_set_settled(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_create_transfer(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(tickcounter_get_current_ms(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_add(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(session_send_transfer(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .SetReturn(SESSION_SEND_TRANSFER_OK);
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(transfer_destroy(IGNORED_PTR_ARG));
+
+    // act
+    ASYNC_OPERATION_HANDLE async_result = link_transfer_async(link, AMQP_BATCHING_FORMAT_CODE, &payload, message_count, on_delivery_settled, NULL, &link_transfer_error, send_timeout);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    link_destroy(link);
+}
+
+TEST_FUNCTION(link_transfer_async_SESSION_SEND_TRANSFER_ERROR_fails)
+{
+    // arrange
+    LINK_HANDLE link = create_link(role_sender);
+
+    ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
+    LINK_TRANSFER_RESULT link_transfer_error;
+    tickcounter_ms_t send_timeout = 1000;
+    uint8_t data_bytes[16];
+    PAYLOAD payload;
+    payload.bytes = (const unsigned char*)data_bytes;
+    payload.length = 0;
+    const size_t message_count = 1;
+    uint8_t async_op_result[128];
+    unsigned char delivery_tag_bytes[10];
+    delivery_tag moot_delivery_tag;
+    moot_delivery_tag.bytes = delivery_tag_bytes;
+    moot_delivery_tag.length = sizeof(delivery_tag_bytes);
+
+    int attach_result = attach_link(link, role_sender, &on_frame_received, NULL);
+    ASSERT_ARE_EQUAL(int, 0, attach_result);
+
+    umock_c_reset_all_calls();
+    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG))
+        .SetReturn((ASYNC_OPERATION_HANDLE)async_op_result);
+    STRICT_EXPECTED_CALL(transfer_create(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(transfer_set_delivery_tag(IGNORED_PTR_ARG, moot_delivery_tag))
+        .IgnoreArgument_delivery_tag_value(); // Important for making umock-c work with custom value arguments.
+    STRICT_EXPECTED_CALL(transfer_set_message_format(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(transfer_set_settled(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_create_transfer(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(tickcounter_get_current_ms(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_add(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(session_send_transfer(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .SetReturn(SESSION_SEND_TRANSFER_ERROR);
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(async_operation_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(transfer_destroy(IGNORED_PTR_ARG));
+
+    // act
+    ASYNC_OPERATION_HANDLE async_result = link_transfer_async(link, AMQP_BATCHING_FORMAT_CODE, &payload, message_count, on_delivery_settled, NULL, &link_transfer_error, send_timeout);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    link_destroy(link);
+}
+
+TEST_FUNCTION(link_transfer_async_SESSION_SEND_TRANSFER_BUSY_fails)
+{
+    // arrange
+    LINK_HANDLE link = create_link(role_sender);
+
+    ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
+    LINK_TRANSFER_RESULT link_transfer_error;
+    tickcounter_ms_t send_timeout = 1000;
+    uint8_t data_bytes[16];
+    PAYLOAD payload;
+    payload.bytes = (const unsigned char*)data_bytes;
+    payload.length = 0;
+    const size_t message_count = 1;
+    uint8_t async_op_result[128];
+    unsigned char delivery_tag_bytes[10];
+    delivery_tag moot_delivery_tag;
+    moot_delivery_tag.bytes = delivery_tag_bytes;
+    moot_delivery_tag.length = sizeof(delivery_tag_bytes);
+
+    int attach_result = attach_link(link, role_sender, &on_frame_received, NULL);
+    ASSERT_ARE_EQUAL(int, 0, attach_result);
+
+    umock_c_reset_all_calls();
+    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG))
+        .SetReturn((ASYNC_OPERATION_HANDLE)async_op_result);
+    STRICT_EXPECTED_CALL(transfer_create(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(transfer_set_delivery_tag(IGNORED_PTR_ARG, moot_delivery_tag))
+        .IgnoreArgument_delivery_tag_value(); // Important for making umock-c work with custom value arguments.
+    STRICT_EXPECTED_CALL(transfer_set_message_format(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(transfer_set_settled(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_create_transfer(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(tickcounter_get_current_ms(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_add(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(session_send_transfer(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .SetReturn(SESSION_SEND_TRANSFER_BUSY);
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(async_operation_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(transfer_destroy(IGNORED_PTR_ARG));
+
+    // act
+    ASYNC_OPERATION_HANDLE async_result = link_transfer_async(link, AMQP_BATCHING_FORMAT_CODE, &payload, message_count, on_delivery_settled, NULL, &link_transfer_error, send_timeout);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    link_destroy(link);
+}
+
+// If `session_send_transfer` fails internally, depending on the point where it fails `remove_all_pending_deliveries` might be called,
+// causing the ASYNC_OPERATION_HANDLE/DELIVERY_INSTANCE variable `result` to be removed from `link->pending_deliveries` and destroyed.
+// Then when `session_send_transfer` returns, in such cases `singlylinkedlist_remove` will fail and `async_operation_destroy` should not be called (to avoid a double-free).
+TEST_FUNCTION(link_transfer_async_SESSION_SEND_TRANSFER_ERROR_result_already_destroyed_fails)
+{
+    // arrange
+    LINK_HANDLE link = create_link(role_sender);
+
+    ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
+    LINK_TRANSFER_RESULT link_transfer_error;
+    tickcounter_ms_t send_timeout = 1000;
+    uint8_t data_bytes[16];
+    PAYLOAD payload;
+    payload.bytes = (const unsigned char*)data_bytes;
+    payload.length = 0;
+    const size_t message_count = 1;
+    uint8_t async_op_result[128];
+    unsigned char delivery_tag_bytes[10];
+    delivery_tag moot_delivery_tag;
+    moot_delivery_tag.bytes = delivery_tag_bytes;
+    moot_delivery_tag.length = sizeof(delivery_tag_bytes);
+
+    int attach_result = attach_link(link, role_sender, &on_frame_received, NULL);
+    ASSERT_ARE_EQUAL(int, 0, attach_result);
+
+    umock_c_reset_all_calls();
+    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG))
+        .SetReturn((ASYNC_OPERATION_HANDLE)async_op_result);
+    STRICT_EXPECTED_CALL(transfer_create(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(transfer_set_delivery_tag(IGNORED_PTR_ARG, moot_delivery_tag))
+        .IgnoreArgument_delivery_tag_value(); // Important for making umock-c work with custom value arguments.
+    STRICT_EXPECTED_CALL(transfer_set_message_format(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(transfer_set_settled(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_create_transfer(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(tickcounter_get_current_ms(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_add(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(session_send_transfer(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .SetReturn(SESSION_SEND_TRANSFER_ERROR);
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .SetReturn(1); // result has already been removed from link->pending_deliveries.
+    // Do not expect async_operation_destroy!
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(transfer_destroy(IGNORED_PTR_ARG));
+
+    // act
+    ASYNC_OPERATION_HANDLE async_result = link_transfer_async(link, AMQP_BATCHING_FORMAT_CODE, &payload, message_count, on_delivery_settled, NULL, &link_transfer_error, send_timeout);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    link_destroy(link);
+}
+
+// If `session_send_transfer` fails internally, depending on the point where it fails `remove_all_pending_deliveries` might be called,
+// causing the ASYNC_OPERATION_HANDLE/DELIVERY_INSTANCE variable `result` to be removed from `link->pending_deliveries` and destroyed.
+// Then when `session_send_transfer` returns, in such cases `singlylinkedlist_remove` will fail and `async_operation_destroy` should not be called (to avoid a double-free).
+TEST_FUNCTION(link_transfer_async_SESSION_SEND_TRANSFER_BUSY_result_already_destroyed_fails)
+{
+    // arrange
+    LINK_HANDLE link = create_link(role_sender);
+
+    ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
+    LINK_TRANSFER_RESULT link_transfer_error;
+    tickcounter_ms_t send_timeout = 1000;
+    uint8_t data_bytes[16];
+    PAYLOAD payload;
+    payload.bytes = (const unsigned char*)data_bytes;
+    payload.length = 0;
+    const size_t message_count = 1;
+    uint8_t async_op_result[128];
+    unsigned char delivery_tag_bytes[10];
+    delivery_tag moot_delivery_tag;
+    moot_delivery_tag.bytes = delivery_tag_bytes;
+    moot_delivery_tag.length = sizeof(delivery_tag_bytes);
+
+    int attach_result = attach_link(link, role_sender, &on_frame_received, NULL);
+    ASSERT_ARE_EQUAL(int, 0, attach_result);
+
+    umock_c_reset_all_calls();
+    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG))
+        .SetReturn((ASYNC_OPERATION_HANDLE)async_op_result);
+    STRICT_EXPECTED_CALL(transfer_create(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(transfer_set_delivery_tag(IGNORED_PTR_ARG, moot_delivery_tag))
+        .IgnoreArgument_delivery_tag_value(); // Important for making umock-c work with custom value arguments.
+    STRICT_EXPECTED_CALL(transfer_set_message_format(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(transfer_set_settled(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_create_transfer(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(tickcounter_get_current_ms(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_add(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(session_send_transfer(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .SetReturn(SESSION_SEND_TRANSFER_BUSY);
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .SetReturn(1); // result has already been removed from link->pending_deliveries.
+    // Do not expect async_operation_destroy!
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(transfer_destroy(IGNORED_PTR_ARG));
+
+    // act
+    ASYNC_OPERATION_HANDLE async_result = link_transfer_async(link, AMQP_BATCHING_FORMAT_CODE, &payload, message_count, on_delivery_settled, NULL, &link_transfer_error, send_timeout);
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());

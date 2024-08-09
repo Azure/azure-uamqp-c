@@ -1500,26 +1500,24 @@ ASYNC_OPERATION_HANDLE link_transfer_async(LINK_HANDLE link, message_format mess
                                         default:
                                         case SESSION_SEND_TRANSFER_ERROR:
                                             LogError("Failed session send transfer");
-                                            if (singlylinkedlist_remove(link->pending_deliveries, delivery_instance_list_item) != 0)
+                                            if (singlylinkedlist_remove(link->pending_deliveries, delivery_instance_list_item) == 0)
                                             {
-                                                LogError("Error removing pending delivery from the list");
+                                                async_operation_destroy(result);
                                             }
 
                                             *link_transfer_error = LINK_TRANSFER_ERROR;
-                                            async_operation_destroy(result);
                                             result = NULL;
                                             break;
 
                                         case SESSION_SEND_TRANSFER_BUSY:
                                             /* Ensure we remove from list again since sender will attempt to transfer again on flow on */
                                             LogError("Failed session send transfer");
-                                            if (singlylinkedlist_remove(link->pending_deliveries, delivery_instance_list_item) != 0)
+                                            if (singlylinkedlist_remove(link->pending_deliveries, delivery_instance_list_item) == 0)
                                             {
-                                                LogError("Error removing pending delivery from the list");
+                                                async_operation_destroy(result);
                                             }
 
                                             *link_transfer_error = LINK_TRANSFER_BUSY;
-                                            async_operation_destroy(result);
                                             result = NULL;
                                             break;
 

@@ -347,6 +347,14 @@ static void test_on_link_flow_on(void* context)
     (void)context;
 }
 
+static void on_delivery_settled(void* context, delivery_number delivery_no, LINK_DELIVERY_SETTLE_REASON reason, AMQP_VALUE delivery_state)
+{
+    (void)context;
+    (void)delivery_no;
+    (void)reason;
+    (void)delivery_state;
+}
+
 static LINK_HANDLE create_link(role link_role)
 {
     umock_c_reset_all_calls();
@@ -388,7 +396,6 @@ static int attach_link(LINK_HANDLE link, role link_role, ON_ENDPOINT_FRAME_RECEI
         ON_ENDPOINT_FRAME_RECEIVED local_on_frame_received = NULL;
         AMQP_VALUE performative = (AMQP_VALUE)0x5000;
         AMQP_VALUE descriptor = (AMQP_VALUE)0x5001;
-        FLOW_HANDLE flow = (FLOW_HANDLE)0x5002;
         uint32_t frame_payload_size = 30;
         const unsigned char payload_bytes[30] = { 0 };
         uint64_t max_message_size = 123456;
@@ -985,14 +992,6 @@ TEST_FUNCTION(link_receiver_link_credit_replenish_succeeds)
     link_destroy(link);
 }
 
-static void on_delivery_settled(void* context, delivery_number delivery_no, LINK_DELIVERY_SETTLE_REASON reason, AMQP_VALUE delivery_state)
-{
-    (void)context;
-    (void)delivery_no;
-    (void)reason;
-    (void)delivery_state;
-}
-
 TEST_FUNCTION(link_transfer_async_success)
 {
     // arrange
@@ -1036,6 +1035,7 @@ TEST_FUNCTION(link_transfer_async_success)
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NOT_NULL(async_result);
 
     // cleanup
     link_destroy(link);
@@ -1086,6 +1086,7 @@ TEST_FUNCTION(link_transfer_async_SESSION_SEND_TRANSFER_ERROR_fails)
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NULL(async_result);
 
     // cleanup
     link_destroy(link);
@@ -1136,6 +1137,7 @@ TEST_FUNCTION(link_transfer_async_SESSION_SEND_TRANSFER_BUSY_fails)
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NULL(async_result);
 
     // cleanup
     link_destroy(link);
@@ -1190,6 +1192,7 @@ TEST_FUNCTION(link_transfer_async_SESSION_SEND_TRANSFER_ERROR_result_already_des
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NULL(async_result);
 
     // cleanup
     link_destroy(link);
@@ -1244,6 +1247,7 @@ TEST_FUNCTION(link_transfer_async_SESSION_SEND_TRANSFER_BUSY_result_already_dest
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NULL(async_result);
 
     // cleanup
     link_destroy(link);

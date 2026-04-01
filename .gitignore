@@ -36,3 +36,8 @@
 
 /.vscode/*
 /**/.vs/*
+
+# Zig
+zig-out/
+zig-cache/
+.zig-cache/

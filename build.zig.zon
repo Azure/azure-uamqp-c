@@ -1,0 +1,11 @@
+.{
+    .name = .uamqp,
+    .fingerprint = 0x52a4693c691c7395,
+    .version = "0.1.0",
+    .dependencies = .{},
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src/zig",
+    },
+}

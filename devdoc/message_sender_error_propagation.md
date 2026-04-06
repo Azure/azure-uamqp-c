@@ -71,39 +71,41 @@ Update all callers:
 - Session DISCARDING: pass NULL (no error info at this level)
 - Session ERROR: pass NULL (no error info at this level)
 
-### Change 2: Construct rejected delivery_state from detach error
+### Change 2: Construct rejected delivery_state from detach error and store on link
 
-**File:** `src/link.c`
+**File:** `src/link.c`, `inc/azure_uamqp_c/link.h`
 
 In the detach handler, **before** calling `remove_all_pending_deliveries`, construct an
-AMQP `rejected` delivery state from the error:
+AMQP `rejected` delivery state from the error and store it on the `LINK_INSTANCE` for
+later retrieval by `message_sender`:
 
 ```c
-AMQP_VALUE error_delivery_state = NULL;
-if (detach_get_error(detach, &error) == 0 && error != NULL)
+// Store on LINK_INSTANCE for later retrieval
+if (link_instance->last_error_delivery_state != NULL)
+{
+    amqpvalue_destroy(link_instance->last_error_delivery_state);
+    link_instance->last_error_delivery_state = NULL;
+}
+
+if (error != NULL)
 {
     REJECTED_HANDLE rejected = rejected_create();
     if (rejected != NULL)
     {
         if (rejected_set_error(rejected, error) == 0)
         {
-            error_delivery_state = amqpvalue_create_rejected(rejected);
+            link_instance->last_error_delivery_state = amqpvalue_create_rejected(rejected);
         }
         rejected_destroy(rejected);
     }
 }
 
-remove_all_pending_deliveries(link_instance, true, error_delivery_state);
-
-if (error_delivery_state != NULL)
-{
-    amqpvalue_destroy(error_delivery_state);
-}
+remove_all_pending_deliveries(link_instance, true, link_instance->last_error_delivery_state);
 ```
 
-The `rejected` type is the standard AMQP delivery-state for errors. Callers can extract
-the error via `amqpvalue_get_rejected()` → `rejected_get_error()` → `error_get_condition()`
-/ `error_get_description()`.
+A new public getter `link_get_last_error_delivery_state()` is added to `link.h` so that
+`message_sender` can retrieve the stored error without consuming the single detach event
+subscription slot.
 
 ### Change 3: Forward error to unsent messages via message_sender
 
@@ -111,14 +113,19 @@ the error via `amqpvalue_get_rejected()` → `rejected_get_error()` → `error_g
 
 Messages queued in message_sender but not yet transferred to the link layer are reported
 via `indicate_all_messages_as_error()`, which currently passes NULL. To propagate error
-info for these:
+info for these, query the link's stored last error via `link_get_last_error_delivery_state()`:
 
-1. Add `AMQP_VALUE last_error_delivery_state` field to `MESSAGE_SENDER_INSTANCE`
-2. Add `ON_LINK_DETACH_EVENT_SUBSCRIPTION_HANDLE detach_subscription` field
-3. Subscribe to link detach events via `link_subscribe_on_link_detach_received`
-4. In the detach callback, construct and store a `rejected` delivery_state
-5. Modify `indicate_all_messages_as_error` to pass the stored delivery_state
-6. Clean up in `messagesender_destroy` and reset on successful re-open
+```c
+static void indicate_all_messages_as_error(MESSAGE_SENDER_INSTANCE* message_sender)
+{
+    AMQP_VALUE error_delivery_state = link_get_last_error_delivery_state(message_sender->link);
+    // ... pass error_delivery_state to each on_message_send_complete callback
+}
+```
+
+This approach avoids consuming the link's single detach event subscription slot (which
+is used by existing callers for redirect handling), keeping message_sender composable
+with other detach listeners.
 
 ### Change 4: Fix message leak on NULL DISPOSITION_RECEIVED
 

@@ -1428,4 +1428,100 @@ TEST_FUNCTION(link_detach_without_error_passes_NULL_delivery_state)
     link_destroy(link);
 }
 
+TEST_FUNCTION(session_state_error_propagates_synthetic_delivery_state)
+{
+    // arrange
+    ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
+    ON_SESSION_STATE_CHANGED on_session_state_changed = NULL;
+    LINK_HANDLE link = create_link(role_sender);
+    ASSERT_IS_NOT_NULL(link);
+    int attach_result = attach_link(link, role_sender, &on_frame_received, &on_session_state_changed);
+    ASSERT_ARE_EQUAL(int, 0, attach_result);
+    ASSERT_IS_NOT_NULL(on_session_state_changed);
+
+    ERROR_HANDLE synthetic_error = (ERROR_HANDLE)0x9001;
+    REJECTED_HANDLE rejected = (REJECTED_HANDLE)0x9002;
+    AMQP_VALUE rejected_amqp_value = (AMQP_VALUE)0x9003;
+
+    umock_c_reset_all_calls();
+
+    // create_error_delivery_state("amqp:connection:forced", "The underlying connection was lost")
+    STRICT_EXPECTED_CALL(error_create(IGNORED_PTR_ARG))
+        .SetReturn(synthetic_error);
+    STRICT_EXPECTED_CALL(error_set_description(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .SetReturn(0);
+    STRICT_EXPECTED_CALL(rejected_create())
+        .SetReturn(rejected);
+    STRICT_EXPECTED_CALL(rejected_set_error(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .SetReturn(0);
+    STRICT_EXPECTED_CALL(amqpvalue_create_rejected(IGNORED_PTR_ARG))
+        .SetReturn(rejected_amqp_value);
+    STRICT_EXPECTED_CALL(rejected_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(error_destroy(IGNORED_PTR_ARG));
+
+    // remove_all_pending_deliveries (no pending deliveries)
+    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(IGNORED_PTR_ARG))
+        .SetReturn(NULL);
+    STRICT_EXPECTED_CALL(singlylinkedlist_destroy(IGNORED_PTR_ARG));
+
+    // act
+    on_session_state_changed(link, SESSION_STATE_ERROR, SESSION_STATE_MAPPED);
+
+    // assert
+    AMQP_VALUE last_error = link_get_last_error_delivery_state(link);
+    ASSERT_IS_NOT_NULL(last_error);
+    ASSERT_ARE_EQUAL(void_ptr, rejected_amqp_value, last_error);
+
+    // cleanup
+    link_destroy(link);
+}
+
+TEST_FUNCTION(session_state_discarding_propagates_synthetic_delivery_state)
+{
+    // arrange
+    ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
+    ON_SESSION_STATE_CHANGED on_session_state_changed = NULL;
+    LINK_HANDLE link = create_link(role_sender);
+    ASSERT_IS_NOT_NULL(link);
+    int attach_result = attach_link(link, role_sender, &on_frame_received, &on_session_state_changed);
+    ASSERT_ARE_EQUAL(int, 0, attach_result);
+    ASSERT_IS_NOT_NULL(on_session_state_changed);
+
+    ERROR_HANDLE synthetic_error = (ERROR_HANDLE)0x9001;
+    REJECTED_HANDLE rejected = (REJECTED_HANDLE)0x9002;
+    AMQP_VALUE rejected_amqp_value = (AMQP_VALUE)0x9003;
+
+    umock_c_reset_all_calls();
+
+    // create_error_delivery_state("amqp:connection:forced", "The session is being discarded")
+    STRICT_EXPECTED_CALL(error_create(IGNORED_PTR_ARG))
+        .SetReturn(synthetic_error);
+    STRICT_EXPECTED_CALL(error_set_description(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .SetReturn(0);
+    STRICT_EXPECTED_CALL(rejected_create())
+        .SetReturn(rejected);
+    STRICT_EXPECTED_CALL(rejected_set_error(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .SetReturn(0);
+    STRICT_EXPECTED_CALL(amqpvalue_create_rejected(IGNORED_PTR_ARG))
+        .SetReturn(rejected_amqp_value);
+    STRICT_EXPECTED_CALL(rejected_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(error_destroy(IGNORED_PTR_ARG));
+
+    // remove_all_pending_deliveries (no pending deliveries)
+    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(IGNORED_PTR_ARG))
+        .SetReturn(NULL);
+    STRICT_EXPECTED_CALL(singlylinkedlist_destroy(IGNORED_PTR_ARG));
+
+    // act
+    on_session_state_changed(link, SESSION_STATE_DISCARDING, SESSION_STATE_MAPPED);
+
+    // assert
+    AMQP_VALUE last_error = link_get_last_error_delivery_state(link);
+    ASSERT_IS_NOT_NULL(last_error);
+    ASSERT_ARE_EQUAL(void_ptr, rejected_amqp_value, last_error);
+
+    // cleanup
+    link_destroy(link);
+}
+
 END_TEST_SUITE(link_ut)

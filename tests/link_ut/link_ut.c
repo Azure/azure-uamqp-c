@@ -1445,6 +1445,10 @@ TEST_FUNCTION(session_state_error_propagates_synthetic_delivery_state)
 
     umock_c_reset_all_calls();
 
+    // session_get_last_error returns NULL — no real broker error available
+    STRICT_EXPECTED_CALL(session_get_last_error(IGNORED_PTR_ARG))
+        .SetReturn(NULL);
+
     // create_error_delivery_state("amqp:connection:forced", "The underlying connection was lost")
     STRICT_EXPECTED_CALL(error_create(IGNORED_PTR_ARG))
         .SetReturn(synthetic_error);
@@ -1493,6 +1497,10 @@ TEST_FUNCTION(session_state_discarding_propagates_synthetic_delivery_state)
 
     umock_c_reset_all_calls();
 
+    // session_get_last_error returns NULL — no real broker error available
+    STRICT_EXPECTED_CALL(session_get_last_error(IGNORED_PTR_ARG))
+        .SetReturn(NULL);
+
     // create_error_delivery_state("amqp:connection:forced", "The session is being discarded")
     STRICT_EXPECTED_CALL(error_create(IGNORED_PTR_ARG))
         .SetReturn(synthetic_error);
@@ -1514,6 +1522,53 @@ TEST_FUNCTION(session_state_discarding_propagates_synthetic_delivery_state)
 
     // act
     on_session_state_changed(link, SESSION_STATE_DISCARDING, SESSION_STATE_MAPPED);
+
+    // assert
+    AMQP_VALUE last_error = link_get_last_error_delivery_state(link);
+    ASSERT_IS_NOT_NULL(last_error);
+    ASSERT_ARE_EQUAL(void_ptr, rejected_amqp_value, last_error);
+
+    // cleanup
+    link_destroy(link);
+}
+
+TEST_FUNCTION(session_state_error_uses_real_broker_error_when_available)
+{
+    // arrange
+    ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
+    ON_SESSION_STATE_CHANGED on_session_state_changed = NULL;
+    LINK_HANDLE link = create_link(role_sender);
+    ASSERT_IS_NOT_NULL(link);
+    int attach_result = attach_link(link, role_sender, &on_frame_received, &on_session_state_changed);
+    ASSERT_ARE_EQUAL(int, 0, attach_result);
+    ASSERT_IS_NOT_NULL(on_session_state_changed);
+
+    ERROR_HANDLE broker_error = (ERROR_HANDLE)0xA001;
+    REJECTED_HANDLE rejected = (REJECTED_HANDLE)0xA002;
+    AMQP_VALUE rejected_amqp_value = (AMQP_VALUE)0xA003;
+
+    umock_c_reset_all_calls();
+
+    // session_get_last_error returns a real broker error
+    STRICT_EXPECTED_CALL(session_get_last_error(IGNORED_PTR_ARG))
+        .SetReturn(broker_error);
+
+    // Build rejected delivery_state from the real error
+    STRICT_EXPECTED_CALL(rejected_create())
+        .SetReturn(rejected);
+    STRICT_EXPECTED_CALL(rejected_set_error(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .SetReturn(0);
+    STRICT_EXPECTED_CALL(amqpvalue_create_rejected(IGNORED_PTR_ARG))
+        .SetReturn(rejected_amqp_value);
+    STRICT_EXPECTED_CALL(rejected_destroy(IGNORED_PTR_ARG));
+
+    // remove_all_pending_deliveries (no pending deliveries)
+    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(IGNORED_PTR_ARG))
+        .SetReturn(NULL);
+    STRICT_EXPECTED_CALL(singlylinkedlist_destroy(IGNORED_PTR_ARG));
+
+    // act
+    on_session_state_changed(link, SESSION_STATE_ERROR, SESSION_STATE_MAPPED);
 
     // assert
     AMQP_VALUE last_error = link_get_last_error_delivery_state(link);

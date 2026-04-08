@@ -732,15 +732,53 @@ static void on_session_state_changed(void* context, SESSION_STATE new_session_st
     }
     else if (new_session_state == SESSION_STATE_DISCARDING)
     {
-        set_last_error_delivery_state(link_instance,
-            create_error_delivery_state("amqp:connection:forced", "The session is being discarded"));
+        // Use the real broker error from the session (END/CLOSE frame) if available,
+        // otherwise fall back to a synthetic error.
+        ERROR_HANDLE session_error = session_get_last_error(link_instance->session);
+        if (session_error != NULL)
+        {
+            REJECTED_HANDLE rejected = rejected_create();
+            AMQP_VALUE error_delivery_state = NULL;
+            if (rejected != NULL)
+            {
+                if (rejected_set_error(rejected, session_error) == 0)
+                {
+                    error_delivery_state = amqpvalue_create_rejected(rejected);
+                }
+                rejected_destroy(rejected);
+            }
+            set_last_error_delivery_state(link_instance, error_delivery_state);
+        }
+        else
+        {
+            set_last_error_delivery_state(link_instance,
+                create_error_delivery_state("amqp:connection:forced", "The session is being discarded"));
+        }
         remove_all_pending_deliveries(link_instance, true, link_instance->last_error_delivery_state);
         set_link_state(link_instance, LINK_STATE_DETACHED);
     }
     else if (new_session_state == SESSION_STATE_ERROR)
     {
-        set_last_error_delivery_state(link_instance,
-            create_error_delivery_state("amqp:connection:forced", "The underlying connection was lost"));
+        ERROR_HANDLE session_error = session_get_last_error(link_instance->session);
+        if (session_error != NULL)
+        {
+            REJECTED_HANDLE rejected = rejected_create();
+            AMQP_VALUE error_delivery_state = NULL;
+            if (rejected != NULL)
+            {
+                if (rejected_set_error(rejected, session_error) == 0)
+                {
+                    error_delivery_state = amqpvalue_create_rejected(rejected);
+                }
+                rejected_destroy(rejected);
+            }
+            set_last_error_delivery_state(link_instance, error_delivery_state);
+        }
+        else
+        {
+            set_last_error_delivery_state(link_instance,
+                create_error_delivery_state("amqp:connection:forced", "The underlying connection was lost"));
+        }
         remove_all_pending_deliveries(link_instance, true, link_instance->last_error_delivery_state);
         set_link_state(link_instance, LINK_STATE_ERROR);
     }

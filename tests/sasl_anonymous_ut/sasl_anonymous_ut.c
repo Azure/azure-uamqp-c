@@ -9,7 +9,7 @@
 #include <stddef.h>
 #endif
 
-#include "azure_macro_utils/macro_utils.h"
+#include "macro_utils/macro_utils.h"
 #include "testrunnerswitcher.h"
 #include "umock_c/umock_c.h"
 #include "umock_c/umocktypes_charptr.h"
@@ -92,7 +92,7 @@ TEST_FUNCTION(saslanonymous_create_with_valid_args_succeeds)
 {
     // arrange
     CONCRETE_SASL_MECHANISM_HANDLE result;
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
 
     // act
     result = saslanonymous_get_interface()->concrete_sasl_mechanism_create((void*)0x4242);
@@ -110,7 +110,7 @@ TEST_FUNCTION(when_allocating_memory_fails_then_saslanonymous_create_fails)
 {
     // arrange
     CONCRETE_SASL_MECHANISM_HANDLE result;
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG))
         .SetReturn(NULL);
 
     // act
@@ -126,7 +126,7 @@ TEST_FUNCTION(saslanonymous_create_with_NULL_config_succeeds)
 {
     // arrange
     CONCRETE_SASL_MECHANISM_HANDLE result;
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
 
     // act
     result = saslanonymous_get_interface()->concrete_sasl_mechanism_create(NULL);
@@ -148,7 +148,7 @@ TEST_FUNCTION(saslanonymous_destroy_frees_the_allocated_resources)
     CONCRETE_SASL_MECHANISM_HANDLE result = saslanonymous_get_interface()->concrete_sasl_mechanism_create(NULL);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     saslanonymous_get_interface()->concrete_sasl_mechanism_destroy(result);

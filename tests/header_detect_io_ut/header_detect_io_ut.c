@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #endif
-#include "azure_macro_utils/macro_utils.h"
+#include "macro_utils/macro_utils.h"
 #include "testrunnerswitcher.h"
 #include "umock_c/umock_c.h"
 #include "umock_c/umockalloc.h"
@@ -404,9 +404,9 @@ TEST_FUNCTION(header_detect_io_create_with_valid_args_succeeds)
     header_detect_io_config.header_detect_entries = header_detect_entries;
     header_detect_io_config.underlying_io = test_underlying_amqp_io;
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_create());
 
     // act
@@ -446,10 +446,10 @@ TEST_FUNCTION(header_detect_io_create_with_2_header_detect_entries_succeeds)
     header_detect_io_config.header_detect_entries = header_detect_entries;
     header_detect_io_config.underlying_io = test_underlying_amqp_io;
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG)); // array
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG)); // first entry
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG)); // second entry
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG)); // array
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG)); // first entry
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG)); // second entry
     STRICT_EXPECTED_CALL(singlylinkedlist_create());
 
     // act
@@ -480,7 +480,7 @@ TEST_FUNCTION(when_allocating_memory_fails_header_detect_io_create_fails)
     header_detect_io_config.header_detect_entries = header_detect_entries;
     header_detect_io_config.underlying_io = test_underlying_amqp_io;
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG))
         .SetReturn(NULL);
 
     // act
@@ -615,10 +615,10 @@ TEST_FUNCTION(when_allocating_memory_for_the_header_detect_entries_array_fails_h
     header_detect_io_config.header_detect_entries = header_detect_entries;
     header_detect_io_config.underlying_io = test_underlying_amqp_io;
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG))
         .SetReturn(NULL);
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     result = header_detect_io_get_interface_description()->concrete_io_create(&header_detect_io_config);
@@ -645,12 +645,12 @@ TEST_FUNCTION(when_allocating_memory_for_the_header_detect_entry_fails_header_de
     header_detect_io_config.header_detect_entries = header_detect_entries;
     header_detect_io_config.underlying_io = test_underlying_amqp_io;
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG))
         .SetReturn(NULL);
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     result = header_detect_io_get_interface_description()->concrete_io_create(&header_detect_io_config);
@@ -681,14 +681,14 @@ TEST_FUNCTION(when_allocating_memory_for_the_second_header_detect_entry_fails_he
     header_detect_io_config.header_detect_entries = header_detect_entries;
     header_detect_io_config.underlying_io = test_underlying_amqp_io;
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG))
         .SetReturn(NULL);
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     result = header_detect_io_get_interface_description()->concrete_io_create(&header_detect_io_config);
@@ -719,16 +719,16 @@ TEST_FUNCTION(when_singlylinkedlist_create_fails_header_detect_io_create_fails)
     header_detect_io_config.header_detect_entries = header_detect_entries;
     header_detect_io_config.underlying_io = test_underlying_amqp_io;
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_create())
         .SetReturn(NULL);
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     result = header_detect_io_get_interface_description()->concrete_io_create(&header_detect_io_config);
@@ -788,10 +788,10 @@ TEST_FUNCTION(two_NULL_IO_entries_are_OK_for_header_detect_io_create)
     header_detect_io_config.header_detect_entries = header_detect_entries;
     header_detect_io_config.underlying_io = test_underlying_amqp_io;
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG)); // array
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG)); // first entry
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG)); // second entry
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG)); // array
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG)); // first entry
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG)); // second entry
     STRICT_EXPECTED_CALL(singlylinkedlist_create());
 
     // act
@@ -834,10 +834,10 @@ TEST_FUNCTION(header_detect_io_destroy_frees_associated_resources)
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(singlylinkedlist_destroy(test_singlylinked_list));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     header_detect_io_get_interface_description()->concrete_io_destroy(header_detect_io);
@@ -883,14 +883,14 @@ TEST_FUNCTION(header_detect_io_destroy_also_closes_the_underlying_io_when_no_oth
     umock_c_reset_all_calls();
 
     // close items
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_amqp_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_amqp_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinked_list));
 
     // destroy
     STRICT_EXPECTED_CALL(singlylinkedlist_destroy(test_singlylinked_list));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     header_detect_io_get_interface_description()->concrete_io_destroy(header_detect_io);
@@ -930,20 +930,20 @@ TEST_FUNCTION(header_detect_io_destroy_also_closes_the_underlying_IO_and_the_oth
     umock_c_reset_all_calls();
 
     // close items
-    STRICT_EXPECTED_CALL(xio_close(test_detected_io_1, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_detected_io_1, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinked_list));
-    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinked_list, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinked_list, IGNORED_ARG));
     STRICT_EXPECTED_CALL(xio_destroy(test_detected_io_1));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinked_list));
 
     // destroy items
     STRICT_EXPECTED_CALL(singlylinkedlist_destroy(test_singlylinked_list));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     header_detect_io_get_interface_description()->concrete_io_destroy(header_detect_io);
@@ -982,7 +982,7 @@ TEST_FUNCTION(header_detect_io_destroy_also_closes_the_underlying_IO_and_the_oth
     umock_c_reset_all_calls();
 
     xio_create_return = test_detected_io_2;
-    STRICT_EXPECTED_CALL(xio_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_create(IGNORED_ARG, IGNORED_ARG));
 
     // setup for second detected IO
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header_bytes_1, sizeof(amqp_header_bytes_1));
@@ -991,25 +991,25 @@ TEST_FUNCTION(header_detect_io_destroy_also_closes_the_underlying_IO_and_the_oth
     umock_c_reset_all_calls();
 
     // close items
-    STRICT_EXPECTED_CALL(xio_close(test_detected_io_2, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_detected_io_2, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinked_list));
-    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinked_list, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinked_list, IGNORED_ARG));
     STRICT_EXPECTED_CALL(xio_destroy(test_detected_io_1));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinked_list));
-    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinked_list, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinked_list, IGNORED_ARG));
     STRICT_EXPECTED_CALL(xio_destroy(test_detected_io_2));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinked_list));
 
     // destroy items
     STRICT_EXPECTED_CALL(singlylinkedlist_destroy(test_singlylinked_list));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     header_detect_io_get_interface_description()->concrete_io_destroy(header_detect_io);
@@ -1044,7 +1044,7 @@ TEST_FUNCTION(header_detect_io_open_async_opens_the_underlying_IO)
     header_detect_io = header_detect_io_get_interface_description()->concrete_io_create(&header_detect_io_config);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_open(test_underlying_amqp_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_open(test_underlying_amqp_io, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG));
 
     // act
     result = header_detect_io_get_interface_description()->concrete_io_open(header_detect_io, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4243, test_on_io_error, (void*)0x4244);
@@ -1188,7 +1188,7 @@ TEST_FUNCTION(when_xio_open_fails_header_detect_io_open_async_opens_the_underlyi
     header_detect_io = header_detect_io_get_interface_description()->concrete_io_create(&header_detect_io_config);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_open(test_underlying_amqp_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(xio_open(test_underlying_amqp_io, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG))
         .SetReturn(1);
 
     // act
@@ -1303,7 +1303,7 @@ TEST_FUNCTION(header_detect_io_close_async_closes_the_underlying_io_when_no_othe
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header_bytes_1, sizeof(amqp_header_bytes_1));
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_amqp_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_amqp_io, IGNORED_ARG, IGNORED_ARG));
 
     // act
     result = header_detect_io_get_interface_description()->concrete_io_close(header_detect_io, test_on_io_close_complete, (void*)0x4245);
@@ -1351,7 +1351,7 @@ TEST_FUNCTION(header_detect_io_close_async_closes_the_underlying_IO_and_the_othe
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header_bytes_2, sizeof(amqp_header_bytes_2));
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_close(test_detected_io_1, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_detected_io_1, IGNORED_ARG, IGNORED_ARG));
 
     // act
     result = header_detect_io_get_interface_description()->concrete_io_close(header_detect_io, test_on_io_close_complete, (void*)0x4245);
@@ -1395,7 +1395,7 @@ TEST_FUNCTION(when_xio_close_fails_header_detect_io_close_async_fails)
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header_bytes_2, sizeof(amqp_header_bytes_2));
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_close(test_detected_io_1, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(xio_close(test_detected_io_1, IGNORED_ARG, IGNORED_ARG))
         .SetReturn(1);
 
     // act
@@ -1444,7 +1444,7 @@ TEST_FUNCTION(header_detect_io_close_async_closes_the_underlying_IO)
     umock_c_reset_all_calls();
 
     xio_create_return = test_detected_io_2;
-    STRICT_EXPECTED_CALL(xio_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_create(IGNORED_ARG, IGNORED_ARG));
 
     // setup for second detected IO
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header_bytes_1, sizeof(amqp_header_bytes_1));
@@ -1452,7 +1452,7 @@ TEST_FUNCTION(header_detect_io_close_async_closes_the_underlying_IO)
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header_bytes_2, sizeof(amqp_header_bytes_2));
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_close(test_detected_io_2, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_detected_io_2, IGNORED_ARG, IGNORED_ARG));
 
     // act
     result = header_detect_io_get_interface_description()->concrete_io_close(header_detect_io, test_on_io_close_complete, (void*)0x4245);
@@ -1504,7 +1504,7 @@ TEST_FUNCTION(header_detect_io_close_async_with_NULL_on_io_close_complete_succee
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header_bytes_1, sizeof(amqp_header_bytes_1));
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_amqp_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_amqp_io, IGNORED_ARG, IGNORED_ARG));
 
     // act
     result = header_detect_io_get_interface_description()->concrete_io_close(header_detect_io, NULL, (void*)0x4245);
@@ -1657,7 +1657,7 @@ TEST_FUNCTION(header_detect_io_close_async_when_IO_is_OPENING_indicates_io_open_
 
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_amqp_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_amqp_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinked_list));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_CANCELLED));
 
@@ -1698,7 +1698,7 @@ TEST_FUNCTION(header_detect_io_close_async_when_IO_is_OPENING_and_underlying_io_
 
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_amqp_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_amqp_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinked_list));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_CANCELLED));
 
@@ -1740,7 +1740,7 @@ TEST_FUNCTION(header_detect_io_close_async_when_IO_is_OPENING_and_underlying_io_
 
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_amqp_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_amqp_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinked_list));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_CANCELLED));
 
@@ -1785,12 +1785,12 @@ TEST_FUNCTION(header_detect_io_close_async_when_IO_is_OPENING_and_the_detected_i
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header_bytes_1, sizeof(amqp_header_bytes_1));
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_close(test_detected_io_1, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_detected_io_1, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinked_list));
-    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinked_list, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinked_list, IGNORED_ARG));
     STRICT_EXPECTED_CALL(xio_destroy(test_detected_io_1));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinked_list));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_CANCELLED));
 
@@ -1839,10 +1839,10 @@ TEST_FUNCTION(on_underlying_io_close_complete_destroys_the_created_IO)
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinked_list));
-    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinked_list, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinked_list, IGNORED_ARG));
     STRICT_EXPECTED_CALL(xio_destroy(test_detected_io_1));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinked_list));
     STRICT_EXPECTED_CALL(test_on_io_close_complete((void*)0x4245));
 
@@ -1886,7 +1886,7 @@ TEST_FUNCTION(on_underlying_io_close_complete_destroys_the_2_created_IOs)
     umock_c_reset_all_calls();
 
     xio_create_return = test_detected_io_2;
-    STRICT_EXPECTED_CALL(xio_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_create(IGNORED_ARG, IGNORED_ARG));
 
     // setup for second detected IO
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header_bytes_1, sizeof(amqp_header_bytes_1));
@@ -1896,15 +1896,15 @@ TEST_FUNCTION(on_underlying_io_close_complete_destroys_the_2_created_IOs)
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinked_list));
-    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinked_list, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinked_list, IGNORED_ARG));
     STRICT_EXPECTED_CALL(xio_destroy(test_detected_io_1));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinked_list));
-    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinked_list, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinked_list, IGNORED_ARG));
     STRICT_EXPECTED_CALL(xio_destroy(test_detected_io_2));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinked_list));
     STRICT_EXPECTED_CALL(test_on_io_close_complete((void*)0x4245));
 
@@ -1949,7 +1949,7 @@ TEST_FUNCTION(header_detect_io_send_async_calls_send_on_the_underlying_IO)
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header_bytes_1, sizeof(amqp_header_bytes_1));
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_send(test_underlying_amqp_io, IGNORED_PTR_ARG, sizeof(send_payload), test_on_send_complete, (void*)0x4247))
+    STRICT_EXPECTED_CALL(xio_send(test_underlying_amqp_io, IGNORED_ARG, sizeof(send_payload), test_on_send_complete, (void*)0x4247))
         .ValidateArgumentBuffer(2, send_payload, sizeof(send_payload));
 
     // act
@@ -1996,7 +1996,7 @@ TEST_FUNCTION(header_detect_io_send_async_calls_send_on_the_last_detected_io)
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header_bytes_2, sizeof(amqp_header_bytes_2));
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_send(test_detected_io_1, IGNORED_PTR_ARG, sizeof(send_payload), test_on_send_complete, (void*)0x4247))
+    STRICT_EXPECTED_CALL(xio_send(test_detected_io_1, IGNORED_ARG, sizeof(send_payload), test_on_send_complete, (void*)0x4247))
         .ValidateArgumentBuffer(2, send_payload, sizeof(send_payload));
 
     // act
@@ -2043,7 +2043,7 @@ TEST_FUNCTION(header_detect_io_send_async_calls_send_on_the_last_of_2_detected_i
     umock_c_reset_all_calls();
 
     xio_create_return = test_detected_io_2;
-    STRICT_EXPECTED_CALL(xio_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_create(IGNORED_ARG, IGNORED_ARG));
 
     // setup for second detected IO
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header_bytes_1, sizeof(amqp_header_bytes_1));
@@ -2051,7 +2051,7 @@ TEST_FUNCTION(header_detect_io_send_async_calls_send_on_the_last_of_2_detected_i
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header_bytes_2, sizeof(amqp_header_bytes_2));
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_send(test_detected_io_2, IGNORED_PTR_ARG, sizeof(send_payload), test_on_send_complete, (void*)0x4247))
+    STRICT_EXPECTED_CALL(xio_send(test_detected_io_2, IGNORED_ARG, sizeof(send_payload), test_on_send_complete, (void*)0x4247))
         .ValidateArgumentBuffer(2, send_payload, sizeof(send_payload));
 
     // act
@@ -2145,7 +2145,7 @@ TEST_FUNCTION(header_detect_io_send_async_with_NULL_on_send_complete_succeeds)
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header_bytes_1, sizeof(amqp_header_bytes_1));
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_send(test_underlying_amqp_io, IGNORED_PTR_ARG, sizeof(send_payload), NULL, (void*)0x4247))
+    STRICT_EXPECTED_CALL(xio_send(test_underlying_amqp_io, IGNORED_ARG, sizeof(send_payload), NULL, (void*)0x4247))
         .ValidateArgumentBuffer(2, send_payload, sizeof(send_payload));
 
     // act
@@ -2186,7 +2186,7 @@ TEST_FUNCTION(header_detect_io_send_async_with_NULL_callback_context_succeeds)
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header_bytes_1, sizeof(amqp_header_bytes_1));
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_send(test_underlying_amqp_io, IGNORED_PTR_ARG, sizeof(send_payload), test_on_send_complete, NULL))
+    STRICT_EXPECTED_CALL(xio_send(test_underlying_amqp_io, IGNORED_ARG, sizeof(send_payload), test_on_send_complete, NULL))
         .ValidateArgumentBuffer(2, send_payload, sizeof(send_payload));
 
     // act
@@ -2265,7 +2265,7 @@ TEST_FUNCTION(when_the_underlying_send_fails_header_detect_io_send_async_fails)
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header_bytes_1, sizeof(amqp_header_bytes_1));
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_send(test_underlying_amqp_io, IGNORED_PTR_ARG, sizeof(send_payload), test_on_send_complete, (void*)0x4247))
+    STRICT_EXPECTED_CALL(xio_send(test_underlying_amqp_io, IGNORED_ARG, sizeof(send_payload), test_on_send_complete, (void*)0x4247))
         .ValidateArgumentBuffer(2, send_payload, sizeof(send_payload))
         .SetReturn(1);
 
@@ -2583,9 +2583,9 @@ TEST_FUNCTION(header_detect_io_dowork_schedules_work_for_the_detected_IO)
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinked_list));
-    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_ARG));
     STRICT_EXPECTED_CALL(xio_dowork(test_detected_io_1));
-    STRICT_EXPECTED_CALL(singlylinkedlist_get_next_item(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_get_next_item(IGNORED_ARG));
     STRICT_EXPECTED_CALL(xio_dowork(test_underlying_amqp_io));
 
     // act
@@ -2629,19 +2629,19 @@ TEST_FUNCTION(header_detect_io_dowork_schedules_work_for_the_2_detected_IOs)
     umock_c_reset_all_calls();
 
     xio_create_return = test_detected_io_2;
-    STRICT_EXPECTED_CALL(xio_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_create(IGNORED_ARG, IGNORED_ARG));
 
     // setup for second detected IO
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header_bytes_1, sizeof(amqp_header_bytes_1));
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinked_list));
-    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_ARG));
     STRICT_EXPECTED_CALL(xio_dowork(test_detected_io_1));
-    STRICT_EXPECTED_CALL(singlylinkedlist_get_next_item(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_get_next_item(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_ARG));
     STRICT_EXPECTED_CALL(xio_dowork(test_detected_io_2));
-    STRICT_EXPECTED_CALL(singlylinkedlist_get_next_item(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_get_next_item(IGNORED_ARG));
     STRICT_EXPECTED_CALL(xio_dowork(test_underlying_amqp_io));
 
     // act
@@ -2766,7 +2766,7 @@ TEST_FUNCTION(header_detect_io_set_option_calls_the_last_of_2_detected_io_set_op
     umock_c_reset_all_calls();
 
     xio_create_return = test_detected_io_2;
-    STRICT_EXPECTED_CALL(xio_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_create(IGNORED_ARG, IGNORED_ARG));
 
     // setup for second detected IO
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header_bytes_1, sizeof(amqp_header_bytes_1));
@@ -2925,7 +2925,7 @@ TEST_FUNCTION(header_detect_io_retrieve_options_creates_an_OPTION_HANDLER)
     header_detect_io = header_detect_io_get_interface_description()->concrete_io_create(&header_detect_io_config);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(OptionHandler_Create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(OptionHandler_Create(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG));
 
     // act
     result = header_detect_io_get_interface_description()->concrete_io_retrieveoptions(header_detect_io);
@@ -2959,7 +2959,7 @@ TEST_FUNCTION(when_creating_the_option_handler_fails_header_detect_io_retrieve_o
     header_detect_io = header_detect_io_get_interface_description()->concrete_io_create(&header_detect_io_config);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(OptionHandler_Create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(OptionHandler_Create(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG))
         .SetReturn(NULL);
 
     // act
@@ -3043,7 +3043,7 @@ TEST_FUNCTION(on_underlying_io_open_complete_with_IO_OPEN_ERROR_indicates_on_io_
     (void)header_detect_io_get_interface_description()->concrete_io_open(header_detect_io, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4243, test_on_io_error, (void*)0x4244);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_amqp_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_amqp_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinked_list));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
@@ -3145,7 +3145,7 @@ TEST_FUNCTION(on_underlying_io_error_in_OPENING_indicates_an_io_open_complete_wi
     (void)header_detect_io_get_interface_description()->concrete_io_open(header_detect_io, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4243, test_on_io_error, (void*)0x4244);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_amqp_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_amqp_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinked_list));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
@@ -3182,7 +3182,7 @@ TEST_FUNCTION(on_underlying_io_error_in_OPENING_and_waiting_for_bytes_indicates_
     saved_on_io_open_complete(saved_on_io_open_complete_context, IO_OPEN_OK);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_amqp_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_amqp_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinked_list));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
@@ -3224,12 +3224,12 @@ TEST_FUNCTION(on_underlying_io_error_in_OPENING_and_waiting_for_detected_io_open
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header_bytes_1, sizeof(amqp_header_bytes_1));
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_close(test_detected_io_1, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_detected_io_1, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinked_list));
-    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinked_list, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinked_list, IGNORED_ARG));
     STRICT_EXPECTED_CALL(xio_destroy(test_detected_io_1));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinked_list));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
@@ -3448,9 +3448,9 @@ TEST_FUNCTION(when_the_first_byte_does_not_match_any_headers_then_on_io_open_com
     saved_on_io_open_complete(saved_on_io_open_complete_context, IO_OPEN_OK);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_send(test_underlying_amqp_io, amqp_header_bytes_1, sizeof(amqp_header_bytes_1), IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(xio_send(test_underlying_amqp_io, amqp_header_bytes_1, sizeof(amqp_header_bytes_1), IGNORED_ARG, IGNORED_ARG))
         .ValidateArgumentBuffer(2, amqp_header_bytes_1, sizeof(amqp_header_bytes_1));
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_amqp_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_amqp_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinked_list));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
@@ -3488,9 +3488,9 @@ TEST_FUNCTION(when_the_last_byte_does_not_match_any_headers_then_on_io_open_comp
     saved_on_io_open_complete(saved_on_io_open_complete_context, IO_OPEN_OK);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_send(test_underlying_amqp_io, amqp_header_bytes_1, sizeof(amqp_header_bytes_1), IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(xio_send(test_underlying_amqp_io, amqp_header_bytes_1, sizeof(amqp_header_bytes_1), IGNORED_ARG, IGNORED_ARG))
         .ValidateArgumentBuffer(2, amqp_header_bytes_1, sizeof(amqp_header_bytes_1));
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_amqp_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_amqp_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinked_list));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
@@ -3532,9 +3532,9 @@ TEST_FUNCTION(when_the_last_byte_does_not_match_any_of_the_2_headers_then_on_io_
     saved_on_io_open_complete(saved_on_io_open_complete_context, IO_OPEN_OK);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_send(test_underlying_amqp_io, amqp_header_bytes_1, sizeof(amqp_header_bytes_1), IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(xio_send(test_underlying_amqp_io, amqp_header_bytes_1, sizeof(amqp_header_bytes_1), IGNORED_ARG, IGNORED_ARG))
         .ValidateArgumentBuffer(2, amqp_header_bytes_1, sizeof(amqp_header_bytes_1));
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_amqp_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_amqp_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinked_list));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
@@ -3572,7 +3572,7 @@ TEST_FUNCTION(header_bytes_can_be_parsed_in_multiple_on_underlying_bytes_receive
     saved_on_io_open_complete(saved_on_io_open_complete_context, IO_OPEN_OK);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_send(test_underlying_amqp_io, amqp_header_bytes_1, sizeof(amqp_header_bytes_1), IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(xio_send(test_underlying_amqp_io, amqp_header_bytes_1, sizeof(amqp_header_bytes_1), IGNORED_ARG, IGNORED_ARG))
         .ValidateArgumentBuffer(2, amqp_header_bytes_1, sizeof(amqp_header_bytes_1));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_OK));
 
@@ -3621,15 +3621,15 @@ TEST_FUNCTION(when_a_header_is_detected_and_it_specifies_an_IO_then_the_IO_is_cr
     saved_on_io_open_complete(saved_on_io_open_complete_context, IO_OPEN_OK);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_send(test_underlying_amqp_io, amqp_header_bytes_1, sizeof(amqp_header_bytes_1), IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(xio_send(test_underlying_amqp_io, amqp_header_bytes_1, sizeof(amqp_header_bytes_1), IGNORED_ARG, IGNORED_ARG))
         .ValidateArgumentBuffer(2, amqp_header_bytes_1, sizeof(amqp_header_bytes_1));
 
     server_protocol_io_config.underlying_io = test_underlying_amqp_io;
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
     STRICT_EXPECTED_CALL(xio_create(test_detected_io_interface_description_1, &server_protocol_io_config))
         .ValidateArgumentValue_io_create_parameters_AsType(UMOCK_TYPE(SERVER_PROTOCOL_IO_CONFIG*));
-    STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinked_list, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(xio_open(test_detected_io_1, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinked_list, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(xio_open(test_detected_io_1, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG));
 
     // act
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header_bytes_1, sizeof(amqp_header_bytes_1));
@@ -3678,16 +3678,16 @@ TEST_FUNCTION(when_a_header_is_detected_again_and_it_specifies_an_IO_then_the_IO
     saved_on_io_open_complete(saved_on_io_open_complete_context, IO_OPEN_OK);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_send(test_detected_io_1, amqp_header_bytes_1, sizeof(amqp_header_bytes_1), IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(xio_send(test_detected_io_1, amqp_header_bytes_1, sizeof(amqp_header_bytes_1), IGNORED_ARG, IGNORED_ARG))
         .ValidateArgumentBuffer(2, amqp_header_bytes_1, sizeof(amqp_header_bytes_1));
 
     server_protocol_io_config.underlying_io = test_detected_io_1;
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
     xio_create_return = test_detected_io_2;
     STRICT_EXPECTED_CALL(xio_create(test_detected_io_interface_description_1, &server_protocol_io_config))
         .ValidateArgumentValue_io_create_parameters_AsType(UMOCK_TYPE(SERVER_PROTOCOL_IO_CONFIG*));
-    STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinked_list, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(xio_open(test_detected_io_2, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinked_list, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(xio_open(test_detected_io_2, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG));
 
     // act
     saved_on_bytes_received(saved_on_bytes_received_context, amqp_header_bytes_1, sizeof(amqp_header_bytes_1));
@@ -3727,16 +3727,16 @@ TEST_FUNCTION(when_xio_create_fails_on_io_complete_is_called_with_IO_OPEN_ERROR)
     saved_on_io_open_complete(saved_on_io_open_complete_context, IO_OPEN_OK);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_send(test_underlying_amqp_io, amqp_header_bytes_1, sizeof(amqp_header_bytes_1), IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(xio_send(test_underlying_amqp_io, amqp_header_bytes_1, sizeof(amqp_header_bytes_1), IGNORED_ARG, IGNORED_ARG))
         .ValidateArgumentBuffer(2, amqp_header_bytes_1, sizeof(amqp_header_bytes_1));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
 
     server_protocol_io_config.underlying_io = test_underlying_amqp_io;
     STRICT_EXPECTED_CALL(xio_create(test_detected_io_interface_description_1, &server_protocol_io_config))
         .ValidateArgumentValue_io_create_parameters_AsType(UMOCK_TYPE(SERVER_PROTOCOL_IO_CONFIG*))
         .SetReturn(NULL);
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_amqp_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_amqp_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinked_list));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
@@ -3778,20 +3778,20 @@ TEST_FUNCTION(when_xio_open_fails_on_io_complete_is_called_with_IO_OPEN_ERROR)
     saved_on_io_open_complete(saved_on_io_open_complete_context, IO_OPEN_OK);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_send(test_underlying_amqp_io, amqp_header_bytes_1, sizeof(amqp_header_bytes_1), IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(xio_send(test_underlying_amqp_io, amqp_header_bytes_1, sizeof(amqp_header_bytes_1), IGNORED_ARG, IGNORED_ARG))
         .ValidateArgumentBuffer(2, amqp_header_bytes_1, sizeof(amqp_header_bytes_1));
 
     server_protocol_io_config.underlying_io = test_underlying_amqp_io;
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
     STRICT_EXPECTED_CALL(xio_create(test_detected_io_interface_description_1, &server_protocol_io_config))
         .ValidateArgumentValue_io_create_parameters_AsType(UMOCK_TYPE(SERVER_PROTOCOL_IO_CONFIG*));
-    STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinked_list, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(xio_open(test_detected_io_1, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinked_list, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(xio_open(test_detected_io_1, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG))
         .SetReturn(1);
-    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinked_list, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinked_list, IGNORED_ARG));
     STRICT_EXPECTED_CALL(xio_destroy(test_detected_io_1));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_amqp_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_amqp_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinked_list));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
@@ -3833,18 +3833,18 @@ TEST_FUNCTION(when_adding_the_newly_created_IO_to_the_list_fails_on_io_complete_
     saved_on_io_open_complete(saved_on_io_open_complete_context, IO_OPEN_OK);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_send(test_underlying_amqp_io, amqp_header_bytes_1, sizeof(amqp_header_bytes_1), IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(xio_send(test_underlying_amqp_io, amqp_header_bytes_1, sizeof(amqp_header_bytes_1), IGNORED_ARG, IGNORED_ARG))
         .ValidateArgumentBuffer(2, amqp_header_bytes_1, sizeof(amqp_header_bytes_1));
 
     server_protocol_io_config.underlying_io = test_underlying_amqp_io;
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
     STRICT_EXPECTED_CALL(xio_create(test_detected_io_interface_description_1, &server_protocol_io_config))
         .ValidateArgumentValue_io_create_parameters_AsType(UMOCK_TYPE(SERVER_PROTOCOL_IO_CONFIG*));
-    STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinked_list, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinked_list, IGNORED_ARG))
         .SetReturn(NULL);
     STRICT_EXPECTED_CALL(xio_destroy(test_detected_io_1));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_amqp_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_amqp_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinked_list));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 

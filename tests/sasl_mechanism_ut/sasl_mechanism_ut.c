@@ -9,7 +9,7 @@
 #include <stddef.h>
 #endif
 
-#include "azure_macro_utils/macro_utils.h"
+#include "macro_utils/macro_utils.h"
 #include "testrunnerswitcher.h"
 #include "umock_c/umock_c.h"
 #include "umock_c/umocktypes_charptr.h"
@@ -115,7 +115,7 @@ TEST_FUNCTION(saslmechanism_create_with_all_args_except_interface_description_NU
 {
     // arrange
     SASL_MECHANISM_HANDLE result;
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
     STRICT_EXPECTED_CALL(test_saslmechanism_create(NULL));
 
     // act
@@ -135,7 +135,7 @@ TEST_FUNCTION(the_config_argument_is_passed_to_the_concrete_saslmechanism_create
 {
     // arrange
     SASL_MECHANISM_HANDLE result;
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
     STRICT_EXPECTED_CALL(test_saslmechanism_create((void*)0x4242));
 
     // act
@@ -154,10 +154,10 @@ TEST_FUNCTION(when_concrete_create_fails_then_saslmechanism_create_fails)
 {
     // arrange
     SASL_MECHANISM_HANDLE result;
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
     STRICT_EXPECTED_CALL(test_saslmechanism_create(NULL))
         .SetReturn(NULL);
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     result = saslmechanism_create(&test_io_description, NULL);
@@ -265,7 +265,7 @@ TEST_FUNCTION(when_allocating_memory_fails_then_saslmechanism_create_fails)
 {
     // arrange
     SASL_MECHANISM_HANDLE result;
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG))
         .SetReturn(NULL);
 
     // act
@@ -287,7 +287,7 @@ TEST_FUNCTION(saslmechanism_destroy_frees_memory_and_calls_the_underlying_concre
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(test_saslmechanism_destroy(test_concrete_sasl_mechanism_handle));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     saslmechanism_destroy(sasl_mechanism);
@@ -321,7 +321,7 @@ TEST_FUNCTION(saslmechanism_get_init_bytes_calls_the_underlying_concrete_sasl_me
     int result;
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(test_saslmechanism_get_init_bytes(test_concrete_sasl_mechanism_handle, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(test_saslmechanism_get_init_bytes(test_concrete_sasl_mechanism_handle, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &expected_init_bytes, sizeof(expected_init_bytes));
 
     // act
@@ -361,7 +361,7 @@ TEST_FUNCTION(when_the_underlying_get_init_bytes_fails_then_saslmechanism_get_in
     int result;
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(test_saslmechanism_get_init_bytes(test_concrete_sasl_mechanism_handle, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(test_saslmechanism_get_init_bytes(test_concrete_sasl_mechanism_handle, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &expected_init_bytes, sizeof(expected_init_bytes))
         .SetReturn(1);
 

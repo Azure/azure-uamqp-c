@@ -9,7 +9,7 @@
 #include <stddef.h>
 #endif
 
-#include "azure_macro_utils/macro_utils.h"
+#include "macro_utils/macro_utils.h"
 #include "testrunnerswitcher.h"
 #include "umock_c/umock_c.h"
 #include "umock_c/umocktypes_charptr.h"
@@ -104,8 +104,8 @@ TEST_FUNCTION(saslplain_create_with_valid_args_succeeds)
     SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", "test_authzid" };
     CONCRETE_SASL_MECHANISM_HANDLE result;
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
 
     // act
     result = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
@@ -125,7 +125,7 @@ TEST_FUNCTION(when_allocating_memory_fails_then_saslplain_create_fails)
     SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", "test_authzid" };
     CONCRETE_SASL_MECHANISM_HANDLE result;
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG))
         .SetReturn(NULL);
 
     // act
@@ -143,10 +143,10 @@ TEST_FUNCTION(when_allocating_memory_for_the_config_fails_then_saslplain_create_
     SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", "test_authzid" };
     CONCRETE_SASL_MECHANISM_HANDLE result;
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG))
         .SetReturn(NULL);
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     result = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
@@ -205,8 +205,8 @@ TEST_FUNCTION(saslplain_create_with_NULL_authzid_succeeds)
     SASL_PLAIN_CONFIG sasl_plain_config = { "test_authcid", "test_pwd", NULL };
     CONCRETE_SASL_MECHANISM_HANDLE result;
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
 
     // act
     result = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
@@ -229,8 +229,8 @@ TEST_FUNCTION(saslplain_destroy_frees_the_allocated_memory)
     CONCRETE_SASL_MECHANISM_HANDLE sasl_plain = saslplain_get_interface()->concrete_sasl_mechanism_create(&sasl_plain_config);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     saslplain_get_interface()->concrete_sasl_mechanism_destroy(sasl_plain);

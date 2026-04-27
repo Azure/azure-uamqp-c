@@ -9,7 +9,7 @@
 #include <stddef.h>
 #endif
 
-#include "azure_macro_utils/macro_utils.h"
+#include "macro_utils/macro_utils.h"
 #include "testrunnerswitcher.h"
 #include "umock_c/umock_c.h"
 #include "umock_c/umocktypes_charptr.h"
@@ -115,7 +115,7 @@ TEST_FUNCTION(sasl_server_mechanism_create_with_non_NULL_create_parameters_succe
 {
     // arrange
     SASL_SERVER_MECHANISM_HANDLE result;
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
     STRICT_EXPECTED_CALL(test_sasl_server_mechanism_create((void*)0x4242));
 
     // act
@@ -135,7 +135,7 @@ TEST_FUNCTION(sasl_server_mechanism_create_with_NULL_create_parameters_succeeds)
 {
     // arrange
     SASL_SERVER_MECHANISM_HANDLE result;
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
     STRICT_EXPECTED_CALL(test_sasl_server_mechanism_create(NULL));
 
     // act
@@ -154,10 +154,10 @@ TEST_FUNCTION(sasl_server_mechanism_create_succeeds)
 {
     // arrange
     SASL_SERVER_MECHANISM_HANDLE result;
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
     STRICT_EXPECTED_CALL(test_sasl_server_mechanism_create((void*)0x4242))
         .SetReturn(NULL);
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     result = sasl_server_mechanism_create(&test_sasl_server_mechanism_interface_description, (void*)0x4242);
@@ -296,7 +296,7 @@ TEST_FUNCTION(when_allocating_memory_for_the_sasl_server_mechanism_fails_sasl_se
 {
     // arrange
     SASL_SERVER_MECHANISM_HANDLE result;
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG))
         .SetReturn(NULL);
 
     // act
@@ -318,7 +318,7 @@ TEST_FUNCTION(sasl_server_mechanism_destroy_frees_the_resources)
     sasl_server_mechanism = sasl_server_mechanism_create(&test_sasl_server_mechanism_interface_description, (void*)0x4242);
     umock_c_reset_all_calls();
     STRICT_EXPECTED_CALL(test_sasl_server_mechanism_destroy(test_concrete_sasl_server_mechanism_handle));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     sasl_server_mechanism_destroy(sasl_server_mechanism);

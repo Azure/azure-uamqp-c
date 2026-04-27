@@ -8,7 +8,7 @@
 #include "azure_uamqp_c/message.h"
 #include "azure_uamqp_c/amqp_definitions_delivery_number.h"
 #include "umock_c/umock_c_prod.h"
-#include "azure_macro_utils/macro_utils.h"
+#include "macro_utils/macro_utils.h"
 
 #ifdef __cplusplus
 extern "C" {

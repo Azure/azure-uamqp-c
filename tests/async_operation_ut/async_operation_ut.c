@@ -13,7 +13,7 @@
 #include <stdint.h>
 #endif
 
-#include "azure_macro_utils/macro_utils.h"
+#include "macro_utils/macro_utils.h"
 #include "testrunnerswitcher.h"
 #include "umock_c/umock_c.h"
 #include "umock_c/umocktypes_charptr.h"
@@ -104,7 +104,7 @@ TEST_FUNCTION(async_operation_create_succeeds)
 {
     // arrange
     ASYNC_OPERATION_HANDLE result;
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
 
     // act
     result = async_operation_create(test_cancel_handler, sizeof(uintptr_t));
@@ -150,7 +150,7 @@ TEST_FUNCTION(when_allocating_memory_fails_async_operation_create_fails)
 {
     // arrange
     ASYNC_OPERATION_HANDLE result;
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG))
         .SetReturn(NULL);
 
     // act
@@ -171,7 +171,7 @@ TEST_FUNCTION(async_operation_destroy_frees_allocated_memory)
     async_operation = async_operation_create(test_cancel_handler, sizeof(uintptr_t));
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     async_operation_destroy(async_operation);

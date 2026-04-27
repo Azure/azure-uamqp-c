@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-#include "azure_macro_utils/macro_utils.h"
+#include "macro_utils/macro_utils.h"
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_c_shared_utility/singlylinkedlist.h"
 #include "azure_c_shared_utility/xlogging.h"

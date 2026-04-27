@@ -14,7 +14,7 @@
 #include <string.h>
 #endif
 
-#include "azure_macro_utils/macro_utils.h"
+#include "macro_utils/macro_utils.h"
 #include "testrunnerswitcher.h"
 #include "umock_c/umock_c.h"
 #include "umock_c/umocktypes_stdint.h"
@@ -427,9 +427,9 @@ TEST_FUNCTION(amqp_frame_codec_create_with_valid_args_succeeds)
     // arrange
     AMQP_FRAME_CODEC_HANDLE amqp_frame_codec;
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_decoder_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(frame_codec_subscribe(TEST_FRAME_CODEC_HANDLE, FRAME_TYPE_AMQP, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_decoder_create(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(frame_codec_subscribe(TEST_FRAME_CODEC_HANDLE, FRAME_TYPE_AMQP, IGNORED_ARG, IGNORED_ARG));
 
     // act
     amqp_frame_codec = amqp_frame_codec_create(TEST_FRAME_CODEC_HANDLE, amqp_frame_received_callback_1, amqp_empty_frame_received_callback_1, test_amqp_frame_codec_error, TEST_CONTEXT);
@@ -449,10 +449,10 @@ TEST_FUNCTION(amqp_frame_codec_create_with_valid_args_and_NULL_context_succeeds)
 {
     // arrange
     AMQP_FRAME_CODEC_HANDLE amqp_frame_codec;
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
 
-    STRICT_EXPECTED_CALL(amqpvalue_decoder_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(frame_codec_subscribe(TEST_FRAME_CODEC_HANDLE, FRAME_TYPE_AMQP, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_decoder_create(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(frame_codec_subscribe(TEST_FRAME_CODEC_HANDLE, FRAME_TYPE_AMQP, IGNORED_ARG, IGNORED_ARG));
 
     // act
     amqp_frame_codec = amqp_frame_codec_create(TEST_FRAME_CODEC_HANDLE, amqp_frame_received_callback_1, amqp_empty_frame_received_callback_1, test_amqp_frame_codec_error, NULL);
@@ -522,14 +522,14 @@ TEST_FUNCTION(when_frame_codec_subscribe_fails_then_amqp_frame_codec_create_fail
 {
     // arrange
     AMQP_FRAME_CODEC_HANDLE amqp_frame_codec;
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
 
-    STRICT_EXPECTED_CALL(amqpvalue_decoder_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(frame_codec_subscribe(TEST_FRAME_CODEC_HANDLE, FRAME_TYPE_AMQP, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_decoder_create(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(frame_codec_subscribe(TEST_FRAME_CODEC_HANDLE, FRAME_TYPE_AMQP, IGNORED_ARG, IGNORED_ARG))
         .SetReturn(1);
 
     STRICT_EXPECTED_CALL(amqpvalue_decoder_destroy(TEST_DECODER_HANDLE));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     amqp_frame_codec = amqp_frame_codec_create(TEST_FRAME_CODEC_HANDLE, amqp_frame_received_callback_1, amqp_empty_frame_received_callback_1, test_amqp_frame_codec_error, TEST_CONTEXT);
@@ -544,12 +544,12 @@ TEST_FUNCTION(when_creating_the_decoder_fails_then_amqp_frame_codec_create_fails
 {
     // arrange
     AMQP_FRAME_CODEC_HANDLE amqp_frame_codec;
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
 
-    STRICT_EXPECTED_CALL(amqpvalue_decoder_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_decoder_create(IGNORED_ARG, IGNORED_ARG))
         .SetReturn((AMQPVALUE_DECODER_HANDLE)NULL);
 
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     amqp_frame_codec = amqp_frame_codec_create(TEST_FRAME_CODEC_HANDLE, amqp_frame_received_callback_1, amqp_empty_frame_received_callback_1, test_amqp_frame_codec_error, TEST_CONTEXT);
@@ -565,7 +565,7 @@ TEST_FUNCTION(when_allocating_memory_for_amqp_frame_codec_fails_then_amqp_frame_
     // arrange
     AMQP_FRAME_CODEC_HANDLE amqp_frame_codec;
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG))
         .SetReturn(NULL);
 
     // act
@@ -589,7 +589,7 @@ TEST_FUNCTION(amqp_frame_codec_destroy_frees_the_decoder_and_unsubscribes_from_A
 
     STRICT_EXPECTED_CALL(frame_codec_unsubscribe(TEST_FRAME_CODEC_HANDLE, FRAME_TYPE_AMQP));
     STRICT_EXPECTED_CALL(amqpvalue_decoder_destroy(TEST_DECODER_HANDLE));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     amqp_frame_codec_destroy(amqp_frame_codec);
@@ -610,7 +610,7 @@ TEST_FUNCTION(when_unsubscribe_fails_amqp_frame_codec_destroy_still_frees_everyt
     STRICT_EXPECTED_CALL(frame_codec_unsubscribe(TEST_FRAME_CODEC_HANDLE, FRAME_TYPE_AMQP))
         .SetReturn(1);
     STRICT_EXPECTED_CALL(amqpvalue_decoder_destroy(TEST_DECODER_HANDLE));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     amqp_frame_codec_destroy(amqp_frame_codec);
@@ -654,16 +654,16 @@ TEST_FUNCTION(encoding_a_frame_succeeds)
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE));
-    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_get_encoded_size(TEST_AMQP_VALUE, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_get_encoded_size(TEST_AMQP_VALUE, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &performative_size, sizeof(performative_size));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_encode(TEST_AMQP_VALUE, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(frame_codec_encode_frame(TEST_FRAME_CODEC_HANDLE, FRAME_TYPE_AMQP, IGNORED_PTR_ARG, 2, channel_bytes, sizeof(channel_bytes), test_on_bytes_encoded, (void*)0x4242))
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_encode(TEST_AMQP_VALUE, IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(frame_codec_encode_frame(TEST_FRAME_CODEC_HANDLE, FRAME_TYPE_AMQP, IGNORED_ARG, 2, channel_bytes, sizeof(channel_bytes), test_on_bytes_encoded, (void*)0x4242))
         .ValidateArgumentBuffer(5, &channel_bytes, sizeof(channel_bytes));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     result = amqp_frame_codec_encode_frame(amqp_frame_codec, channel, TEST_AMQP_VALUE, &test_user_payload, 1, test_on_bytes_encoded, (void*)0x4242);
@@ -692,16 +692,16 @@ TEST_FUNCTION(using_channel_no_0x4243_passes_the_channel_number_as_type_specific
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE));
-    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_get_encoded_size(TEST_AMQP_VALUE, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_get_encoded_size(TEST_AMQP_VALUE, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &performative_size, sizeof(performative_size));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_encode(TEST_AMQP_VALUE, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(frame_codec_encode_frame(TEST_FRAME_CODEC_HANDLE, FRAME_TYPE_AMQP, IGNORED_PTR_ARG, 2, channel_bytes, sizeof(channel_bytes), test_on_bytes_encoded, (void*)0x4242))
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_encode(TEST_AMQP_VALUE, IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(frame_codec_encode_frame(TEST_FRAME_CODEC_HANDLE, FRAME_TYPE_AMQP, IGNORED_ARG, 2, channel_bytes, sizeof(channel_bytes), test_on_bytes_encoded, (void*)0x4242))
         .ValidateArgumentBuffer(5, &channel_bytes, sizeof(channel_bytes));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     result = amqp_frame_codec_encode_frame(amqp_frame_codec, channel, TEST_AMQP_VALUE, &test_user_payload, 1, test_on_bytes_encoded, (void*)0x4242);
@@ -727,16 +727,16 @@ TEST_FUNCTION(encoding_a_frame_with_no_payloads_send_down_to_frame_codec_just_th
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE));
-    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_get_encoded_size(TEST_AMQP_VALUE, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_get_encoded_size(TEST_AMQP_VALUE, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &performative_size, sizeof(performative_size));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_encode(TEST_AMQP_VALUE, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(frame_codec_encode_frame(TEST_FRAME_CODEC_HANDLE, FRAME_TYPE_AMQP, IGNORED_PTR_ARG, 1, channel_bytes, sizeof(channel_bytes), test_on_bytes_encoded, (void*)0x4242))
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_encode(TEST_AMQP_VALUE, IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(frame_codec_encode_frame(TEST_FRAME_CODEC_HANDLE, FRAME_TYPE_AMQP, IGNORED_ARG, 1, channel_bytes, sizeof(channel_bytes), test_on_bytes_encoded, (void*)0x4242))
         .ValidateArgumentBuffer(5, &channel_bytes, sizeof(channel_bytes));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     result = amqp_frame_codec_encode_frame(amqp_frame_codec, channel, TEST_AMQP_VALUE, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
@@ -818,8 +818,8 @@ TEST_FUNCTION(when_amqpvalue_get_encoded_size_fails_then_amqp_frame_codec_encode
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE));
-    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_get_encoded_size(TEST_AMQP_VALUE, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_get_encoded_size(TEST_AMQP_VALUE, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &performative_size, sizeof(performative_size))
         .SetReturn(1);
 
@@ -845,10 +845,10 @@ TEST_FUNCTION(when_allocating_memory_for_the_new_payloads_array_fails_then_amqp_
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE));
-    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_get_encoded_size(TEST_AMQP_VALUE, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_get_encoded_size(TEST_AMQP_VALUE, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &performative_size, sizeof(performative_size));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG))
         .SetReturn(NULL);
 
     // act
@@ -873,13 +873,13 @@ TEST_FUNCTION(when_allocating_memory_for_the_encoded_performative_fails_then_amq
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE));
-    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_get_encoded_size(TEST_AMQP_VALUE, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_get_encoded_size(TEST_AMQP_VALUE, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &performative_size, sizeof(performative_size));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG))
         .SetReturn(NULL);
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     result = amqp_frame_codec_encode_frame(amqp_frame_codec, channel, TEST_AMQP_VALUE, &test_user_payload, 1, test_on_bytes_encoded, (void*)0x4242);
@@ -903,15 +903,15 @@ TEST_FUNCTION(when_amqpvalue_encode_fails_then_amqp_frame_codec_encode_frame_fai
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE));
-    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_get_encoded_size(TEST_AMQP_VALUE, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_get_encoded_size(TEST_AMQP_VALUE, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &performative_size, sizeof(performative_size));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_encode(TEST_AMQP_VALUE, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_encode(TEST_AMQP_VALUE, IGNORED_ARG, IGNORED_ARG))
         .SetReturn(1);
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     result = amqp_frame_codec_encode_frame(amqp_frame_codec, channel, TEST_AMQP_VALUE, &test_user_payload, 1, test_on_bytes_encoded, (void*)0x4242);
@@ -935,17 +935,17 @@ TEST_FUNCTION(when_frame_codec_encode_frame_fails_then_amqp_frame_codec_encode_f
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE));
-    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_get_encoded_size(TEST_AMQP_VALUE, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_get_encoded_size(TEST_AMQP_VALUE, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &performative_size, sizeof(performative_size));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_encode(TEST_AMQP_VALUE, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(frame_codec_encode_frame(TEST_FRAME_CODEC_HANDLE, FRAME_TYPE_AMQP, IGNORED_PTR_ARG, 2, channel_bytes, sizeof(channel_bytes), test_on_bytes_encoded, (void*)0x4242))
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_encode(TEST_AMQP_VALUE, IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(frame_codec_encode_frame(TEST_FRAME_CODEC_HANDLE, FRAME_TYPE_AMQP, IGNORED_ARG, 2, channel_bytes, sizeof(channel_bytes), test_on_bytes_encoded, (void*)0x4242))
         .ValidateArgumentBuffer(5, &channel_bytes, sizeof(channel_bytes))
         .SetReturn(1);
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     result = amqp_frame_codec_encode_frame(amqp_frame_codec, channel, TEST_AMQP_VALUE, &test_user_payload, 1, test_on_bytes_encoded, (void*)0x4242);
@@ -980,16 +980,16 @@ TEST_FUNCTION(amqp_performatives_are_encoded_successfully)
         performative_ulong = valid_performatives[i];
 
         STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE));
-        STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG));
-        STRICT_EXPECTED_CALL(amqpvalue_get_encoded_size(TEST_AMQP_VALUE, IGNORED_PTR_ARG))
+        STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_ARG));
+        STRICT_EXPECTED_CALL(amqpvalue_get_encoded_size(TEST_AMQP_VALUE, IGNORED_ARG))
             .CopyOutArgumentBuffer(2, &performative_size, sizeof(performative_size));
-        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-        STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
-        STRICT_EXPECTED_CALL(amqpvalue_encode(TEST_AMQP_VALUE, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-        STRICT_EXPECTED_CALL(frame_codec_encode_frame(TEST_FRAME_CODEC_HANDLE, FRAME_TYPE_AMQP, IGNORED_PTR_ARG, 1, channel_bytes, sizeof(channel_bytes), test_on_bytes_encoded, (void*)0x4242))
+        STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
+        STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
+        STRICT_EXPECTED_CALL(amqpvalue_encode(TEST_AMQP_VALUE, IGNORED_ARG, IGNORED_ARG));
+        STRICT_EXPECTED_CALL(frame_codec_encode_frame(TEST_FRAME_CODEC_HANDLE, FRAME_TYPE_AMQP, IGNORED_ARG, 1, channel_bytes, sizeof(channel_bytes), test_on_bytes_encoded, (void*)0x4242))
             .ValidateArgumentBuffer(5, &channel_bytes, sizeof(channel_bytes));
-        STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-        STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+        STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
         // act
         result = amqp_frame_codec_encode_frame(amqp_frame_codec, channel, TEST_AMQP_VALUE, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
@@ -1037,7 +1037,7 @@ TEST_FUNCTION(when_getting_the_ulong_value_of_the_descriptor_fails_then_amqp_fra
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE));
-    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_ARG))
         .SetReturn(1);
 
     // act
@@ -1063,7 +1063,7 @@ TEST_FUNCTION(when_performative_ulong_is_0x09_amqp_frame_codec_encode_frame_fail
 
     performative_ulong = 0x09;
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE));
-    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_ARG));
 
     // act
     result = amqp_frame_codec_encode_frame(amqp_frame_codec, channel, TEST_AMQP_VALUE, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
@@ -1088,7 +1088,7 @@ TEST_FUNCTION(when_performative_ulong_is_0x19_amqp_frame_codec_encode_frame_fail
 
     performative_ulong = 0x19;
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE));
-    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_ARG));
 
     // act
     result = amqp_frame_codec_encode_frame(amqp_frame_codec, channel, TEST_AMQP_VALUE, NULL, 0, test_on_bytes_encoded, (void*)0x4242);
@@ -1270,12 +1270,12 @@ TEST_FUNCTION(when_all_performative_bytes_are_received_and_AMQP_frame_payload_is
 
     for (i = 0; i < sizeof(test_performative); i++)
     {
-        STRICT_EXPECTED_CALL(amqpvalue_decode_bytes(TEST_DECODER_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(amqpvalue_decode_bytes(TEST_DECODER_HANDLE, IGNORED_ARG, IGNORED_ARG));
     }
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE));
-    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &descriptor_ulong, sizeof(descriptor_ulong));
-    STRICT_EXPECTED_CALL(amqp_frame_received_callback_1(TEST_CONTEXT, 0x4243, TEST_AMQP_VALUE, IGNORED_PTR_ARG, 0));
+    STRICT_EXPECTED_CALL(amqp_frame_received_callback_1(TEST_CONTEXT, 0x4243, TEST_AMQP_VALUE, IGNORED_ARG, 0));
 
     // act
     saved_on_frame_received(saved_callback_context, channel_bytes, sizeof(channel_bytes), test_performative, sizeof(test_performative));
@@ -1305,10 +1305,10 @@ TEST_FUNCTION(amqp_frame_with_1_payload_bytes_are_reported_via_the_amqp_frame_pa
 
     for (i = 0; i < sizeof(test_performative); i++)
     {
-        STRICT_EXPECTED_CALL(amqpvalue_decode_bytes(TEST_DECODER_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(amqpvalue_decode_bytes(TEST_DECODER_HANDLE, IGNORED_ARG, IGNORED_ARG));
     }
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE));
-    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &descriptor_ulong, sizeof(descriptor_ulong));
 
     STRICT_EXPECTED_CALL(amqp_frame_received_callback_1(TEST_CONTEXT, 0x4243, TEST_AMQP_VALUE, test_frame_payload_bytes, 1))
@@ -1339,10 +1339,10 @@ TEST_FUNCTION(amqp_frame_with_2_payload_bytes_are_reported_via_the_amqp_frame_pa
 
     for (i = 0; i < sizeof(test_performative); i++)
     {
-        STRICT_EXPECTED_CALL(amqpvalue_decode_bytes(TEST_DECODER_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(amqpvalue_decode_bytes(TEST_DECODER_HANDLE, IGNORED_ARG, IGNORED_ARG));
     }
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE));
-    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &descriptor_ulong, sizeof(descriptor_ulong));
 
     STRICT_EXPECTED_CALL(amqp_frame_received_callback_1(TEST_CONTEXT, 0x4243, TEST_AMQP_VALUE, test_frame_payload_bytes, 2))
@@ -1369,10 +1369,10 @@ TEST_FUNCTION(after_decoding_succesfully_a_second_frame_can_be_decoded)
 
     for (i = 0; i < sizeof(test_performative); i++)
     {
-        STRICT_EXPECTED_CALL(amqpvalue_decode_bytes(TEST_DECODER_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(amqpvalue_decode_bytes(TEST_DECODER_HANDLE, IGNORED_ARG, IGNORED_ARG));
     }
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE));
-    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &descriptor_ulong, sizeof(descriptor_ulong));
 
     STRICT_EXPECTED_CALL(amqp_frame_received_callback_1(TEST_CONTEXT, 0x4243, TEST_AMQP_VALUE, test_frame_payload_bytes, 2))
@@ -1383,10 +1383,10 @@ TEST_FUNCTION(after_decoding_succesfully_a_second_frame_can_be_decoded)
 
     for (i = 0; i < sizeof(test_performative); i++)
     {
-        STRICT_EXPECTED_CALL(amqpvalue_decode_bytes(TEST_DECODER_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(amqpvalue_decode_bytes(TEST_DECODER_HANDLE, IGNORED_ARG, IGNORED_ARG));
     }
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE));
-    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &descriptor_ulong, sizeof(descriptor_ulong));
 
     STRICT_EXPECTED_CALL(amqp_frame_received_callback_1(TEST_CONTEXT, 0x4243, TEST_AMQP_VALUE, test_frame_payload_bytes, 2))
@@ -1420,10 +1420,10 @@ TEST_FUNCTION(valid_performative_codes_trigger_callbacks)
 
         for (j = 0; j < sizeof(test_performative); j++)
         {
-            STRICT_EXPECTED_CALL(amqpvalue_decode_bytes(TEST_DECODER_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+            STRICT_EXPECTED_CALL(amqpvalue_decode_bytes(TEST_DECODER_HANDLE, IGNORED_ARG, IGNORED_ARG));
         }
         STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE));
-        STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG))
+        STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_ARG))
             .CopyOutArgumentBuffer(2, &performative_ulong, sizeof(performative_ulong));
 
         STRICT_EXPECTED_CALL(amqp_frame_received_callback_1(TEST_CONTEXT, 0x4243, TEST_AMQP_VALUE, test_frame_payload_bytes, 2))
@@ -1453,10 +1453,10 @@ TEST_FUNCTION(performative_0x09_can_not_be_decoded)
 
     for (i = 0; i < sizeof(test_performative); i++)
     {
-        STRICT_EXPECTED_CALL(amqpvalue_decode_bytes(TEST_DECODER_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(amqpvalue_decode_bytes(TEST_DECODER_HANDLE, IGNORED_ARG, IGNORED_ARG));
     }
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE));
-    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &performative_ulong, sizeof(performative_ulong));
 
     STRICT_EXPECTED_CALL(test_amqp_frame_codec_error(TEST_CONTEXT));
@@ -1484,11 +1484,11 @@ TEST_FUNCTION(performative_0x19_can_not_be_decoded)
 
     for (i = 0; i < sizeof(test_performative); i++)
     {
-        STRICT_EXPECTED_CALL(amqpvalue_decode_bytes(TEST_DECODER_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(amqpvalue_decode_bytes(TEST_DECODER_HANDLE, IGNORED_ARG, IGNORED_ARG));
     }
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE));
-    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &performative_ulong, sizeof(performative_ulong));
 
     STRICT_EXPECTED_CALL(test_amqp_frame_codec_error(TEST_CONTEXT));
@@ -1513,7 +1513,7 @@ TEST_FUNCTION(when_amqp_value_decoding_for_the_performative_fails_decoder_fails)
     umock_c_reset_all_calls();
 
     performative_ulong = AMQP_OPEN;
-    STRICT_EXPECTED_CALL(amqpvalue_decode_bytes(TEST_DECODER_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_decode_bytes(TEST_DECODER_HANDLE, IGNORED_ARG, IGNORED_ARG))
         .SetReturn(1);
 
     STRICT_EXPECTED_CALL(test_amqp_frame_codec_error(TEST_CONTEXT));
@@ -1538,8 +1538,8 @@ TEST_FUNCTION(when_second_amqp_value_decoding_for_the_performative_fails_decoder
     umock_c_reset_all_calls();
 
     performative_ulong = AMQP_OPEN;
-    STRICT_EXPECTED_CALL(amqpvalue_decode_bytes(TEST_DECODER_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_decode_bytes(TEST_DECODER_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_decode_bytes(TEST_DECODER_HANDLE, IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_decode_bytes(TEST_DECODER_HANDLE, IGNORED_ARG, IGNORED_ARG))
         .SetReturn(1);
 
     STRICT_EXPECTED_CALL(test_amqp_frame_codec_error(TEST_CONTEXT));
@@ -1567,7 +1567,7 @@ TEST_FUNCTION(when_getting_the_descriptor_fails_decoder_fails)
 
     for (i = 0; i < sizeof(test_performative); i++)
     {
-        STRICT_EXPECTED_CALL(amqpvalue_decode_bytes(TEST_DECODER_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(amqpvalue_decode_bytes(TEST_DECODER_HANDLE, IGNORED_ARG, IGNORED_ARG));
     }
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE))
@@ -1598,11 +1598,11 @@ TEST_FUNCTION(when_getting_the_ulong_value_of_the_descriptor_fails_decoder_fails
 
     for (i = 0; i < sizeof(test_performative); i++)
     {
-        STRICT_EXPECTED_CALL(amqpvalue_decode_bytes(TEST_DECODER_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+        STRICT_EXPECTED_CALL(amqpvalue_decode_bytes(TEST_DECODER_HANDLE, IGNORED_ARG, IGNORED_ARG));
     }
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(TEST_AMQP_VALUE));
-    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_ulong(TEST_DESCRIPTOR_AMQP_VALUE, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &performative_ulong, sizeof(performative_ulong))
         .SetReturn(1);
 
@@ -1627,7 +1627,7 @@ TEST_FUNCTION(when_amqp_value_decoding_fails_subsequent_decoding_fails_even_if_t
     umock_c_reset_all_calls();
 
     performative_ulong = AMQP_OPEN;
-    STRICT_EXPECTED_CALL(amqpvalue_decode_bytes(TEST_DECODER_HANDLE, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_decode_bytes(TEST_DECODER_HANDLE, IGNORED_ARG, IGNORED_ARG))
         .SetReturn(1);
 
     (void)saved_on_frame_received(saved_callback_context, channel_bytes, sizeof(channel_bytes), test_frame, sizeof(test_performative) + 2);

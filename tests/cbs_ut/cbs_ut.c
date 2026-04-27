@@ -10,7 +10,7 @@
 #include <stdbool.h>
 #endif
 
-#include "azure_macro_utils/macro_utils.h"
+#include "macro_utils/macro_utils.h"
 #include "testrunnerswitcher.h"
 #include "umock_c/umock_c.h"
 #include "umock_c/umocktypes_charptr.h"
@@ -330,7 +330,7 @@ TEST_FUNCTION(cbs_create_returns_a_valid_handle)
 {
     // arrange
     CBS_HANDLE cbs;
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_create());
     STRICT_EXPECTED_CALL(amqp_management_create(test_session_handle, "$cbs"));
     STRICT_EXPECTED_CALL(amqp_management_set_override_status_code_key_name(test_amqp_management_handle, "status-code"));
@@ -373,7 +373,7 @@ TEST_FUNCTION(when_one_of_the_functions_called_by_cbs_create_fails_then_cbs_crea
     size_t index;
     ASSERT_ARE_EQUAL(int, 0, negativeTestsInitResult);
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG))
         .SetFailReturn(NULL);
     STRICT_EXPECTED_CALL(singlylinkedlist_create())
         .SetReturn(NULL);
@@ -422,7 +422,7 @@ TEST_FUNCTION(cbs_destroy_frees_all_resources)
     STRICT_EXPECTED_CALL(amqp_management_destroy(test_amqp_management_handle));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinkedlist));
     STRICT_EXPECTED_CALL(singlylinkedlist_destroy(test_singlylinkedlist));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     cbs_destroy(cbs);
@@ -446,13 +446,13 @@ TEST_FUNCTION(cbs_destroy_frees_all_resources_including_the_pending_operations)
     STRICT_EXPECTED_CALL(amqp_management_close(test_amqp_management_handle));
     STRICT_EXPECTED_CALL(amqp_management_destroy(test_amqp_management_handle));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinkedlist));
-    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_ARG));
     STRICT_EXPECTED_CALL(test_on_cbs_put_token_complete((void*)0x4244, CBS_OPERATION_RESULT_INSTANCE_CLOSED, 0, NULL));
-    STRICT_EXPECTED_CALL(async_operation_destroy(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(async_operation_destroy(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist, IGNORED_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(test_singlylinkedlist));
     STRICT_EXPECTED_CALL(singlylinkedlist_destroy(test_singlylinkedlist));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     cbs_destroy(cbs);
@@ -486,7 +486,7 @@ TEST_FUNCTION(cbs_open_async_opens_the_amqp_management_instance)
     cbs = cbs_create(test_session_handle);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(amqp_management_open_async(test_amqp_management_handle, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqp_management_open_async(test_amqp_management_handle, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG));
 
     // act
     result = cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
@@ -563,7 +563,7 @@ TEST_FUNCTION(when_amqpmanagement_open_fails_cbs_open_async_fails)
     cbs = cbs_create(test_session_handle);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(amqp_management_open_async(test_amqp_management_handle, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqp_management_open_async(test_amqp_management_handle, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG))
         .SetReturn(1);
 
     // act
@@ -586,7 +586,7 @@ TEST_FUNCTION(cbs_open_async_with_NULL_on_open_complete_context_succeeds)
     cbs = cbs_create(test_session_handle);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(amqp_management_open_async(test_amqp_management_handle, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqp_management_open_async(test_amqp_management_handle, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG));
 
     // act
     result = cbs_open_async(cbs, test_on_cbs_open_complete, NULL, test_on_cbs_error, (void*)0x4243);
@@ -608,7 +608,7 @@ TEST_FUNCTION(cbs_open_async_with_NULL_on_error_context_succeeds)
     cbs = cbs_create(test_session_handle);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(amqp_management_open_async(test_amqp_management_handle, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqp_management_open_async(test_amqp_management_handle, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG));
 
     // act
     result = cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4243, test_on_cbs_error, NULL);
@@ -676,7 +676,7 @@ TEST_FUNCTION(after_an_open_cancelled_due_to_amqp_management_cbs_open_async_stil
     saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_CANCELLED);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(amqp_management_open_async(test_amqp_management_handle, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqp_management_open_async(test_amqp_management_handle, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG));
 
     // act
     result = cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
@@ -701,7 +701,7 @@ TEST_FUNCTION(after_an_open_error_due_to_amqp_management_cbs_open_async_still_su
     saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_ERROR);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(amqp_management_open_async(test_amqp_management_handle, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqp_management_open_async(test_amqp_management_handle, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG));
 
     // act
     result = cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
@@ -726,7 +726,7 @@ TEST_FUNCTION(after_an_open_error_due_to_amqp_management_error_callback_cbs_open
     saved_on_amqp_management_error(saved_on_amqp_management_open_complete_context);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(amqp_management_open_async(test_amqp_management_handle, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqp_management_open_async(test_amqp_management_handle, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG));
 
     // act
     result = cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
@@ -912,9 +912,9 @@ TEST_FUNCTION(cbs_put_token_async_creates_the_message_and_starts_the_amqp_manage
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_name_propery_value));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_name_propery_key));
     STRICT_EXPECTED_CALL(message_set_application_properties(test_message, test_map_value));
-    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqp_management_execute_operation_async(test_amqp_management_handle, "put-token", "some_type", NULL, test_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqp_management_execute_operation_async(test_amqp_management_handle, "put-token", "some_type", NULL, test_message, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_map_value));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_token_value));
     STRICT_EXPECTED_CALL(message_destroy(test_message));
@@ -955,17 +955,17 @@ TEST_FUNCTION(when_cbs_put_token_async_is_cancelled_succeeds)
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_name_propery_value));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_name_propery_key));
     STRICT_EXPECTED_CALL(message_set_application_properties(test_message, test_map_value));
-    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqp_management_execute_operation_async(test_amqp_management_handle, "put-token", "some_type", NULL, test_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqp_management_execute_operation_async(test_amqp_management_handle, "put-token", "some_type", NULL, test_message, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_map_value));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_token_value));
     STRICT_EXPECTED_CALL(message_destroy(test_message));
     result = cbs_put_token_async(cbs, "some_type", "my_audience", "blah_token", test_on_cbs_put_token_complete, (void*)0x4244);
 
     umock_c_reset_all_calls();
-    STRICT_EXPECTED_CALL(async_operation_cancel(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_remove_if(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(async_operation_cancel(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove_if(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(async_operation_destroy(result));
 
     // act
@@ -1106,9 +1106,9 @@ TEST_FUNCTION(cbs_put_token_async_with_NULL_complete_context_succeeds)
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_name_propery_value));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_name_propery_key));
     STRICT_EXPECTED_CALL(message_set_application_properties(test_message, test_map_value));
-    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqp_management_execute_operation_async(test_amqp_management_handle, "put-token", "some_type", NULL, test_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqp_management_execute_operation_async(test_amqp_management_handle, "put-token", "some_type", NULL, test_message, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_map_value));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_token_value));
     STRICT_EXPECTED_CALL(message_destroy(test_message));
@@ -1159,11 +1159,11 @@ TEST_FUNCTION(when_any_underlying_call_fails_cbs_put_token_async_fails)
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_name_propery_key));
     STRICT_EXPECTED_CALL(message_set_application_properties(test_message, test_map_value))
         .SetFailReturn(42);
-    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_ARG, IGNORED_ARG))
         .SetFailReturn(NULL);
-    STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist, IGNORED_ARG))
         .SetFailReturn(NULL);
-    STRICT_EXPECTED_CALL(amqp_management_execute_operation_async(test_amqp_management_handle, "put-token", "some_type", NULL, test_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqp_management_execute_operation_async(test_amqp_management_handle, "put-token", "some_type", NULL, test_message, IGNORED_ARG, IGNORED_ARG))
         .SetFailReturn(NULL);
 
     umock_c_negative_tests_snapshot();
@@ -1240,9 +1240,9 @@ TEST_FUNCTION(cbs_put_token_async_while_opening_succeeds)
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_name_propery_value));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_name_propery_key));
     STRICT_EXPECTED_CALL(message_set_application_properties(test_message, test_map_value));
-    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqp_management_execute_operation_async(test_amqp_management_handle, "put-token", "some_type", NULL, test_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqp_management_execute_operation_async(test_amqp_management_handle, "put-token", "some_type", NULL, test_message, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_map_value));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_token_value));
     STRICT_EXPECTED_CALL(message_destroy(test_message));
@@ -1319,9 +1319,9 @@ TEST_FUNCTION(cbs_delete_token_async_creates_the_message_and_starts_the_amqp_man
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_name_propery_value));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_name_propery_key));
     STRICT_EXPECTED_CALL(message_set_application_properties(test_message, test_map_value));
-    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqp_management_execute_operation_async(test_amqp_management_handle, "delete-token", "some_type", NULL, test_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqp_management_execute_operation_async(test_amqp_management_handle, "delete-token", "some_type", NULL, test_message, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_map_value));
     STRICT_EXPECTED_CALL(message_destroy(test_message));
 
@@ -1358,16 +1358,16 @@ TEST_FUNCTION(when_cbs_delete_token_async_is_cancelled)
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_name_propery_value));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_name_propery_key));
     STRICT_EXPECTED_CALL(message_set_application_properties(test_message, test_map_value));
-    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqp_management_execute_operation_async(test_amqp_management_handle, "delete-token", "some_type", NULL, test_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqp_management_execute_operation_async(test_amqp_management_handle, "delete-token", "some_type", NULL, test_message, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_map_value));
     STRICT_EXPECTED_CALL(message_destroy(test_message));
     result = cbs_delete_token_async(cbs, "some_type", "my_audience", test_on_cbs_delete_token_complete, (void*)0x4244);
 
     umock_c_reset_all_calls();
-    STRICT_EXPECTED_CALL(async_operation_cancel(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_remove_if(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(async_operation_cancel(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove_if(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(async_operation_destroy(result));
 
     // act
@@ -1482,9 +1482,9 @@ TEST_FUNCTION(cbs_delete_token_async_with_NULL_complete_context_succeeds)
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_name_propery_value));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_name_propery_key));
     STRICT_EXPECTED_CALL(message_set_application_properties(test_message, test_map_value));
-    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqp_management_execute_operation_async(test_amqp_management_handle, "delete-token", "some_type", NULL, test_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqp_management_execute_operation_async(test_amqp_management_handle, "delete-token", "some_type", NULL, test_message, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_map_value));
     STRICT_EXPECTED_CALL(message_destroy(test_message));
 
@@ -1530,11 +1530,11 @@ TEST_FUNCTION(when_any_underlying_call_fails_cbs_delete_token_async_fails)
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_name_propery_key));
     STRICT_EXPECTED_CALL(message_set_application_properties(test_message, test_map_value))
         .SetFailReturn(42);
-    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_ARG, IGNORED_ARG))
         .SetFailReturn(NULL);
-    STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist, IGNORED_ARG))
         .SetFailReturn(NULL);
-    STRICT_EXPECTED_CALL(amqp_management_execute_operation_async(test_amqp_management_handle, "delete-token", "some_type", NULL, test_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqp_management_execute_operation_async(test_amqp_management_handle, "delete-token", "some_type", NULL, test_message, IGNORED_ARG, IGNORED_ARG))
         .SetFailReturn(NULL);
 
     umock_c_negative_tests_snapshot();
@@ -1608,9 +1608,9 @@ TEST_FUNCTION(cbs_delete_token_async_while_opening_succeeds)
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_name_propery_value));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_name_propery_key));
     STRICT_EXPECTED_CALL(message_set_application_properties(test_message, test_map_value));
-    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqp_management_execute_operation_async(test_amqp_management_handle, "delete-token", "some_type", NULL, test_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqp_management_execute_operation_async(test_amqp_management_handle, "delete-token", "some_type", NULL, test_message, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_map_value));
     STRICT_EXPECTED_CALL(message_destroy(test_message));
 
@@ -1948,7 +1948,7 @@ TEST_FUNCTION(when_singlylinkedlist_item_get_value_fails_then_on_amqp_management
     (void)cbs_put_token_async(cbs, "some_type", "my_audience", "my_token", test_on_cbs_put_token_complete, (void*)0x4244);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_ARG))
         .SetReturn(NULL);
 
     // act
@@ -1980,10 +1980,10 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_OK_triggers_the_cbs_ope
     (void)cbs_put_token_async(cbs, "some_type", "my_audience", "my_token", test_on_cbs_put_token_complete, (void*)0x4244);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_ARG));
     STRICT_EXPECTED_CALL(test_on_cbs_put_token_complete((void*)0x4244, CBS_OPERATION_RESULT_OK, 200, "blah"));
-    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(async_operation_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(async_operation_destroy(IGNORED_ARG));
 
     // act
     saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_OK, 200, "blah", test_response_message);
@@ -2010,10 +2010,10 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_ERROR_triggers_the_cbs_
     (void)cbs_put_token_async(cbs, "some_type", "my_audience", "my_token", test_on_cbs_put_token_complete, (void*)0x4244);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_ARG));
     STRICT_EXPECTED_CALL(test_on_cbs_put_token_complete((void*)0x4244, CBS_OPERATION_RESULT_CBS_ERROR, 401, "blah"));
-    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(async_operation_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(async_operation_destroy(IGNORED_ARG));
 
     // act
     saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_ERROR, 401, "blah", test_response_message);
@@ -2040,10 +2040,10 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_OPERATION_FAILED_BAD_ST
     (void)cbs_put_token_async(cbs, "some_type", "my_audience", "my_token", test_on_cbs_put_token_complete, (void*)0x4244);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_ARG));
     STRICT_EXPECTED_CALL(test_on_cbs_put_token_complete((void*)0x4244, CBS_OPERATION_RESULT_OPERATION_FAILED, 0, "blah"));
-    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(async_operation_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(async_operation_destroy(IGNORED_ARG));
 
     // act
     saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_FAILED_BAD_STATUS, 0, "blah", test_response_message);
@@ -2070,10 +2070,10 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_INSTANCE_CLOSED_trigger
     (void)cbs_put_token_async(cbs, "some_type", "my_audience", "my_token", test_on_cbs_put_token_complete, (void*)0x4244);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_ARG));
     STRICT_EXPECTED_CALL(test_on_cbs_put_token_complete((void*)0x4244, CBS_OPERATION_RESULT_INSTANCE_CLOSED, 0, "blah"));
-    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(async_operation_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(async_operation_destroy(IGNORED_ARG));
 
     // act
     saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_INSTANCE_CLOSED, 0, "blah", test_response_message);
@@ -2104,10 +2104,10 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_OK_for_delete_token_tri
     (void)cbs_delete_token_async(cbs, "some_type", "my_audience", test_on_cbs_delete_token_complete, (void*)0x4244);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_ARG));
     STRICT_EXPECTED_CALL(test_on_cbs_delete_token_complete((void*)0x4244, CBS_OPERATION_RESULT_OK, 200, "blah"));
-    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(async_operation_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(async_operation_destroy(IGNORED_ARG));
 
     // act
     saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_OK, 200, "blah", test_response_message);
@@ -2134,10 +2134,10 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_ERROR_for_delete_token_
     (void)cbs_delete_token_async(cbs, "some_type", "my_audience", test_on_cbs_delete_token_complete, (void*)0x4244);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_ARG));
     STRICT_EXPECTED_CALL(test_on_cbs_delete_token_complete((void*)0x4244, CBS_OPERATION_RESULT_CBS_ERROR, 401, "blah"));
-    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(async_operation_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(async_operation_destroy(IGNORED_ARG));
 
     // act
     saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_ERROR, 401, "blah", test_response_message);
@@ -2164,10 +2164,10 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_OPERATION_FAILED_BAD_ST
     (void)cbs_delete_token_async(cbs, "some_type", "my_audience", test_on_cbs_delete_token_complete, (void*)0x4244);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_ARG));
     STRICT_EXPECTED_CALL(test_on_cbs_delete_token_complete((void*)0x4244, CBS_OPERATION_RESULT_OPERATION_FAILED, 0, "blah"));
-    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(async_operation_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(async_operation_destroy(IGNORED_ARG));
 
     // act
     saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_FAILED_BAD_STATUS, 0, "blah", test_response_message);
@@ -2194,10 +2194,10 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_INSTANCE_CLOSED_for_del
     (void)cbs_delete_token_async(cbs, "some_type", "my_audience", test_on_cbs_delete_token_complete, (void*)0x4244);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_ARG));
     STRICT_EXPECTED_CALL(test_on_cbs_delete_token_complete((void*)0x4244, CBS_OPERATION_RESULT_INSTANCE_CLOSED, 0, "blah"));
-    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(async_operation_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(async_operation_destroy(IGNORED_ARG));
 
     // act
     saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_INSTANCE_CLOSED, 0, "blah", test_response_message);

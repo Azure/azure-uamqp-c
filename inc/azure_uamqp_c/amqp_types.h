@@ -5,7 +5,7 @@
 #define ANQP_TYPES_H
 
 #include <stddef.h>
-#include "azure_macro_utils/macro_utils.h"
+#include "macro_utils/macro_utils.h"
 
 #ifdef __cplusplus
 extern "C" {

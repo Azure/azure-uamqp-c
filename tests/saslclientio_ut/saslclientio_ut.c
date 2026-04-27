@@ -9,7 +9,7 @@
 #include <stdint.h>
 #endif
 
-#include "azure_macro_utils/macro_utils.h"
+#include "macro_utils/macro_utils.h"
 #include "testrunnerswitcher.h"
 #include "umock_c/umock_c.h"
 #include "umock_c/umocktypes_stdint.h"
@@ -546,16 +546,16 @@ static void setup_successful_sasl_handshake(void)
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
     STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
         .SetReturn(true);
-    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(IGNORED_ARG, IGNORED_ARG))
         .CopyOutArgumentBuffer_count(&mechanism_count, sizeof(mechanism_count));
-    STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_ARG, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
-    STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(sasl_init_create(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(saslmechanism_get_init_bytes(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(sasl_init_create(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(saslmechanism_get_init_bytes(IGNORED_ARG, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &init_bytes, sizeof(init_bytes));
     saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
     saved_on_bytes_received(saved_on_bytes_received_context, test_sasl_outcome, sizeof(test_sasl_outcome));
@@ -567,9 +567,9 @@ static void setup_successful_sasl_handshake(void)
         .SetReturn(false);
     STRICT_EXPECTED_CALL(is_sasl_outcome_type_by_descriptor(test_descriptor_value))
         .SetReturn(true);
-    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_outcome(test_sasl_value, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_outcome(test_sasl_value, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_sasl_outcome_handle, sizeof(test_sasl_outcome_handle));
-    STRICT_EXPECTED_CALL(sasl_outcome_get_code(test_sasl_outcome_handle, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(sasl_outcome_get_code(test_sasl_outcome_handle, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &sasl_outcome_code, sizeof(sasl_outcome_code));
     saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
 }
@@ -586,19 +586,19 @@ static void setup_send_init(void)
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
     STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
         .SetReturn(true);
-    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(IGNORED_ARG, IGNORED_ARG))
         .CopyOutArgumentBuffer_count(&mechanisms_count, sizeof(mechanisms_count));
-    STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(IGNORED_ARG, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
-    STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(sasl_init_create(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(saslmechanism_get_init_bytes(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(sasl_init_create(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(saslmechanism_get_init_bytes(IGNORED_ARG, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &init_bytes, sizeof(init_bytes));
     STRICT_EXPECTED_CALL(amqpvalue_create_sasl_init(test_sasl_init));
-    STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_init_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_init_value, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(sasl_init_destroy(test_sasl_init));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_init_value));
     STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
@@ -736,9 +736,9 @@ TEST_FUNCTION(saslclientio_create_with_valid_args_succeeds)
     sasl_client_io_config.underlying_io = test_underlying_io;
     sasl_client_io_config.sasl_mechanism = test_sasl_mechanism;
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(sasl_frame_codec_create(test_frame_codec, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(frame_codec_create(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(sasl_frame_codec_create(test_frame_codec, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG));
 
     // act
     result = saslclientio_get_interface_description()->concrete_io_create(&sasl_client_io_config);
@@ -773,7 +773,7 @@ TEST_FUNCTION(when_allocating_memory_for_the_new_instance_fails_then_saslclienti
     sasl_client_io_config.underlying_io = test_underlying_io;
     sasl_client_io_config.sasl_mechanism = test_sasl_mechanism;
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG))
         .SetReturn(NULL);
 
     // act
@@ -793,10 +793,10 @@ TEST_FUNCTION(when_creating_the_frame_codec_fails_then_saslclientio_create_fails
     sasl_client_io_config.underlying_io = test_underlying_io;
     sasl_client_io_config.sasl_mechanism = test_sasl_mechanism;
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(frame_codec_create(IGNORED_ARG, IGNORED_ARG))
         .SetReturn(NULL);
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     result = saslclientio_get_interface_description()->concrete_io_create(&sasl_client_io_config);
@@ -815,12 +815,12 @@ TEST_FUNCTION(when_creating_the_sasl_frame_codec_fails_then_saslclientio_create_
     sasl_client_io_config.underlying_io = test_underlying_io;
     sasl_client_io_config.sasl_mechanism = test_sasl_mechanism;
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(frame_codec_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(sasl_frame_codec_create(test_frame_codec, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(frame_codec_create(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(sasl_frame_codec_create(test_frame_codec, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG))
         .SetReturn(NULL);
     STRICT_EXPECTED_CALL(frame_codec_destroy(test_frame_codec));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     result = saslclientio_get_interface_description()->concrete_io_create(&sasl_client_io_config);
@@ -881,7 +881,7 @@ TEST_FUNCTION(saslclientio_destroy_frees_the_resources_allocated_in_create)
 
     STRICT_EXPECTED_CALL(sasl_frame_codec_destroy(test_sasl_frame_codec));
     STRICT_EXPECTED_CALL(frame_codec_destroy(test_frame_codec));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     saslclientio_get_interface_description()->concrete_io_destroy(sasl_client_io);
@@ -918,7 +918,7 @@ TEST_FUNCTION(saslclientio_open_async_with_valid_args_succeeds)
     sasl_client_io = saslclientio_get_interface_description()->concrete_io_create(&sasl_client_io_config);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_open(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_open(test_underlying_io, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG));
 
     // act
     result = saslclientio_get_interface_description()->concrete_io_open(sasl_client_io, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4243, test_on_io_error, (void*)0x4244);
@@ -1025,7 +1025,7 @@ TEST_FUNCTION(when_opening_the_underlying_io_fails_saslclientio_open_async_fails
     sasl_client_io = saslclientio_get_interface_description()->concrete_io_create(&sasl_client_io_config);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_open(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(xio_open(test_underlying_io, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG))
         .SetReturn(1);
 
     // act
@@ -1056,7 +1056,7 @@ TEST_FUNCTION(saslclientio_close_async_when_the_io_state_is_OPENING_closes_the_u
     (void)saslclientio_get_interface_description()->concrete_io_open(sasl_client_io, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4243, test_on_io_error, (void*)0x4244);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
 
     // act
     result = saslclientio_get_interface_description()->concrete_io_close(sasl_client_io, test_on_io_close_complete, (void*)0x4245);
@@ -1085,7 +1085,7 @@ TEST_FUNCTION(saslclientio_close_async_when_the_io_state_is_OPEN_closes_the_unde
     setup_successful_sasl_handshake();
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
 
     // act
     result = saslclientio_get_interface_description()->concrete_io_close(sasl_client_io, test_on_io_close_complete, (void*)0x4245);
@@ -1115,7 +1115,7 @@ TEST_FUNCTION(saslclientio_close_async_when_the_io_state_is_ERROR_closes_the_und
     saved_on_io_error(saved_on_io_error_context);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
 
     // act
     result = saslclientio_get_interface_description()->concrete_io_close(sasl_client_io, test_on_io_close_complete, (void*)0x4245);
@@ -1205,7 +1205,7 @@ TEST_FUNCTION(when_xio_close_fails_saslclientio_close_async_fails)
     saved_on_io_open_complete(saved_on_io_open_complete_context, IO_OPEN_OK);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG))
         .SetReturn(1);
 
     // act
@@ -1788,7 +1788,7 @@ TEST_FUNCTION(saslclientio_retrieveoptions_creates_an_option_handler)
     saved_on_io_error(saved_on_io_error_context);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(OptionHandler_Create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(OptionHandler_Create(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG));
 
     // act
     result = saslclientio_get_interface_description()->concrete_io_retrieveoptions(sasl_client_io);
@@ -1816,7 +1816,7 @@ TEST_FUNCTION(when_OptionHandler_Create_fails_then_saslclientio_retrieveoptions_
     saved_on_io_error(saved_on_io_error_context);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(OptionHandler_Create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(OptionHandler_Create(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG))
         .SetReturn(NULL);
 
     // act
@@ -1863,7 +1863,7 @@ TEST_FUNCTION(when_logtrace_was_set_to_true_saslclientio_retrieveoptions_adds_it
     (void)saslclientio_get_interface_description()->concrete_io_setoption(sasl_client_io, "logtrace", &log_trace);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(OptionHandler_Create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(OptionHandler_Create(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(OptionHandler_AddOption(test_optionhandler_handle, "logtrace", &log_trace))
         .ValidateArgumentValue_value_AsType(UMOCK_TYPE(bool*));
 
@@ -1897,7 +1897,7 @@ TEST_FUNCTION(when_logtrace_was_set_to_false_saslclientio_retrieveoptions_adds_i
     (void)saslclientio_get_interface_description()->concrete_io_setoption(sasl_client_io, "logtrace", &log_trace);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(OptionHandler_Create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(OptionHandler_Create(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(OptionHandler_AddOption(test_optionhandler_handle, "logtrace", &log_trace))
         .ValidateArgumentValue_value_AsType(UMOCK_TYPE(bool*));
 
@@ -1929,7 +1929,7 @@ TEST_FUNCTION(when_OptionHandler_AddOption_fails_saslclientio_retrieveoptions_al
     (void)saslclientio_get_interface_description()->concrete_io_setoption(sasl_client_io, "logtrace", &log_trace);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(OptionHandler_Create(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(OptionHandler_Create(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(OptionHandler_AddOption(test_optionhandler_handle, "logtrace", &log_trace))
         .ValidateArgumentValue_value_AsType(UMOCK_TYPE(bool*))
         .SetReturn(OPTIONHANDLER_ERROR);
@@ -2120,7 +2120,7 @@ TEST_FUNCTION(when_io_state_is_opening_and_1_bad_byte_is_received_state_is_set_t
     saved_on_io_open_complete(saved_on_io_open_complete_context, IO_OPEN_OK);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
     // act
@@ -2150,7 +2150,7 @@ TEST_FUNCTION(when_io_state_is_opening_and_the_last_header_byte_is_bad_state_is_
     saved_on_io_open_complete(saved_on_io_open_complete_context, IO_OPEN_OK);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
     // act
@@ -2181,8 +2181,8 @@ TEST_FUNCTION(when_underlying_IO_switches_the_state_to_OPEN_the_SASL_header_is_s
     (void)saslclientio_get_interface_description()->concrete_io_open(sasl_client_io, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4243, test_on_io_error, (void*)0x4244);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_send(test_underlying_io, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(xio_send(test_underlying_io, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(xio_send(test_underlying_io, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(xio_send(test_underlying_io, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG))
         .IgnoreAllCalls();
 
     // act
@@ -2210,9 +2210,9 @@ TEST_FUNCTION(when_sending_the_header_fails_state_is_set_to_ERROR)
     (void)saslclientio_get_interface_description()->concrete_io_open(sasl_client_io, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4243, test_on_io_error, (void*)0x4244);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_send(test_underlying_io, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(xio_send(test_underlying_io, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG))
         .SetReturn(1);
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
     // act
@@ -2242,7 +2242,7 @@ TEST_FUNCTION(when_a_bad_header_is_received_after_a_good_one_has_been_sent_state
     saved_on_io_open_complete(saved_on_io_open_complete_context, IO_OPEN_OK);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
     // act
@@ -2300,8 +2300,8 @@ TEST_FUNCTION(when_one_byte_is_received_after_header_handshake_it_is_sent_to_the
     saved_on_bytes_received(saved_on_bytes_received_context, sasl_header, sizeof(sasl_header));
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(frame_codec_receive_bytes(test_frame_codec, IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(frame_codec_receive_bytes(test_frame_codec, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(frame_codec_receive_bytes(test_frame_codec, IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(frame_codec_receive_bytes(test_frame_codec, IGNORED_ARG, IGNORED_ARG))
         .IgnoreAllCalls();
 
     // act
@@ -2332,9 +2332,9 @@ TEST_FUNCTION(when_frame_codec_receive_bytes_fails_then_the_state_is_switched_to
     saved_on_bytes_received(saved_on_bytes_received_context, sasl_header, sizeof(sasl_header));
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(frame_codec_receive_bytes(test_frame_codec, IGNORED_PTR_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(frame_codec_receive_bytes(test_frame_codec, IGNORED_ARG, IGNORED_ARG))
         .SetReturn(1);
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
     // act
@@ -2360,7 +2360,7 @@ TEST_FUNCTION(ERROR_received_in_the_state_OPENING_indicates_on_io_open_complete)
     (void)saslclientio_get_interface_description()->concrete_io_open(sasl_client_io, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4243, test_on_io_error, (void*)0x4244);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
     // act
@@ -2437,7 +2437,7 @@ TEST_FUNCTION(underlying_io_open_complete_again_in_OPENING_raises_ERROR)
     saved_on_io_open_complete(saved_on_io_open_complete_context, IO_OPEN_OK);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
     // act
@@ -2536,9 +2536,9 @@ TEST_FUNCTION(when_sending_the_header_with_xio_send_fails_then_the_io_state_is_s
     (void)saslclientio_get_interface_description()->concrete_io_open(sasl_client_io, test_on_io_open_complete, (void*)0x4242, test_on_bytes_received, (void*)0x4243, test_on_io_error, (void*)0x4244);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_send(test_underlying_io, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(xio_send(test_underlying_io, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG))
         .SetReturn(1);
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
     // act
@@ -2583,23 +2583,23 @@ TEST_FUNCTION(when_a_SASL_mechanism_is_received_after_the_header_exchange_a_sasl
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
     STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
         .SetReturn(true);
-    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
-    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_ARG))
         .CopyOutArgumentBuffer_sasl_server_mechanisms_value(&test_sasl_server_mechanisms_value, sizeof(test_sasl_server_mechanisms_value));
-    STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(test_sasl_server_mechanisms_value, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(test_sasl_server_mechanisms_value, IGNORED_ARG))
         .CopyOutArgumentBuffer_count(&mechanisms_count, sizeof(mechanisms_count));
-    STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(IGNORED_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_get_array_item(test_sasl_server_mechanisms_value, 0))
         .SetReturn(test_sasl_server_mechanism);
-    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
-    STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(sasl_init_create(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(saslmechanism_get_init_bytes(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(sasl_init_create(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(saslmechanism_get_init_bytes(IGNORED_ARG, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &init_bytes, sizeof(init_bytes));
     STRICT_EXPECTED_CALL(amqpvalue_create_sasl_init(test_sasl_init));
-    STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_init_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_init_value, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_init_value));
     STRICT_EXPECTED_CALL(sasl_init_destroy(test_sasl_init));
     STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
@@ -2644,23 +2644,23 @@ TEST_FUNCTION(when_a_SASL_mechanism_is_received_a_sasl_init_frame_is_send_with_t
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
     STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
         .SetReturn(true);
-    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
-    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_ARG))
         .CopyOutArgumentBuffer_sasl_server_mechanisms_value(&test_sasl_server_mechanisms_value, sizeof(test_sasl_server_mechanisms_value));
     STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(test_sasl_server_mechanisms_value, &mechanisms_count))
         .CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
     STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
     STRICT_EXPECTED_CALL(amqpvalue_get_array_item(test_sasl_server_mechanisms_value, 0));
-    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_server_mechanism));
     STRICT_EXPECTED_CALL(sasl_init_create(test_mechanism));
-    STRICT_EXPECTED_CALL(saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &init_bytes, sizeof(init_bytes));
     STRICT_EXPECTED_CALL(sasl_init_set_initial_response(test_sasl_init, expected_creds));
     STRICT_EXPECTED_CALL(amqpvalue_create_sasl_init(test_sasl_init));
-    STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_init_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_init_value, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_init_value));
     STRICT_EXPECTED_CALL(sasl_init_destroy(test_sasl_init));
     STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
@@ -2688,7 +2688,7 @@ TEST_FUNCTION(when_a_SASL_mechanism_is_received_when_header_handshake_is_not_don
     saved_on_io_open_complete(saved_on_io_open_complete_context, IO_OPEN_OK);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
     // act
@@ -2744,7 +2744,7 @@ TEST_FUNCTION(when_a_SASL_mechanism_is_received_and_getting_the_descriptor_fails
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value))
         .SetReturn(NULL);
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
     // act
@@ -2778,15 +2778,15 @@ TEST_FUNCTION(when_a_SASL_mechanism_is_received_and_getting_the_mechanism_name_f
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
     STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
         .SetReturn(true);
-    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
-    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_ARG))
         .CopyOutArgumentBuffer_sasl_server_mechanisms_value(&test_sasl_server_mechanisms_value, sizeof(test_sasl_server_mechanisms_value));
     STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(test_sasl_server_mechanisms_value, &mechanisms_count))
         .CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
     STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism))
         .SetReturn(NULL);
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
@@ -2825,20 +2825,20 @@ TEST_FUNCTION(when_a_SASL_mechanism_is_received_and_creating_the_sasl_init_value
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
     STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value))
         .SetReturn(true);
-    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
-    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_ARG))
         .CopyOutArgumentBuffer_sasl_server_mechanisms_value(&test_sasl_server_mechanisms_value, sizeof(test_sasl_server_mechanisms_value));
     STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(test_sasl_server_mechanisms_value, &mechanisms_count))
         .CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
     STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
     STRICT_EXPECTED_CALL(amqpvalue_get_array_item(test_sasl_server_mechanisms_value, 0));
-    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_server_mechanism));
     STRICT_EXPECTED_CALL(sasl_init_create(test_mechanism))
         .SetReturn(NULL);
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
@@ -2876,23 +2876,23 @@ TEST_FUNCTION(when_a_SASL_mechanism_is_received_and_getting_the_initial_bytes_fa
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
     STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
-    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_ARG))
         .CopyOutArgumentBuffer_sasl_server_mechanisms_value(&test_sasl_server_mechanisms_value, sizeof(test_sasl_server_mechanisms_value));
     STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(test_sasl_server_mechanisms_value, &mechanisms_count))
         .CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
     STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
     STRICT_EXPECTED_CALL(amqpvalue_get_array_item(test_sasl_server_mechanisms_value, 0));
-    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_server_mechanism));
     STRICT_EXPECTED_CALL(sasl_init_create(test_mechanism));
-    STRICT_EXPECTED_CALL(saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &init_bytes, sizeof(init_bytes))
         .SetReturn(1);
     STRICT_EXPECTED_CALL(sasl_init_destroy(test_sasl_init));
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
@@ -2930,24 +2930,24 @@ TEST_FUNCTION(when_a_SASL_mechanism_is_received_and_getting_the_AMQP_VALUE_fails
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
     STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
-    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_ARG))
         .CopyOutArgumentBuffer_sasl_server_mechanisms_value(&test_sasl_server_mechanisms_value, sizeof(test_sasl_server_mechanisms_value));
     STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(test_sasl_server_mechanisms_value, &mechanisms_count))
         .CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
     STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
     STRICT_EXPECTED_CALL(amqpvalue_get_array_item(test_sasl_server_mechanisms_value, 0));
-    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_server_mechanism));
     STRICT_EXPECTED_CALL(sasl_init_create(test_mechanism));
-    STRICT_EXPECTED_CALL(saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &init_bytes, sizeof(init_bytes));
     STRICT_EXPECTED_CALL(amqpvalue_create_sasl_init(test_sasl_init))
         .SetReturn(NULL);
     STRICT_EXPECTED_CALL(sasl_init_destroy(test_sasl_init));
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
@@ -2985,26 +2985,26 @@ TEST_FUNCTION(when_a_SASL_mechanism_is_received_and_encoding_the_sasl_frame_fail
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
     STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
-    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_ARG))
         .CopyOutArgumentBuffer_sasl_server_mechanisms_value(&test_sasl_server_mechanisms_value, sizeof(test_sasl_server_mechanisms_value));
     STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(test_sasl_server_mechanisms_value, &mechanisms_count))
         .CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
     STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
     STRICT_EXPECTED_CALL(amqpvalue_get_array_item(test_sasl_server_mechanisms_value, 0));
-    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_server_mechanism));
     STRICT_EXPECTED_CALL(sasl_init_create(test_mechanism));
-    STRICT_EXPECTED_CALL(saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &init_bytes, sizeof(init_bytes));
     STRICT_EXPECTED_CALL(amqpvalue_create_sasl_init(test_sasl_init));
-    STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_init_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_init_value, IGNORED_ARG, IGNORED_ARG))
         .SetReturn(1);
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_init_value));
     STRICT_EXPECTED_CALL(sasl_init_destroy(test_sasl_init));
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
@@ -3047,27 +3047,27 @@ TEST_FUNCTION(when_a_SASL_mechanism_is_received_and_setting_the_init_bytes_fails
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
     STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
-    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_ARG))
         .CopyOutArgumentBuffer_sasl_server_mechanisms_value(&test_sasl_server_mechanisms_value, sizeof(test_sasl_server_mechanisms_value));
     STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(test_sasl_server_mechanisms_value, &mechanisms_count))
         .CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
     STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
     STRICT_EXPECTED_CALL(amqpvalue_get_array_item(test_sasl_server_mechanisms_value, 0));
-    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_mechanism, sizeof(test_mechanism));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_server_mechanism));
     STRICT_EXPECTED_CALL(sasl_init_create(test_mechanism));
-    STRICT_EXPECTED_CALL(saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(saslmechanism_get_init_bytes(test_sasl_mechanism, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &init_bytes, sizeof(init_bytes));
     STRICT_EXPECTED_CALL(sasl_init_set_initial_response(test_sasl_init, expected_creds));
     STRICT_EXPECTED_CALL(amqpvalue_create_sasl_init(test_sasl_init));
-    STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_init_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_init_value, IGNORED_ARG, IGNORED_ARG))
         .SetReturn(1);
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_init_value));
     STRICT_EXPECTED_CALL(sasl_init_destroy(test_sasl_init));
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
@@ -3115,9 +3115,9 @@ TEST_FUNCTION(when_a_SASL_outcome_frame_is_received_with_ok_the_SASL_IO_state_is
         .SetReturn(false);
     STRICT_EXPECTED_CALL(is_sasl_outcome_type_by_descriptor(test_descriptor_value))
         .SetReturn(true);
-    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_outcome(test_sasl_value, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_outcome(test_sasl_value, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_sasl_outcome_handle, sizeof(test_sasl_outcome_handle));
-    STRICT_EXPECTED_CALL(sasl_outcome_get_code(test_sasl_outcome_handle, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(sasl_outcome_get_code(test_sasl_outcome_handle, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &sasl_outcome_code, sizeof(sasl_outcome_code));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_OK));
     STRICT_EXPECTED_CALL(sasl_outcome_destroy(test_sasl_outcome_handle));
@@ -3159,11 +3159,11 @@ void when_an_outcome_with_error_code_is_received_the_IO_is_closed_pending_open_c
         .SetReturn(false);
     STRICT_EXPECTED_CALL(is_sasl_outcome_type_by_descriptor(test_descriptor_value))
         .SetReturn(true);
-    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_outcome(test_sasl_value, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_outcome(test_sasl_value, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_sasl_outcome_handle, sizeof(test_sasl_outcome_handle));
-    STRICT_EXPECTED_CALL(sasl_outcome_get_code(test_sasl_outcome_handle, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(sasl_outcome_get_code(test_sasl_outcome_handle, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &sasl_outcome_code, sizeof(sasl_outcome_code));
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(sasl_outcome_destroy(test_sasl_outcome_handle));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
@@ -3225,7 +3225,7 @@ TEST_FUNCTION(when_a_SASL_outcome_frame_is_received_before_mechanisms_the_IO_is_
     STRICT_EXPECTED_CALL(is_sasl_outcome_type_by_descriptor(test_descriptor_value))
         .SetReturn(true);
 
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
     // act
@@ -3260,7 +3260,7 @@ TEST_FUNCTION(when_a_SASL_challenge_is_received_before_mechanisms_the_IO_is_clos
     STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
         .SetReturn(true);
 
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
     // act
@@ -3281,15 +3281,15 @@ static void setup_succesfull_challenge_response(void)
         .SetReturn(false);
     STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
         .SetReturn(true);
-    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle));
-    STRICT_EXPECTED_CALL(sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &some_challenge_bytes, sizeof(some_challenge_bytes));
-    STRICT_EXPECTED_CALL(saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_ARG))
         .CopyOutArgumentBuffer(3, &sasl_mechanism_response_bytes, sizeof(sasl_mechanism_response_bytes));
     STRICT_EXPECTED_CALL(sasl_response_create(response_binary_value));
     STRICT_EXPECTED_CALL(amqpvalue_create_sasl_response(test_sasl_response_handle));
-    STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_response_amqp_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_response_amqp_value, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_response_amqp_value));
     STRICT_EXPECTED_CALL(sasl_response_destroy(test_sasl_response_handle));
     STRICT_EXPECTED_CALL(sasl_challenge_destroy(test_sasl_challenge_handle));
@@ -3359,10 +3359,10 @@ TEST_FUNCTION(when_getting_the_sasl_challenge_fails_then_the_IO_is_closed_pendin
         .SetReturn(false);
     STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
         .SetReturn(true);
-    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle))
         .SetReturn(1);
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
     // act
@@ -3401,12 +3401,12 @@ TEST_FUNCTION(when_getting_the_challenge_bytes_fails_then_the_IO_is_closed_pendi
         .SetReturn(false);
     STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
         .SetReturn(true);
-    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle));
-    STRICT_EXPECTED_CALL(sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &some_challenge_bytes, sizeof(some_challenge_bytes))
         .SetReturn(1);
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(sasl_challenge_destroy(test_sasl_challenge_handle));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
@@ -3446,14 +3446,14 @@ TEST_FUNCTION(when_the_sasl_mechanism_challenge_response_function_fails_then_the
         .SetReturn(false);
     STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
         .SetReturn(true);
-    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle));
-    STRICT_EXPECTED_CALL(sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &some_challenge_bytes, sizeof(some_challenge_bytes));
-    STRICT_EXPECTED_CALL(saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_ARG))
         .CopyOutArgumentBuffer(3, &sasl_mechanism_response_bytes, sizeof(sasl_mechanism_response_bytes))
         .SetReturn(1);
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(sasl_challenge_destroy(test_sasl_challenge_handle));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
@@ -3493,15 +3493,15 @@ TEST_FUNCTION(when_creating_the_sasl_response_fails_the_IO_is_closed_pending_ope
         .SetReturn(false);
     STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
         .SetReturn(true);
-    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle));
-    STRICT_EXPECTED_CALL(sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &some_challenge_bytes, sizeof(some_challenge_bytes));
-    STRICT_EXPECTED_CALL(saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_ARG))
         .CopyOutArgumentBuffer(3, &sasl_mechanism_response_bytes, sizeof(sasl_mechanism_response_bytes));
     STRICT_EXPECTED_CALL(sasl_response_create(response_binary_value))
         .SetReturn(NULL);
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(sasl_challenge_destroy(test_sasl_challenge_handle));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
@@ -3541,17 +3541,17 @@ TEST_FUNCTION(when_creating_the_AMQP_VALUE_for_sasl_response_fails_the_IO_is_clo
         .SetReturn(false);
     STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
         .SetReturn(true);
-    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle));
-    STRICT_EXPECTED_CALL(sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &some_challenge_bytes, sizeof(some_challenge_bytes));
-    STRICT_EXPECTED_CALL(saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_ARG))
         .CopyOutArgumentBuffer(3, &sasl_mechanism_response_bytes, sizeof(sasl_mechanism_response_bytes));
     STRICT_EXPECTED_CALL(sasl_response_create(response_binary_value));
     STRICT_EXPECTED_CALL(amqpvalue_create_sasl_response(test_sasl_response_handle))
         .SetReturn(NULL);
     STRICT_EXPECTED_CALL(sasl_response_destroy(test_sasl_response_handle));
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(sasl_challenge_destroy(test_sasl_challenge_handle));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
@@ -3591,19 +3591,19 @@ TEST_FUNCTION(when_encoding_the_sasl_frame_for_sasl_response_fails_the_IO_is_clo
         .SetReturn(false);
     STRICT_EXPECTED_CALL(is_sasl_challenge_type_by_descriptor(test_descriptor_value))
         .SetReturn(true);
-    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_challenge(test_sasl_value, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_sasl_challenge_handle, sizeof(test_sasl_challenge_handle));
-    STRICT_EXPECTED_CALL(sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(sasl_challenge_get_challenge(test_sasl_challenge_handle, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &some_challenge_bytes, sizeof(some_challenge_bytes));
-    STRICT_EXPECTED_CALL(saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(saslmechanism_challenge(test_sasl_mechanism, &sasl_mechanism_challenge_bytes, IGNORED_ARG))
         .CopyOutArgumentBuffer(3, &sasl_mechanism_response_bytes, sizeof(sasl_mechanism_response_bytes));
     STRICT_EXPECTED_CALL(sasl_response_create(response_binary_value));
     STRICT_EXPECTED_CALL(amqpvalue_create_sasl_response(test_sasl_response_handle));
-    STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_response_amqp_value, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(sasl_frame_codec_encode_frame(test_sasl_frame_codec, test_sasl_response_amqp_value, IGNORED_ARG, IGNORED_ARG))
         .SetReturn(1);
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_response_amqp_value));
     STRICT_EXPECTED_CALL(sasl_response_destroy(test_sasl_response_handle));
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(sasl_challenge_destroy(test_sasl_challenge_handle));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
@@ -3726,9 +3726,9 @@ TEST_FUNCTION(SASL_challenge_response_256_times_followed_by_outcome_succeeds)
         .SetReturn(false);
     STRICT_EXPECTED_CALL(is_sasl_outcome_type_by_descriptor(test_descriptor_value))
         .SetReturn(true);
-    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_outcome(test_sasl_value, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_outcome(test_sasl_value, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_sasl_outcome_handle, sizeof(test_sasl_outcome_handle));
-    STRICT_EXPECTED_CALL(sasl_outcome_get_code(test_sasl_outcome_handle, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(sasl_outcome_get_code(test_sasl_outcome_handle, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &sasl_outcome_code, sizeof(sasl_outcome_code));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_OK));
     STRICT_EXPECTED_CALL(sasl_outcome_destroy(test_sasl_outcome_handle));
@@ -3761,11 +3761,11 @@ TEST_FUNCTION(when_the_mechanisms_sasl_value_cannot_be_decoded_the_IO_is_closed_
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
     STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
-    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_ARG))
         .SetReturn(1);
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
@@ -3798,11 +3798,11 @@ TEST_FUNCTION(when_a_NULL_list_is_received_in_the_SASL_mechanisms_then_the_IO_is
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
     STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
-    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_ARG))
         .SetReturn(1);
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
@@ -3837,13 +3837,13 @@ TEST_FUNCTION(when_an_empty_array_is_received_in_the_SASL_mechanisms_then_the_IO
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
     STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
-    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_ARG))
         .CopyOutArgumentBuffer_sasl_server_mechanisms_value(&test_sasl_server_mechanisms_value, sizeof(test_sasl_server_mechanisms_value));
     STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(test_sasl_server_mechanisms_value, &mechanisms_count))
         .CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
@@ -3878,14 +3878,14 @@ TEST_FUNCTION(when_getting_the_mechanisms_array_item_count_fails_then_the_IO_is_
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
     STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
-    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_ARG))
         .CopyOutArgumentBuffer_sasl_server_mechanisms_value(&test_sasl_server_mechanisms_value, sizeof(test_sasl_server_mechanisms_value));
     STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(test_sasl_server_mechanisms_value, &mechanisms_count))
         .CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count))
         .SetReturn(1);
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
@@ -3921,18 +3921,18 @@ TEST_FUNCTION(when_the_mechanisms_array_does_not_contain_a_usable_SASL_mechanism
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
     STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
-    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_ARG))
         .CopyOutArgumentBuffer_sasl_server_mechanisms_value(&test_sasl_server_mechanisms_value, sizeof(test_sasl_server_mechanisms_value));
     STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(test_sasl_server_mechanisms_value, &mechanisms_count))
         .CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
     STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
     STRICT_EXPECTED_CALL(amqpvalue_get_array_item(test_sasl_server_mechanisms_value, 0));
-    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_sasl_server_mechanism_name, sizeof(test_sasl_server_mechanism_name));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_server_mechanism));
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
@@ -3969,22 +3969,22 @@ TEST_FUNCTION(when_the_mechanisms_array_has_2_mechanisms_and_none_matches_the_IO
 
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(test_sasl_value));
     STRICT_EXPECTED_CALL(is_sasl_mechanisms_type_by_descriptor(test_descriptor_value)).SetReturn(true);
-    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_sasl_mechanisms(test_sasl_value, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_sasl_mechanisms_handle, sizeof(test_sasl_mechanisms_handle));
-    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(sasl_mechanisms_get_sasl_server_mechanisms(test_sasl_mechanisms_handle, IGNORED_ARG))
         .CopyOutArgumentBuffer_sasl_server_mechanisms_value(&test_sasl_server_mechanisms_value, sizeof(test_sasl_server_mechanisms_value));
     STRICT_EXPECTED_CALL(amqpvalue_get_array_item_count(test_sasl_server_mechanisms_value, &mechanisms_count))
         .CopyOutArgumentBuffer(2, &mechanisms_count, sizeof(mechanisms_count));
     STRICT_EXPECTED_CALL(saslmechanism_get_mechanism_name(test_sasl_mechanism));
     STRICT_EXPECTED_CALL(amqpvalue_get_array_item(test_sasl_server_mechanisms_value, 0));
-    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_sasl_server_mechanism_name_1, sizeof(test_sasl_server_mechanism_name_1));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_server_mechanism));
     STRICT_EXPECTED_CALL(amqpvalue_get_array_item(test_sasl_server_mechanisms_value, 1));
-    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_symbol(test_sasl_server_mechanism, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &test_sasl_server_mechanism_name_2, sizeof(test_sasl_server_mechanism_name_2));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_sasl_server_mechanism));
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(sasl_mechanisms_destroy(test_sasl_mechanisms_handle));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
@@ -4020,7 +4020,7 @@ TEST_FUNCTION(when_encoded_bytes_are_received_they_are_given_to_xio_send)
     saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_send(test_underlying_io, encoded_bytes, sizeof(encoded_bytes), IGNORED_PTR_ARG, NULL))
+    STRICT_EXPECTED_CALL(xio_send(test_underlying_io, encoded_bytes, sizeof(encoded_bytes), IGNORED_ARG, NULL))
         .ValidateArgumentBuffer(2, &encoded_bytes, sizeof(encoded_bytes));
 
     // act
@@ -4054,7 +4054,7 @@ TEST_FUNCTION(when_encoded_bytes_are_received_with_encoded_complete_flag_set_to_
     saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_send(test_underlying_io, encoded_bytes, sizeof(encoded_bytes), IGNORED_PTR_ARG, NULL))
+    STRICT_EXPECTED_CALL(xio_send(test_underlying_io, encoded_bytes, sizeof(encoded_bytes), IGNORED_ARG, NULL))
         .ValidateArgumentBuffer(2, &encoded_bytes, sizeof(encoded_bytes));
 
     // act
@@ -4088,10 +4088,10 @@ TEST_FUNCTION(when_xio_send_fails_when_sending_encoded_bytes_the_IO_is_closed_pe
     saved_on_sasl_frame_received(saved_sasl_frame_codec_callback_context, test_sasl_value);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_send(test_underlying_io, encoded_bytes, sizeof(encoded_bytes), IGNORED_PTR_ARG, NULL))
+    STRICT_EXPECTED_CALL(xio_send(test_underlying_io, encoded_bytes, sizeof(encoded_bytes), IGNORED_ARG, NULL))
         .ValidateArgumentBuffer(2, &encoded_bytes, sizeof(encoded_bytes))
         .SetReturn(1);
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
     // act
@@ -4121,7 +4121,7 @@ TEST_FUNCTION(when_the_frame_codec_triggers_an_error_in_the_OPENING_state_the_IO
     saved_on_bytes_received(saved_on_bytes_received_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
     // act
@@ -4200,7 +4200,7 @@ TEST_FUNCTION(when_the_sasl_frame_codec_triggers_an_error_in_the_OPENING_state_t
     saved_on_bytes_received(saved_on_bytes_received_context, test_sasl_mechanisms_frame, sizeof(test_sasl_mechanisms_frame));
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(xio_close(test_underlying_io, IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(test_on_io_open_complete((void*)0x4242, IO_OPEN_ERROR));
 
     // act

@@ -9,7 +9,7 @@
 #include <stdint.h>
 #endif
 
-#include "azure_macro_utils/macro_utils.h"
+#include "macro_utils/macro_utils.h"
 #include "testrunnerswitcher.h"
 #include "umock_c/umock_c.h"
 #include "umock_c/umocktypes_charptr.h"
@@ -165,7 +165,7 @@ TEST_FUNCTION(session_create_with_valid_args_succeeds)
 {
     // arrange
     SESSION_HANDLE session;
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(connection_create_endpoint(TEST_CONNECTION_HANDLE));
 
     // act
@@ -186,9 +186,9 @@ TEST_FUNCTION(session_create_twice_on_the_same_connection_works)
     // arrange
     SESSION_HANDLE session1;
     SESSION_HANDLE session2;
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(connection_create_endpoint(TEST_CONNECTION_HANDLE));
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(connection_create_endpoint(TEST_CONNECTION_HANDLE));
 
     // act
@@ -224,7 +224,7 @@ TEST_FUNCTION(when_allocating_memory_for_the_session_fails_session_create_fails)
 {
     // arrange
     SESSION_HANDLE session;
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG))
         .SetReturn(NULL);
 
     // act
@@ -240,10 +240,10 @@ TEST_FUNCTION(when_connection_create_endpoint_fails_session_create_fails)
 {
     // arrange
     SESSION_HANDLE session;
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(connection_create_endpoint(TEST_CONNECTION_HANDLE))
         .SetReturn(NULL);
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     session = session_create(TEST_CONNECTION_HANDLE, NULL, NULL);
@@ -264,7 +264,7 @@ TEST_FUNCTION(when_session_destroy_is_called_then_the_underlying_endpoint_is_fre
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(connection_destroy_endpoint(TEST_ENDPOINT_HANDLE));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     session_destroy(session);
@@ -296,9 +296,9 @@ TEST_FUNCTION(session_create_link_endpoint_creates_a_link_endpoint)
     SESSION_HANDLE session = session_create(TEST_CONNECTION_HANDLE, NULL, NULL);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG));
 
     // act
     link_endpoint = session_create_link_endpoint(session, "1");
@@ -352,7 +352,7 @@ TEST_FUNCTION(when_allocating_memory_for_the_link_endpoint_fails_then_session_cr
     SESSION_HANDLE session = session_create(TEST_CONNECTION_HANDLE, NULL, NULL);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG))
         .SetReturn(NULL);
 
     // act
@@ -374,10 +374,10 @@ TEST_FUNCTION(when_allocating_the_link_name_fails_then_session_create_link_endpo
     SESSION_HANDLE session = session_create(TEST_CONNECTION_HANDLE, NULL, NULL);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG))
         .SetReturn(NULL);
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     link_endpoint = session_create_link_endpoint(session, "1");
@@ -398,12 +398,12 @@ TEST_FUNCTION(when_reallocating_the_endpoint_array_for_the_link_endpoint_fails_t
     SESSION_HANDLE session = session_create(TEST_CONNECTION_HANDLE, NULL, NULL);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG))
         .SetReturn(NULL);
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     link_endpoint = session_create_link_endpoint(session, "1");
@@ -439,9 +439,9 @@ TEST_FUNCTION(session_destroy_link_endpoint_frees_the_resources)
     LINK_ENDPOINT_HANDLE link_endpoint = session_create_link_endpoint(session, "1");
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     session_destroy_link_endpoint(link_endpoint);
@@ -462,9 +462,9 @@ TEST_FUNCTION(session_destroy_link_endpoint_when_2_endpoints_are_there_frees_the
     LINK_ENDPOINT_HANDLE link_endpoint2 = session_create_link_endpoint(session, "1");
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     session_destroy_link_endpoint(link_endpoint1);
@@ -498,7 +498,7 @@ TEST_FUNCTION(session_transfer_sends_the_frame_to_the_connection)
 
     STRICT_EXPECTED_CALL(definition_mocks, transfer_set_delivery_id(test_transfer_handle, 0));
     STRICT_EXPECTED_CALL(definition_mocks, amqpvalue_create_transfer(test_transfer_handle));
-    STRICT_EXPECTED_CALL(connection_get_remote_max_frame_size(TEST_CONNECTION_HANDLE, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(connection_get_remote_max_frame_size(TEST_CONNECTION_HANDLE, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &some_remote_max_frame_size, sizeof(some_remote_max_frame_size));
     STRICT_EXPECTED_CALL(connection_encode_frame(TEST_ENDPOINT_HANDLE, test_transfer_amqp_value, NULL, 0, test_on_send_complete, (void*)0x4242));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_transfer_amqp_value));
@@ -596,7 +596,7 @@ TEST_FUNCTION(when_amqpvalue_create_transfer_fails_then_session_transfer_fails)
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(definition_mocks, transfer_set_delivery_id(test_transfer_handle, 0));
-    STRICT_EXPECTED_CALL(connection_get_remote_max_frame_size(TEST_CONNECTION_HANDLE, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(connection_get_remote_max_frame_size(TEST_CONNECTION_HANDLE, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &some_remote_max_frame_size, sizeof(some_remote_max_frame_size));
     STRICT_EXPECTED_CALL(definition_mocks, amqpvalue_create_transfer(test_transfer_handle))
         .SetReturn(NULL);
@@ -628,7 +628,7 @@ TEST_FUNCTION(when_connection_encode_frame_fails_then_session_transfer_fails)
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(definition_mocks, transfer_set_delivery_id(test_transfer_handle, 0));
-    STRICT_EXPECTED_CALL(connection_get_remote_max_frame_size(TEST_CONNECTION_HANDLE, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(connection_get_remote_max_frame_size(TEST_CONNECTION_HANDLE, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &some_remote_max_frame_size, sizeof(some_remote_max_frame_size));
     STRICT_EXPECTED_CALL(definition_mocks, amqpvalue_create_transfer(test_transfer_handle));
     STRICT_EXPECTED_CALL(connection_encode_frame(TEST_ENDPOINT_HANDLE, test_transfer_amqp_value, NULL, 0, test_on_send_complete, (void*)0x4242))
@@ -850,14 +850,14 @@ TEST_FUNCTION(when_2_transfers_happen_on_2_different_endpoints_2_different_deliv
 
     STRICT_EXPECTED_CALL(definition_mocks, transfer_set_delivery_id(test_transfer_handle, 0));
     STRICT_EXPECTED_CALL(definition_mocks, amqpvalue_create_transfer(test_transfer_handle));
-    STRICT_EXPECTED_CALL(connection_get_remote_max_frame_size(TEST_CONNECTION_HANDLE, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(connection_get_remote_max_frame_size(TEST_CONNECTION_HANDLE, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &some_remote_max_frame_size, sizeof(some_remote_max_frame_size));
     STRICT_EXPECTED_CALL(connection_encode_frame(TEST_ENDPOINT_HANDLE, test_transfer_amqp_value, NULL, 0, test_on_send_complete, (void*)0x4242));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_transfer_amqp_value));
 
     STRICT_EXPECTED_CALL(definition_mocks, transfer_set_delivery_id(test_transfer_handle, 1));
     STRICT_EXPECTED_CALL(definition_mocks, amqpvalue_create_transfer(test_transfer_handle));
-    STRICT_EXPECTED_CALL(connection_get_remote_max_frame_size(TEST_CONNECTION_HANDLE, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(connection_get_remote_max_frame_size(TEST_CONNECTION_HANDLE, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &some_remote_max_frame_size, sizeof(some_remote_max_frame_size));
     STRICT_EXPECTED_CALL(connection_encode_frame(TEST_ENDPOINT_HANDLE, test_transfer_amqp_value, NULL, 0, test_on_send_complete, (void*)0x4242));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_transfer_amqp_value));
@@ -892,7 +892,7 @@ TEST_FUNCTION(when_if_sending_the_frame_to_the_connection_fails_the_next_outgoin
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(definition_mocks, transfer_set_delivery_id(test_transfer_handle, 0));
-    STRICT_EXPECTED_CALL(connection_get_remote_max_frame_size(TEST_CONNECTION_HANDLE, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(connection_get_remote_max_frame_size(TEST_CONNECTION_HANDLE, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &some_remote_max_frame_size, sizeof(some_remote_max_frame_size));
     STRICT_EXPECTED_CALL(definition_mocks, amqpvalue_create_transfer(test_transfer_handle));
     STRICT_EXPECTED_CALL(connection_encode_frame(TEST_ENDPOINT_HANDLE, test_transfer_amqp_value, NULL, 0, test_on_send_complete, (void*)0x4242))
@@ -900,7 +900,7 @@ TEST_FUNCTION(when_if_sending_the_frame_to_the_connection_fails_the_next_outgoin
     STRICT_EXPECTED_CALL(amqpvalue_destroy(test_transfer_amqp_value));
 
     STRICT_EXPECTED_CALL(definition_mocks, transfer_set_delivery_id(test_transfer_handle, 0));
-    STRICT_EXPECTED_CALL(connection_get_remote_max_frame_size(TEST_CONNECTION_HANDLE, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(connection_get_remote_max_frame_size(TEST_CONNECTION_HANDLE, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &some_remote_max_frame_size, sizeof(some_remote_max_frame_size));
     STRICT_EXPECTED_CALL(definition_mocks, amqpvalue_create_transfer(test_transfer_handle));
     STRICT_EXPECTED_CALL(connection_encode_frame(TEST_ENDPOINT_HANDLE, test_transfer_amqp_value, NULL, 0, test_on_send_complete, (void*)0x4242));

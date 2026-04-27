@@ -9,7 +9,7 @@
 #include <stddef.h>
 #endif
 
-#include "azure_macro_utils/macro_utils.h"
+#include "macro_utils/macro_utils.h"
 #include "testrunnerswitcher.h"
 #include "umock_c/umock_c.h"
 #include "umock_c/umock_c_negative_tests.h"
@@ -154,7 +154,7 @@ TEST_FUNCTION(message_create_succeeds)
     // arrange
     MESSAGE_HANDLE message;
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
 
     // act
     message = message_create();
@@ -174,8 +174,8 @@ TEST_FUNCTION(message_create_2_times_yields_2_different_message_instances)
     MESSAGE_HANDLE message1;
     MESSAGE_HANDLE message2;
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
 
     // act
     message1 = message_create();
@@ -197,7 +197,7 @@ TEST_FUNCTION(when_allocating_memory_for_the_message_fails_then_message_create_f
 {
     // arrange
     MESSAGE_HANDLE message;
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG))
         .SetReturn(NULL);
 
     // act
@@ -252,14 +252,14 @@ TEST_FUNCTION(message_clone_with_a_message_that_has_all_fields_set_and_amqp_data
     (void)message_add_body_amqp_data(source_message, binary_data);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(header_clone(cloned_header));
     STRICT_EXPECTED_CALL(annotations_clone(cloned_delivery_annotations));
     STRICT_EXPECTED_CALL(annotations_clone(cloned_message_annotations));
     STRICT_EXPECTED_CALL(properties_clone(cloned_message_properties));
     STRICT_EXPECTED_CALL(amqpvalue_clone(cloned_application_properties));
     STRICT_EXPECTED_CALL(annotations_clone(cloned_footer));
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(gballoc_malloc(sizeof(data_section)));
 
     // act
@@ -312,7 +312,7 @@ TEST_FUNCTION(message_clone_with_a_message_that_has_all_fields_set_and_amqp_valu
     (void)message_set_body_amqp_value(source_message, test_amqp_value_1);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(header_clone(cloned_header));
     STRICT_EXPECTED_CALL(annotations_clone(cloned_delivery_annotations));
     STRICT_EXPECTED_CALL(annotations_clone(cloned_message_annotations));
@@ -377,14 +377,14 @@ TEST_FUNCTION(message_clone_with_a_message_that_has_all_fields_set_and_amqp_sequ
     (void)message_add_body_amqp_sequence(source_message, test_sequence_1);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(header_clone(cloned_header));
     STRICT_EXPECTED_CALL(annotations_clone(cloned_delivery_annotations));
     STRICT_EXPECTED_CALL(annotations_clone(cloned_message_annotations));
     STRICT_EXPECTED_CALL(properties_clone(cloned_message_properties));
     STRICT_EXPECTED_CALL(amqpvalue_clone(cloned_application_properties));
     STRICT_EXPECTED_CALL(annotations_clone(cloned_footer));
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_clone(cloned_sequence_1));
 
     // act
@@ -438,14 +438,14 @@ TEST_FUNCTION(when_any_clone_operations_fails_message_clone_for_a_message_with_d
     (void)message_add_body_amqp_data(source_message, binary_data);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(header_clone(cloned_header));
     STRICT_EXPECTED_CALL(annotations_clone(cloned_delivery_annotations));
     STRICT_EXPECTED_CALL(annotations_clone(cloned_message_annotations));
     STRICT_EXPECTED_CALL(properties_clone(cloned_message_properties));
     STRICT_EXPECTED_CALL(amqpvalue_clone(cloned_application_properties));
     STRICT_EXPECTED_CALL(annotations_clone(cloned_footer));
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(gballoc_malloc(sizeof(data_section)));
 
     umock_c_negative_tests_snapshot();
@@ -507,7 +507,7 @@ TEST_FUNCTION(when_any_clone_operations_fails_message_clone_for_a_message_with_v
     (void)message_set_body_amqp_value(source_message, test_amqp_value_1);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(header_clone(cloned_header));
     STRICT_EXPECTED_CALL(annotations_clone(cloned_delivery_annotations));
     STRICT_EXPECTED_CALL(annotations_clone(cloned_message_annotations));
@@ -575,14 +575,14 @@ TEST_FUNCTION(when_any_clone_operations_fails_message_clone_for_a_message_with_s
     (void)message_add_body_amqp_sequence(source_message, test_sequence_1);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(header_clone(cloned_header));
     STRICT_EXPECTED_CALL(annotations_clone(cloned_delivery_annotations));
     STRICT_EXPECTED_CALL(annotations_clone(cloned_message_annotations));
     STRICT_EXPECTED_CALL(properties_clone(cloned_message_properties));
     STRICT_EXPECTED_CALL(amqpvalue_clone(cloned_application_properties));
     STRICT_EXPECTED_CALL(annotations_clone(cloned_footer));
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_clone(cloned_sequence_1));
 
     umock_c_negative_tests_snapshot();
@@ -630,7 +630,7 @@ TEST_FUNCTION(when_allocating_memory_fails_then_message_clone_fails)
     MESSAGE_HANDLE source_message = message_create();
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG))
         .SetReturn(NULL);
 
     // act
@@ -652,7 +652,7 @@ TEST_FUNCTION(message_destroy_frees_the_allocated_memory)
     // arrange
     MESSAGE_HANDLE message = message_create();
     umock_c_reset_all_calls();
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     message_destroy(message);
@@ -684,7 +684,7 @@ TEST_FUNCTION(when_a_header_was_set_it_is_destroyed)
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(header_destroy(cloned_header));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     message_destroy(message);
@@ -705,7 +705,7 @@ TEST_FUNCTION(when_delivery_annotations_were_set_they_are_destroyed)
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(amqpvalue_destroy(cloned_delivery_annotations));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     message_destroy(message);
@@ -726,7 +726,7 @@ TEST_FUNCTION(when_message_annotations_were_set_they_are_destroyed)
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(amqpvalue_destroy(cloned_message_annotations));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     message_destroy(message);
@@ -747,7 +747,7 @@ TEST_FUNCTION(when_message_properties_were_set_they_are_destroyed)
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(properties_destroy(cloned_message_properties));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     message_destroy(message);
@@ -768,7 +768,7 @@ TEST_FUNCTION(when_application_properties_were_set_they_are_destroyed)
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(amqpvalue_destroy(cloned_application_properties));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     message_destroy(message);
@@ -789,7 +789,7 @@ TEST_FUNCTION(when_message_footer_was_set_it_is_destroyed)
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(amqpvalue_destroy(cloned_footer));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     message_destroy(message);
@@ -810,7 +810,7 @@ TEST_FUNCTION(when_an_AMQP_value_is_set_as_body_message_destroy_frees_it)
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(amqpvalue_destroy(cloned_amqp_value));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     message_destroy(message);
@@ -832,9 +832,9 @@ TEST_FUNCTION(when_an_AMQP_data_is_set_as_body_message_destroy_frees_it)
     (void)message_add_body_amqp_data(message, binary_data_1);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     message_destroy(message);
@@ -861,10 +861,10 @@ TEST_FUNCTION(when_two_AMQP_data_items_are_set_as_body_message_destroy_frees_the
     (void)message_add_body_amqp_data(message, binary_data_2);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     message_destroy(message);
@@ -886,8 +886,8 @@ TEST_FUNCTION(when_one_AMQP_sequence_is_set_as_body_message_destroy_frees_it)
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(amqpvalue_destroy(cloned_sequence_1));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     message_destroy(message);
@@ -903,10 +903,10 @@ TEST_FUNCTION(when_two_AMQP_sequences_are_set_as_body_message_destroy_frees_them
     // arrange
     MESSAGE_HANDLE message = message_create();
     umock_c_reset_all_calls();
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_clone(test_sequence_1))
         .SetReturn(cloned_sequence_1);
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_clone(test_sequence_2))
         .SetReturn(cloned_sequence_2);
     (void)message_add_body_amqp_sequence(message, test_sequence_1);
@@ -915,8 +915,8 @@ TEST_FUNCTION(when_two_AMQP_sequences_are_set_as_body_message_destroy_frees_them
 
     STRICT_EXPECTED_CALL(amqpvalue_destroy(cloned_sequence_1));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(cloned_sequence_2));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     message_destroy(message);
@@ -955,10 +955,10 @@ TEST_FUNCTION(when_all_message_sections_are_set_and_seuqnces_are_used_then_they_
     (void)message_set_delivery_annotations(message, test_delivery_annotations);
     STRICT_EXPECTED_CALL(header_clone(test_header));
     (void)message_set_header(message, test_header);
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_clone(test_sequence_1))
         .SetReturn(cloned_sequence_1);
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_clone(test_sequence_2))
         .SetReturn(cloned_sequence_2);
     (void)message_add_body_amqp_sequence(message, test_sequence_1);
@@ -973,8 +973,8 @@ TEST_FUNCTION(when_all_message_sections_are_set_and_seuqnces_are_used_then_they_
     STRICT_EXPECTED_CALL(amqpvalue_destroy(cloned_footer));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(cloned_sequence_1));
     STRICT_EXPECTED_CALL(amqpvalue_destroy(cloned_sequence_2));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
     message_destroy(message);
@@ -2643,8 +2643,8 @@ TEST_FUNCTION(message_add_body_amqp_data_adds_one_amqp_data_item)
     amqp_data.bytes = amqp_data_bytes;
     amqp_data.length = sizeof(amqp_data_bytes);
 
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
 
     // act
     result = message_add_body_amqp_data(message, amqp_data);
@@ -2711,7 +2711,7 @@ TEST_FUNCTION(message_add_body_amqp_data_with_NULL_buffer_and_zero_size_succeeds
     amqp_data.bytes = NULL;
     amqp_data.length = 0;
 
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG));
 
     // act
     result = message_add_body_amqp_data(message, amqp_data);
@@ -2737,7 +2737,7 @@ TEST_FUNCTION(message_add_body_amqp_data_with_non_NULL_buffer_and_zero_size_succ
     amqp_data.bytes = amqp_data_bytes;
     amqp_data.length = 0;
 
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG));
 
     // act
     result = message_add_body_amqp_data(message, amqp_data);
@@ -2763,7 +2763,7 @@ TEST_FUNCTION(when_reallocating_memory_for_the_data_array_fails_message_add_body
     amqp_data.bytes = amqp_data_bytes;
     amqp_data.length = 0;
 
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG))
         .SetReturn(NULL);
 
     // act
@@ -2790,8 +2790,8 @@ TEST_FUNCTION(when_allocating_memory_for_the_AMQP_data_item_fails_message_add_bo
     amqp_data.bytes = amqp_data_bytes;
     amqp_data.length = sizeof(amqp_data_bytes);
 
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG))
         .SetReturn(NULL);
 
     // act
@@ -2820,7 +2820,7 @@ TEST_FUNCTION(when_reallocating_memory_for_the_data_array_fails_message_add_body
     amqp_data.bytes = amqp_data_bytes;
     amqp_data.length = sizeof(amqp_data_bytes);
 
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG))
         .SetReturn(NULL);
     (void)message_add_body_amqp_data(message, amqp_data);
     umock_c_reset_all_calls();
@@ -2856,13 +2856,13 @@ TEST_FUNCTION(when_reallocating_memory_for_the_data_array_fails_message_add_body
     amqp_data.bytes = amqp_data_bytes;
     amqp_data.length = sizeof(amqp_data_bytes);
 
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
 
     (void)message_add_body_amqp_data(message, amqp_data);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG))
         .SetReturn(NULL);
 
     message_add_body_amqp_data(message, amqp_data);
@@ -2900,7 +2900,7 @@ TEST_FUNCTION(message_add_body_amqp_data_when_body_is_a_list_of_sequences_fails)
     amqp_data.bytes = amqp_data_bytes;
     amqp_data.length = sizeof(amqp_data_bytes);
 
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG));
 
     (void)message_add_body_amqp_sequence(message, test_sequence_1);
     umock_c_reset_all_calls();
@@ -2971,8 +2971,8 @@ TEST_FUNCTION(message_get_body_amqp_data_yields_the_amqp_data)
     amqp_data.bytes = amqp_data_bytes;
     amqp_data.length = sizeof(amqp_data_bytes);
 
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
 
     (void)message_add_body_amqp_data(message, amqp_data);
     umock_c_reset_all_calls();
@@ -3014,14 +3014,14 @@ TEST_FUNCTION(message_get_body_amqp_data_can_get_both_values_when_2_values_are_i
     amqp_data_2.bytes = amqp_data_bytes_2;
     amqp_data_2.length = sizeof(amqp_data_bytes_2);
 
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
 
     (void)message_add_body_amqp_data(message, amqp_data_1);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
 
     (void)message_add_body_amqp_data(message, amqp_data_2);
     umock_c_reset_all_calls();
@@ -3079,8 +3079,8 @@ TEST_FUNCTION(message_get_body_amqp_data_in_place_when_index_is_out_of_bounds_wi
     amqp_data.bytes = amqp_data_bytes;
     amqp_data.length = sizeof(amqp_data_bytes);
 
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
 
     (void)message_add_body_amqp_data(message, amqp_data);
     umock_c_reset_all_calls();
@@ -3109,8 +3109,8 @@ TEST_FUNCTION(message_get_body_amqp_data_with_NULL_amqp_data_fails)
     amqp_data.bytes = amqp_data_bytes;
     amqp_data.length = sizeof(amqp_data_bytes);
 
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
 
     (void)message_add_body_amqp_data(message, amqp_data);
     umock_c_reset_all_calls();
@@ -3182,8 +3182,8 @@ TEST_FUNCTION(message_get_body_amqp_data_count_with_one_amqp_data_returns_1)
     amqp_data.bytes = amqp_data_bytes;
     amqp_data.length = sizeof(amqp_data_bytes);
 
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
 
     (void)message_add_body_amqp_data(message, amqp_data);
     umock_c_reset_all_calls();
@@ -3220,10 +3220,10 @@ TEST_FUNCTION(message_get_body_amqp_data_count_with_two_amqp_data_returns_2)
     amqp_data_2.bytes = amqp_data_bytes_2;
     amqp_data_2.length = sizeof(amqp_data_bytes_2);
 
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
 
     (void)message_add_body_amqp_data(message, amqp_data_1);
     (void)message_add_body_amqp_data(message, amqp_data_2);
@@ -3275,8 +3275,8 @@ TEST_FUNCTION(message_get_body_amqp_data_count_with_NULL_count_fails)
     amqp_data.bytes = amqp_data_bytes;
     amqp_data.length = sizeof(amqp_data_bytes);
 
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
 
     (void)message_add_body_amqp_data(message, amqp_data);
     umock_c_reset_all_calls();
@@ -3641,7 +3641,7 @@ TEST_FUNCTION(message_add_body_amqp_sequence_adds_the_sequence_to_the_body)
     MESSAGE_HANDLE message = message_create();
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_clone(test_sequence_1));
 
     // act
@@ -3664,7 +3664,7 @@ TEST_FUNCTION(when_allocating_memory_for_the_sequence_list_fails_message_add_bod
     MESSAGE_HANDLE message = message_create();
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG))
         .SetReturn(NULL);
 
     // act
@@ -3687,7 +3687,7 @@ TEST_FUNCTION(when_amqpvalue_clone_fails_message_add_body_amqp_sequence_fails)
     MESSAGE_HANDLE message = message_create();
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_clone(test_sequence_1))
         .SetReturn(NULL);
 
@@ -3751,13 +3751,13 @@ TEST_FUNCTION(when_allocating_memory_for_the_sequence_fails_message_add_body_amq
     MESSAGE_HANDLE message = message_create();
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_clone(test_sequence_1))
         .SetReturn(cloned_sequence_1);
     message_add_body_amqp_sequence(message, test_sequence_1);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG))
         .SetReturn(NULL);
 
     // act
@@ -3782,13 +3782,13 @@ TEST_FUNCTION(when_cloning_the_sequence_fails_message_add_body_amqp_sequence_pre
     MESSAGE_HANDLE message = message_create();
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_clone(test_sequence_1))
         .SetReturn(cloned_sequence_1);
     message_add_body_amqp_sequence(message, test_sequence_1);
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_clone(test_sequence_2))
         .SetReturn(NULL);
 
@@ -3866,7 +3866,7 @@ TEST_FUNCTION(message_get_body_amqp_sequence_in_place_gets_the_first_item)
     MESSAGE_HANDLE message = message_create();
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_clone(test_sequence_1))
         .SetReturn(cloned_sequence_1);
     message_add_body_amqp_sequence(message, test_sequence_1);
@@ -3896,10 +3896,10 @@ TEST_FUNCTION(message_get_body_amqp_sequence_in_place_gets_2_items)
     MESSAGE_HANDLE message = message_create();
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_clone(test_sequence_1))
         .SetReturn(cloned_sequence_1);
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_clone(test_sequence_2))
         .SetReturn(cloned_sequence_2);
     message_add_body_amqp_sequence(message, test_sequence_1);
@@ -3929,7 +3929,7 @@ TEST_FUNCTION(message_get_body_amqp_sequence_in_place_with_NULL_sequence_fails)
     MESSAGE_HANDLE message = message_create();
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_realloc(IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(amqpvalue_clone(test_sequence_1))
         .SetReturn(cloned_sequence_1);
     message_add_body_amqp_sequence(message, test_sequence_1);

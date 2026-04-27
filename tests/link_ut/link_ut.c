@@ -12,7 +12,7 @@
 #include <stdbool.h>
 #endif
 
-#include "azure_macro_utils/macro_utils.h"
+#include "macro_utils/macro_utils.h"
 #include "testrunnerswitcher.h"
 #include "umock_c/umock_c.h"
 #include "umock_c/umock_c_negative_tests.h"
@@ -359,14 +359,14 @@ static LINK_HANDLE create_link(role link_role)
 {
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_clone(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_clone(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_clone(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_clone(IGNORED_ARG));
     STRICT_EXPECTED_CALL(tickcounter_create());
     STRICT_EXPECTED_CALL(singlylinkedlist_create());
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
     STRICT_EXPECTED_CALL(session_create_link_endpoint(TEST_SESSION_HANDLE, TEST_LINK_NAME_1));
-    STRICT_EXPECTED_CALL(session_set_link_endpoint_callback(TEST_LINK_ENDPOINT, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(session_set_link_endpoint_callback(TEST_LINK_ENDPOINT, IGNORED_ARG, IGNORED_ARG));
 
     return link_create(TEST_SESSION_HANDLE, TEST_LINK_NAME_1, link_role, TEST_LINK_SOURCE, TEST_LINK_TARGET);
 }
@@ -384,7 +384,7 @@ static int attach_link(LINK_HANDLE link, role link_role, ON_ENDPOINT_FRAME_RECEI
 
     if (on_session_state_changed != NULL)
     {
-        STRICT_EXPECTED_CALL(session_start_link_endpoint(TEST_LINK_ENDPOINT, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, link))
+        STRICT_EXPECTED_CALL(session_start_link_endpoint(TEST_LINK_ENDPOINT, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, link))
             .CaptureArgumentValue_frame_received_callback(on_frame_received)
             .CaptureArgumentValue_on_session_state_changed(on_session_state_changed);
 
@@ -400,29 +400,29 @@ static int attach_link(LINK_HANDLE link, role link_role, ON_ENDPOINT_FRAME_RECEI
         const unsigned char payload_bytes[30] = { 0 };
         uint64_t max_message_size = 123456;
 
-        STRICT_EXPECTED_CALL(session_start_link_endpoint(TEST_LINK_ENDPOINT, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, link))
+        STRICT_EXPECTED_CALL(session_start_link_endpoint(TEST_LINK_ENDPOINT, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, link))
             .CaptureArgumentValue_frame_received_callback(&local_on_frame_received)
             .CaptureArgumentValue_on_session_state_changed(&local_on_session_state_changed);
 
         result = link_attach(link, test_on_transfer_received, test_on_link_state_changed, test_on_link_flow_on, NULL);
 
         umock_c_reset_all_calls();
-        STRICT_EXPECTED_CALL(attach_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+        STRICT_EXPECTED_CALL(attach_create(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG))
             .SetReturn(attach);
-        STRICT_EXPECTED_CALL(attach_set_snd_settle_mode(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-        STRICT_EXPECTED_CALL(attach_set_rcv_settle_mode(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-        STRICT_EXPECTED_CALL(attach_set_role(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-        STRICT_EXPECTED_CALL(attach_set_source(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-        STRICT_EXPECTED_CALL(attach_set_target(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(attach_set_snd_settle_mode(IGNORED_ARG, IGNORED_ARG));
+        STRICT_EXPECTED_CALL(attach_set_rcv_settle_mode(IGNORED_ARG, IGNORED_ARG));
+        STRICT_EXPECTED_CALL(attach_set_role(IGNORED_ARG, IGNORED_ARG));
+        STRICT_EXPECTED_CALL(attach_set_source(IGNORED_ARG, IGNORED_ARG));
+        STRICT_EXPECTED_CALL(attach_set_target(IGNORED_ARG, IGNORED_ARG));
 
         if (link_role == role_sender)
         {
-            STRICT_EXPECTED_CALL(attach_set_initial_delivery_count(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+            STRICT_EXPECTED_CALL(attach_set_initial_delivery_count(IGNORED_ARG, IGNORED_ARG));
         }
 
-        STRICT_EXPECTED_CALL(attach_set_max_message_size(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-        STRICT_EXPECTED_CALL(session_send_attach(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-        STRICT_EXPECTED_CALL(attach_destroy(IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(attach_set_max_message_size(IGNORED_ARG, IGNORED_ARG));
+        STRICT_EXPECTED_CALL(session_send_attach(IGNORED_ARG, IGNORED_ARG));
+        STRICT_EXPECTED_CALL(attach_destroy(IGNORED_ARG));
 
         local_on_session_state_changed(link, SESSION_STATE_MAPPED, SESSION_STATE_UNMAPPED);
         ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
@@ -431,12 +431,12 @@ static int attach_link(LINK_HANDLE link, role link_role, ON_ENDPOINT_FRAME_RECEI
         // ATTACH response
         STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(performative))
             .SetReturn(descriptor);
-        STRICT_EXPECTED_CALL(is_attach_type_by_descriptor(IGNORED_PTR_ARG))
+        STRICT_EXPECTED_CALL(is_attach_type_by_descriptor(IGNORED_ARG))
             .SetReturn(true);
-        STRICT_EXPECTED_CALL(amqpvalue_get_attach(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-        STRICT_EXPECTED_CALL(attach_get_max_message_size(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        STRICT_EXPECTED_CALL(amqpvalue_get_attach(IGNORED_ARG, IGNORED_ARG));
+        STRICT_EXPECTED_CALL(attach_get_max_message_size(IGNORED_ARG, IGNORED_ARG))
             .CopyOutArgumentBuffer(2, &max_message_size, sizeof(max_message_size));
-        STRICT_EXPECTED_CALL(attach_destroy(IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(attach_destroy(IGNORED_ARG));
 
         local_on_frame_received(link, performative, frame_payload_size, payload_bytes);
 
@@ -450,19 +450,19 @@ static int attach_link(LINK_HANDLE link, role link_role, ON_ENDPOINT_FRAME_RECEI
 
             STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(performative))
                 .SetReturn(descriptor);
-            STRICT_EXPECTED_CALL(is_attach_type_by_descriptor(IGNORED_PTR_ARG))
+            STRICT_EXPECTED_CALL(is_attach_type_by_descriptor(IGNORED_ARG))
                 .SetReturn(false);
-            STRICT_EXPECTED_CALL(is_flow_type_by_descriptor(IGNORED_PTR_ARG))
+            STRICT_EXPECTED_CALL(is_flow_type_by_descriptor(IGNORED_ARG))
                 .SetReturn(true);
-            STRICT_EXPECTED_CALL(amqpvalue_get_flow(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+            STRICT_EXPECTED_CALL(amqpvalue_get_flow(IGNORED_ARG, IGNORED_ARG))
                 .CopyOutArgumentBuffer(2, &flow, sizeof(flow));
-            STRICT_EXPECTED_CALL(flow_get_link_credit(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+            STRICT_EXPECTED_CALL(flow_get_link_credit(IGNORED_ARG, IGNORED_ARG))
                 .CopyOutArgumentBuffer(2, &link_credit, sizeof(link_credit))
                 .SetReturn(0);
-            STRICT_EXPECTED_CALL(flow_get_delivery_count(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+            STRICT_EXPECTED_CALL(flow_get_delivery_count(IGNORED_ARG, IGNORED_ARG))
                 .CopyOutArgumentBuffer(2, &delivery_count, sizeof(delivery_count))
                 .SetReturn(0);
-            STRICT_EXPECTED_CALL(flow_destroy(IGNORED_PTR_ARG));
+            STRICT_EXPECTED_CALL(flow_destroy(IGNORED_ARG));
 
             local_on_frame_received(link, performative, frame_payload_size, payload_bytes);
         }
@@ -581,14 +581,14 @@ TEST_FUNCTION(link_create_succeeds)
 
     umock_c_reset_all_calls();
 
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_clone(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_clone(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_clone(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_clone(IGNORED_ARG));
     STRICT_EXPECTED_CALL(tickcounter_create());
     STRICT_EXPECTED_CALL(singlylinkedlist_create());
-    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_ARG));
     STRICT_EXPECTED_CALL(session_create_link_endpoint(TEST_SESSION_HANDLE, TEST_LINK_NAME_1));
-    STRICT_EXPECTED_CALL(session_set_link_endpoint_callback(TEST_LINK_ENDPOINT, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(session_set_link_endpoint_callback(TEST_LINK_ENDPOINT, IGNORED_ARG, IGNORED_ARG));
 
     // act
     LINK_HANDLE link = link_create(TEST_SESSION_HANDLE, TEST_LINK_NAME_1, role_receiver, link_source, link_target);
@@ -610,7 +610,7 @@ TEST_FUNCTION(link_attach_succeeds)
     umock_c_reset_all_calls();
 
     STRICT_EXPECTED_CALL(session_begin(TEST_SESSION_HANDLE));
-    STRICT_EXPECTED_CALL(session_start_link_endpoint(TEST_LINK_ENDPOINT, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, link))
+    STRICT_EXPECTED_CALL(session_start_link_endpoint(TEST_LINK_ENDPOINT, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, link))
         .CaptureArgumentValue_frame_received_callback(&on_frame_received);
 
     // act
@@ -643,13 +643,13 @@ TEST_FUNCTION(link_receiver_frame_received_succeeds)
     umock_c_reset_all_calls();
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(performative))
         .SetReturn(descriptor);
-    STRICT_EXPECTED_CALL(is_attach_type_by_descriptor(IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(is_attach_type_by_descriptor(IGNORED_ARG))
         .SetReturn(false);
-    STRICT_EXPECTED_CALL(is_flow_type_by_descriptor(IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(is_flow_type_by_descriptor(IGNORED_ARG))
         .SetReturn(1);
-    STRICT_EXPECTED_CALL(amqpvalue_get_flow(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_flow(IGNORED_ARG, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &flow, sizeof(flow));
-    STRICT_EXPECTED_CALL(flow_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(flow_destroy(IGNORED_ARG));
 
     // act
     on_frame_received(link, performative, frame_payload_size, payload_bytes);
@@ -681,17 +681,17 @@ TEST_FUNCTION(link_sender_frame_received_succeeds)
     umock_c_reset_all_calls();
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(performative))
         .SetReturn(descriptor);
-    STRICT_EXPECTED_CALL(is_attach_type_by_descriptor(IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(is_attach_type_by_descriptor(IGNORED_ARG))
         .SetReturn(false);
-    STRICT_EXPECTED_CALL(is_flow_type_by_descriptor(IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(is_flow_type_by_descriptor(IGNORED_ARG))
         .SetReturn(1);
-    STRICT_EXPECTED_CALL(amqpvalue_get_flow(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_flow(IGNORED_ARG, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &flow, sizeof(flow));
-    STRICT_EXPECTED_CALL(flow_get_link_credit(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(flow_get_link_credit(IGNORED_ARG, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &link_credit_value, sizeof(link_credit_value));
-    STRICT_EXPECTED_CALL(flow_get_delivery_count(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(flow_get_delivery_count(IGNORED_ARG, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &delivery_count_value, sizeof(delivery_count_value));
-    STRICT_EXPECTED_CALL(flow_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(flow_destroy(IGNORED_ARG));
 
     // act
     on_frame_received(link, performative, frame_payload_size, payload_bytes);
@@ -721,11 +721,11 @@ TEST_FUNCTION(link_receiver_frame_received_get_flow_fails_no_double_free_fails)
     umock_c_reset_all_calls();
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(performative))
         .SetReturn(descriptor);
-    STRICT_EXPECTED_CALL(is_attach_type_by_descriptor(IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(is_attach_type_by_descriptor(IGNORED_ARG))
         .SetReturn(false);
-    STRICT_EXPECTED_CALL(is_flow_type_by_descriptor(IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(is_flow_type_by_descriptor(IGNORED_ARG))
         .SetReturn(1);
-    STRICT_EXPECTED_CALL(amqpvalue_get_flow(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_flow(IGNORED_ARG, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &flow, sizeof(flow))
         .SetReturn(1);
 
@@ -762,17 +762,17 @@ TEST_FUNCTION(link_receiver_default_max_credit_succeeds)
     DISPOSITION_HANDLE disposition = (DISPOSITION_HANDLE)0x5005;
 
     umock_c_reset_all_calls();
-    STRICT_EXPECTED_CALL(attach_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(attach_create(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG))
         .SetReturn(attach);
-    STRICT_EXPECTED_CALL(attach_set_snd_settle_mode(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(attach_set_rcv_settle_mode(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(attach_set_role(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(attach_set_source(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(attach_set_target(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(attach_set_snd_settle_mode(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(attach_set_rcv_settle_mode(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(attach_set_role(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(attach_set_source(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(attach_set_target(IGNORED_ARG, IGNORED_ARG));
 
-    STRICT_EXPECTED_CALL(attach_set_max_message_size(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(session_send_attach(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(attach_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(attach_set_max_message_size(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(session_send_attach(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(attach_destroy(IGNORED_ARG));
 
     on_session_state_changed(link, SESSION_STATE_MAPPED, SESSION_STATE_UNMAPPED);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
@@ -780,13 +780,13 @@ TEST_FUNCTION(link_receiver_default_max_credit_succeeds)
     umock_c_reset_all_calls();
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(performative))
         .SetReturn(descriptor);
-    STRICT_EXPECTED_CALL(is_attach_type_by_descriptor(IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(is_attach_type_by_descriptor(IGNORED_ARG))
         .SetReturn(false);
-    STRICT_EXPECTED_CALL(is_flow_type_by_descriptor(IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(is_flow_type_by_descriptor(IGNORED_ARG))
         .SetReturn(1);
-    STRICT_EXPECTED_CALL(amqpvalue_get_flow(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_flow(IGNORED_ARG, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &flow, sizeof(flow));
-    STRICT_EXPECTED_CALL(flow_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(flow_destroy(IGNORED_ARG));
     on_frame_received(link, performative, frame_payload_size, payload_bytes);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
@@ -794,35 +794,35 @@ TEST_FUNCTION(link_receiver_default_max_credit_succeeds)
     // First transfer results in FLOW to set link credit.
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(performative))
         .SetReturn(descriptor);
-    STRICT_EXPECTED_CALL(is_attach_type_by_descriptor(IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(is_attach_type_by_descriptor(IGNORED_ARG))
         .SetReturn(false);
-    STRICT_EXPECTED_CALL(is_flow_type_by_descriptor(IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(is_flow_type_by_descriptor(IGNORED_ARG))
         .SetReturn(false);
-    STRICT_EXPECTED_CALL(is_transfer_type_by_descriptor(IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(is_transfer_type_by_descriptor(IGNORED_ARG))
         .SetReturn(true);
-    STRICT_EXPECTED_CALL(amqpvalue_get_transfer(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_transfer(IGNORED_ARG, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &transfer, sizeof(transfer));
     // send_flow
-    STRICT_EXPECTED_CALL(flow_create(IGNORED_NUM_ARG, IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(flow_create(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG))
         .SetReturn(flow);
-    STRICT_EXPECTED_CALL(flow_set_link_credit(IGNORED_PTR_ARG, DEFAULT_LINK_CREDIT));
-    STRICT_EXPECTED_CALL(flow_set_handle(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(flow_set_delivery_count(IGNORED_PTR_ARG, 0));
-    STRICT_EXPECTED_CALL(session_send_flow(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(flow_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(flow_set_link_credit(IGNORED_ARG, DEFAULT_LINK_CREDIT));
+    STRICT_EXPECTED_CALL(flow_set_handle(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(flow_set_delivery_count(IGNORED_ARG, 0));
+    STRICT_EXPECTED_CALL(session_send_flow(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(flow_destroy(IGNORED_ARG));
     // continue processing TRANSFER
-    STRICT_EXPECTED_CALL(transfer_get_more(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(transfer_get_more(IGNORED_ARG, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &more, sizeof(bool));
-    STRICT_EXPECTED_CALL(transfer_get_delivery_id(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(disposition_create(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(transfer_get_delivery_id(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(disposition_create(IGNORED_ARG, IGNORED_ARG))
         .SetReturn(disposition);
-    STRICT_EXPECTED_CALL(disposition_set_last(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(disposition_set_settled(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(disposition_set_state(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(session_send_disposition(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(disposition_destroy(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(transfer_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(disposition_set_last(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(disposition_set_settled(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(disposition_set_state(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(session_send_disposition(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(disposition_destroy(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(transfer_destroy(IGNORED_ARG));
 
     // act
     on_frame_received(link, performative, frame_payload_size, payload_bytes);
@@ -856,17 +856,17 @@ TEST_FUNCTION(link_receiver_link_credit_replenish_succeeds)
     DISPOSITION_HANDLE disposition = (DISPOSITION_HANDLE)0x5005;
 
     umock_c_reset_all_calls();
-    STRICT_EXPECTED_CALL(attach_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(attach_create(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG))
         .SetReturn(attach);
-    STRICT_EXPECTED_CALL(attach_set_snd_settle_mode(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(attach_set_rcv_settle_mode(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(attach_set_role(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(attach_set_source(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(attach_set_target(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(attach_set_snd_settle_mode(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(attach_set_rcv_settle_mode(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(attach_set_role(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(attach_set_source(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(attach_set_target(IGNORED_ARG, IGNORED_ARG));
 
-    STRICT_EXPECTED_CALL(attach_set_max_message_size(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(session_send_attach(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(attach_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(attach_set_max_message_size(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(session_send_attach(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(attach_destroy(IGNORED_ARG));
 
     on_session_state_changed(link, SESSION_STATE_MAPPED, SESSION_STATE_UNMAPPED);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
@@ -874,13 +874,13 @@ TEST_FUNCTION(link_receiver_link_credit_replenish_succeeds)
     umock_c_reset_all_calls();
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(performative))
         .SetReturn(descriptor);
-    STRICT_EXPECTED_CALL(is_attach_type_by_descriptor(IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(is_attach_type_by_descriptor(IGNORED_ARG))
         .SetReturn(false);
-    STRICT_EXPECTED_CALL(is_flow_type_by_descriptor(IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(is_flow_type_by_descriptor(IGNORED_ARG))
         .SetReturn(1);
-    STRICT_EXPECTED_CALL(amqpvalue_get_flow(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_flow(IGNORED_ARG, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &flow, sizeof(flow));
-    STRICT_EXPECTED_CALL(flow_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(flow_destroy(IGNORED_ARG));
     on_frame_received(link, performative, frame_payload_size, payload_bytes);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
@@ -888,35 +888,35 @@ TEST_FUNCTION(link_receiver_link_credit_replenish_succeeds)
     // First transfer results in FLOW to set link credit.
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(performative))
         .SetReturn(descriptor);
-    STRICT_EXPECTED_CALL(is_attach_type_by_descriptor(IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(is_attach_type_by_descriptor(IGNORED_ARG))
         .SetReturn(false);
-    STRICT_EXPECTED_CALL(is_flow_type_by_descriptor(IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(is_flow_type_by_descriptor(IGNORED_ARG))
         .SetReturn(false);
-    STRICT_EXPECTED_CALL(is_transfer_type_by_descriptor(IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(is_transfer_type_by_descriptor(IGNORED_ARG))
         .SetReturn(true);
-    STRICT_EXPECTED_CALL(amqpvalue_get_transfer(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_transfer(IGNORED_ARG, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &transfer, sizeof(transfer));
     // send_flow
-    STRICT_EXPECTED_CALL(flow_create(IGNORED_NUM_ARG, IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(flow_create(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG))
         .SetReturn(flow);
-    STRICT_EXPECTED_CALL(flow_set_link_credit(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(flow_set_handle(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(flow_set_delivery_count(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(session_send_flow(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(flow_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(flow_set_link_credit(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(flow_set_handle(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(flow_set_delivery_count(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(session_send_flow(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(flow_destroy(IGNORED_ARG));
     // continue processing TRANSFER
-    STRICT_EXPECTED_CALL(transfer_get_more(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(transfer_get_more(IGNORED_ARG, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &more, sizeof(bool));
-    STRICT_EXPECTED_CALL(transfer_get_delivery_id(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(disposition_create(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(transfer_get_delivery_id(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(disposition_create(IGNORED_ARG, IGNORED_ARG))
         .SetReturn(disposition);
-    STRICT_EXPECTED_CALL(disposition_set_last(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(disposition_set_settled(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(disposition_set_state(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(session_send_disposition(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(disposition_destroy(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(transfer_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(disposition_set_last(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(disposition_set_settled(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(disposition_set_state(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(session_send_disposition(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(disposition_destroy(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(transfer_destroy(IGNORED_ARG));
     on_frame_received(link, performative, frame_payload_size, payload_bytes);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
@@ -928,61 +928,61 @@ TEST_FUNCTION(link_receiver_link_credit_replenish_succeeds)
     {
         STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(performative))
             .SetReturn(descriptor);
-        STRICT_EXPECTED_CALL(is_attach_type_by_descriptor(IGNORED_PTR_ARG))
+        STRICT_EXPECTED_CALL(is_attach_type_by_descriptor(IGNORED_ARG))
             .SetReturn(false);
-        STRICT_EXPECTED_CALL(is_flow_type_by_descriptor(IGNORED_PTR_ARG))
+        STRICT_EXPECTED_CALL(is_flow_type_by_descriptor(IGNORED_ARG))
             .SetReturn(false);
-        STRICT_EXPECTED_CALL(is_transfer_type_by_descriptor(IGNORED_PTR_ARG))
+        STRICT_EXPECTED_CALL(is_transfer_type_by_descriptor(IGNORED_ARG))
             .SetReturn(true);
-        STRICT_EXPECTED_CALL(amqpvalue_get_transfer(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        STRICT_EXPECTED_CALL(amqpvalue_get_transfer(IGNORED_ARG, IGNORED_ARG))
             .CopyOutArgumentBuffer(2, &transfer, sizeof(transfer));
-        STRICT_EXPECTED_CALL(transfer_get_more(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        STRICT_EXPECTED_CALL(transfer_get_more(IGNORED_ARG, IGNORED_ARG))
             .CopyOutArgumentBuffer(2, &more, sizeof(bool));
-        STRICT_EXPECTED_CALL(transfer_get_delivery_id(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-        STRICT_EXPECTED_CALL(disposition_create(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+        STRICT_EXPECTED_CALL(transfer_get_delivery_id(IGNORED_ARG, IGNORED_ARG));
+        STRICT_EXPECTED_CALL(disposition_create(IGNORED_ARG, IGNORED_ARG))
             .SetReturn(disposition);
-        STRICT_EXPECTED_CALL(disposition_set_last(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-        STRICT_EXPECTED_CALL(disposition_set_settled(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-        STRICT_EXPECTED_CALL(disposition_set_state(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-        STRICT_EXPECTED_CALL(session_send_disposition(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-        STRICT_EXPECTED_CALL(disposition_destroy(IGNORED_PTR_ARG));
-        STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_PTR_ARG));
-        STRICT_EXPECTED_CALL(transfer_destroy(IGNORED_PTR_ARG));
+        STRICT_EXPECTED_CALL(disposition_set_last(IGNORED_ARG, IGNORED_ARG));
+        STRICT_EXPECTED_CALL(disposition_set_settled(IGNORED_ARG, IGNORED_ARG));
+        STRICT_EXPECTED_CALL(disposition_set_state(IGNORED_ARG, IGNORED_ARG));
+        STRICT_EXPECTED_CALL(session_send_disposition(IGNORED_ARG, IGNORED_ARG));
+        STRICT_EXPECTED_CALL(disposition_destroy(IGNORED_ARG));
+        STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_ARG));
+        STRICT_EXPECTED_CALL(transfer_destroy(IGNORED_ARG));
         on_frame_received(link, performative, frame_payload_size, payload_bytes);
     }
 
     // And 4th does result in FLOW.
     STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(performative))
         .SetReturn(descriptor);
-    STRICT_EXPECTED_CALL(is_attach_type_by_descriptor(IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(is_attach_type_by_descriptor(IGNORED_ARG))
         .SetReturn(false);
-    STRICT_EXPECTED_CALL(is_flow_type_by_descriptor(IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(is_flow_type_by_descriptor(IGNORED_ARG))
         .SetReturn(false);
-    STRICT_EXPECTED_CALL(is_transfer_type_by_descriptor(IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(is_transfer_type_by_descriptor(IGNORED_ARG))
         .SetReturn(true);
-    STRICT_EXPECTED_CALL(amqpvalue_get_transfer(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(amqpvalue_get_transfer(IGNORED_ARG, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &transfer, sizeof(transfer));
     // send_flow
-    STRICT_EXPECTED_CALL(flow_create(IGNORED_NUM_ARG, IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(flow_create(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG))
         .SetReturn(flow);
-    STRICT_EXPECTED_CALL(flow_set_link_credit(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(flow_set_handle(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(flow_set_delivery_count(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(session_send_flow(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(flow_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(flow_set_link_credit(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(flow_set_handle(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(flow_set_delivery_count(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(session_send_flow(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(flow_destroy(IGNORED_ARG));
     // continue processing TRANSFER
-    STRICT_EXPECTED_CALL(transfer_get_more(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(transfer_get_more(IGNORED_ARG, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &more, sizeof(bool));
-    STRICT_EXPECTED_CALL(transfer_get_delivery_id(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(disposition_create(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(transfer_get_delivery_id(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(disposition_create(IGNORED_ARG, IGNORED_ARG))
         .SetReturn(disposition);
-    STRICT_EXPECTED_CALL(disposition_set_last(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(disposition_set_settled(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(disposition_set_state(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(session_send_disposition(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(disposition_destroy(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(transfer_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(disposition_set_last(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(disposition_set_settled(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(disposition_set_state(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(session_send_disposition(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(disposition_destroy(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(transfer_destroy(IGNORED_ARG));
     on_frame_received(link, performative, frame_payload_size, payload_bytes);
 
     // assert
@@ -1015,20 +1015,20 @@ TEST_FUNCTION(link_transfer_async_success)
     ASSERT_ARE_EQUAL(int, 0, attach_result);
 
     umock_c_reset_all_calls();
-    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_ARG, IGNORED_ARG))
         .SetReturn((ASYNC_OPERATION_HANDLE)async_op_result);
-    STRICT_EXPECTED_CALL(transfer_create(IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(transfer_set_delivery_tag(IGNORED_PTR_ARG, moot_delivery_tag))
+    STRICT_EXPECTED_CALL(transfer_create(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(transfer_set_delivery_tag(IGNORED_ARG, moot_delivery_tag))
         .IgnoreArgument_delivery_tag_value(); // Important for making umock-c work with custom value arguments.
-    STRICT_EXPECTED_CALL(transfer_set_message_format(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(transfer_set_settled(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_create_transfer(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(tickcounter_get_current_ms(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_add(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(session_send_transfer(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(transfer_set_message_format(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(transfer_set_settled(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_create_transfer(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(tickcounter_get_current_ms(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_add(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(session_send_transfer(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG))
         .SetReturn(SESSION_SEND_TRANSFER_OK);
-    STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(transfer_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(transfer_destroy(IGNORED_ARG));
 
     // act
     ASYNC_OPERATION_HANDLE async_result = link_transfer_async(link, AMQP_BATCHING_FORMAT_CODE, &payload, message_count, on_delivery_settled, NULL, &link_transfer_error, send_timeout);
@@ -1064,22 +1064,22 @@ TEST_FUNCTION(link_transfer_async_SESSION_SEND_TRANSFER_ERROR_fails)
     ASSERT_ARE_EQUAL(int, 0, attach_result);
 
     umock_c_reset_all_calls();
-    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_ARG, IGNORED_ARG))
         .SetReturn((ASYNC_OPERATION_HANDLE)async_op_result);
-    STRICT_EXPECTED_CALL(transfer_create(IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(transfer_set_delivery_tag(IGNORED_PTR_ARG, moot_delivery_tag))
+    STRICT_EXPECTED_CALL(transfer_create(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(transfer_set_delivery_tag(IGNORED_ARG, moot_delivery_tag))
         .IgnoreArgument_delivery_tag_value(); // Important for making umock-c work with custom value arguments.
-    STRICT_EXPECTED_CALL(transfer_set_message_format(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(transfer_set_settled(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_create_transfer(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(tickcounter_get_current_ms(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_add(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(session_send_transfer(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(transfer_set_message_format(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(transfer_set_settled(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_create_transfer(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(tickcounter_get_current_ms(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_add(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(session_send_transfer(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG))
         .SetReturn(SESSION_SEND_TRANSFER_ERROR);
-    STRICT_EXPECTED_CALL(singlylinkedlist_remove(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(async_operation_destroy(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(transfer_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(async_operation_destroy(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(transfer_destroy(IGNORED_ARG));
 
     // act
     ASYNC_OPERATION_HANDLE async_result = link_transfer_async(link, AMQP_BATCHING_FORMAT_CODE, &payload, message_count, on_delivery_settled, NULL, &link_transfer_error, send_timeout);
@@ -1115,22 +1115,22 @@ TEST_FUNCTION(link_transfer_async_SESSION_SEND_TRANSFER_BUSY_fails)
     ASSERT_ARE_EQUAL(int, 0, attach_result);
 
     umock_c_reset_all_calls();
-    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_ARG, IGNORED_ARG))
         .SetReturn((ASYNC_OPERATION_HANDLE)async_op_result);
-    STRICT_EXPECTED_CALL(transfer_create(IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(transfer_set_delivery_tag(IGNORED_PTR_ARG, moot_delivery_tag))
+    STRICT_EXPECTED_CALL(transfer_create(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(transfer_set_delivery_tag(IGNORED_ARG, moot_delivery_tag))
         .IgnoreArgument_delivery_tag_value(); // Important for making umock-c work with custom value arguments.
-    STRICT_EXPECTED_CALL(transfer_set_message_format(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(transfer_set_settled(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_create_transfer(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(tickcounter_get_current_ms(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_add(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(session_send_transfer(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(transfer_set_message_format(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(transfer_set_settled(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_create_transfer(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(tickcounter_get_current_ms(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_add(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(session_send_transfer(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG))
         .SetReturn(SESSION_SEND_TRANSFER_BUSY);
-    STRICT_EXPECTED_CALL(singlylinkedlist_remove(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(async_operation_destroy(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(transfer_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(async_operation_destroy(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(transfer_destroy(IGNORED_ARG));
 
     // act
     ASYNC_OPERATION_HANDLE async_result = link_transfer_async(link, AMQP_BATCHING_FORMAT_CODE, &payload, message_count, on_delivery_settled, NULL, &link_transfer_error, send_timeout);
@@ -1169,23 +1169,23 @@ TEST_FUNCTION(link_transfer_async_SESSION_SEND_TRANSFER_ERROR_result_already_des
     ASSERT_ARE_EQUAL(int, 0, attach_result);
 
     umock_c_reset_all_calls();
-    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_ARG, IGNORED_ARG))
         .SetReturn((ASYNC_OPERATION_HANDLE)async_op_result);
-    STRICT_EXPECTED_CALL(transfer_create(IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(transfer_set_delivery_tag(IGNORED_PTR_ARG, moot_delivery_tag))
+    STRICT_EXPECTED_CALL(transfer_create(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(transfer_set_delivery_tag(IGNORED_ARG, moot_delivery_tag))
         .IgnoreArgument_delivery_tag_value(); // Important for making umock-c work with custom value arguments.
-    STRICT_EXPECTED_CALL(transfer_set_message_format(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(transfer_set_settled(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_create_transfer(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(tickcounter_get_current_ms(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_add(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(session_send_transfer(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(transfer_set_message_format(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(transfer_set_settled(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_create_transfer(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(tickcounter_get_current_ms(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_add(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(session_send_transfer(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG))
         .SetReturn(SESSION_SEND_TRANSFER_ERROR);
-    STRICT_EXPECTED_CALL(singlylinkedlist_remove(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(IGNORED_ARG, IGNORED_ARG))
         .SetReturn(1); // result has already been removed from link->pending_deliveries.
     // Do not expect async_operation_destroy!
-    STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(transfer_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(transfer_destroy(IGNORED_ARG));
 
     // act
     ASYNC_OPERATION_HANDLE async_result = link_transfer_async(link, AMQP_BATCHING_FORMAT_CODE, &payload, message_count, on_delivery_settled, NULL, &link_transfer_error, send_timeout);
@@ -1224,23 +1224,23 @@ TEST_FUNCTION(link_transfer_async_SESSION_SEND_TRANSFER_BUSY_result_already_dest
     ASSERT_ARE_EQUAL(int, 0, attach_result);
 
     umock_c_reset_all_calls();
-    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG))
+    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_ARG, IGNORED_ARG))
         .SetReturn((ASYNC_OPERATION_HANDLE)async_op_result);
-    STRICT_EXPECTED_CALL(transfer_create(IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(transfer_set_delivery_tag(IGNORED_PTR_ARG, moot_delivery_tag))
+    STRICT_EXPECTED_CALL(transfer_create(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(transfer_set_delivery_tag(IGNORED_ARG, moot_delivery_tag))
         .IgnoreArgument_delivery_tag_value(); // Important for making umock-c work with custom value arguments.
-    STRICT_EXPECTED_CALL(transfer_set_message_format(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(transfer_set_settled(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
-    STRICT_EXPECTED_CALL(amqpvalue_create_transfer(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(tickcounter_get_current_ms(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(singlylinkedlist_add(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(session_send_transfer(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(transfer_set_message_format(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(transfer_set_settled(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_create_transfer(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(tickcounter_get_current_ms(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_add(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(session_send_transfer(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG))
         .SetReturn(SESSION_SEND_TRANSFER_BUSY);
-    STRICT_EXPECTED_CALL(singlylinkedlist_remove(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(IGNORED_ARG, IGNORED_ARG))
         .SetReturn(1); // result has already been removed from link->pending_deliveries.
     // Do not expect async_operation_destroy!
-    STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_PTR_ARG));
-    STRICT_EXPECTED_CALL(transfer_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(transfer_destroy(IGNORED_ARG));
 
     // act
     ASYNC_OPERATION_HANDLE async_result = link_transfer_async(link, AMQP_BATCHING_FORMAT_CODE, &payload, message_count, on_delivery_settled, NULL, &link_transfer_error, send_timeout);

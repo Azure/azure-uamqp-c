@@ -1,5 +1,435 @@
 name: $(BuildID)_$(BuildDefinitionName)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
 
+# This pipeline was migrated off the internal csdkcontainerregistry container
+# images and the self-hosted 'sdk-c--*' agent pools (which are no longer
+# available) onto Microsoft-hosted vmImage agents, mirroring the structural
+# fixes applied to azure-c-shared-utility/build/.vsts-ci.yml and
+# azure-iot-sdk-c/build/.vsts-ci.yml.
+#
+# E2E tests are executed against a freshly-provisioned IoT Hub / DPS resource
+# group created at the start of the run by the 'create_azure_resources' job.
+# That job uses the Azure.Iot.Sdk.Test.psm1 PowerShell module from
+# https://github.com/Azure/iot-sdks-e2e-fx/blob/master/scripts/Azure.Iot.Sdk.Test.psm1
+# to generate per-run test config scripts (set_e2e_test_env_vars.sh and
+# Set-E2ETestEnvVars.ps1), which are published as the 'test_config_scripts'
+# pipeline artifact. Test jobs download the artifact and source/dot-source the
+# appropriate script before invoking ctest, which gives uamqp's iothub_e2e
+# test (the only E2E test in this repo) a valid IOTHUB_CONNECTION_STRING.
+#
+# A final 'destroy_azure_resource_group' job in the Cleanup stage tears down
+# the resource group regardless of pipeline outcome.
+
+resources:
+  - repo: self
+    clean: true
+
+variables:
+  AZURE_LOCATION: centraluseuap
+
+stages:
+- stage: Setup
+  jobs:
+  - job: create_azure_resources
+    pool:
+      vmImage: 'windows-latest'
+    steps:
+    - checkout: none
+    - task: AzureCLI@2
+      inputs:
+        azureSubscription: 'iot hub sdk service connection'
+        # Use PowerShell 7 (pwsh) so RSA.ExportRSAPrivateKeyPem() is available.
+        # Windows PowerShell 5.1 (scriptType: 'ps') lacks this API, which forces
+        # the test config to fall back to PKCS#8 ("BEGIN PRIVATE KEY"). Schannel's
+        # CryptDecodeObjectEx(PKCS_RSA_PRIVATE_KEY) can only decode PKCS#1 DER
+        # ("BEGIN RSA PRIVATE KEY"), which matters for SDKs that exercise x509
+        # auth via Schannel.
+        scriptType: 'pscore'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          $ErrorActionPreference = 'Stop'
+          $PSVersionTable
+
+          New-Item -ItemType Directory -Force -Path test_config | Out-Null
+
+          # Always pull Azure.Iot.Sdk.Test.psm1 from iot-sdks-e2e-fx@master.
+          # The copy embedded in azure-iot-sdk-c@ewertons/pipelinefixes is stale.
+          $PsmUrl = 'https://raw.githubusercontent.com/Azure/iot-sdks-e2e-fx/master/scripts/Azure.Iot.Sdk.Test.psm1'
+          $PsmPath = Join-Path $PWD 'Azure.Iot.Sdk.Test.psm1'
+          Invoke-WebRequest -Uri $PsmUrl -OutFile $PsmPath -UseBasicParsing
+          Import-Module $PsmPath
+
+          $ResourceGroupName = New-AzureResourceGroupName -OutFile 'test_config/azure-resource-group-name.txt'
+          $TestEnvInfo = New-AzIotTestEnvironment `
+              -AzureLocation $env:AZURE_LOCATION `
+              -ResourceGroup $ResourceGroupName `
+              -EnableFileUpload `
+              -IotHubX509ThumbprintDevices 1 `
+              -DpsX509IndividualEnrollments 1
+
+          New-AzIotCSDKE2ETestConfig -TestEnvInfo $TestEnvInfo -Target bash       -OutFile 'test_config/set_e2e_test_env_vars.sh'   | Out-Null
+          New-AzIotCSDKE2ETestConfig -TestEnvInfo $TestEnvInfo -Target powershell -OutFile 'test_config/Set-E2ETestEnvVars.ps1'    | Out-Null
+      displayName: 'Create Azure Resources and Test Config'
+    - publish: test_config
+      artifact: test_config_scripts
+      displayName: 'Publish artifact (test config scripts)'
+      condition: always()
+
+- stage: Tests
+  dependsOn: Setup
+  jobs:
+  - job: checksubmodule
+    variables:
+      CodeQL.Enabled: false
+    pool:
+      vmImage: 'ubuntu-24.04'
+    displayName: 'Check Submodules'
+    steps:
+    - checkout: self
+      submodules: recursive
+    - script: |
+        sudo apt-get update && sudo apt-get install -y \
+        curl \
+        git \
+        build-essential \
+        pkg-config
+        sudo curl -sL https://deb.nodesource.com/setup_16.x | bash -
+        sudo apt-get install -y nodejs
+      displayName: 'Setup'
+    - script: |
+        npm install check_submodules
+        node_modules/.bin/check_submodules . master
+      displayName: 'Check Submodules Match'
+
+  - job: windowsx86
+    timeoutInMinutes: 90
+    pool:
+      vmImage: 'windows-2022'
+    displayName: 'Windows x86'
+    # Disabled pending PR to add x86 stub for c-logging get_thread_stack.
+    # See: https://github.com/ewertons/c-logging/tree/ewertons/x86-get-thread-stack-stub
+    condition: false
+    steps:
+    - checkout: self
+      submodules: true
+    - download: current
+      artifact: test_config_scripts
+      displayName: 'Download artifact (test config scripts)'
+    - powershell: |
+        . "$(Pipeline.Workspace)\test_config_scripts\Set-E2ETestEnvVars.ps1"
+        cmd /c "call jenkins\windows_c.cmd"
+      displayName: 'Build and Test'
+    - task: ComponentGovernanceComponentDetection@0
+      displayName: 'Component Detection'
+
+  - job: windowsx64
+    timeoutInMinutes: 90
+    variables:
+      CodeQL.Enabled: $[eq(variables['Build.SourceBranch'], 'refs/heads/master')]
+      CodeQL.Language: cpp
+    pool:
+      vmImage: 'windows-2022'
+    displayName: 'Windows x64'
+    steps:
+    - checkout: self
+      submodules: true
+    - download: current
+      artifact: test_config_scripts
+      displayName: 'Download artifact (test config scripts)'
+    - task: CodeQL3000Init@0
+    - powershell: |
+        . "$(Pipeline.Workspace)\test_config_scripts\Set-E2ETestEnvVars.ps1"
+        cmd /c "call jenkins\windows_c_VsDevCmd.cmd x64 && call jenkins\windows_c.cmd --platform x64"
+      displayName: 'Build and Test'
+    - task: CodeQL3000Finalize@0
+      condition: always()
+    - task: ComponentGovernanceComponentDetection@0
+      displayName: 'Component Detection'
+
+  - job: windowsdynamic
+    timeoutInMinutes: 90
+    pool:
+      vmImage: 'windows-2022'
+    displayName: 'Windows Dynamic'
+    steps:
+    - checkout: self
+      submodules: true
+    - script: |
+        call jenkins\windows_c_VsDevCmd.cmd && call jenkins\windows_c_build_as_dynamic.cmd
+      displayName: 'Build'
+    - task: ComponentGovernanceComponentDetection@0
+      displayName: 'Component Detection'
+
+  - job: clang
+    timeoutInMinutes: 90
+    pool:
+      vmImage: 'ubuntu-24.04'
+    displayName: 'Linux Ubuntu Clang'
+    steps:
+    - checkout: self
+      submodules: true
+    - download: current
+      artifact: test_config_scripts
+      displayName: 'Download artifact (test config scripts)'
+    - script: |
+        set -e
+        sudo apt-get update
+        sudo apt-get install -y \
+          clang \
+          cmake \
+          build-essential \
+          pkg-config \
+          curl \
+          libcurl4-openssl-dev \
+          libssl-dev \
+          uuid-dev
+      displayName: 'Host setup'
+    - script: |
+        set -e
+        export OPENSSL_ia32cap=0x00000000
+        sudo chmod -R 755 .
+        sudo -E bash -c 'source "$(Pipeline.Workspace)/test_config_scripts/set_e2e_test_env_vars.sh" && ./jenkins/ubuntu_clang.sh'
+      displayName: 'Build and Test'
+
+  - job: ubuntu2404
+    timeoutInMinutes: 90
+    pool:
+      vmImage: 'ubuntu-24.04'
+    displayName: 'Linux Ubuntu 24.04'
+    steps:
+    - checkout: self
+      submodules: true
+    - download: current
+      artifact: test_config_scripts
+      displayName: 'Download artifact (test config scripts)'
+    - script: |
+        set -e
+        sudo apt-get update
+        sudo apt-get install -y \
+          cmake \
+          build-essential \
+          pkg-config \
+          curl \
+          libcurl4-openssl-dev \
+          libssl-dev \
+          uuid-dev \
+          valgrind
+      displayName: 'Host setup'
+    - script: |
+        set -e
+        export OPENSSL_ia32cap=0x00000000
+        sudo chmod -R 755 .
+        sudo -E bash -c 'source "$(Pipeline.Workspace)/test_config_scripts/set_e2e_test_env_vars.sh" && ./jenkins/ubuntu_c.sh'
+      displayName: 'Build and Test'
+
+  - job: linuxoptions
+    timeoutInMinutes: 60
+    pool:
+      vmImage: 'ubuntu-24.04'
+    displayName: 'Linux Ubuntu with Options'
+    steps:
+    - checkout: self
+      submodules: true
+    - script: |
+        set -e
+        sudo apt-get update
+        sudo apt-get install -y \
+          cmake \
+          build-essential \
+          pkg-config \
+          curl \
+          libcurl4-openssl-dev \
+          libssl-dev \
+          uuid-dev
+      displayName: 'Host setup'
+    - script: 'sudo ./jenkins/linux_c_option_test.sh'
+      displayName: 'Build'
+      condition: always()
+
+  - job: wolfssl
+    timeoutInMinutes: 60
+    pool:
+      vmImage: 'ubuntu-24.04'
+    displayName: 'WolfSSL'
+    steps:
+    - checkout: self
+      submodules: true
+    - script: |
+        set -e
+        sudo apt-get update
+        sudo apt-get install -y \
+          clang \
+          cmake \
+          build-essential \
+          pkg-config \
+          curl \
+          libcurl4-openssl-dev \
+          uuid-dev \
+          libwolfssl-dev || true
+      displayName: 'Host setup'
+    - script: |
+        LD_LIBRARY_PATH=/usr/local/lib
+        LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/my_library/
+        sudo jenkins/linux_wolfssl.sh
+      displayName: 'Build'
+
+  - job: debian
+    timeoutInMinutes: 60
+    pool:
+      vmImage: 'ubuntu-24.04'
+    displayName: 'Linux Debian (Buster)'
+    steps:
+    - checkout: self
+      submodules: true
+    - script: |
+        set -e
+        sudo apt-get update
+        sudo apt-get install -y \
+          cmake \
+          build-essential \
+          pkg-config \
+          curl \
+          libcurl4-openssl-dev \
+          libssl-dev \
+          uuid-dev
+      displayName: 'Host setup'
+    - script: |
+        sudo chmod 755 jenkins/debian_c.sh
+        sudo -E ./jenkins/debian_c.sh
+      displayName: 'Build'
+
+  - job: linux_install_deps
+    timeoutInMinutes: 60
+    pool:
+      vmImage: 'ubuntu-24.04'
+    displayName: 'Linux with Installed Deps'
+    steps:
+    - checkout: self
+      submodules: true
+    - script: |
+        set -e
+        sudo apt-get update
+        sudo apt-get install -y \
+          cmake \
+          build-essential \
+          pkg-config \
+          curl \
+          libcurl4-openssl-dev \
+          libssl-dev \
+          uuid-dev
+      displayName: 'Host setup'
+    - script: |
+        sudo chmod 755 jenkins/linux_install_deps.sh
+        sudo -E ./jenkins/linux_install_deps.sh
+      displayName: 'Build'
+
+  - job: OSX
+    timeoutInMinutes: 60
+    variables:
+      CodeQL.Enabled: false
+      CMAKE_POLICY_VERSION_MINIMUM: '3.5'
+    pool:
+      vmImage: 'macOS-14'
+    displayName: 'OSX'
+    steps:
+    - checkout: self
+      submodules: true
+    - download: current
+      artifact: test_config_scripts
+      displayName: 'Download artifact (test config scripts)'
+    - script: |
+        bash -c 'source "$(Pipeline.Workspace)/test_config_scripts/set_e2e_test_env_vars.sh" && ./jenkins/osx_gcc_openssl.sh'
+      displayName: 'Build and Test'
+    - script: rm -rf $(Agent.BuildDirectory)/*
+      displayName: 'Cleanup'
+      condition: always()
+
+  - job: xcodenative
+    timeoutInMinutes: 60
+    variables:
+      CodeQL.Enabled: false
+      CMAKE_POLICY_VERSION_MINIMUM: '3.5'
+    pool:
+      vmImage: 'macOS-14'
+    displayName: 'XCode Native'
+    steps:
+    - checkout: self
+      submodules: true
+    - download: current
+      artifact: test_config_scripts
+      displayName: 'Download artifact (test config scripts)'
+    - script: |
+        curl --version
+        export DYLD_LIBRARY_PATH="/usr/local/Cellar/curl/$(ls -b /usr/local/Cellar/curl 2>/dev/null | grep -e '[0-9\.]' | head -1)/lib"
+        bash -c 'source "$(Pipeline.Workspace)/test_config_scripts/set_e2e_test_env_vars.sh" && ./jenkins/osx_xcode_native.sh'
+      displayName: 'Build and Test'
+    - script: rm -rf $(Agent.BuildDirectory)/*
+      displayName: 'Cleanup'
+      condition: always()
+
+  - job: raspberrypi
+    # ARM cross-compile replacement for the retired raspberrypi-c-buster
+    # container. We cross-compile with the arm-linux-gnueabihf toolchain on
+    # an x64 Microsoft-hosted agent. Tests are NOT executed; runtime ARM
+    # validation is the responsibility of downstream consumers.
+    timeoutInMinutes: 60
+    pool:
+      vmImage: 'ubuntu-24.04'
+    displayName: 'Raspberry Pi (Cross-compile only)'
+    steps:
+    - checkout: self
+      submodules: true
+    - script: |
+        set -e
+        sudo apt-get update
+        sudo apt-get install -y \
+          cmake \
+          build-essential \
+          pkg-config \
+          crossbuild-essential-armhf
+      displayName: 'Install armhf cross toolchain'
+    - script: |
+        set -e
+        mkdir -p cmake-armhf
+        cd cmake-armhf
+        cmake \
+          -DCMAKE_SYSTEM_NAME=Linux \
+          -DCMAKE_SYSTEM_PROCESSOR=arm \
+          -DCMAKE_C_COMPILER=arm-linux-gnueabihf-gcc \
+          -DCMAKE_CXX_COMPILER=arm-linux-gnueabihf-g++ \
+          -Drun_unittests:BOOL=OFF \
+          -Drun_e2e_tests:BOOL=OFF \
+          ..
+        cmake --build . -- --jobs=$(nproc)
+      displayName: 'Cross-compile for armhf'
+
+- stage: Cleanup
+  dependsOn:
+  - Setup
+  - Tests
+  condition: always()  # Run stage even if the pipeline run is cancelled.
+  jobs:
+  - job: destroy_azure_resource_group
+    condition: always()  # Run job even if the pipeline run is cancelled.
+    pool:
+      vmImage: 'ubuntu-24.04'
+    steps:
+    - checkout: none
+    - download: current
+      artifact: test_config_scripts
+      displayName: 'Download artifact (test config scripts)'
+    - task: AzureCLI@2
+      inputs:
+        azureSubscription: 'iot hub sdk service connection'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          set -e
+          export AZURE_RESOURCE_GROUP=$(cat "$(Pipeline.Workspace)/test_config_scripts/azure-resource-group-name.txt")
+          az group delete --name $AZURE_RESOURCE_GROUP --yes --no-wait
+      displayName: 'Destroy Azure Resource Group'
+      condition: always()  # Run step even if the pipeline run is cancelled.
+name: $(BuildID)_$(BuildDefinitionName)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
+
 # NOTE: This pipeline was migrated off the internal csdkcontainerregistry
 # container images and the self-hosted 'sdk-c--*' agent pools (which are no
 # longer available) onto Microsoft-hosted vmImage agents, mirroring the

@@ -1,18 +1,9 @@
 [submodule "deps/azure-c-shared-utility"]
 	path = deps/azure-c-shared-utility
 	url = https://github.com/Azure/azure-c-shared-utility.git
-[submodule "deps/azure-ctest"]
-	path = deps/azure-ctest
-	url = https://github.com/Azure/azure-ctest
 [submodule "deps/umock-c"]
 	path = deps/umock-c
 	url = https://github.com/Azure/umock-c.git
-[submodule "deps/azure-c-testrunnerswitcher"]
-	path = deps/azure-c-testrunnerswitcher
-	url = https://github.com/Azure/azure-c-testrunnerswitcher
-[submodule "deps/azure-macro-utils-c"]
-	path = deps/azure-macro-utils-c
-	url = https://github.com/Azure/azure-macro-utils-c.git
 [submodule "deps/c-build-tools"]
 	path = deps/c-build-tools
 	url = https://github.com/Azure/c-build-tools.git

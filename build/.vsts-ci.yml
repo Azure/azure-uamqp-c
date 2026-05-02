@@ -110,7 +110,7 @@ stages:
     condition: false
     steps:
     - checkout: self
-      submodules: true
+      submodules: recursive
     - download: current
       artifact: test_config_scripts
       displayName: 'Download artifact (test config scripts)'
@@ -131,7 +131,7 @@ stages:
     displayName: 'Windows x64'
     steps:
     - checkout: self
-      submodules: true
+      submodules: recursive
     - download: current
       artifact: test_config_scripts
       displayName: 'Download artifact (test config scripts)'
@@ -152,7 +152,7 @@ stages:
     displayName: 'Windows Dynamic'
     steps:
     - checkout: self
-      submodules: true
+      submodules: recursive
     - script: |
         call jenkins\windows_c_VsDevCmd.cmd && call jenkins\windows_c_build_as_dynamic.cmd
       displayName: 'Build'
@@ -166,7 +166,7 @@ stages:
     displayName: 'Linux Ubuntu Clang'
     steps:
     - checkout: self
-      submodules: true
+      submodules: recursive
     - download: current
       artifact: test_config_scripts
       displayName: 'Download artifact (test config scripts)'
@@ -197,7 +197,7 @@ stages:
     displayName: 'Linux Ubuntu 24.04'
     steps:
     - checkout: self
-      submodules: true
+      submodules: recursive
     - download: current
       artifact: test_config_scripts
       displayName: 'Download artifact (test config scripts)'
@@ -228,7 +228,7 @@ stages:
     displayName: 'Linux Ubuntu with Options'
     steps:
     - checkout: self
-      submodules: true
+      submodules: recursive
     - script: |
         set -e
         sudo apt-get update
@@ -252,7 +252,7 @@ stages:
     displayName: 'WolfSSL'
     steps:
     - checkout: self
-      submodules: true
+      submodules: recursive
     - script: |
         set -e
         sudo apt-get update
@@ -279,7 +279,7 @@ stages:
     displayName: 'Linux Debian (Buster)'
     steps:
     - checkout: self
-      submodules: true
+      submodules: recursive
     - script: |
         set -e
         sudo apt-get update
@@ -304,7 +304,7 @@ stages:
     displayName: 'Linux with Installed Deps'
     steps:
     - checkout: self
-      submodules: true
+      submodules: recursive
     - script: |
         set -e
         sudo apt-get update
@@ -332,7 +332,7 @@ stages:
     displayName: 'OSX'
     steps:
     - checkout: self
-      submodules: true
+      submodules: recursive
     - download: current
       artifact: test_config_scripts
       displayName: 'Download artifact (test config scripts)'
@@ -353,7 +353,7 @@ stages:
     displayName: 'XCode Native'
     steps:
     - checkout: self
-      submodules: true
+      submodules: recursive
     - download: current
       artifact: test_config_scripts
       displayName: 'Download artifact (test config scripts)'
@@ -377,7 +377,7 @@ stages:
     displayName: 'Raspberry Pi (Cross-compile only)'
     steps:
     - checkout: self
-      submodules: true
+      submodules: recursive
     - script: |
         set -e
         sudo apt-get update

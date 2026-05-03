@@ -60,14 +60,6 @@ stages:
 
           $ResourceGroupName = New-AzureResourceGroupName -OutFile 'test_config/azure-resource-group-name.txt'
 
-          # Pre-create the resource group ourselves so we can capture/print
-          # any error from `az group create` (the psm1's create call swallows
-          # stderr via 2>$null). Once the RG exists, New-AzIotTestEnvironment
-          # takes its "update tags" branch instead of creating it.
-          Write-Host "Pre-creating resource group $ResourceGroupName in $($env:AZURE_LOCATION)"
-          az group create --name $ResourceGroupName --location $env:AZURE_LOCATION --tags "CreatedBy=ci" "AzureDevOpsRunUrl=$($env:SYSTEM_COLLECTIONURI)$($env:SYSTEM_TEAMPROJECT)/_build/results?buildId=$($env:BUILD_BUILDID)" | Out-Null
-          if ($LASTEXITCODE -ne 0) { throw "az group create failed with exit code $LASTEXITCODE" }
-
           $TestEnvInfo = New-AzIotTestEnvironment `
               -AzureLocation $env:AZURE_LOCATION `
               -ResourceGroup $ResourceGroupName `

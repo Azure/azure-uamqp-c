@@ -1180,7 +1180,7 @@ TEST_FUNCTION(amqp_management_execute_operation_async_starts_the_operation)
     result = amqp_management_execute_operation_async(amqp_management, "some_operation", "some_type", "en-US", test_message, test_on_amqp_management_execute_operation_complete, (void*)0x4244);
 
     // assert
-    ASSERT_ARE_NOT_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NOT_NULL(result);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
     // cleanup
@@ -1307,7 +1307,7 @@ TEST_FUNCTION(amqp_management_execute_operation_async_with_NULL_context_starts_t
     result = amqp_management_execute_operation_async(amqp_management, "some_operation", "some_type", "en-US", test_message, test_on_amqp_management_execute_operation_complete, NULL);
 
     // assert
-    ASSERT_ARE_NOT_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NOT_NULL(result);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
     // cleanup
@@ -1324,7 +1324,7 @@ TEST_FUNCTION(amqp_management_execute_operation_async_with_NULL_amqp_management_
     result = amqp_management_execute_operation_async(NULL, "some_operation", "some_type", "en-US", test_message, test_on_amqp_management_execute_operation_complete, (void*)0x4244);
 
     // assert
-    ASSERT_ARE_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NULL(result);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
@@ -1344,7 +1344,7 @@ TEST_FUNCTION(amqp_management_execute_operation_async_with_NULL_operation_fails)
     result = amqp_management_execute_operation_async(amqp_management, NULL, "some_type", "en-US", test_message, test_on_amqp_management_execute_operation_complete, (void*)0x4244);
 
     // assert
-    ASSERT_ARE_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NULL(result);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
     // cleanup
@@ -1367,7 +1367,7 @@ TEST_FUNCTION(amqp_management_execute_operation_async_with_NULL_type_fails)
     result = amqp_management_execute_operation_async(amqp_management, "some_operation", NULL, "en-US", test_message, test_on_amqp_management_execute_operation_complete, (void*)0x4244);
 
     // assert
-    ASSERT_ARE_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NULL(result);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
     // cleanup
@@ -1390,7 +1390,7 @@ TEST_FUNCTION(amqp_management_execute_operation_async_with_NULL_on_execute_opera
     result = amqp_management_execute_operation_async(amqp_management, "some_operation", "some_type", "en-US", test_message, NULL, (void*)0x4244);
 
     // assert
-    ASSERT_ARE_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NULL(result);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
     // cleanup
@@ -1451,7 +1451,7 @@ TEST_FUNCTION(amqp_management_execute_operation_async_with_NULL_message_creates_
     result = amqp_management_execute_operation_async(amqp_management, "some_operation", "some_type", "en-US", NULL, test_on_amqp_management_execute_operation_complete, (void*)0x4244);
 
     // assert
-    ASSERT_ARE_NOT_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NOT_NULL(result);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
     // cleanup
@@ -1471,7 +1471,7 @@ TEST_FUNCTION(amqp_management_execute_operation_async_when_not_open_fails)
     result = amqp_management_execute_operation_async(amqp_management, "some_operation", "some_type", "en-US", test_message, test_on_amqp_management_execute_operation_complete, (void*)0x4244);
 
     // assert
-    ASSERT_ARE_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NULL(result);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
     // cleanup
@@ -1495,7 +1495,7 @@ TEST_FUNCTION(amqp_management_execute_operation_async_after_close_fails)
     result = amqp_management_execute_operation_async(amqp_management, "some_operation", "some_type", "en-US", test_message, test_on_amqp_management_execute_operation_complete, (void*)0x4244);
 
     // assert
-    ASSERT_ARE_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NULL(result);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
     // cleanup
@@ -1519,7 +1519,7 @@ TEST_FUNCTION(amqp_management_execute_operation_async_when_in_error_fails)
     result = amqp_management_execute_operation_async(amqp_management, "some_operation", "some_type", "en-US", test_message, test_on_amqp_management_execute_operation_complete, (void*)0x4244);
 
     // assert
-    ASSERT_ARE_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NULL(result);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
     // cleanup
@@ -1583,7 +1583,7 @@ TEST_FUNCTION(when_no_application_properties_were_set_on_the_message_a_new_map_i
     result = amqp_management_execute_operation_async(amqp_management, "some_operation", "some_type", "en-US", test_message, test_on_amqp_management_execute_operation_complete, (void*)0x4244);
 
     // assert
-    ASSERT_ARE_NOT_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NOT_NULL(result);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
     // cleanup
@@ -1637,7 +1637,7 @@ TEST_FUNCTION(amqp_management_execute_operation_async_with_NULL_locales_does_not
     result = amqp_management_execute_operation_async(amqp_management, "some_operation", "some_type", NULL, test_message, test_on_amqp_management_execute_operation_complete, (void*)0x4244);
 
     // assert
-    ASSERT_ARE_NOT_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NOT_NULL(result);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
     // cleanup
@@ -1700,7 +1700,7 @@ TEST_FUNCTION(when_no_properties_were_set_on_the_message_a_new_properties_instan
     result = amqp_management_execute_operation_async(amqp_management, "some_operation", "some_type", "en-US", test_message, test_on_amqp_management_execute_operation_complete, (void*)0x4244);
 
     // assert
-    ASSERT_ARE_NOT_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NOT_NULL(result);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
     // cleanup
@@ -1806,7 +1806,7 @@ TEST_FUNCTION(when_any_underlying_function_call_fails_amqp_management_execute_op
         result = amqp_management_execute_operation_async(amqp_management, "some_operation", "some_type", "en-US", test_message, test_on_amqp_management_execute_operation_complete, (void*)0x4244);
 
         // assert
-        ASSERT_ARE_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result, tmp_msg);
+        ASSERT_IS_NULL(result, tmp_msg);
     }
 
     // cleanup
@@ -1838,7 +1838,7 @@ TEST_FUNCTION(when_creating_the_application_properties_fails_amqp_management_exe
     result = amqp_management_execute_operation_async(amqp_management, "some_operation", "some_type", "en-US", test_message, test_on_amqp_management_execute_operation_complete, (void*)0x4244);
 
     // assert
-    ASSERT_ARE_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NULL(result);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
     // cleanup
@@ -1894,7 +1894,7 @@ TEST_FUNCTION(when_creating_the_properties_fails_amqp_management_execute_operati
     result = amqp_management_execute_operation_async(amqp_management, "some_operation", "some_type", "en-US", test_message, test_on_amqp_management_execute_operation_complete, (void*)0x4244);
 
     // assert
-    ASSERT_ARE_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NULL(result);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
     // cleanup
@@ -1958,7 +1958,7 @@ TEST_FUNCTION(amqp_management_execute_operation_async_the_2nd_time_uses_the_next
     result = amqp_management_execute_operation_async(amqp_management, "some_operation", "some_type", "en-US", test_message, test_on_amqp_management_execute_operation_complete, (void*)0x4244);
 
     // assert
-    ASSERT_ARE_NOT_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NOT_NULL(result);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
     // cleanup

@@ -924,7 +924,7 @@ TEST_FUNCTION(cbs_put_token_async_creates_the_message_and_starts_the_amqp_manage
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-    ASSERT_ARE_NOT_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NOT_NULL(result);
 
     // cleanup
     cbs_destroy(cbs);
@@ -990,7 +990,7 @@ TEST_FUNCTION(cbs_put_token_async_with_NULL_cbs_handle_fails)
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-    ASSERT_ARE_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NULL(result);
 }
 
 /* Tests_SRS_CBS_01_050: [ If any of the arguments `cbs`, `type`, `audience`, `token` or `on_cbs_put_token_complete` is NULL `cbs_put_token_async` shall fail and return a non-zero value. ]*/
@@ -1009,7 +1009,7 @@ TEST_FUNCTION(cbs_put_token_async_with_NULL_type_fails)
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-    ASSERT_ARE_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NULL(result);
 
     // cleanup
     cbs_destroy(cbs);
@@ -1053,7 +1053,7 @@ TEST_FUNCTION(cbs_put_token_async_with_NULL_token_fails)
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-    ASSERT_ARE_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NULL(result);
 
     // cleanup
     cbs_destroy(cbs);
@@ -1075,7 +1075,7 @@ TEST_FUNCTION(cbs_put_token_async_with_NULL_complete_callback_fails)
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-    ASSERT_ARE_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NULL(result);
 
     // cleanup
     cbs_destroy(cbs);
@@ -1118,7 +1118,7 @@ TEST_FUNCTION(cbs_put_token_async_with_NULL_complete_context_succeeds)
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-    ASSERT_ARE_NOT_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NOT_NULL(result);
 
     // cleanup
     cbs_destroy(cbs);
@@ -1188,7 +1188,7 @@ TEST_FUNCTION(when_any_underlying_call_fails_cbs_put_token_async_fails)
         result = cbs_put_token_async(cbs, "some_type", "my_audience", "blah_token", test_on_cbs_put_token_complete, NULL);
 
         // assert
-        ASSERT_ARE_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result, tmp_msg);
+        ASSERT_IS_NULL(result, tmp_msg);
     }
 
     // cleanup
@@ -1210,7 +1210,7 @@ TEST_FUNCTION(cbs_put_token_async_when_not_open_fails)
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-    ASSERT_ARE_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NULL(result);
 
     // cleanup
     cbs_destroy(cbs);
@@ -1252,7 +1252,7 @@ TEST_FUNCTION(cbs_put_token_async_while_opening_succeeds)
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-    ASSERT_ARE_NOT_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NOT_NULL(result);
 
     // cleanup
     cbs_destroy(cbs);
@@ -1275,7 +1275,7 @@ TEST_FUNCTION(cbs_put_token_async_when_in_error_fails)
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-    ASSERT_ARE_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NULL(result);
 
     // cleanup
     cbs_destroy(cbs);
@@ -1330,7 +1330,7 @@ TEST_FUNCTION(cbs_delete_token_async_creates_the_message_and_starts_the_amqp_man
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-    ASSERT_ARE_NOT_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NOT_NULL(result);
 
     // cleanup
     cbs_destroy(cbs);
@@ -1391,7 +1391,7 @@ TEST_FUNCTION(cbs_delete_token_with_NULL_cbs_handle_fails)
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-    ASSERT_ARE_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NULL(result);
 }
 
 /* Tests_SRS_CBS_01_060: [ If any of the arguments `cbs`, `type`, `audience` or `on_cbs_delete_token_complete` is NULL `cbs_put_token_async` shall fail and return a non-zero value. ]*/
@@ -1410,7 +1410,7 @@ TEST_FUNCTION(cbs_delete_token_with_NULL_type_fails)
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-    ASSERT_ARE_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NULL(result);
 
     // cleanup
     cbs_destroy(cbs);
@@ -1432,7 +1432,7 @@ TEST_FUNCTION(cbs_delete_token_with_NULL_audience_fails)
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-    ASSERT_ARE_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NULL(result);
 
     // cleanup
     cbs_destroy(cbs);
@@ -1454,7 +1454,7 @@ TEST_FUNCTION(cbs_delete_token_with_NULL_complete_callback_fails)
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-    ASSERT_ARE_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NULL(result);
 
     // cleanup
     cbs_destroy(cbs);
@@ -1493,7 +1493,7 @@ TEST_FUNCTION(cbs_delete_token_async_with_NULL_complete_context_succeeds)
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-    ASSERT_ARE_NOT_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NOT_NULL(result);
 
     // cleanup
     cbs_destroy(cbs);
@@ -1559,7 +1559,7 @@ TEST_FUNCTION(when_any_underlying_call_fails_cbs_delete_token_async_fails)
         result = cbs_delete_token_async(cbs, "some_type", "my_audience", test_on_cbs_put_token_complete, NULL);
 
         // assert
-        ASSERT_ARE_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result, tmp_msg);
+        ASSERT_IS_NULL(result, tmp_msg);
     }
 
     // cleanup
@@ -1581,7 +1581,7 @@ TEST_FUNCTION(cbs_delete_token_async_when_not_open_fails)
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-    ASSERT_ARE_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NULL(result);
 
     // cleanup
     cbs_destroy(cbs);
@@ -1619,7 +1619,7 @@ TEST_FUNCTION(cbs_delete_token_async_while_opening_succeeds)
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-    ASSERT_ARE_NOT_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NOT_NULL(result);
 
     // cleanup
     cbs_destroy(cbs);
@@ -1642,7 +1642,7 @@ TEST_FUNCTION(cbs_delete_token_async_when_in_error_fails)
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
-    ASSERT_ARE_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_IS_NULL(result);
 
     // cleanup
     cbs_destroy(cbs);

@@ -24,7 +24,7 @@ resources:
     clean: true
 
 variables:
-  AZURE_LOCATION: eastus2
+  AZURE_LOCATION: centraluseuap
 
 stages:
 - stage: Setup

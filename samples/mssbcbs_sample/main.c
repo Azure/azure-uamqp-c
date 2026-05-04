@@ -57,14 +57,12 @@ static void on_cbs_operation_complete(void* context, CBS_OPERATION_RESULT cbs_op
 
 int main(int argc, char** argv)
 {
-    int result;
-
     (void)argc;
     (void)argv;
 
     if (platform_init() != 0)
     {
-        result = -1;
+        /* platform_init failed */
     }
     else
     {
@@ -89,7 +87,7 @@ int main(int argc, char** argv)
         AMQP_VALUE test_attach_property_key;
         AMQP_VALUE test_attach_property_value;
 
-        gballoc_init();
+        (void)gballoc_init();
 
         /* create SASL MSSBCBS handler */
         sasl_mechanism_handle = saslmechanism_create(saslmssbcbs_get_interface(), NULL);

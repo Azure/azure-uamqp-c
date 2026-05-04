@@ -113,7 +113,7 @@ int main(int argc, char** argv)
         unsigned char hello[] = { 'H', 'e', 'l', 'l', 'o' };
         BINARY_DATA binary_data;
 
-        gballoc_init();
+        (void)gballoc_init();
 
         /* create the TLS IO */
         tlsio_interface = platform_get_default_tlsio();

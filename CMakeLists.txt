@@ -39,6 +39,13 @@ set(run_int_tests OFF)
 set(run_unittests OFF)
 
 if(NOT ${use_installed_dependencies})
+    if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+        # umock_c MOCKABLE_FUNCTION macros emit duplicate typedefs when headers are
+        # included multiple times; clang in C99 mode treats them as errors.
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-typedef-redefinition")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-typedef-redefinition")
+    endif()
+
     if ((NOT TARGET c_build_tools) AND (EXISTS ${CMAKE_CURRENT_LIST_DIR}/deps/c-build-tools/CMakeLists.txt))
         add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/deps/c-build-tools)
         set_default_build_options()

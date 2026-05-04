@@ -104,7 +104,7 @@ int main(int argc, char** argv)
         unsigned char hello[5] = { 'h', 'e', 'l', 'l', 'o' };
         BINARY_DATA binary_data;
 
-        gballoc_init();
+        (void)gballoc_init();
 
         tls_io_config.hostname = IOT_HUB_HOST;
         tls_io_config.port = 443;

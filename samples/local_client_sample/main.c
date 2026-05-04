@@ -54,7 +54,7 @@ int main(int argc, char** argv)
         XIO_HANDLE socket_io;
         SOCKETIO_CONFIG socketio_config = { "localhost", 5672, NULL };
 
-        gballoc_init();
+        (void)gballoc_init();
 
         /* create socket IO */
         socket_io = xio_create(socketio_get_interface_description(), &socketio_config);

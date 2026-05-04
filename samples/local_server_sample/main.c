@@ -82,7 +82,7 @@ int main(int argc, char** argv)
         size_t last_memory_used = 0;
         SOCKET_LISTENER_HANDLE socket_listener;
 
-        gballoc_init();
+        (void)gballoc_init();
 
         socket_listener = socketlistener_create(5672);
         if (socketlistener_start(socket_listener, on_socket_accepted, NULL) != 0)

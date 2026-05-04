@@ -246,7 +246,7 @@ static void on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_res
 
 int main(void)
 {
-    int result;
+    int result = 0;
     if (platform_init() != 0)
     {
         LogError("platform_init failed");
@@ -499,4 +499,6 @@ int main(void)
 
         platform_deinit();
     }
+
+    return result;
 }

@@ -14,7 +14,7 @@ CORES=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || sysctl -n hw.ncpu)
 rm -r -f $build_folder
 mkdir -p $build_folder
 pushd $build_folder
-cmake .. -Drun_unittests:bool=ON -Drun_e2e_tests:bool=ON -G Xcode
+cmake .. -Drun_unittests:bool=ON -Drun_e2e_tests:bool=ON -DCMAKE_C_FLAGS="-Wno-typedef-redefinition" -G Xcode
 cmake --build . -- --jobs=$CORES
 ctest -C "debug" -V
 popd

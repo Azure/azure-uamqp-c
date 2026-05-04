@@ -67,7 +67,7 @@ int main(int argc, char** argv)
         unsigned char hello[] = { 'H', 'e', 'l', 'l', 'o' };
         BINARY_DATA binary_data;
 
-        gballoc_init();
+        (void)gballoc_init();
 
         /* create SASL PLAIN handler */
         sasl_mechanism_handle = saslmechanism_create(saslplain_get_interface(), &sasl_plain_config);

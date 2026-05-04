@@ -399,6 +399,8 @@ stages:
           -DCMAKE_CXX_COMPILER=arm-linux-gnueabihf-g++ \
           -Drun_unittests:BOOL=OFF \
           -Drun_e2e_tests:BOOL=OFF \
+          -Duse_http:BOOL=OFF \
+          -Duse_openssl:BOOL=OFF \
           ..
         cmake --build . -- --jobs=$(nproc)
       displayName: 'Cross-compile for armhf'

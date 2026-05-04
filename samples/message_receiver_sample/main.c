@@ -56,7 +56,7 @@ int main(int argc, char** argv)
         XIO_HANDLE tls_io;
         SASLCLIENTIO_CONFIG sasl_io_config;
 
-        gballoc_init();
+        (void)gballoc_init();
 
         /* create SASL plain handler */
         sasl_plain_config.authcid = EH_KEY_NAME;

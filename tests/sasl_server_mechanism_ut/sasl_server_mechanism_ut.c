@@ -372,7 +372,7 @@ TEST_FUNCTION(sasl_server_mechanism_handle_initial_response_with_NULL_handle_fai
 {
     // arrange
     int result;
-    SASL_SERVER_MECHANISM_BYTES initial_response_bytes;
+    SASL_SERVER_MECHANISM_BYTES initial_response_bytes = { 0 };
     SASL_SERVER_MECHANISM_BYTES challenge_bytes;
     bool send_challenge;
 
@@ -443,7 +443,7 @@ TEST_FUNCTION(sasl_server_mechanism_handle_response_with_NULL_mechanism_fails)
 {
     // arrange
     int result;
-    SASL_SERVER_MECHANISM_BYTES response_bytes;
+    SASL_SERVER_MECHANISM_BYTES response_bytes = { 0 };
     SASL_SERVER_MECHANISM_BYTES next_challenge_bytes;
     bool send_next_challenge;
 

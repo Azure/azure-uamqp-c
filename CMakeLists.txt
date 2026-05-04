@@ -78,13 +78,12 @@ if(NOT ${use_installed_dependencies})
         add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/deps/azure-c-shared-utility)
     endif()
 else()
-    if (NOT azure_macro_utils_cFOUND)
-        find_package(azure_macro_utils_c REQUIRED CONFIG)
-    endif ()
-    if (NOT umock_cFOUND)
-        find_package(umock_c REQUIRED CONFIG)
-    endif ()
-    if (NOT azure_c_shared_utilityFOUND)
+    # azure_c_shared_utility's installed package config takes care of finding
+    # macro_utils_c (via find_dependency) and re-exports c_logging_v2 via its
+    # own targets file. umock_c is header-only for uamqp's public headers and
+    # is shipped to ${CMAKE_INSTALL_INCLUDEDIR}/umock_c by umock-c's install,
+    # so no separate find_package(umock_c) is required here.
+    if (NOT azure_c_shared_utility_FOUND)
         find_package(azure_c_shared_utility REQUIRED CONFIG)
     endif ()
     

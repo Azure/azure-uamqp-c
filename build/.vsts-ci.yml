@@ -428,6 +428,7 @@ stages:
           -Duse_http:BOOL=OFF \
           -Duse_openssl:BOOL=OFF \
           -Duse_default_uuid:BOOL=ON \
+          -Dskip_samples:BOOL=ON \
           ..
         cmake --build . -- --jobs=$(nproc)
       displayName: 'Cross-compile for armhf'

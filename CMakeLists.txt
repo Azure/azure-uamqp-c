@@ -268,7 +268,7 @@ add_library(uamqp
     )
 setTargetBuildProperties(uamqp)
 
-target_link_libraries(uamqp aziotsharedutil c_logging_v2)
+target_link_libraries(uamqp aziotsharedutil)
 
 if (NOT ${skip_samples})
     add_subdirectory(samples)

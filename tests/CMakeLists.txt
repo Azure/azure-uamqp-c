@@ -3,6 +3,10 @@
 
 usePermissiveRulesForSamplesAndTests()
 
+if (TARGET c_logging_v2)
+    link_libraries(c_logging_v2)
+endif()
+
 include_directories(.)
 
 add_subdirectory(amqp_frame_codec_ut)

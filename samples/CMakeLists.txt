@@ -3,6 +3,10 @@
 
 usePermissiveRulesForSamplesAndTests()
 
+if (TARGET c_logging_v2)
+    link_libraries(c_logging_v2)
+endif()
+
 function(add_sample_directory whatIsBuilding)
     add_subdirectory(${whatIsBuilding})
 

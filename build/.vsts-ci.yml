@@ -85,6 +85,8 @@ stages:
       vmImage: 'ubuntu-24.04'
     displayName: 'Check Submodules'
     steps:
+    - script: git config --global core.longpaths true
+      displayName: 'Enable git longpaths'
     - checkout: self
       submodules: recursive
     - script: |
@@ -110,6 +112,8 @@ stages:
     # See: https://github.com/ewertons/c-logging/tree/ewertons/x86-get-thread-stack-stub
     condition: false
     steps:
+    - script: git config --global core.longpaths true
+      displayName: 'Enable git longpaths'
     - checkout: self
       submodules: recursive
     - download: current
@@ -131,6 +135,8 @@ stages:
       vmImage: 'windows-2022'
     displayName: 'Windows x64'
     steps:
+    - script: git config --global core.longpaths true
+      displayName: 'Enable git longpaths'
     - checkout: self
       submodules: recursive
     - download: current
@@ -152,6 +158,8 @@ stages:
       vmImage: 'windows-2022'
     displayName: 'Windows Dynamic'
     steps:
+    - script: git config --global core.longpaths true
+      displayName: 'Enable git longpaths'
     - checkout: self
       submodules: recursive
     - script: |
@@ -166,6 +174,8 @@ stages:
       vmImage: 'ubuntu-24.04'
     displayName: 'Linux Ubuntu Clang'
     steps:
+    - script: git config --global core.longpaths true
+      displayName: 'Enable git longpaths'
     - checkout: self
       submodules: recursive
     - download: current
@@ -197,6 +207,8 @@ stages:
       vmImage: 'ubuntu-24.04'
     displayName: 'Linux Ubuntu 24.04'
     steps:
+    - script: git config --global core.longpaths true
+      displayName: 'Enable git longpaths'
     - checkout: self
       submodules: recursive
     - download: current
@@ -228,6 +240,8 @@ stages:
       vmImage: 'ubuntu-24.04'
     displayName: 'Linux Ubuntu with Options'
     steps:
+    - script: git config --global core.longpaths true
+      displayName: 'Enable git longpaths'
     - checkout: self
       submodules: recursive
     - script: |
@@ -252,6 +266,8 @@ stages:
       vmImage: 'ubuntu-24.04'
     displayName: 'WolfSSL'
     steps:
+    - script: git config --global core.longpaths true
+      displayName: 'Enable git longpaths'
     - checkout: self
       submodules: recursive
     - script: |
@@ -279,6 +295,8 @@ stages:
       vmImage: 'ubuntu-24.04'
     displayName: 'Linux Debian (Buster)'
     steps:
+    - script: git config --global core.longpaths true
+      displayName: 'Enable git longpaths'
     - checkout: self
       submodules: recursive
     - script: |
@@ -304,6 +322,8 @@ stages:
       vmImage: 'ubuntu-24.04'
     displayName: 'Linux with Installed Deps'
     steps:
+    - script: git config --global core.longpaths true
+      displayName: 'Enable git longpaths'
     - checkout: self
       submodules: recursive
     - script: |
@@ -332,6 +352,8 @@ stages:
       vmImage: 'macOS-14'
     displayName: 'OSX'
     steps:
+    - script: git config --global core.longpaths true
+      displayName: 'Enable git longpaths'
     - checkout: self
       submodules: recursive
     - download: current
@@ -353,6 +375,8 @@ stages:
       vmImage: 'macOS-14'
     displayName: 'XCode Native'
     steps:
+    - script: git config --global core.longpaths true
+      displayName: 'Enable git longpaths'
     - checkout: self
       submodules: recursive
     - download: current
@@ -377,6 +401,8 @@ stages:
       vmImage: 'ubuntu-24.04'
     displayName: 'Raspberry Pi (Cross-compile only)'
     steps:
+    - script: git config --global core.longpaths true
+      displayName: 'Enable git longpaths'
     - checkout: self
       submodules: recursive
     - script: |

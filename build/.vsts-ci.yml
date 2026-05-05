@@ -54,7 +54,7 @@ stages:
           # Always pull Azure.Iot.Sdk.Test.psm1 from iot-sdks-e2e-fx.
           # The copy embedded in azure-iot-sdk-c@ewertons/pipelinefixes is stale.
           # TODO: switch back to 'master' once the e2e-fx PR adding
-          #       New-AzIotCTransportsE2ETestConfig is merged.
+          #       New-AzIotuAmqpE2ETestConfig is merged.
           $PsmUrl = 'https://raw.githubusercontent.com/Azure/iot-sdks-e2e-fx/ewertons/c-transports-e2e-config/scripts/Azure.Iot.Sdk.Test.psm1'
           $PsmPath = Join-Path $PWD 'Azure.Iot.Sdk.Test.psm1'
           Invoke-WebRequest -Uri $PsmUrl -OutFile $PsmPath -UseBasicParsing
@@ -67,12 +67,12 @@ stages:
               -ResourceGroup $ResourceGroupName `
               -NoDps
 
-          # Emit env vars consumed by the C transport repos' iothub_e2e tests
+          # Emit env vars consumed by uamqp's iothub_e2e test
           # (IOTHUB_CONNECTION_STRING and UAMQP_E2E_DEVICE_KEY for the
           # hard-coded "eh_testdevice" device id). The function provisions
           # the device against the freshly-created hub.
-          New-AzIotCTransportsE2ETestConfig -TestEnvInfo $TestEnvInfo -Target bash       -OutFile 'test_config/set_e2e_test_env_vars.sh' | Out-Null
-          New-AzIotCTransportsE2ETestConfig -TestEnvInfo $TestEnvInfo -Target powershell -OutFile 'test_config/Set-E2ETestEnvVars.ps1'  | Out-Null
+          New-AzIotuAmqpE2ETestConfig -TestEnvInfo $TestEnvInfo -Target bash       -OutFile 'test_config/set_e2e_test_env_vars.sh' | Out-Null
+          New-AzIotuAmqpE2ETestConfig -TestEnvInfo $TestEnvInfo -Target powershell -OutFile 'test_config/Set-E2ETestEnvVars.ps1'  | Out-Null
       displayName: 'Create Azure Resources and Test Config'
     - publish: test_config
       artifact: test_config_scripts

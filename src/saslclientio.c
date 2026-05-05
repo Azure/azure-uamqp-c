@@ -707,8 +707,8 @@ static void on_sasl_frame_received_callback(void* context, AMQP_VALUE sasl_frame
                         }
                         else
                         {
-                            AMQP_VALUE sasl_server_mechanisms;
-                            uint32_t mechanisms_count;
+                            AMQP_VALUE sasl_server_mechanisms = NULL;
+                            uint32_t mechanisms_count = 0;
 
                             if ((sasl_mechanisms_get_sasl_server_mechanisms(sasl_mechanisms_handle, &sasl_server_mechanisms) != 0) ||
                                 (amqpvalue_get_array_item_count(sasl_server_mechanisms, &mechanisms_count) != 0) ||

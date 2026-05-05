@@ -727,7 +727,7 @@ static void on_connection_redirect_received(void* context, ERROR_HANDLE error)
     AMQP_VALUE hostname_value;
     AMQP_VALUE network_host_value;
     AMQP_VALUE port_value;
-    const char* condition_string;
+    const char* condition_string = NULL;
     const char* hostname_string;
     const char* network_host_string;
     uint16_t port_number;
@@ -943,7 +943,7 @@ static void on_link_redirect_received(void* context, ERROR_HANDLE error)
     AMQP_VALUE network_host_value;
     AMQP_VALUE port_value;
     AMQP_VALUE address_value;
-    const char* condition_string;
+    const char* condition_string = NULL;
     const char* hostname_string;
     const char* network_host_string;
     const char* address_string;

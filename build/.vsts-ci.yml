@@ -352,10 +352,29 @@ stages:
       vmImage: 'macOS-14'
     displayName: 'OSX'
     steps:
-    - task: NodeTool@0
-      inputs:
-        versionSpec: '20.x'
-      displayName: 'Install Node 20 (for auto-injected Component Detection)'
+    - bash: |
+        set +e
+        echo "--- agent ---"
+        echo "AGENT_VERSION=${AGENT_VERSION}"
+        echo "AGENT_HOMEDIRECTORY=${AGENT_HOMEDIRECTORY}"
+        echo "AGENT_TOOLSDIRECTORY=${AGENT_TOOLSDIRECTORY}"
+        echo "--- node on PATH ---"
+        which -a node || true
+        node -v 2>/dev/null || true
+        echo "--- expected CG node path ---"
+        ls -la /Users/runner/actions-runner/cached/ 2>/dev/null || echo "(no cached/ dir)"
+        for d in /Users/runner/actions-runner/cached/*/externals/ ; do echo "### $d"; ls -la "$d" 2>/dev/null; done
+        echo "--- agent externals (live) ---"
+        ls -la "$AGENT_HOMEDIRECTORY/externals/" 2>/dev/null || true
+        echo "--- workaround: symlink node20_1 -> node20 if missing ---"
+        for ext in /Users/runner/actions-runner/cached/*/externals "$AGENT_HOMEDIRECTORY/externals" ; do
+          if [ -d "$ext" ] && [ ! -e "$ext/node20_1" ] && [ -d "$ext/node20" ]; then
+            echo "Linking $ext/node20_1 -> $ext/node20"
+            ln -sfn "$ext/node20" "$ext/node20_1" || true
+          fi
+        done
+      displayName: 'Diagnose Component Detection node path'
+      condition: always()
     - script: git config --global core.longpaths true
       displayName: 'Enable git longpaths'
     - checkout: self
@@ -379,10 +398,29 @@ stages:
       vmImage: 'macOS-14'
     displayName: 'XCode Native'
     steps:
-    - task: NodeTool@0
-      inputs:
-        versionSpec: '20.x'
-      displayName: 'Install Node 20 (for auto-injected Component Detection)'
+    - bash: |
+        set +e
+        echo "--- agent ---"
+        echo "AGENT_VERSION=${AGENT_VERSION}"
+        echo "AGENT_HOMEDIRECTORY=${AGENT_HOMEDIRECTORY}"
+        echo "AGENT_TOOLSDIRECTORY=${AGENT_TOOLSDIRECTORY}"
+        echo "--- node on PATH ---"
+        which -a node || true
+        node -v 2>/dev/null || true
+        echo "--- expected CG node path ---"
+        ls -la /Users/runner/actions-runner/cached/ 2>/dev/null || echo "(no cached/ dir)"
+        for d in /Users/runner/actions-runner/cached/*/externals/ ; do echo "### $d"; ls -la "$d" 2>/dev/null; done
+        echo "--- agent externals (live) ---"
+        ls -la "$AGENT_HOMEDIRECTORY/externals/" 2>/dev/null || true
+        echo "--- workaround: symlink node20_1 -> node20 if missing ---"
+        for ext in /Users/runner/actions-runner/cached/*/externals "$AGENT_HOMEDIRECTORY/externals" ; do
+          if [ -d "$ext" ] && [ ! -e "$ext/node20_1" ] && [ -d "$ext/node20" ]; then
+            echo "Linking $ext/node20_1 -> $ext/node20"
+            ln -sfn "$ext/node20" "$ext/node20_1" || true
+          fi
+        done
+      displayName: 'Diagnose Component Detection node path'
+      condition: always()
     - script: git config --global core.longpaths true
       displayName: 'Enable git longpaths'
     - checkout: self

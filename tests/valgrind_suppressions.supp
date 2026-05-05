@@ -36,3 +36,43 @@
    fun:exit
    fun:(below main)
 }
+{
+   suppress libp11-kit pthread_mutex_destroy on dl_fini (drd, glibc 2.34+)
+   drd:MutexErr
+   fun:pthread_mutex_destroy*
+   ...
+   fun:_dl_fini
+   ...
+   fun:exit
+   fun:(below main)
+}
+{
+   suppress libp11-kit pthread_mutex_destroy on dl_fini (helgrind, glibc 2.34+)
+   Helgrind:Misc
+   obj:*vgpreload_helgrind*
+   ...
+   fun:_dl_fini
+   ...
+   fun:exit
+   fun:(below main)
+}
+{
+   suppress libp11-kit pthread_mutex_destroy on dl_call_fini (drd, glibc 2.34+)
+   drd:MutexErr
+   fun:pthread_mutex_destroy*
+   ...
+   fun:_dl_call_fini
+   ...
+   fun:exit
+   fun:(below main)
+}
+{
+   suppress libp11-kit pthread_mutex_destroy on dl_call_fini (helgrind, glibc 2.34+)
+   Helgrind:Misc
+   obj:*vgpreload_helgrind*
+   ...
+   fun:_dl_call_fini
+   ...
+   fun:exit
+   fun:(below main)
+}

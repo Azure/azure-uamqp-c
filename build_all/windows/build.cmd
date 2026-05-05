@@ -211,7 +211,7 @@ if "%~1" neq "Build" set "build-target=/t:%~1"
 if "%~3" neq "" set build-config=%~3
 if "%~4" neq "" set build-platform=%~4
 
-msbuild /m %build-target% "/p:Configuration=%build-config%;Platform=%build-platform%" %2
+msbuild -restore /m %build-target% "/p:Configuration=%build-config%;Platform=%build-platform%" %2
 if not !ERRORLEVEL!==0 exit /b !ERRORLEVEL!
 goto :eof
 

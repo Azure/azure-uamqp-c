@@ -352,6 +352,10 @@ stages:
       vmImage: 'macOS-14'
     displayName: 'OSX'
     steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '20.x'
+      displayName: 'Install Node 20 (for auto-injected Component Detection)'
     - script: git config --global core.longpaths true
       displayName: 'Enable git longpaths'
     - checkout: self
@@ -375,6 +379,10 @@ stages:
       vmImage: 'macOS-14'
     displayName: 'XCode Native'
     steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '20.x'
+      displayName: 'Install Node 20 (for auto-injected Component Detection)'
     - script: git config --global core.longpaths true
       displayName: 'Enable git longpaths'
     - checkout: self

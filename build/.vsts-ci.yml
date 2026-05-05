@@ -404,7 +404,9 @@ stages:
     - script: |
         bash -c 'source "$(Pipeline.Workspace)/test_config_scripts/set_e2e_test_env_vars.sh" && ./jenkins/osx_gcc_openssl.sh'
       displayName: 'Build and Test'
-    - script: rm -rf $(Agent.BuildDirectory)/*
+    - script: |
+        rm -rf $(Agent.BuildDirectory)/*
+        mkdir -p $(Agent.BuildDirectory)/s
       displayName: 'Cleanup'
       condition: always()
 
@@ -469,7 +471,9 @@ stages:
         export DYLD_LIBRARY_PATH="/usr/local/Cellar/curl/$(ls -b /usr/local/Cellar/curl 2>/dev/null | grep -e '[0-9\.]' | head -1)/lib"
         bash -c 'source "$(Pipeline.Workspace)/test_config_scripts/set_e2e_test_env_vars.sh" && ./jenkins/osx_xcode_native.sh'
       displayName: 'Build and Test'
-    - script: rm -rf $(Agent.BuildDirectory)/*
+    - script: |
+        rm -rf $(Agent.BuildDirectory)/*
+        mkdir -p $(Agent.BuildDirectory)/s
       displayName: 'Cleanup'
       condition: always()
 

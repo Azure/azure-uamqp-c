@@ -51,11 +51,9 @@ stages:
 
           New-Item -ItemType Directory -Force -Path test_config | Out-Null
 
-          # Always pull Azure.Iot.Sdk.Test.psm1 from iot-sdks-e2e-fx.
+          # Always pull Azure.Iot.Sdk.Test.psm1 from iot-sdks-e2e-fx@master.
           # The copy embedded in azure-iot-sdk-c@ewertons/pipelinefixes is stale.
-          # TODO: switch back to 'master' once the e2e-fx PR adding
-          #       New-AzIotuAmqpE2ETestConfig is merged.
-          $PsmUrl = 'https://raw.githubusercontent.com/Azure/iot-sdks-e2e-fx/ewertons/c-transports-e2e-config/scripts/Azure.Iot.Sdk.Test.psm1'
+          $PsmUrl = 'https://raw.githubusercontent.com/Azure/iot-sdks-e2e-fx/master/scripts/Azure.Iot.Sdk.Test.psm1'
           $PsmPath = Join-Path $PWD 'Azure.Iot.Sdk.Test.psm1'
           Invoke-WebRequest -Uri $PsmUrl -OutFile $PsmPath -UseBasicParsing
           Import-Module $PsmPath

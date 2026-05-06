@@ -27,7 +27,35 @@ variables:
   AZURE_LOCATION: centraluseuap
 
 stages:
+- stage: Requirements
+  jobs:
+  - job: checksubmodule
+    variables:
+      CodeQL.Enabled: false
+    pool:
+      vmImage: 'ubuntu-24.04'
+    displayName: 'Check Submodules'
+    steps:
+    - script: git config --global core.longpaths true
+      displayName: 'Enable git longpaths'
+    - checkout: self
+      submodules: recursive
+    - script: |
+        sudo apt-get update && sudo apt-get install -y \
+        curl \
+        git \
+        build-essential \
+        pkg-config
+        sudo curl -sL https://deb.nodesource.com/setup_16.x | bash -
+        sudo apt-get install -y nodejs
+      displayName: 'Setup'
+    - script: |
+        npm install check_submodules
+        node_modules/.bin/check_submodules . master
+      displayName: 'Check Submodules Match'
+
 - stage: Setup
+  dependsOn: Requirements
   jobs:
   - job: create_azure_resources
     pool:
@@ -80,31 +108,6 @@ stages:
 - stage: Tests
   dependsOn: Setup
   jobs:
-  - job: checksubmodule
-    variables:
-      CodeQL.Enabled: false
-    pool:
-      vmImage: 'ubuntu-24.04'
-    displayName: 'Check Submodules'
-    steps:
-    - script: git config --global core.longpaths true
-      displayName: 'Enable git longpaths'
-    - checkout: self
-      submodules: recursive
-    - script: |
-        sudo apt-get update && sudo apt-get install -y \
-        curl \
-        git \
-        build-essential \
-        pkg-config
-        sudo curl -sL https://deb.nodesource.com/setup_16.x | bash -
-        sudo apt-get install -y nodejs
-      displayName: 'Setup'
-    - script: |
-        npm install check_submodules
-        node_modules/.bin/check_submodules . master
-      displayName: 'Check Submodules Match'
-
   - job: windowsx86
     timeoutInMinutes: 90
     pool:

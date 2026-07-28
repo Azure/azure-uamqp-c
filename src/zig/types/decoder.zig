@@ -206,9 +206,17 @@ fn decodeList32(allocator: Allocator, data: []const u8) DecodeError!DecodeResult
 }
 
 fn decodeListItems(allocator: Allocator, data: []const u8, count: usize, header_size: usize) DecodeError!DecodeResult {
+    // The count comes off the wire. Every element needs at least one byte, so
+    // reject a count the remaining data cannot possibly satisfy before
+    // allocating for it.
+    if (count > data.len) return error.UnexpectedEnd;
+
     const items = try allocator.alloc(AmqpValue, count);
+    // Only the prefix written so far is initialized; deiniting past it would
+    // free whatever the allocator happened to leave in the tail.
+    var filled: usize = 0;
     errdefer {
-        for (items) |*item| {
+        for (items[0..filled]) |*item| {
             @constCast(item).deinit(allocator);
         }
         allocator.free(items);
@@ -217,6 +225,7 @@ fn decodeListItems(allocator: Allocator, data: []const u8, count: usize, header_
     for (0..count) |i| {
         const result = try decode(allocator, data[offset..]);
         items[i] = result.value;
+        filled = i + 1;
         offset += result.bytes_consumed;
     }
     return .{ .value = .{ .list = items }, .bytes_consumed = header_size + offset };
@@ -241,9 +250,16 @@ fn decodeMap32(allocator: Allocator, data: []const u8) DecodeError!DecodeResult 
 }
 
 fn decodeMapEntries(allocator: Allocator, data: []const u8, pair_count: usize, header_size: usize) DecodeError!DecodeResult {
+    // Each pair needs at least two bytes, so reject a count the remaining data
+    // cannot possibly satisfy before allocating for it.
+    if (pair_count > data.len / 2) return error.UnexpectedEnd;
+
     const entries = try allocator.alloc(MapEntry, pair_count);
+    // Only the prefix written so far is initialized; deiniting past it would
+    // free whatever the allocator happened to leave in the tail.
+    var filled: usize = 0;
     errdefer {
-        for (entries) |*entry| {
+        for (entries[0..filled]) |*entry| {
             @constCast(&entry.key).deinit(allocator);
             @constCast(&entry.value).deinit(allocator);
         }
@@ -253,9 +269,13 @@ fn decodeMapEntries(allocator: Allocator, data: []const u8, pair_count: usize, h
     for (0..pair_count) |i| {
         const key_result = try decode(allocator, data[offset..]);
         offset += key_result.bytes_consumed;
+        var key_value = key_result.value;
+        errdefer key_value.deinit(allocator);
+
         const val_result = try decode(allocator, data[offset..]);
         offset += val_result.bytes_consumed;
-        entries[i] = .{ .key = key_result.value, .value = val_result.value };
+        entries[i] = .{ .key = key_value, .value = val_result.value };
+        filled = i + 1;
     }
     return .{ .value = .{ .map = entries }, .bytes_consumed = header_size + offset };
 }
@@ -286,9 +306,16 @@ fn decodeArrayItems(allocator: Allocator, data: []const u8, count: usize, header
     if (data.len < 1) return error.UnexpectedEnd;
     const constructor_code = data[0];
 
+    // The count comes off the wire; reject one the remaining data cannot
+    // possibly satisfy before allocating for it.
+    if (count > data.len) return error.UnexpectedEnd;
+
     const items = try allocator.alloc(AmqpValue, count);
+    // Only the prefix written so far is initialized; deiniting past it would
+    // free whatever the allocator happened to leave in the tail.
+    var filled: usize = 0;
     errdefer {
-        for (items) |*item| {
+        for (items[0..filled]) |*item| {
             @constCast(item).deinit(allocator);
         }
         allocator.free(items);
@@ -309,12 +336,14 @@ fn decodeArrayItems(allocator: Allocator, data: []const u8, count: usize, header
             @memcpy(temp[1 .. 1 + remaining.len], remaining);
             const result = try decode(allocator, temp);
             items[i] = result.value;
+            filled = i + 1;
             offset += result.bytes_consumed - 1; // -1 for constructor we prepended
         } else {
             temp_buf[0] = constructor_code;
             @memcpy(temp_buf[1 .. 1 + remaining.len], remaining);
             const result = try decode(allocator, temp_buf[0 .. 1 + remaining.len]);
             items[i] = result.value;
+            filled = i + 1;
             offset += result.bytes_consumed - 1;
         }
     }
@@ -451,4 +480,70 @@ test "roundtrip list" {
         v.deinit(allocator);
     }
     try std.testing.expect(original.eql(result.value));
+}
+
+test "a truncated map does not deinit uninitialized entries" {
+    const allocator = std.testing.allocator;
+    // map8 declaring one pair, with no entry bytes following it.
+    try std.testing.expectError(error.UnexpectedEnd, decode(allocator, &.{ 0xc1, 0x02, 0x02 }));
+}
+
+test "a truncated list does not deinit uninitialized items" {
+    const allocator = std.testing.allocator;
+    // list8 declaring three items, with only one byte of body.
+    try std.testing.expectError(error.UnexpectedEnd, decode(allocator, &.{ 0xc0, 0x02, 0x03, 0x40 }));
+}
+
+test "a truncated array does not deinit uninitialized items" {
+    const allocator = std.testing.allocator;
+    // array8 declaring four symbols after the shared constructor.
+    try std.testing.expectError(error.UnexpectedEnd, decode(allocator, &.{ 0xe0, 0x02, 0x04, 0xa3 }));
+}
+
+test "an oversized count is rejected before allocating" {
+    const allocator = std.testing.allocator;
+    // list32 claiming 0xffffffff items with an empty body. Allocating for that
+    // count would need 64 GiB.
+    try std.testing.expectError(error.UnexpectedEnd, decode(
+        allocator,
+        &.{ 0xd0, 0x00, 0x00, 0x00, 0x04, 0xff, 0xff, 0xff, 0xff },
+    ));
+    // map32 with the same claim.
+    try std.testing.expectError(error.UnexpectedEnd, decode(
+        allocator,
+        &.{ 0xd1, 0x00, 0x00, 0x00, 0x04, 0xff, 0xff, 0xff, 0xfe },
+    ));
+}
+
+test "a partially decoded map frees only what it built" {
+    const allocator = std.testing.allocator;
+    // A well-formed first pair (str8 "k" -> str8 "v"), then a truncated key.
+    // The first pair must be freed exactly once and the tail left alone.
+    try std.testing.expectError(error.UnexpectedEnd, decode(allocator, &.{
+        0xc1, 0x0c, 0x04,
+        0xa1, 0x01, 'k',
+        0xa1, 0x01, 'v',
+        0xa1, 0x04, 'a',
+    }));
+}
+
+test "a map whose value is truncated frees the already decoded key" {
+    const allocator = std.testing.allocator;
+    // str8 "k" decodes as a key, then the value claims four bytes but has one.
+    try std.testing.expectError(error.UnexpectedEnd, decode(allocator, &.{
+        0xc1, 0x08, 0x02,
+        0xa1, 0x01, 'k',
+        0xa1, 0x04, 'v',
+    }));
+}
+
+test "decoding a nested truncated list is safe" {
+    const allocator = std.testing.allocator;
+    // Outer list of two: a valid null, then an inner list8 claiming two items
+    // it does not have.
+    try std.testing.expectError(error.UnexpectedEnd, decode(allocator, &.{
+        0xc0, 0x06, 0x02,
+        0x40, 0xc0, 0x02,
+        0x02, 0x40,
+    }));
 }

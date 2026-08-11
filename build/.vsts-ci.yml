@@ -25,13 +25,20 @@ resources:
 
 variables:
   AZURE_LOCATION: centraluseuap
+  # CodeQL is auto-injected into every job by the 1ES policy decorator. Turn it
+  # off globally here and opt in per job, because S360 records the *latest*
+  # snapshot per (repo, language) - so a database produced incidentally by a job
+  # that does not build the product silently replaces the one from the job that
+  # does. That is the failure mode behind the "Database failed to finalize or no
+  # source code was built!" entries in the CodeQL S360 report.
+  # The 'windowsx64' job below opts back in for cpp.
+  # See https://aka.ms/codeql3000 and https://aka.ms/sdlfaqcodeql.
+  Codeql.Enabled: false
 
 stages:
 - stage: Requirements
   jobs:
   - job: checksubmodule
-    variables:
-      CodeQL.Enabled: false
     pool:
       vmImage: 'ubuntu-24.04'
     displayName: 'Check Submodules'
@@ -134,8 +141,10 @@ stages:
   - job: windowsx64
     timeoutInMinutes: 90
     variables:
-      CodeQL.Enabled: $[eq(variables['Build.SourceBranch'], 'refs/heads/master')]
-      CodeQL.Language: cpp
+      # Owns the 'cpp' CodeQL snapshot for this repo. Overrides the pipeline-level
+      # Codeql.Enabled: false. Only on master, so PR builds stay fast.
+      Codeql.Enabled: $[eq(variables['Build.SourceBranch'], 'refs/heads/master')]
+      Codeql.Language: cpp
     pool:
       vmImage: 'windows-2022'
     displayName: 'Windows x64'
@@ -351,7 +360,6 @@ stages:
   - job: OSX
     timeoutInMinutes: 60
     variables:
-      CodeQL.Enabled: false
       CMAKE_POLICY_VERSION_MINIMUM: '3.5'
     pool:
       vmImage: 'macOS-14'
@@ -416,7 +424,6 @@ stages:
   - job: xcodenative
     timeoutInMinutes: 60
     variables:
-      CodeQL.Enabled: false
       CMAKE_POLICY_VERSION_MINIMUM: '3.5'
     pool:
       vmImage: 'macOS-14'

@@ -22,9 +22,17 @@ extern "C" {
 #include "umock_c/umock_c_prod.h"
 
 
-    typedef amqp_binary data;
+    typedef amqp_binary amqp_data;
 
-    MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_create_data, data, value);
+    /* data is kept for backwards compatibility. It is an unqualified global
+       name that can be ambiguous in C++ translation units (for example against std::data).
+       Define AMQP_DEFINITIONS_NO_LEGACY_DATA_TYPE to omit it and use
+       amqp_data instead. */
+    #ifndef AMQP_DEFINITIONS_NO_LEGACY_DATA_TYPE
+    typedef amqp_binary data;
+    #endif
+
+    MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_create_data, amqp_data, value);
 
     MOCKABLE_FUNCTION(, bool, is_data_type_by_descriptor, AMQP_VALUE, descriptor);
 

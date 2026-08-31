@@ -15380,7 +15380,7 @@ bool is_application_properties_type_by_descriptor(AMQP_VALUE descriptor)
 
 /* data */
 
-AMQP_VALUE amqpvalue_create_data(data value)
+AMQP_VALUE amqpvalue_create_data(amqp_data value)
 {
     AMQP_VALUE result;
     AMQP_VALUE described_value = amqpvalue_create_binary(value);

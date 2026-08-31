@@ -58,12 +58,24 @@ extern "C" {
 <#          if (type.@class == typeClass.restricted) #>
 <#          { #>
 <#              string c_type = Program.GetCType(type.source, false).Replace('-', '_').Replace(':', '_'); #>
+<#              string typedef_name = Program.GetTypedefName(type_name.ToLower()); #>
 
+    typedef <#= c_type #> <#= typedef_name #>;
+
+<#              if (Program.NeedsLegacyTypedefAlias(type_name.ToLower())) #>
+<#              { #>
+    /* <#= type_name.ToLower() #> is kept for backwards compatibility. It is an unqualified global
+       name that can be ambiguous in C++ translation units (for example against std::data).
+       Define <#= "AMQP_DEFINITIONS_NO_LEGACY_" + type_name.ToUpper() + "_TYPE" #> to omit it and use
+       <#= typedef_name #> instead. */
+    #ifndef <#= "AMQP_DEFINITIONS_NO_LEGACY_" + type_name.ToUpper() + "_TYPE" #>
     typedef <#= c_type #> <#= type_name.ToLower() #>;
+    #endif
 
+<#              } #>
 <#              if (c_type != "AMQP_VALUE") #>
 <#              { #>
-    MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_create_<#= type_name.ToLower() #>, <#= type_name.ToLower() #>, value);
+    MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_create_<#= type_name.ToLower() #>, <#= typedef_name #>, value);
 <#              } #>
 <#              else #>
 <#              { #>

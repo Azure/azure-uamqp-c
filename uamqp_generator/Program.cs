@@ -31,6 +31,31 @@ namespace amqplib_generator
             return amqp;
         }
 
+        // AMQP type names that, when lowered to an unqualified C identifier, collide with an
+        // identifier declared by the C++ standard library. A translation unit that includes an
+        // uamqp header and has "using namespace std;" in scope then sees an ambiguous name
+        // (for example MSVC "error C2872: 'data': ambiguous symbol" against std::data, which
+        // C++17 declares in <iterator>). For those types the typedef is emitted with an
+        // "amqp_" prefix; the unprefixed name is still emitted as a backwards compatible alias
+        // unless the consumer opts out.
+        private static readonly HashSet<string> reserved_typedef_names = new HashSet<string>
+        {
+            "data"
+        };
+
+        // The C identifier used for a restricted type's typedef. Only the typedef is affected;
+        // function, macro and header file names keep deriving from the AMQP type name so that
+        // the published API surface is unchanged.
+        public static string GetTypedefName(string type_name)
+        {
+            return reserved_typedef_names.Contains(type_name) ? "amqp_" + type_name : type_name;
+        }
+
+        public static bool NeedsLegacyTypedefAlias(string type_name)
+        {
+            return reserved_typedef_names.Contains(type_name);
+        }
+
         public static string GetCType(string amqp_type, bool multiple)
         {
             string result;

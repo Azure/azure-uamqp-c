@@ -384,50 +384,119 @@ namespace amqplib_generator
             
             #line default
             #line hidden
+            
+            #line 61 "C:\code\s1\azure-uamqp-c\uamqp_generator\amqp_definitions_type_h.tt"
+              string typedef_name = Program.GetTypedefName(type_name.ToLower()); 
+            
+            #line default
+            #line hidden
             this.Write("\r\n    typedef ");
             
-            #line 62 "C:\code\s1\azure-uamqp-c\uamqp_generator\amqp_definitions_type_h.tt"
+            #line 63 "C:\code\s1\azure-uamqp-c\uamqp_generator\amqp_definitions_type_h.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(c_type));
             
             #line default
             #line hidden
             this.Write(" ");
             
-            #line 62 "C:\code\s1\azure-uamqp-c\uamqp_generator\amqp_definitions_type_h.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToLower()));
+            #line 63 "C:\code\s1\azure-uamqp-c\uamqp_generator\amqp_definitions_type_h.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(typedef_name));
             
             #line default
             #line hidden
             this.Write(";\r\n\r\n");
             
-            #line 64 "C:\code\s1\azure-uamqp-c\uamqp_generator\amqp_definitions_type_h.tt"
+            #line 65 "C:\code\s1\azure-uamqp-c\uamqp_generator\amqp_definitions_type_h.tt"
+              if (Program.NeedsLegacyTypedefAlias(type_name.ToLower())) 
+            
+            #line default
+            #line hidden
+            
+            #line 66 "C:\code\s1\azure-uamqp-c\uamqp_generator\amqp_definitions_type_h.tt"
+              { 
+            
+            #line default
+            #line hidden
+            this.Write("    /* ");
+            
+            #line 67 "C:\code\s1\azure-uamqp-c\uamqp_generator\amqp_definitions_type_h.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToLower()));
+            
+            #line default
+            #line hidden
+            this.Write(" is kept for backwards compatibility. It is an unqualified global\r\n       name that " +
+                    "can be ambiguous in C++ translation units (for example against std::data).\r\n     " +
+                    "  Define ");
+            
+            #line 69 "C:\code\s1\azure-uamqp-c\uamqp_generator\amqp_definitions_type_h.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture("AMQP_DEFINITIONS_NO_LEGACY_" + type_name.ToUpper() + "_TYPE"));
+            
+            #line default
+            #line hidden
+            this.Write(" to omit it and use\r\n       ");
+            
+            #line 70 "C:\code\s1\azure-uamqp-c\uamqp_generator\amqp_definitions_type_h.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(typedef_name));
+            
+            #line default
+            #line hidden
+            this.Write(" instead. */\r\n    #ifndef ");
+            
+            #line 71 "C:\code\s1\azure-uamqp-c\uamqp_generator\amqp_definitions_type_h.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture("AMQP_DEFINITIONS_NO_LEGACY_" + type_name.ToUpper() + "_TYPE"));
+            
+            #line default
+            #line hidden
+            this.Write("\r\n    typedef ");
+            
+            #line 72 "C:\code\s1\azure-uamqp-c\uamqp_generator\amqp_definitions_type_h.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(c_type));
+            
+            #line default
+            #line hidden
+            this.Write(" ");
+            
+            #line 72 "C:\code\s1\azure-uamqp-c\uamqp_generator\amqp_definitions_type_h.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToLower()));
+            
+            #line default
+            #line hidden
+            this.Write(";\r\n    #endif\r\n\r\n");
+            
+            #line 75 "C:\code\s1\azure-uamqp-c\uamqp_generator\amqp_definitions_type_h.tt"
+              } 
+            
+            #line default
+            #line hidden
+            
+            #line 76 "C:\code\s1\azure-uamqp-c\uamqp_generator\amqp_definitions_type_h.tt"
               if (c_type != "AMQP_VALUE") 
             
             #line default
             #line hidden
             
-            #line 65 "C:\code\s1\azure-uamqp-c\uamqp_generator\amqp_definitions_type_h.tt"
+            #line 77 "C:\code\s1\azure-uamqp-c\uamqp_generator\amqp_definitions_type_h.tt"
               { 
             
             #line default
             #line hidden
             this.Write("    MOCKABLE_FUNCTION(, AMQP_VALUE, amqpvalue_create_");
             
-            #line 66 "C:\code\s1\azure-uamqp-c\uamqp_generator\amqp_definitions_type_h.tt"
+            #line 78 "C:\code\s1\azure-uamqp-c\uamqp_generator\amqp_definitions_type_h.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToLower()));
             
             #line default
             #line hidden
             this.Write(", ");
             
-            #line 66 "C:\code\s1\azure-uamqp-c\uamqp_generator\amqp_definitions_type_h.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToLower()));
+            #line 78 "C:\code\s1\azure-uamqp-c\uamqp_generator\amqp_definitions_type_h.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(typedef_name));
             
             #line default
             #line hidden
             this.Write(", value);\r\n");
             
-            #line 67 "C:\code\s1\azure-uamqp-c\uamqp_generator\amqp_definitions_type_h.tt"
+            #line 79 "C:\code\s1\azure-uamqp-c\uamqp_generator\amqp_definitions_type_h.tt"
               } 
             
             #line default

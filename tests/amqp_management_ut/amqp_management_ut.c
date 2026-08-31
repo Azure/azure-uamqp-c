@@ -1991,6 +1991,34 @@ TEST_FUNCTION(on_message_send_complete_with_NULL_context_does_nothing)
     amqp_management_destroy(amqp_management);
 }
 
+/* Tests_SRS_AMQP_MANAGEMENT_01_183: [ If `singlylinkedlist_item_get_value` returns NULL, `on_message_send_complete` shall return. ]*/
+TEST_FUNCTION(when_singlylinkedlist_item_get_value_returns_NULL_on_message_send_complete_does_nothing)
+{
+    // arrange
+    AMQP_MANAGEMENT_HANDLE amqp_management;
+
+    amqp_management = amqp_management_create(test_session_handle, "test_node");
+    (void)amqp_management_open_async(amqp_management, test_on_amqp_management_open_complete, (void*)0x4242, test_on_amqp_management_error, (void*)0x4243);
+    saved_on_message_sender_state_changed(saved_on_message_sender_state_changed_context, MESSAGE_SENDER_STATE_OPEN, MESSAGE_SENDER_STATE_OPENING);
+    saved_on_message_receiver_state_changed(saved_on_message_receiver_state_changed_context, MESSAGE_RECEIVER_STATE_OPEN, MESSAGE_RECEIVER_STATE_OPENING);
+    umock_c_reset_all_calls();
+    setup_calls_for_pending_operation_with_correlation_id(0);
+    (void)amqp_management_execute_operation_async(amqp_management, "some_operation", "some_type", "en-US", test_message, test_on_amqp_management_execute_operation_complete, (void*)0x4244);
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_ARG))
+        .SetReturn(NULL);
+
+    // act
+    saved_on_message_send_complete(saved_on_message_send_complete_context, MESSAGE_SEND_ERROR, NULL);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqp_management_destroy(amqp_management);
+}
+
 /* Tests_SRS_AMQP_MANAGEMENT_01_172: [ If `send_result` is different then `MESSAGE_SEND_OK`: ]*/
 /* Tests_SRS_AMQP_MANAGEMENT_01_168: [ - `context` shall be used as a LIST_ITEM_HANDLE containing the pending operation. ]*/
 /* Tests_SRS_AMQP_MANAGEMENT_01_169: [ - `on_message_send_complete` shall obtain the pending operation by calling `singlylinkedlist_item_get_value`. ]*/

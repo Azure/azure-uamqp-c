@@ -104,6 +104,14 @@ static void remove_pending_message(MESSAGE_SENDER_INSTANCE* message_sender, ASYN
     }
 }
 
+// The third argument of ON_MESSAGE_SEND_COMPLETE is the *described* part of the AMQP delivery
+// state (for a rejected outcome: the list holding the error), which is what callers parse.
+// Normalize any composite delivery state to that shape so every code path is consistent.
+static AMQP_VALUE get_described_delivery_state(AMQP_VALUE delivery_state)
+{
+    return (delivery_state == NULL) ? NULL : amqpvalue_get_inplace_described_value(delivery_state);
+}
+
 static void on_delivery_settled(void* context, delivery_number delivery_no, LINK_DELIVERY_SETTLE_REASON reason, AMQP_VALUE delivery_state)
 {
     ASYNC_OPERATION_HANDLE pending_send = (ASYNC_OPERATION_HANDLE)context;
@@ -163,7 +171,7 @@ static void on_delivery_settled(void* context, delivery_number delivery_no, LINK
             break;
         case LINK_DELIVERY_SETTLE_REASON_NOT_DELIVERED:
         default:
-            message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_ERROR, delivery_state);
+            message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_ERROR, get_described_delivery_state(delivery_state));
             remove_pending_message(message_sender, pending_send);
             break;
         }
@@ -696,7 +704,7 @@ static void set_message_sender_state(MESSAGE_SENDER_INSTANCE* message_sender, ME
 static void indicate_all_messages_as_error(MESSAGE_SENDER_INSTANCE* message_sender)
 {
     size_t i;
-    AMQP_VALUE error_delivery_state = link_get_last_error_delivery_state(message_sender->link);
+    AMQP_VALUE error_delivery_state = get_described_delivery_state(link_get_last_error_delivery_state(message_sender->link));
 
     for (i = 0; i < message_sender->message_count; i++)
     {

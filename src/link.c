@@ -95,6 +95,27 @@ static void set_last_error_delivery_state(LINK_INSTANCE* link_instance, AMQP_VAL
     link_instance->last_error_delivery_state = delivery_state;
 }
 
+static AMQP_VALUE create_rejected_delivery_state(ERROR_HANDLE error)
+{
+    AMQP_VALUE result = NULL;
+    REJECTED_HANDLE rejected;
+
+    if (error != NULL)
+    {
+        rejected = rejected_create();
+        if (rejected != NULL)
+        {
+            if (rejected_set_error(rejected, error) == 0)
+            {
+                result = amqpvalue_create_rejected(rejected);
+            }
+            rejected_destroy(rejected);
+        }
+    }
+
+    return result;
+}
+
 static AMQP_VALUE create_error_delivery_state(const char* condition, const char* description)
 {
     AMQP_VALUE result = NULL;
@@ -107,15 +128,7 @@ static AMQP_VALUE create_error_delivery_state(const char* condition, const char*
             (void)error_set_description(error, description);
         }
 
-        REJECTED_HANDLE rejected = rejected_create();
-        if (rejected != NULL)
-        {
-            if (rejected_set_error(rejected, error) == 0)
-            {
-                result = amqpvalue_create_rejected(rejected);
-            }
-            rejected_destroy(rejected);
-        }
+        result = create_rejected_delivery_state(error);
         error_destroy(error);
     }
 
@@ -399,6 +412,9 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                     }
                     else
                     {
+                        // The link is usable again; drop any error recorded for a previous incarnation
+                        // so that a later shutdown does not report a stale reason.
+                        set_last_error_delivery_state(link_instance, NULL);
                         set_link_state(link_instance, LINK_STATE_ATTACHED);
                     }
                 }
@@ -673,24 +689,7 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
             // Construct a rejected delivery_state from the detach error so that
             // pending delivery callbacks and message_sender receive actionable
             // error information. Store it on the link for later retrieval.
-            if (error != NULL)
-            {
-                REJECTED_HANDLE rejected = rejected_create();
-                AMQP_VALUE error_delivery_state = NULL;
-                if (rejected != NULL)
-                {
-                    if (rejected_set_error(rejected, error) == 0)
-                    {
-                        error_delivery_state = amqpvalue_create_rejected(rejected);
-                    }
-                    rejected_destroy(rejected);
-                }
-                set_last_error_delivery_state(link_instance, error_delivery_state);
-            }
-            else
-            {
-                set_last_error_delivery_state(link_instance, NULL);
-            }
+            set_last_error_delivery_state(link_instance, create_rejected_delivery_state(error));
 
             remove_all_pending_deliveries(link_instance, true, link_instance->last_error_delivery_state);
 
@@ -737,17 +736,7 @@ static void on_session_state_changed(void* context, SESSION_STATE new_session_st
         ERROR_HANDLE session_error = session_get_last_error(link_instance->session);
         if (session_error != NULL)
         {
-            REJECTED_HANDLE rejected = rejected_create();
-            AMQP_VALUE error_delivery_state = NULL;
-            if (rejected != NULL)
-            {
-                if (rejected_set_error(rejected, session_error) == 0)
-                {
-                    error_delivery_state = amqpvalue_create_rejected(rejected);
-                }
-                rejected_destroy(rejected);
-            }
-            set_last_error_delivery_state(link_instance, error_delivery_state);
+            set_last_error_delivery_state(link_instance, create_rejected_delivery_state(session_error));
         }
         else
         {
@@ -762,17 +751,7 @@ static void on_session_state_changed(void* context, SESSION_STATE new_session_st
         ERROR_HANDLE session_error = session_get_last_error(link_instance->session);
         if (session_error != NULL)
         {
-            REJECTED_HANDLE rejected = rejected_create();
-            AMQP_VALUE error_delivery_state = NULL;
-            if (rejected != NULL)
-            {
-                if (rejected_set_error(rejected, session_error) == 0)
-                {
-                    error_delivery_state = amqpvalue_create_rejected(rejected);
-                }
-                rejected_destroy(rejected);
-            }
-            set_last_error_delivery_state(link_instance, error_delivery_state);
+            set_last_error_delivery_state(link_instance, create_rejected_delivery_state(session_error));
         }
         else
         {

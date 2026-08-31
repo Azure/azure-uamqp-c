@@ -154,6 +154,28 @@ case LINK_DELIVERY_SETTLE_REASON_DISPOSITION_RECEIVED:
     break;
 ```
 
+
+## Value shape handed to callers (important)
+
+`ON_MESSAGE_SEND_COMPLETE` has always received the **described part** of the delivery state,
+not the composite value itself. `message_sender.c` has done this for the
+`LINK_DELIVERY_SETTLE_REASON_DISPOSITION_RECEIVED` path since the callback was introduced:
+
+```c
+AMQP_VALUE described = amqpvalue_get_inplace_described_value(delivery_state);
+message_with_callback->on_message_send_complete(ctx, MESSAGE_SEND_ERROR, described);
+```
+
+For a `rejected` outcome the described part is the list holding the `error`, so callers walk
+it as a list. Passing the composite `*rejected(...)` value instead makes
+`amqpvalue_get_list_item_count` fail (`Value is not of type LIST`), so no condition can be
+extracted and an error is logged on every failed send.
+
+`link.c` therefore stores and forwards the **composite** value, and `message_sender.c`
+normalizes it with `get_described_delivery_state()` on every path before invoking the
+callback. The error paths added here consequently deliver exactly the same shape callers
+already parse today.
+
 ## Impact on Callers
 
 **Backward compatible.** The `ON_MESSAGE_SEND_COMPLETE` callback signature is unchanged:
@@ -167,34 +189,55 @@ typedef void(*ON_MESSAGE_SEND_COMPLETE)(
 
 Callers that already check `delivery_state != NULL` before extracting error details will
 automatically benefit from the richer error info. Callers that ignore `delivery_state`
-are completely unaffected.
+are completely unaffected. The value remains borrowed: it is owned by the link and must not
+be destroyed by the callback.
 
 ### How callers extract the error:
 
 ```c
 void on_message_send_complete(void* ctx, MESSAGE_SEND_RESULT result, AMQP_VALUE delivery_state)
 {
-    if (result == MESSAGE_SEND_ERROR && delivery_state != NULL)
+    uint32_t item_count;
+
+    // delivery_state is the described part of the outcome; for a rejected outcome it is
+    // the list holding the error.
+    if ((result == MESSAGE_SEND_ERROR) && (delivery_state != NULL) &&
+        (amqpvalue_get_list_item_count(delivery_state, &item_count) == 0))
     {
-        AMQP_VALUE descriptor = amqpvalue_get_inplace_descriptor(delivery_state);
-        if (descriptor != NULL && is_rejected_type_by_descriptor(descriptor))
+        uint32_t i;
+        for (i = 0; i < item_count; i++)
         {
-            REJECTED_HANDLE rejected;
-            if (amqpvalue_get_rejected(delivery_state, &rejected) == 0)
+            AMQP_VALUE item = amqpvalue_get_list_item(delivery_state, i);
+            AMQP_VALUE fields = (item == NULL) ? NULL : amqpvalue_get_inplace_described_value(item);
+            uint32_t field_count;
+
+            if ((fields != NULL) && (amqpvalue_get_list_item_count(fields, &field_count) == 0))
             {
-                ERROR_HANDLE error;
-                if (rejected_get_error(rejected, &error) == 0)
+                AMQP_VALUE condition = amqpvalue_get_list_item(fields, 0);
+                const char* condition_value;
+
+                if ((condition != NULL) && (amqpvalue_get_symbol(condition, &condition_value) == 0))
                 {
-                    const char* condition;
-                    const char* description;
-                    error_get_condition(error, &condition);   // e.g., "amqp:unauthorized-access"
-                    error_get_description(error, &description); // e.g., "Unauthorized access..."
-                    // Log or handle the specific error
-                    error_destroy(error);
+                    // e.g. "amqp:unauthorized-access", "amqp:connection:forced"
                 }
-                rejected_destroy(rejected);
+
+                amqpvalue_destroy(condition);
             }
+
+            amqpvalue_destroy(item);
         }
     }
 }
 ```
+
+## Staleness
+
+`link->last_error_delivery_state` is cleared when the link reaches `LINK_STATE_ATTACHED`
+again, so a link that recovers and is later closed normally does not report the reason of a
+previous failure.
+
+## Relationship to the message sender shutdown order
+
+`messagesender_close` still calls `indicate_all_messages_as_error` *before* attempting the
+detach. That ordering is a separate, pre-existing defect (the pending sends are destroyed
+while the link still references them) and is not addressed here.

@@ -253,10 +253,11 @@ static void on_amqp_management_execute_operation_complete(void* context, AMQP_MA
             {
                 LogError("Failed removing operation from the pending list");
             }
-
-
-            /* Codes_SRS_CBS_01_096: [ The `context` for the operation shall also be freed. ]*/
-            async_operation_destroy(cbs_operation->token_operation_async_context);
+            else
+            {
+                /* Codes_SRS_CBS_01_096: [ The `context` for the operation shall also be freed. ]*/
+                async_operation_destroy(cbs_operation->token_operation_async_context);
+            }
         }
     }
 }

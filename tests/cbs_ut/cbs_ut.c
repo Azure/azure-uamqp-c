@@ -112,6 +112,7 @@ ASYNC_OPERATION_HANDLE my_amqp_management_execute_operation_async(AMQP_MANAGEMEN
 
 static const void** list_items = NULL;
 static size_t list_item_count = 0;
+static int singlylinkedlist_remove_if_result;
 
 static LIST_ITEM_HANDLE add_to_list(const void* item)
 {
@@ -182,17 +183,20 @@ static LIST_ITEM_HANDLE my_singlylinkedlist_find(SINGLYLINKEDLIST_HANDLE handle,
 
 static int my_singlylinkedlist_remove_if(SINGLYLINKEDLIST_HANDLE list, LIST_CONDITION_FUNCTION condition_function, const void* match_context)
 {
-    bool continue_processing = true;
-
-    for (size_t index = 0; continue_processing && index < list_item_count; index++)
+    if (singlylinkedlist_remove_if_result == 0)
     {
-        if (condition_function(list_items[index], match_context, &continue_processing))
+        bool continue_processing = true;
+
+        for (size_t index = 0; continue_processing && index < list_item_count; index++)
         {
-            (void)mock_hook_singlylinkedlist_remove(list, (LIST_ITEM_HANDLE)(index + 1)); // See my_singlylinkedlist_remove to see why.
+            if (condition_function(list_items[index], match_context, &continue_processing))
+            {
+                (void)mock_hook_singlylinkedlist_remove(list, (LIST_ITEM_HANDLE)(index + 1)); // See my_singlylinkedlist_remove to see why.
+            }
         }
     }
 
-    return 0;
+    return singlylinkedlist_remove_if_result;
 }
 
 MU_DEFINE_ENUM_STRINGS(UMOCK_C_ERROR_CODE, UMOCK_C_ERROR_CODE_VALUES)
@@ -1968,6 +1972,30 @@ TEST_FUNCTION(on_amqp_management_operation_complete_with_OK_triggers_the_cbs_ope
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
     // cleanup
+    cbs_destroy(cbs);
+}
+
+TEST_FUNCTION(on_amqp_management_operation_complete_does_not_destroy_operation_when_list_removal_fails)
+{
+    // arrange
+    CBS_HANDLE cbs = cbs_create(test_session_handle);
+    (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
+    (void)cbs_put_token_async(cbs, "some_type", "my_audience", "my_token", test_on_cbs_put_token_complete, (void*)0x4244);
+    umock_c_reset_all_calls();
+    singlylinkedlist_remove_if_result = 1;
+
+    STRICT_EXPECTED_CALL(test_on_cbs_put_token_complete((void*)0x4244, CBS_OPERATION_RESULT_OK, 200, "blah"));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove_if(test_singlylinkedlist, IGNORED_ARG, IGNORED_ARG));
+
+    // act
+    saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_OK, 200, "blah", test_response_message);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    singlylinkedlist_remove_if_result = 0;
     cbs_destroy(cbs);
 }
 

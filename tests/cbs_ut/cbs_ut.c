@@ -1990,12 +1990,12 @@ TEST_FUNCTION(on_amqp_management_operation_complete_does_not_destroy_operation_w
 
     // act
     saved_on_execute_operation_complete(saved_on_execute_operation_complete_context, AMQP_MANAGEMENT_EXECUTE_OPERATION_OK, 200, "blah", test_response_message);
+    singlylinkedlist_remove_if_result = 0;
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
     // cleanup
-    singlylinkedlist_remove_if_result = 0;
     cbs_destroy(cbs);
 }
 

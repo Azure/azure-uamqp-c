@@ -1006,6 +1006,7 @@ TEST_FUNCTION(link_transfer_async_success)
     payload.length = 0;
     const size_t message_count = 1;
     uint8_t async_op_result[128];
+    void* expected_callback_context = async_op_result;
     unsigned char delivery_tag_bytes[10];
     delivery_tag moot_delivery_tag;
     moot_delivery_tag.bytes = delivery_tag_bytes;
@@ -1026,6 +1027,7 @@ TEST_FUNCTION(link_transfer_async_success)
     STRICT_EXPECTED_CALL(tickcounter_get_current_ms(IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(singlylinkedlist_add(IGNORED_ARG, IGNORED_ARG));
     STRICT_EXPECTED_CALL(session_send_transfer(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG))
+        .ValidateArgumentValue_callback_context(&expected_callback_context)
         .SetReturn(SESSION_SEND_TRANSFER_OK);
     STRICT_EXPECTED_CALL(amqpvalue_destroy(IGNORED_ARG));
     STRICT_EXPECTED_CALL(transfer_destroy(IGNORED_ARG));

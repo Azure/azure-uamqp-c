@@ -2190,7 +2190,7 @@ TEST_FUNCTION(on_message_received_with_NULL_context_does_nothing)
 /* Tests_SRS_AMQP_MANAGEMENT_01_071: [ statusCode integer Yes HTTP response code [RFC2616] ]*/
 /* Tests_SRS_AMQP_MANAGEMENT_01_072: [ statusDescription string No Description of the status. ]*/
 /* Tests_SRS_AMQP_MANAGEMENT_01_074: [ Successful operations MUST result in a statusCode in the 2xx range as defined in Section 10.2 of [RFC2616]. ]*/
-/* Tests_SRS_AMQP_MANAGEMENT_01_166: [ The `message` shall be passed as argument to the callback. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_184: [ The `message` shall be passed as argument to the callback. ]*/
 TEST_FUNCTION(on_message_received_with_a_valid_message_indicates_the_operation_complete)
 {
     // arrange
@@ -4253,10 +4253,10 @@ TEST_FUNCTION(amqp_management_set_trace_with_NULL_handle_does_nothing)
 
 /* amqp_management_set_override_status_code_key_name */
 
-/* Tests_SRS_AMQP_MANAGEMENT_01_167: [ `amqp_management_set_override_status_code_key_name` shall set the status code key name used to parse the status code from the reply messages to `override_status_code_key_name`. ]*/
-/* Tests_SRS_AMQP_MANAGEMENT_01_170: [ On success, `amqp_management_set_override_status_code_key_name` shall return 0. ]*/
-/* Tests_SRS_AMQP_MANAGEMENT_01_168: [ `amqp_management_set_override_status_code_key_name` shall copy the `override_status_code_key_name` string. ]*/
-/* Tests_SRS_AMQP_MANAGEMENT_01_169: [ `amqp_management_set_override_status_code_key_name` shall free any string previously used for the status code key name. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_185: [ `amqp_management_set_override_status_code_key_name` shall set the status code key name used to parse the status code from the reply messages to `override_status_code_key_name`. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_188: [ On success, `amqp_management_set_override_status_code_key_name` shall return 0. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_186: [ `amqp_management_set_override_status_code_key_name` shall copy the `override_status_code_key_name` string. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_187: [ `amqp_management_set_override_status_code_key_name` shall free any string previously used for the status code key name. ]*/
 TEST_FUNCTION(amqp_management_set_override_status_code_key_name_succeeds)
 {
     // arrange
@@ -4280,7 +4280,7 @@ TEST_FUNCTION(amqp_management_set_override_status_code_key_name_succeeds)
     amqp_management_destroy(amqp_management);
 }
 
-/* Tests_SRS_AMQP_MANAGEMENT_01_171: [ If `amqp_management` is NULL, `amqp_management_set_override_status_code_key_name` shall fail and return a non-zero value. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_189: [ If `amqp_management` is NULL, `amqp_management_set_override_status_code_key_name` shall fail and return a non-zero value. ]*/
 TEST_FUNCTION(amqp_management_set_override_status_code_key_name_with_NULL_handle_fails)
 {
     // arrange
@@ -4294,7 +4294,7 @@ TEST_FUNCTION(amqp_management_set_override_status_code_key_name_with_NULL_handle
     ASSERT_ARE_NOT_EQUAL(int, 0, result);
 }
 
-/* Tests_SRS_AMQP_MANAGEMENT_01_172: [ If `override_status_code_key_name` is NULL, `amqp_management_set_override_status_code_key_name` shall fail and return a non-zero value. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_190: [ If `override_status_code_key_name` is NULL, `amqp_management_set_override_status_code_key_name` shall fail and return a non-zero value. ]*/
 TEST_FUNCTION(amqp_management_set_override_status_code_key_name_with_NULL_string_fails)
 {
     // arrange
@@ -4315,7 +4315,7 @@ TEST_FUNCTION(amqp_management_set_override_status_code_key_name_with_NULL_string
     amqp_management_destroy(amqp_management);
 }
 
-/* Tests_SRS_AMQP_MANAGEMENT_01_173: [ If any error occurs in copying the `override_status_code_key_name` string, `amqp_management_set_override_status_code_key_name` shall fail and return a non-zero value. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_191: [ If any error occurs in copying the `override_status_code_key_name` string, `amqp_management_set_override_status_code_key_name` shall fail and return a non-zero value. ]*/
 TEST_FUNCTION(when_copying_the_string_fails_amqp_management_set_override_status_code_key_name_fails)
 {
     // arrange
@@ -4339,7 +4339,7 @@ TEST_FUNCTION(when_copying_the_string_fails_amqp_management_set_override_status_
     amqp_management_destroy(amqp_management);
 }
 
-/* Tests_SRS_AMQP_MANAGEMENT_01_167: [ `amqp_management_set_override_status_code_key_name` shall set the status code key name used to parse the status code from the reply messages to `override_status_code_key_name`. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_185: [ `amqp_management_set_override_status_code_key_name` shall set the status code key name used to parse the status code from the reply messages to `override_status_code_key_name`. ]*/
 TEST_FUNCTION(when_amqp_management_set_override_status_code_key_name_is_called_the_override_status_code_key_name_is_used)
 {
     // arrange
@@ -4409,10 +4409,10 @@ TEST_FUNCTION(when_amqp_management_set_override_status_code_key_name_is_called_t
 
 /* amqp_management_set_override_status_description_key_name */
 
-/* Tests_SRS_AMQP_MANAGEMENT_01_174: [ `amqp_management_set_override_status_description_key_name` shall set the status description key name used to parse the status description from the reply messages to `over ride_status_description_key_name`.]*/
-/* Tests_SRS_AMQP_MANAGEMENT_01_175: [ `amqp_management_set_override_status_description_key_name` shall copy the `override_status_description_key_name` string. ]*/
-/* Tests_SRS_AMQP_MANAGEMENT_01_176: [ `amqp_management_set_override_status_description_key_name` shall free any string previously used for the status description key name. ]*/
-/* Tests_SRS_AMQP_MANAGEMENT_01_177: [ On success, `amqp_management_set_override_status_description_key_name` shall return 0. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_192: [ `amqp_management_set_override_status_description_key_name` shall set the status description key name used to parse the status description from the reply messages to `over ride_status_description_key_name`.]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_193: [ `amqp_management_set_override_status_description_key_name` shall copy the `override_status_description_key_name` string. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_194: [ `amqp_management_set_override_status_description_key_name` shall free any string previously used for the status description key name. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_195: [ On success, `amqp_management_set_override_status_description_key_name` shall return 0. ]*/
 TEST_FUNCTION(amqp_management_set_override_status_description_key_name_succeeds)
 {
     // arrange
@@ -4436,7 +4436,7 @@ TEST_FUNCTION(amqp_management_set_override_status_description_key_name_succeeds)
     amqp_management_destroy(amqp_management);
 }
 
-/* Tests_SRS_AMQP_MANAGEMENT_01_178: [ If `amqp_management` is NULL, `amqp_management_set_override_status_description_key_name` shall fail and return a non-zero value. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_196: [ If `amqp_management` is NULL, `amqp_management_set_override_status_description_key_name` shall fail and return a non-zero value. ]*/
 TEST_FUNCTION(amqp_management_set_override_status_description_key_name_with_NULL_handle_fails)
 {
     // arrange
@@ -4450,7 +4450,7 @@ TEST_FUNCTION(amqp_management_set_override_status_description_key_name_with_NULL
     ASSERT_ARE_NOT_EQUAL(int, 0, result);
 }
 
-/* Tests_SRS_AMQP_MANAGEMENT_01_179: [ If `override_status_description_key_name` is NULL, `amqp_management_set_override_status_description_key_name` shall fail and return a non-zero value. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_197: [ If `override_status_description_key_name` is NULL, `amqp_management_set_override_status_description_key_name` shall fail and return a non-zero value. ]*/
 TEST_FUNCTION(amqp_management_set_override_status_description_key_name_with_NULL_string_fails)
 {
     // arrange
@@ -4471,7 +4471,7 @@ TEST_FUNCTION(amqp_management_set_override_status_description_key_name_with_NULL
     amqp_management_destroy(amqp_management);
 }
 
-/* Tests_SRS_AMQP_MANAGEMENT_01_180: [ If any error occurs in copying the `override_status_description_key_name` string, `amqp_management_set_override_status_description_key_name` shall fail and return a non-zero value. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_198: [ If any error occurs in copying the `override_status_description_key_name` string, `amqp_management_set_override_status_description_key_name` shall fail and return a non-zero value. ]*/
 TEST_FUNCTION(when_copying_the_string_fails_amqp_management_set_override_status_description_key_name_fails)
 {
     // arrange
@@ -4563,7 +4563,7 @@ TEST_FUNCTION(amqp_management_fails_if_response_to_operation_is_received_before_
     amqp_management_destroy(amqp_management);
 }
 
-/* Tests_SRS_AMQP_MANAGEMENT_01_174: [ `amqp_management_set_override_status_description_key_name` shall set the status description key name used to parse the status description from the reply messages to `over ride_status_description_key_name`.]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_192: [ `amqp_management_set_override_status_description_key_name` shall set the status description key name used to parse the status description from the reply messages to `over ride_status_description_key_name`.]*/
 TEST_FUNCTION(when_amqp_management_set_override_status_description_key_name_is_called_the_override_status_code_key_name_is_used)
 {
     // arrange

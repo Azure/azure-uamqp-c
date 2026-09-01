@@ -187,6 +187,8 @@ static void on_underlying_amqp_management_error(void* context)
     }
 }
 
+static bool match_pending_cbs_operation(const void* item, const void* match_context, bool* continue_processing);
+
 static void on_amqp_management_execute_operation_complete(void* context, AMQP_MANAGEMENT_EXECUTE_OPERATION_RESULT execute_operation_result, unsigned int status_code, const char* status_description, MESSAGE_HANDLE message)
 {
     if (context == NULL)
@@ -196,8 +198,8 @@ static void on_amqp_management_execute_operation_complete(void* context, AMQP_MA
     }
     else
     {
-        /* Codes_SRS_CBS_01_103: [ The `context` shall be used to obtain the pending operation information stored in the pending operations linked list by calling `singlylinkedlist_item_get_value`. ]*/
-        CBS_OPERATION* cbs_operation = (CBS_OPERATION*)singlylinkedlist_item_get_value((LIST_ITEM_HANDLE)context);
+        /* Codes_SRS_CBS_01_103: [ The `context` shall provide the pending operation information. ]*/
+        CBS_OPERATION* cbs_operation = (CBS_OPERATION*)context;
         CBS_OPERATION_RESULT cbs_operation_result;
 
         (void)message;
@@ -246,8 +248,8 @@ static void on_amqp_management_execute_operation_complete(void* context, AMQP_MA
             /* Codes_SRS_CBS_01_029: [ The body of the message MUST be empty. ]*/
             cbs_operation->on_cbs_operation_complete(cbs_operation->on_cbs_operation_complete_context, cbs_operation_result, status_code, status_description);
 
-            /* Codes_SRS_CBS_01_102: [ The pending operation shall be removed from the pending operations list by calling `singlylinkedlist_remove`. ]*/
-            if (singlylinkedlist_remove(cbs_operation->pending_operations, (LIST_ITEM_HANDLE)context) != 0)
+            /* Codes_SRS_CBS_01_102: [ The pending operation shall be removed from the pending operations list. ]*/
+            if (singlylinkedlist_remove_if(cbs_operation->pending_operations, match_pending_cbs_operation, cbs_operation) != 0)
             {
                 LogError("Failed removing operation from the pending list");
             }
@@ -485,6 +487,13 @@ static bool remove_pending_cbs_operation(const void* item, const void* match_con
     return result;
 }
 
+static bool match_pending_cbs_operation(const void* item, const void* match_context, bool* continue_processing)
+{
+    bool result = (item == match_context);
+    *continue_processing = !result;
+    return result;
+}
+
 // Codes_SRS_CBS_09_001: [ The `ASYNC_OPERATION_HANDLE` cancel function shall cancel the underlying amqp management operation, remove this operation from the pending list, destroy this async operation. ]
 static void cbs_put_token_cancel_handler(ASYNC_OPERATION_HANDLE put_token_operation)
 {
@@ -614,7 +623,7 @@ ASYNC_OPERATION_HANDLE cbs_put_token_async(CBS_HANDLE cbs, const char* type, con
                                         /* Codes_SRS_CBS_01_006: [ Type    No    string    The type of the token being put, e.g., "amqp:jwt". ]*/
                                         /* Codes_SRS_CBS_01_007: [ name    No    string    The "audience" to which the token applies. ]*/
                                         
-                                        cbs_operation->amqp_management_async_context = amqp_management_execute_operation_async(cbs->amqp_management, "put-token", type, NULL, message, on_amqp_management_execute_operation_complete, list_item);
+                                        cbs_operation->amqp_management_async_context = amqp_management_execute_operation_async(cbs->amqp_management, "put-token", type, NULL, message, on_amqp_management_execute_operation_complete, cbs_operation);
 
                                         if (cbs_operation->amqp_management_async_context == NULL)
                                         {
@@ -743,7 +752,7 @@ ASYNC_OPERATION_HANDLE cbs_delete_token_async(CBS_HANDLE cbs, const char* type, 
                                 /* Codes_SRS_CBS_01_022: [ operation    Yes    string    "delete-token" ]*/
                                 /* Codes_SRS_CBS_01_023: [ Type    Yes    string    The type of the token being deleted, e.g., "amqp:jwt". ]*/
                                 /* Codes_SRS_CBS_01_024: [ name    Yes    string    The "audience" of the token being deleted. ]*/
-                                cbs_operation->amqp_management_async_context = amqp_management_execute_operation_async(cbs->amqp_management, "delete-token", type, NULL, message, on_amqp_management_execute_operation_complete, list_item);
+                                cbs_operation->amqp_management_async_context = amqp_management_execute_operation_async(cbs->amqp_management, "delete-token", type, NULL, message, on_amqp_management_execute_operation_complete, cbs_operation);
                                 
                                 if (cbs_operation->amqp_management_async_context == NULL)
                                 {

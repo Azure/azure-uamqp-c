@@ -292,7 +292,7 @@ AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE message)
 
 **SRS_AMQP_MANAGEMENT_01_126: [** If a corresponding correlation Id is found in the pending operations list, the callback associated with the pending operation shall be called. **]**
 
-**SRS_AMQP_MANAGEMENT_01_166: [** The `message` shall be passed as argument to the callback. **]**
+**SRS_AMQP_MANAGEMENT_01_184: [** The `message` shall be passed as argument to the callback. **]**
 
 **SRS_AMQP_MANAGEMENT_01_127: [** If the operation succeeded the result callback argument shall be `AMQP_MANAGEMENT_EXECUTE_OPERATION_OK`. **]**
 
@@ -420,21 +420,21 @@ void amqp_management_set_trace(AMQP_MANAGEMENT_HANDLE amqp_management, bool trac
 int amqp_management_set_override_status_code_key_name(AMQP_MANAGEMENT_HANDLE amqp_management, const char* override_status_code_key_name);
 ```
 
-**SRS_AMQP_MANAGEMENT_01_167: [** `amqp_management_set_override_status_code_key_name` shall set the status code key name used to parse the status code from the reply messages to `override_status_code_key_name`. **]**
+**SRS_AMQP_MANAGEMENT_01_185: [** `amqp_management_set_override_status_code_key_name` shall set the status code key name used to parse the status code from the reply messages to `override_status_code_key_name`. **]**
 
 This is in order to allow endpoints like CBS to use values different than what is in the AMQP Management WD.
 
-**SRS_AMQP_MANAGEMENT_01_168: [** `amqp_management_set_override_status_code_key_name` shall copy the `override_status_code_key_name` string. **]**
+**SRS_AMQP_MANAGEMENT_01_186: [** `amqp_management_set_override_status_code_key_name` shall copy the `override_status_code_key_name` string. **]**
 
-**SRS_AMQP_MANAGEMENT_01_169: [** `amqp_management_set_override_status_code_key_name` shall free any string previously used for the status code key name. **]**
+**SRS_AMQP_MANAGEMENT_01_187: [** `amqp_management_set_override_status_code_key_name` shall free any string previously used for the status code key name. **]**
 
-**SRS_AMQP_MANAGEMENT_01_170: [** On success, `amqp_management_set_override_status_code_key_name` shall return 0. **]**
+**SRS_AMQP_MANAGEMENT_01_188: [** On success, `amqp_management_set_override_status_code_key_name` shall return 0. **]**
 
-**SRS_AMQP_MANAGEMENT_01_171: [** If `amqp_management` is NULL, `amqp_management_set_override_status_code_key_name` shall fail and return a non-zero value. **]**
+**SRS_AMQP_MANAGEMENT_01_189: [** If `amqp_management` is NULL, `amqp_management_set_override_status_code_key_name` shall fail and return a non-zero value. **]**
 
-**SRS_AMQP_MANAGEMENT_01_172: [** If `override_status_code_key_name` is NULL, `amqp_management_set_override_status_code_key_name` shall fail and return a non-zero value. **]**
+**SRS_AMQP_MANAGEMENT_01_190: [** If `override_status_code_key_name` is NULL, `amqp_management_set_override_status_code_key_name` shall fail and return a non-zero value. **]**
 
-**SRS_AMQP_MANAGEMENT_01_173: [** If any error occurs in copying the `override_status_code_key_name` string, `amqp_management_set_override_status_code_key_name` shall fail and return a non-zero value. **]**
+**SRS_AMQP_MANAGEMENT_01_191: [** If any error occurs in copying the `override_status_code_key_name` string, `amqp_management_set_override_status_code_key_name` shall fail and return a non-zero value. **]**
 
 ### amqp_management_set_override_status_description_key_name
 
@@ -442,21 +442,21 @@ This is in order to allow endpoints like CBS to use values different than what i
 int amqp_management_set_override_status_description_key_name(AMQP_MANAGEMENT_HANDLE amqp_management, const char* override_status_description_key_name);
 ```
 
-**SRS_AMQP_MANAGEMENT_01_174: [** `amqp_management_set_override_status_description_key_name` shall set the status description key name used to parse the status description from the reply messages to `over ride_status_description_key_name`.**]**
+**SRS_AMQP_MANAGEMENT_01_192: [** `amqp_management_set_override_status_description_key_name` shall set the status description key name used to parse the status description from the reply messages to `over ride_status_description_key_name`.**]**
 
 This is in order to allow endpoints like CBS to use values different than what is in the AMQP Management WD.
 
-**SRS_AMQP_MANAGEMENT_01_175: [** `amqp_management_set_override_status_description_key_name` shall copy the `override_status_description_key_name` string. **]**
+**SRS_AMQP_MANAGEMENT_01_193: [** `amqp_management_set_override_status_description_key_name` shall copy the `override_status_description_key_name` string. **]**
 
-**SRS_AMQP_MANAGEMENT_01_176: [** `amqp_management_set_override_status_description_key_name` shall free any string previously used for the status description key name. **]**
+**SRS_AMQP_MANAGEMENT_01_194: [** `amqp_management_set_override_status_description_key_name` shall free any string previously used for the status description key name. **]**
 
-**SRS_AMQP_MANAGEMENT_01_177: [** On success, `amqp_management_set_override_status_description_key_name` shall return 0. **]**
+**SRS_AMQP_MANAGEMENT_01_195: [** On success, `amqp_management_set_override_status_description_key_name` shall return 0. **]**
 
-**SRS_AMQP_MANAGEMENT_01_178: [** If `amqp_management` is NULL, `amqp_management_set_override_status_description_key_name` shall fail and return a non-zero value. **]**
+**SRS_AMQP_MANAGEMENT_01_196: [** If `amqp_management` is NULL, `amqp_management_set_override_status_description_key_name` shall fail and return a non-zero value. **]**
 
-**SRS_AMQP_MANAGEMENT_01_179: [** If `override_status_description_key_name` is NULL, `amqp_management_set_override_status_description_key_name` shall fail and return a non-zero value. **]**
+**SRS_AMQP_MANAGEMENT_01_197: [** If `override_status_description_key_name` is NULL, `amqp_management_set_override_status_description_key_name` shall fail and return a non-zero value. **]**
 
-**SRS_AMQP_MANAGEMENT_01_180: [** If any error occurs in copying the `override_status_description_key_name` string, `amqp_management_set_override_status_description_key_name` shall fail and return a non-zero value. **]**
+**SRS_AMQP_MANAGEMENT_01_198: [** If any error occurs in copying the `override_status_description_key_name` string, `amqp_management_set_override_status_description_key_name` shall fail and return a non-zero value. **]**
 
 ### Relevant sections from the AMQP Management spec
 

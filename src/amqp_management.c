@@ -264,7 +264,7 @@ static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE messag
                                                         }
 
                                                         /* Codes_SRS_AMQP_MANAGEMENT_01_126: [ If a corresponding correlation Id is found in the pending operations list, the callback associated with the pending operation shall be called. ]*/
-                                                        /* Codes_SRS_AMQP_MANAGEMENT_01_166: [ The `message` shall be passed as argument to the callback. ]*/
+                                                        /* Codes_SRS_AMQP_MANAGEMENT_01_184: [ The `message` shall be passed as argument to the callback. ]*/
                                                         if (operation_message->on_execute_operation_complete != NULL)
                                                         {
                                                             // Check for NULL in case operation has been cancelled.
@@ -1345,9 +1345,9 @@ int amqp_management_set_override_status_code_key_name(AMQP_MANAGEMENT_HANDLE amq
 {
     int result;
 
-    /* Codes_SRS_AMQP_MANAGEMENT_01_171: [ If `amqp_management` is NULL, `amqp_management_set_override_status_code_key_name` shall fail and return a non-zero value. ]*/
+    /* Codes_SRS_AMQP_MANAGEMENT_01_189: [ If `amqp_management` is NULL, `amqp_management_set_override_status_code_key_name` shall fail and return a non-zero value. ]*/
     if ((amqp_management == NULL) ||
-        /* Codes_SRS_AMQP_MANAGEMENT_01_172: [ If `override_status_code_key_name` is NULL, `amqp_management_set_override_status_code_key_name` shall fail and return a non-zero value. ]*/
+        /* Codes_SRS_AMQP_MANAGEMENT_01_190: [ If `override_status_code_key_name` is NULL, `amqp_management_set_override_status_code_key_name` shall fail and return a non-zero value. ]*/
         (override_status_code_key_name == NULL))
     {
         LogError("Bad arguments: amqp_management = %p, override_status_code_key_name = %s",
@@ -1356,18 +1356,18 @@ int amqp_management_set_override_status_code_key_name(AMQP_MANAGEMENT_HANDLE amq
     }
     else
     {
-        /* Codes_SRS_AMQP_MANAGEMENT_01_167: [ `amqp_management_set_override_status_code_key_name` shall set the status code key name used to parse the status code from the reply messages to `override_status_code_key_name`. ]*/
-        /* Codes_SRS_AMQP_MANAGEMENT_01_168: [ `amqp_management_set_override_status_code_key_name` shall copy the `override_status_code_key_name` string. ]*/
-        /* Codes_SRS_AMQP_MANAGEMENT_01_169: [ `amqp_management_set_override_status_code_key_name` shall free any string previously used for the status code key name. ]*/
+        /* Codes_SRS_AMQP_MANAGEMENT_01_185: [ `amqp_management_set_override_status_code_key_name` shall set the status code key name used to parse the status code from the reply messages to `override_status_code_key_name`. ]*/
+        /* Codes_SRS_AMQP_MANAGEMENT_01_186: [ `amqp_management_set_override_status_code_key_name` shall copy the `override_status_code_key_name` string. ]*/
+        /* Codes_SRS_AMQP_MANAGEMENT_01_187: [ `amqp_management_set_override_status_code_key_name` shall free any string previously used for the status code key name. ]*/
         if (internal_set_status_code_key_name(amqp_management, override_status_code_key_name) != 0)
         {
-            /* Codes_SRS_AMQP_MANAGEMENT_01_173: [ If any error occurs in copying the `override_status_code_key_name` string, `amqp_management_set_override_status_code_key_name` shall fail and return a non-zero value. ]*/
+            /* Codes_SRS_AMQP_MANAGEMENT_01_191: [ If any error occurs in copying the `override_status_code_key_name` string, `amqp_management_set_override_status_code_key_name` shall fail and return a non-zero value. ]*/
             LogError("Cannot set status code key name");
             result = MU_FAILURE;
         }
         else
         {
-            /* Codes_SRS_AMQP_MANAGEMENT_01_170: [ On success, `amqp_management_set_override_status_code_key_name` shall return 0. ]*/
+            /* Codes_SRS_AMQP_MANAGEMENT_01_188: [ On success, `amqp_management_set_override_status_code_key_name` shall return 0. ]*/
             result = 0;
         }
     }
@@ -1379,9 +1379,9 @@ int amqp_management_set_override_status_description_key_name(AMQP_MANAGEMENT_HAN
 {
     int result;
 
-    /* Codes_SRS_AMQP_MANAGEMENT_01_178: [ If `amqp_management` is NULL, `amqp_management_set_override_status_description_key_name` shall fail and return a non-zero value. ]*/
+    /* Codes_SRS_AMQP_MANAGEMENT_01_196: [ If `amqp_management` is NULL, `amqp_management_set_override_status_description_key_name` shall fail and return a non-zero value. ]*/
     if ((amqp_management == NULL) ||
-        /* Tests_SRS_AMQP_MANAGEMENT_01_179: [ If `override_status_description_key_name` is NULL, `amqp_management_set_override_status_description_key_name` shall fail and return a non-zero value. ]*/
+        /* Tests_SRS_AMQP_MANAGEMENT_01_197: [ If `override_status_description_key_name` is NULL, `amqp_management_set_override_status_description_key_name` shall fail and return a non-zero value. ]*/
         (override_status_description_key_name == NULL))
     {
         LogError("Bad arguments: amqp_management = %p, override_status_description_key_name = %s",
@@ -1390,13 +1390,13 @@ int amqp_management_set_override_status_description_key_name(AMQP_MANAGEMENT_HAN
     }
     else
     {
-        /* Codes_SRS_AMQP_MANAGEMENT_01_174: [ `amqp_management_set_override_status_description_key_name` shall set the status description key name used to parse the status description from the reply messages to `over ride_status_description_key_name`.]*/
-        /* Codes_SRS_AMQP_MANAGEMENT_01_175: [ `amqp_management_set_override_status_description_key_name` shall copy the `override_status_description_key_name` string. ]*/
-        /* Codes_SRS_AMQP_MANAGEMENT_01_176: [ `amqp_management_set_override_status_description_key_name` shall free any string previously used for the status description key name. ]*/
-        /* Codes_SRS_AMQP_MANAGEMENT_01_177: [ On success, `amqp_management_set_override_status_description_key_name` shall return 0. ]*/
+        /* Codes_SRS_AMQP_MANAGEMENT_01_192: [ `amqp_management_set_override_status_description_key_name` shall set the status description key name used to parse the status description from the reply messages to `over ride_status_description_key_name`.]*/
+        /* Codes_SRS_AMQP_MANAGEMENT_01_193: [ `amqp_management_set_override_status_description_key_name` shall copy the `override_status_description_key_name` string. ]*/
+        /* Codes_SRS_AMQP_MANAGEMENT_01_194: [ `amqp_management_set_override_status_description_key_name` shall free any string previously used for the status description key name. ]*/
+        /* Codes_SRS_AMQP_MANAGEMENT_01_195: [ On success, `amqp_management_set_override_status_description_key_name` shall return 0. ]*/
         if (internal_set_status_description_key_name(amqp_management, override_status_description_key_name) != 0)
         {
-            /* Codes_SRS_AMQP_MANAGEMENT_01_180: [ If any error occurs in copying the `override_status_description_key_name` string, `amqp_management_set_override_status_description_key_name` shall fail and return a non-zero value. ]*/
+            /* Codes_SRS_AMQP_MANAGEMENT_01_198: [ If any error occurs in copying the `override_status_description_key_name` string, `amqp_management_set_override_status_description_key_name` shall fail and return a non-zero value. ]*/
             LogError("Cannot set status description key name");
             result = MU_FAILURE;
         }

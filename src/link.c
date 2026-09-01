@@ -690,10 +690,11 @@ static void on_session_flow_on(void* context)
     }
 }
 
+static bool remove_pending_delivery_condition_function(const void* item, const void* match_context, bool* continue_processing);
+
 static void on_send_complete(void* context, IO_SEND_RESULT send_result)
 {
-    LIST_ITEM_HANDLE delivery_instance_list_item = (LIST_ITEM_HANDLE)context;
-    ASYNC_OPERATION_HANDLE pending_delivery_operation = (ASYNC_OPERATION_HANDLE)singlylinkedlist_item_get_value(delivery_instance_list_item);
+    ASYNC_OPERATION_HANDLE pending_delivery_operation = (ASYNC_OPERATION_HANDLE)context;
     if (pending_delivery_operation != NULL)
     {
         DELIVERY_INSTANCE* delivery_instance = (DELIVERY_INSTANCE*)GET_ASYNC_OPERATION_CONTEXT(DELIVERY_INSTANCE, pending_delivery_operation);
@@ -706,8 +707,14 @@ static void on_send_complete(void* context, IO_SEND_RESULT send_result)
                 link->snd_settle_mode == sender_settle_mode_settled)
             {
                 delivery_instance->on_delivery_settled(delivery_instance->callback_context, delivery_instance->delivery_id, send_result == IO_SEND_OK ? LINK_DELIVERY_SETTLE_REASON_SETTLED : LINK_DELIVERY_SETTLE_REASON_NOT_DELIVERED, NULL);
-                async_operation_destroy(pending_delivery_operation);
-                (void)singlylinkedlist_remove(link->pending_deliveries, delivery_instance_list_item);
+                if (singlylinkedlist_remove_if(link->pending_deliveries, remove_pending_delivery_condition_function, pending_delivery_operation) != 0)
+                {
+                    LogError("Cannot remove pending delivery");
+                }
+                else
+                {
+                    async_operation_destroy(pending_delivery_operation);
+                }
             }
         }
     }
@@ -1495,7 +1502,7 @@ ASYNC_OPERATION_HANDLE link_transfer_async(LINK_HANDLE link, message_format mess
                                     else
                                     {
                                         /* here we should feed data to the transfer frame */
-                                        switch (session_send_transfer(link->link_endpoint, transfer, payloads, payload_count, &pending_delivery->delivery_id, (settled) ? on_send_complete : NULL, delivery_instance_list_item))
+                                        switch (session_send_transfer(link->link_endpoint, transfer, payloads, payload_count, &pending_delivery->delivery_id, (settled) ? on_send_complete : NULL, result))
                                         {
                                         default:
                                         case SESSION_SEND_TRANSFER_ERROR:

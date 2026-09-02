@@ -556,14 +556,14 @@ int <#= type_name #>_set_<#= field_name #>(<#= type_name.ToUpper() #>_HANDLE <#=
 <#              { #>
 <#                  if (!hasDescriptor) #>
 <#                  { #>
-AMQP_VALUE amqpvalue_create_<#= type_name.ToLower() #>(<#= Program.GetTypedefName(type_name.ToLower()) #> value)
+AMQP_VALUE amqpvalue_create_<#= type_name.ToLower() #>(<#= Program.GetTypedefName(type_name) #> value)
 {
     return amqpvalue_create_<#= type.source.ToLower().Replace('-', '_').Replace(':', '_') #>(value);
 }
 <#                  } #>
 <#                  else #>
 <#                  { #>
-AMQP_VALUE amqpvalue_create_<#= type_name.ToLower() #>(<#= Program.GetTypedefName(type_name.ToLower()) #> value)
+AMQP_VALUE amqpvalue_create_<#= type_name.ToLower() #>(<#= Program.GetTypedefName(type_name) #> value)
 {
     AMQP_VALUE result;
     AMQP_VALUE described_value = amqpvalue_create_<#= type.source.ToLower().Replace('-', '_').Replace(':', '_') #>(value);

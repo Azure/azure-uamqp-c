@@ -58,11 +58,11 @@ extern "C" {
 <#          if (type.@class == typeClass.restricted) #>
 <#          { #>
 <#              string c_type = Program.GetCType(type.source, false).Replace('-', '_').Replace(':', '_'); #>
-<#              string typedef_name = Program.GetTypedefName(type_name.ToLower()); #>
+<#              string typedef_name = Program.GetTypedefName(type_name); #>
 
     typedef <#= c_type #> <#= typedef_name #>;
 
-<#              if (Program.NeedsLegacyTypedefAlias(type_name.ToLower())) #>
+<#              if (Program.NeedsLegacyTypedefAlias(type_name)) #>
 <#              { #>
     /* <#= type_name.ToLower() #> is kept for backwards compatibility. It is an unqualified global
        name that can be ambiguous in C++ translation units (for example against std::data).

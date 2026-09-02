@@ -38,22 +38,25 @@ namespace amqplib_generator
         // C++17 declares in <iterator>). For those types the typedef is emitted with an
         // "amqp_" prefix; the unprefixed name is still emitted as a backwards compatible alias
         // unless the consumer opts out.
-        private static readonly HashSet<string> reserved_typedef_names = new HashSet<string>
+        private static readonly HashSet<string> reserved_typedef_names = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "data"
         };
 
         // The C identifier used for a restricted type's typedef. Only the typedef is affected;
         // function, macro and header file names keep deriving from the AMQP type name so that
-        // the published API surface is unchanged.
+        // the published API surface is unchanged. The name is normalised with
+        // ToLowerInvariant so the emitted identifier does not depend on the build machine's
+        // culture.
         public static string GetTypedefName(string type_name)
         {
-            return reserved_typedef_names.Contains(type_name) ? "amqp_" + type_name : type_name;
+            string normalized_type_name = type_name.ToLowerInvariant();
+            return NeedsLegacyTypedefAlias(normalized_type_name) ? "amqp_" + normalized_type_name : normalized_type_name;
         }
 
         public static bool NeedsLegacyTypedefAlias(string type_name)
         {
-            return reserved_typedef_names.Contains(type_name);
+            return reserved_typedef_names.Contains(type_name.ToLowerInvariant());
         }
 
         public static string GetCType(string amqp_type, bool multiple)

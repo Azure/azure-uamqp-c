@@ -386,7 +386,7 @@ namespace amqplib_generator
             #line hidden
             
             #line 61 "C:\code\s1\azure-uamqp-c\uamqp_generator\amqp_definitions_type_h.tt"
-              string typedef_name = Program.GetTypedefName(type_name.ToLower()); 
+              string typedef_name = Program.GetTypedefName(type_name); 
             
             #line default
             #line hidden
@@ -407,7 +407,7 @@ namespace amqplib_generator
             this.Write(";\r\n\r\n");
             
             #line 65 "C:\code\s1\azure-uamqp-c\uamqp_generator\amqp_definitions_type_h.tt"
-              if (Program.NeedsLegacyTypedefAlias(type_name.ToLower())) 
+              if (Program.NeedsLegacyTypedefAlias(type_name)) 
             
             #line default
             #line hidden

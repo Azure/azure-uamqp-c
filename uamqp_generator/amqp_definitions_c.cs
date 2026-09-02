@@ -2433,7 +2433,7 @@ namespace amqplib_generator
             this.Write("(");
             
             #line 559 "C:\code\s1\azure-uamqp-c\uamqp_generator\amqp_definitions_c.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToLower()));
+            this.Write(this.ToStringHelper.ToStringWithCulture(Program.GetTypedefName(type_name)));
             
             #line default
             #line hidden
@@ -2473,7 +2473,7 @@ namespace amqplib_generator
             this.Write("(");
             
             #line 566 "C:\code\s1\azure-uamqp-c\uamqp_generator\amqp_definitions_c.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(type_name.ToLower()));
+            this.Write(this.ToStringHelper.ToStringWithCulture(Program.GetTypedefName(type_name)));
             
             #line default
             #line hidden

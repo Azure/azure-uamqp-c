@@ -70,6 +70,7 @@ typedef struct LINK_INSTANCE_TAG
     delivery_number received_delivery_id;
     TICK_COUNTER_HANDLE tick_counter;
     ON_LINK_DETACH_EVENT_SUBSCRIPTION on_link_detach_received_event_subscription;
+    AMQP_VALUE last_error_delivery_state;
 } LINK_INSTANCE;
 
 DEFINE_ASYNC_OPERATION_CONTEXT(DELIVERY_INSTANCE);
@@ -85,7 +86,43 @@ static void set_link_state(LINK_INSTANCE* link_instance, LINK_STATE link_state)
     }
 }
 
-static void remove_all_pending_deliveries(LINK_INSTANCE* link, bool indicate_settled)
+static void set_last_error_delivery_state(LINK_INSTANCE* link_instance, AMQP_VALUE delivery_state)
+{
+    if (link_instance->last_error_delivery_state != NULL)
+    {
+        amqpvalue_destroy(link_instance->last_error_delivery_state);
+    }
+    link_instance->last_error_delivery_state = delivery_state;
+}
+
+static AMQP_VALUE create_error_delivery_state(const char* condition, const char* description)
+{
+    AMQP_VALUE result = NULL;
+    ERROR_HANDLE error = error_create(condition);
+
+    if (error != NULL)
+    {
+        if (description != NULL)
+        {
+            (void)error_set_description(error, description);
+        }
+
+        REJECTED_HANDLE rejected = rejected_create();
+        if (rejected != NULL)
+        {
+            if (rejected_set_error(rejected, error) == 0)
+            {
+                result = amqpvalue_create_rejected(rejected);
+            }
+            rejected_destroy(rejected);
+        }
+        error_destroy(error);
+    }
+
+    return result;
+}
+
+static void remove_all_pending_deliveries(LINK_INSTANCE* link, bool indicate_settled, AMQP_VALUE delivery_state)
 {
     if (link->pending_deliveries != NULL)
     {
@@ -99,7 +136,7 @@ static void remove_all_pending_deliveries(LINK_INSTANCE* link, bool indicate_set
                 DELIVERY_INSTANCE* delivery_instance = (DELIVERY_INSTANCE*)GET_ASYNC_OPERATION_CONTEXT(DELIVERY_INSTANCE, pending_delivery_operation);
                 if (indicate_settled && (delivery_instance->on_delivery_settled != NULL))
                 {
-                    delivery_instance->on_delivery_settled(delivery_instance->callback_context, delivery_instance->delivery_id, LINK_DELIVERY_SETTLE_REASON_NOT_DELIVERED, NULL);
+                    delivery_instance->on_delivery_settled(delivery_instance->callback_context, delivery_instance->delivery_id, LINK_DELIVERY_SETTLE_REASON_NOT_DELIVERED, delivery_state);
                 }
 
                 async_operation_destroy(pending_delivery_operation);
@@ -333,7 +370,7 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                 (attach_get_initial_delivery_count(attach_handle, &link_instance->delivery_count) != 0))
             {
                 LogError("Cannot get initial delivery count");
-                remove_all_pending_deliveries(link_instance, true);
+                remove_all_pending_deliveries(link_instance, true, NULL);
                 set_link_state(link_instance, LINK_STATE_DETACHED);
             }
             else
@@ -387,13 +424,13 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                 if (flow_get_link_credit(flow_handle, &rcv_link_credit) != 0)
                 {
                     LogError("Cannot get link credit");
-                    remove_all_pending_deliveries(link_instance, true);
+                    remove_all_pending_deliveries(link_instance, true, NULL);
                     set_link_state(link_instance, LINK_STATE_DETACHED);
                 }
                 else if (flow_get_delivery_count(flow_handle, &rcv_delivery_count) != 0)
                 {
                     LogError("Cannot get delivery count");
-                    remove_all_pending_deliveries(link_instance, true);
+                    remove_all_pending_deliveries(link_instance, true, NULL);
                     set_link_state(link_instance, LINK_STATE_DETACHED);
                 }
                 else
@@ -632,7 +669,31 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
             {
                 error = NULL;
             }
-            remove_all_pending_deliveries(link_instance, true);
+
+            // Construct a rejected delivery_state from the detach error so that
+            // pending delivery callbacks and message_sender receive actionable
+            // error information. Store it on the link for later retrieval.
+            if (error != NULL)
+            {
+                REJECTED_HANDLE rejected = rejected_create();
+                AMQP_VALUE error_delivery_state = NULL;
+                if (rejected != NULL)
+                {
+                    if (rejected_set_error(rejected, error) == 0)
+                    {
+                        error_delivery_state = amqpvalue_create_rejected(rejected);
+                    }
+                    rejected_destroy(rejected);
+                }
+                set_last_error_delivery_state(link_instance, error_delivery_state);
+            }
+            else
+            {
+                set_last_error_delivery_state(link_instance, NULL);
+            }
+
+            remove_all_pending_deliveries(link_instance, true, link_instance->last_error_delivery_state);
+
             // signal link detach received in order to handle cases like redirect
             if (link_instance->on_link_detach_received_event_subscription.on_link_detach_received != NULL)
             {
@@ -671,12 +732,54 @@ static void on_session_state_changed(void* context, SESSION_STATE new_session_st
     }
     else if (new_session_state == SESSION_STATE_DISCARDING)
     {
-        remove_all_pending_deliveries(link_instance, true);
+        // Use the real broker error from the session (END/CLOSE frame) if available,
+        // otherwise fall back to a synthetic error.
+        ERROR_HANDLE session_error = session_get_last_error(link_instance->session);
+        if (session_error != NULL)
+        {
+            REJECTED_HANDLE rejected = rejected_create();
+            AMQP_VALUE error_delivery_state = NULL;
+            if (rejected != NULL)
+            {
+                if (rejected_set_error(rejected, session_error) == 0)
+                {
+                    error_delivery_state = amqpvalue_create_rejected(rejected);
+                }
+                rejected_destroy(rejected);
+            }
+            set_last_error_delivery_state(link_instance, error_delivery_state);
+        }
+        else
+        {
+            set_last_error_delivery_state(link_instance,
+                create_error_delivery_state("amqp:connection:forced", "The session is being discarded"));
+        }
+        remove_all_pending_deliveries(link_instance, true, link_instance->last_error_delivery_state);
         set_link_state(link_instance, LINK_STATE_DETACHED);
     }
     else if (new_session_state == SESSION_STATE_ERROR)
     {
-        remove_all_pending_deliveries(link_instance, true);
+        ERROR_HANDLE session_error = session_get_last_error(link_instance->session);
+        if (session_error != NULL)
+        {
+            REJECTED_HANDLE rejected = rejected_create();
+            AMQP_VALUE error_delivery_state = NULL;
+            if (rejected != NULL)
+            {
+                if (rejected_set_error(rejected, session_error) == 0)
+                {
+                    error_delivery_state = amqpvalue_create_rejected(rejected);
+                }
+                rejected_destroy(rejected);
+            }
+            set_last_error_delivery_state(link_instance, error_delivery_state);
+        }
+        else
+        {
+            set_last_error_delivery_state(link_instance,
+                create_error_delivery_state("amqp:connection:forced", "The underlying connection was lost"));
+        }
+        remove_all_pending_deliveries(link_instance, true, link_instance->last_error_delivery_state);
         set_link_state(link_instance, LINK_STATE_ERROR);
     }
 }
@@ -917,7 +1020,7 @@ void link_destroy(LINK_HANDLE link)
     }
     else
     {
-        remove_all_pending_deliveries((LINK_INSTANCE*)link, false);
+        remove_all_pending_deliveries((LINK_INSTANCE*)link, false, NULL);
         tickcounter_destroy(link->tick_counter);
 
         link->on_link_state_changed = NULL;
@@ -942,6 +1045,11 @@ void link_destroy(LINK_HANDLE link)
         if (link->received_payload != NULL)
         {
             free(link->received_payload);
+        }
+
+        if (link->last_error_delivery_state != NULL)
+        {
+            amqpvalue_destroy(link->last_error_delivery_state);
         }
 
         free(link);
@@ -1698,4 +1806,21 @@ void link_unsubscribe_on_link_detach_received(ON_LINK_DETACH_EVENT_SUBSCRIPTION_
         event_subscription->on_link_detach_received = NULL;
         event_subscription->context = NULL;
     }
+}
+
+AMQP_VALUE link_get_last_error_delivery_state(LINK_HANDLE link)
+{
+    AMQP_VALUE result;
+
+    if (link == NULL)
+    {
+        LogError("NULL link");
+        result = NULL;
+    }
+    else
+    {
+        result = link->last_error_delivery_state;
+    }
+
+    return result;
 }

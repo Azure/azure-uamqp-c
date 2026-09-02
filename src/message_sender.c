@@ -120,6 +120,8 @@ static void on_delivery_settled(void* context, delivery_number delivery_no, LINK
             if (delivery_state == NULL)
             {
                 LogError("delivery state not provided");
+                message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_ERROR, NULL);
+                remove_pending_message(message_sender, pending_send);
             }
             else
             {
@@ -161,7 +163,7 @@ static void on_delivery_settled(void* context, delivery_number delivery_no, LINK
             break;
         case LINK_DELIVERY_SETTLE_REASON_NOT_DELIVERED:
         default:
-            message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_ERROR, NULL);
+            message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_ERROR, delivery_state);
             remove_pending_message(message_sender, pending_send);
             break;
         }
@@ -694,13 +696,14 @@ static void set_message_sender_state(MESSAGE_SENDER_INSTANCE* message_sender, ME
 static void indicate_all_messages_as_error(MESSAGE_SENDER_INSTANCE* message_sender)
 {
     size_t i;
+    AMQP_VALUE error_delivery_state = link_get_last_error_delivery_state(message_sender->link);
 
     for (i = 0; i < message_sender->message_count; i++)
     {
         MESSAGE_WITH_CALLBACK* message_with_callback = GET_ASYNC_OPERATION_CONTEXT(MESSAGE_WITH_CALLBACK, message_sender->messages[i]);
         if (message_with_callback->on_message_send_complete != NULL)
         {
-            message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_ERROR, NULL);
+            message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_ERROR, error_delivery_state);
         }
 
         if (message_with_callback->message != NULL)

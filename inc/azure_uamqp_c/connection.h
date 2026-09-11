@@ -103,6 +103,7 @@ extern "C" {
 
     MOCKABLE_FUNCTION(, ON_CONNECTION_CLOSED_EVENT_SUBSCRIPTION_HANDLE, connection_subscribe_on_connection_close_received, CONNECTION_HANDLE, connection, ON_CONNECTION_CLOSE_RECEIVED, on_connection_close_received, void*, context);
     MOCKABLE_FUNCTION(, void, connection_unsubscribe_on_connection_close_received, ON_CONNECTION_CLOSED_EVENT_SUBSCRIPTION_HANDLE, event_subscription);
+    MOCKABLE_FUNCTION(, ERROR_HANDLE, connection_get_last_error, CONNECTION_HANDLE, connection);
 
 #ifdef __cplusplus
 }

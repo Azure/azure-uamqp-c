@@ -56,6 +56,7 @@ typedef struct SESSION_INSTANCE_TAG
     handle handle_max;
     uint32_t remote_incoming_window;
     uint32_t remote_outgoing_window;
+    ERROR_HANDLE last_error;
     unsigned int is_underlying_connection_open : 1;
 } SESSION_INSTANCE;
 
@@ -383,11 +384,29 @@ static void on_connection_state_changed(void* context, CONNECTION_STATE new_conn
     /* Codes_S_R_S_SESSION_01_061: [If the previous connection state is OPENED and the new connection state is not OPENED anymore, the state shall be switched to DISCARDING.] */
     else if ((new_connection_state == CONNECTION_STATE_CLOSE_RCVD) || (new_connection_state == CONNECTION_STATE_END))
     {
+        // Forward the connection's error (from CLOSE frame or IO failure) if
+        // the session doesn't already have its own error (from END frame).
+        if (session_instance->last_error == NULL)
+        {
+            ERROR_HANDLE conn_error = connection_get_last_error(session_instance->connection);
+            if (conn_error != NULL)
+            {
+                session_instance->last_error = error_clone(conn_error);
+            }
+        }
         session_set_state(session_instance, SESSION_STATE_DISCARDING);
     }
     /* Codes_S_R_S_SESSION_09_001: [If the new connection state is ERROR, the state shall be switched to ERROR.] */
     else if (new_connection_state == CONNECTION_STATE_ERROR)
     {
+        if (session_instance->last_error == NULL)
+        {
+            ERROR_HANDLE conn_error = connection_get_last_error(session_instance->connection);
+            if (conn_error != NULL)
+            {
+                session_instance->last_error = error_clone(conn_error);
+            }
+        }
         session_set_state(session_instance, SESSION_STATE_ERROR);
     }
 }
@@ -725,6 +744,19 @@ static void on_frame_received(void* context, AMQP_VALUE performative, uint32_t p
         }
         else
         {
+            ERROR_HANDLE end_error;
+            if (end_get_error(end_handle, &end_error) != 0)
+            {
+                end_error = NULL;
+            }
+
+            // Store the broker's error from the END frame
+            if (session_instance->last_error != NULL)
+            {
+                error_destroy(session_instance->last_error);
+            }
+            session_instance->last_error = end_error;
+
             end_destroy(end_handle);
             if ((session_instance->session_state != SESSION_STATE_END_RCVD) &&
                 (session_instance->session_state != SESSION_STATE_DISCARDING))
@@ -852,6 +884,11 @@ void session_destroy(SESSION_HANDLE session)
         if (session_instance->link_endpoints != NULL)
         {
             free(session_instance->link_endpoints);
+        }
+
+        if (session_instance->last_error != NULL)
+        {
+            error_destroy(session_instance->last_error);
         }
 
         free(session);
@@ -1689,6 +1726,24 @@ SESSION_SEND_TRANSFER_RESULT session_send_transfer(LINK_ENDPOINT_HANDLE link_end
                 }
             }
         }
+    }
+
+    return result;
+}
+
+ERROR_HANDLE session_get_last_error(SESSION_HANDLE session)
+{
+    ERROR_HANDLE result;
+
+    if (session == NULL)
+    {
+        LogError("NULL session");
+        result = NULL;
+    }
+    else
+    {
+        SESSION_INSTANCE* session_instance = (SESSION_INSTANCE*)session;
+        result = session_instance->last_error;
     }
 
     return result;

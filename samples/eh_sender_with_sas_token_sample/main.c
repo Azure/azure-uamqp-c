@@ -25,6 +25,7 @@
 /* This sample connects to an Event Hub, authenticates using SASL MSSBCBS (SAS token given by a put-token) and sends 1 message to the EH specifying a publisher ID */
 /* The SAS token is generated based on the policy name/key */
 /* Replace the below settings with your own.*/
+/* NOTE this example requieres at least an EH with standard pricing tier, basic won't work. */
 
 #define EH_HOST "<<<Replace with your own EH host (like myeventhub.servicebus.windows.net)>>>"
 #define EH_KEY_NAME "<<<Replace with your own key name>>>"

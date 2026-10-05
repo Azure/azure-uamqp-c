@@ -28,6 +28,12 @@ add_subdirectory(sasl_server_mechanism_ut)
 add_subdirectory(session_ut)
 add_subdirectory(saslclientio_ut)
 
+if(${run_install_export_test} AND (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR))
+    # Only when uamqp is the top level project: the test installs CMAKE_BINARY_DIR,
+    # which for an embedding superproject would be the whole superproject.
+    add_subdirectory(install_export_int)
+endif()
+
 if(${run_e2e_tests})
     if(${use_socketio})
         add_subdirectory(local_client_server_tcp_e2e)

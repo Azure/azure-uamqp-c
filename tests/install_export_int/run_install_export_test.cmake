@@ -52,8 +52,21 @@ foreach(config_file IN LISTS found_configs)
     endif()
 endforeach()
 
+# Keep the outer build's package search path, with the scratch prefix first:
+# dependencies this project does not install itself (use_installed_dependencies=ON)
+# must stay discoverable by the nested configure. Passed as a preload cache
+# file because a list cannot survive as a single -D command line argument.
+set(prefix_path "${prefix_dir}")
+if(OUTER_PREFIX_PATH)
+    string(REPLACE "|" ";" outer_prefix_path "${OUTER_PREFIX_PATH}")
+    list(APPEND prefix_path ${outer_prefix_path})
+endif()
+set(preload_file "${WORK_DIR}/prefix-path.cmake")
+file(WRITE "${preload_file}"
+    "set(CMAKE_PREFIX_PATH \"${prefix_path}\" CACHE STRING \"\" FORCE)\n")
+
 set(configure_command "${CMAKE_COMMAND}" -S "${CONSUMER_SRC_DIR}" -B "${consumer_build_dir}"
-    "-DCMAKE_PREFIX_PATH=${prefix_dir}")
+    -C "${preload_file}")
 if(GENERATOR)
     list(APPEND configure_command -G "${GENERATOR}")
 endif()
@@ -63,11 +76,17 @@ endif()
 if(GENERATOR_TOOLSET)
     list(APPEND configure_command -T "${GENERATOR_TOOLSET}")
 endif()
-if(C_COMPILER)
-    list(APPEND configure_command "-DCMAKE_C_COMPILER=${C_COMPILER}")
-endif()
-if(CXX_COMPILER)
-    list(APPEND configure_command "-DCMAKE_CXX_COMPILER=${CXX_COMPILER}")
+if(TOOLCHAIN_FILE)
+    # Cross build: the toolchain file owns the compilers, sysroot and find
+    # behaviour, so do not override the compilers it selects.
+    list(APPEND configure_command "-DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_FILE}")
+else()
+    if(C_COMPILER)
+        list(APPEND configure_command "-DCMAKE_C_COMPILER=${C_COMPILER}")
+    endif()
+    if(CXX_COMPILER)
+        list(APPEND configure_command "-DCMAKE_CXX_COMPILER=${CXX_COMPILER}")
+    endif()
 endif()
 if(BUILD_CONFIG)
     list(APPEND configure_command "-DCMAKE_BUILD_TYPE=${BUILD_CONFIG}")

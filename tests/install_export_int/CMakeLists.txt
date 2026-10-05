@@ -5,6 +5,9 @@
 # here to get the same CMAKE_INSTALL_LIBDIR the install rules will use.
 include(GNUInstallDirs)
 
+# add_test arguments are a CMake list, so encode the list-valued prefix path.
+string(REPLACE ";" "|" install_export_prefix_path "${CMAKE_PREFIX_PATH}")
+
 add_test(NAME install_export_int
     COMMAND ${CMAKE_COMMAND}
         "-DTOP_BINARY_DIR=${CMAKE_BINARY_DIR}"
@@ -14,6 +17,8 @@ add_test(NAME install_export_int
         "-DGENERATOR=${CMAKE_GENERATOR}"
         "-DGENERATOR_PLATFORM=${CMAKE_GENERATOR_PLATFORM}"
         "-DGENERATOR_TOOLSET=${CMAKE_GENERATOR_TOOLSET}"
+        "-DTOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}"
+        "-DOUTER_PREFIX_PATH=${install_export_prefix_path}"
         "-DC_COMPILER=${CMAKE_C_COMPILER}"
         "-DCXX_COMPILER=${CMAKE_CXX_COMPILER}"
         "-DBUILD_CONFIG=$<CONFIG>"

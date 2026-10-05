@@ -5,7 +5,7 @@
 # configures and compiles a standalone find_package(uamqp CONFIG REQUIRED)
 # consumer against it. Run as `cmake -P`, so nothing here may assume a project.
 
-foreach(required_var TOP_BINARY_DIR CONSUMER_SRC_DIR WORK_DIR)
+foreach(required_var TOP_BINARY_DIR CONSUMER_SRC_DIR WORK_DIR EXPECTED_CONFIG_DIR)
     if(NOT DEFINED ${required_var})
         message(FATAL_ERROR "${required_var} was not passed to this script")
     endif()
@@ -37,8 +37,8 @@ if(BUILD_CONFIG)
 endif()
 run_or_fail("install into ${prefix_dir}" ${install_command})
 
-# find_package must locate the package through CMAKE_PREFIX_PATH alone, in the
-# conventional <libdir>/cmake/<pkg> location.
+# find_package must locate the package through CMAKE_PREFIX_PATH alone, at
+# exactly ${CMAKE_INSTALL_LIBDIR}/cmake/<pkg> relative to the prefix.
 file(GLOB_RECURSE found_configs "${prefix_dir}/*/uamqpConfig.cmake")
 if(NOT found_configs)
     message(FATAL_ERROR "uamqpConfig.cmake was not installed under ${prefix_dir}")
@@ -46,9 +46,9 @@ endif()
 foreach(config_file IN LISTS found_configs)
     get_filename_component(config_dir "${config_file}" DIRECTORY)
     file(RELATIVE_PATH relative_config_dir "${prefix_dir}" "${config_dir}")
-    if(NOT relative_config_dir MATCHES "cmake/uamqp$")
+    if(NOT relative_config_dir STREQUAL EXPECTED_CONFIG_DIR)
         message(FATAL_ERROR
-            "uamqpConfig.cmake was installed to '${relative_config_dir}'; expected <libdir>/cmake/uamqp")
+            "uamqpConfig.cmake was installed to '${relative_config_dir}'; expected '${EXPECTED_CONFIG_DIR}'")
     endif()
 endforeach()
 

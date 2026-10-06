@@ -5,6 +5,17 @@
 # here to get the same CMAKE_INSTALL_LIBDIR the install rules will use.
 include(GNUInstallDirs)
 
+# cmake --install --prefix only redirects relative destinations, so an absolute
+# GNUInstallDirs setting would let this test install outside its scratch prefix,
+# possibly into a real system prefix. Skip rather than do that.
+foreach(install_dir IN ITEMS CMAKE_INSTALL_LIBDIR CMAKE_INSTALL_BINDIR CMAKE_INSTALL_INCLUDEDIR)
+    if(IS_ABSOLUTE "${${install_dir}}")
+        message(STATUS
+            "install_export_int: not registered, ${install_dir} is absolute (${${install_dir}})")
+        return()
+    endif()
+endforeach()
+
 # add_test arguments are a CMake list, so encode the list-valued prefix path.
 string(REPLACE ";" "|" install_export_prefix_path "${CMAKE_PREFIX_PATH}")
 

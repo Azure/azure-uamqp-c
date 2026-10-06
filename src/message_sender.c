@@ -704,7 +704,10 @@ static void set_message_sender_state(MESSAGE_SENDER_INSTANCE* message_sender, ME
 static void indicate_all_messages_as_error(MESSAGE_SENDER_INSTANCE* message_sender)
 {
     size_t i;
-    AMQP_VALUE error_delivery_state = get_described_delivery_state(link_get_last_error_delivery_state(message_sender->link));
+    /* Only query the link when there is something to report, so a close with no pending
+    sends does not reach across into the link. */
+    AMQP_VALUE error_delivery_state = (message_sender->message_count == 0) ? NULL :
+        get_described_delivery_state(link_get_last_error_delivery_state(message_sender->link));
 
     for (i = 0; i < message_sender->message_count; i++)
     {

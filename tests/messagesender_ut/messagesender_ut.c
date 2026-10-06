@@ -419,4 +419,88 @@ TEST_FUNCTION(when_sending_the_message_fails_the_pending_send_is_removed_from_th
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
+/* Captures what message_sender hands the caller, so the shape of the value can be asserted
+   without depending on the full expected-call list. */
+static void* g_captured_send_complete_context;
+static MESSAGE_SEND_RESULT g_captured_send_result;
+static AMQP_VALUE g_captured_delivery_state;
+static size_t g_captured_send_complete_count;
+
+static void capturing_on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_result, AMQP_VALUE delivery_state)
+{
+    g_captured_send_complete_context = context;
+    g_captured_send_result = send_result;
+    g_captured_delivery_state = delivery_state;
+    g_captured_send_complete_count++;
+}
+
+/* Queues one send that stays pending (the link reports busy and the retry clone succeeds). */
+static MESSAGE_SENDER_HANDLE create_sender_with_one_pending_send(void)
+{
+    MESSAGE_SENDER_HANDLE message_sender = create_and_open_message_sender();
+
+    g_link_transfer_result = LINK_TRANSFER_BUSY;
+    g_link_transfer_async_result = NULL;
+    g_message_clone_result = test_message;
+
+    (void)messagesender_send_async(message_sender, test_message, capturing_on_message_send_complete, (void*)0x4711, 0);
+
+    g_captured_send_complete_context = NULL;
+    g_captured_send_result = MESSAGE_SEND_OK;
+    g_captured_delivery_state = NULL;
+    g_captured_send_complete_count = 0;
+
+    return message_sender;
+}
+
+/* The error the link recorded for the failure must reach the caller, and it must arrive as the
+   described part of the outcome - the shape callers parse - not as the composite value. */
+TEST_FUNCTION(closing_reports_the_link_error_to_pending_sends_as_the_described_delivery_state)
+{
+    // arrange
+    MESSAGE_SENDER_HANDLE message_sender = create_sender_with_one_pending_send();
+    AMQP_VALUE composite_delivery_state = (AMQP_VALUE)0x5001;
+    AMQP_VALUE described_delivery_state = (AMQP_VALUE)0x5002;
+
+    umock_c_reset_all_calls();
+    STRICT_EXPECTED_CALL(link_get_last_error_delivery_state(test_link))
+        .SetReturn(composite_delivery_state);
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_described_value(composite_delivery_state))
+        .SetReturn(described_delivery_state);
+
+    // act
+    (void)messagesender_close(message_sender);
+
+    // assert
+    ASSERT_ARE_EQUAL(size_t, (size_t)1, g_captured_send_complete_count);
+    ASSERT_ARE_EQUAL(int, (int)MESSAGE_SEND_ERROR, (int)g_captured_send_result);
+    ASSERT_ARE_EQUAL(void_ptr, (void*)0x4711, g_captured_send_complete_context);
+    ASSERT_ARE_EQUAL(void_ptr, described_delivery_state, g_captured_delivery_state);
+
+    // cleanup
+    messagesender_destroy(message_sender);
+}
+
+/* With no error recorded on the link the caller still gets completed, with NULL. */
+TEST_FUNCTION(closing_reports_NULL_delivery_state_when_the_link_recorded_no_error)
+{
+    // arrange
+    MESSAGE_SENDER_HANDLE message_sender = create_sender_with_one_pending_send();
+
+    umock_c_reset_all_calls();
+    STRICT_EXPECTED_CALL(link_get_last_error_delivery_state(test_link))
+        .SetReturn(NULL);
+
+    // act
+    (void)messagesender_close(message_sender);
+
+    // assert
+    ASSERT_ARE_EQUAL(size_t, (size_t)1, g_captured_send_complete_count);
+    ASSERT_ARE_EQUAL(int, (int)MESSAGE_SEND_ERROR, (int)g_captured_send_result);
+    ASSERT_IS_NULL(g_captured_delivery_state);
+
+    // cleanup
+    messagesender_destroy(message_sender);
+}
+
 END_TEST_SUITE(messagesender_ut)

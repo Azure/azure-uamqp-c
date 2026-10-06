@@ -731,18 +731,10 @@ static void on_session_state_changed(void* context, SESSION_STATE new_session_st
     }
     else if (new_session_state == SESSION_STATE_DISCARDING)
     {
-        // Use the real broker error from the session (END/CLOSE frame) if available,
-        // otherwise fall back to a synthetic error.
-        ERROR_HANDLE session_error = session_get_last_error(link_instance->session);
-        if (session_error != NULL)
-        {
-            set_last_error_delivery_state(link_instance, create_rejected_delivery_state(session_error));
-        }
-        else
-        {
-            set_last_error_delivery_state(link_instance,
-                create_error_delivery_state("amqp:connection:forced", "The session is being discarded"));
-        }
+        // DISCARDING is also reached by a graceful END or a local session_end, so report only an
+        // error the peer actually sent. Transport loss reaches SESSION_STATE_ERROR instead.
+        set_last_error_delivery_state(link_instance,
+            create_rejected_delivery_state(session_get_last_error(link_instance->session)));
         remove_all_pending_deliveries(link_instance, true, link_instance->last_error_delivery_state);
         set_link_state(link_instance, LINK_STATE_DETACHED);
     }

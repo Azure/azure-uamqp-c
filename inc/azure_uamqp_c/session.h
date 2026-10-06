@@ -83,6 +83,13 @@ MU_DEFINE_ENUM(SESSION_SEND_TRANSFER_RESULT, SESSION_SEND_TRANSFER_RESULT_VALUES
     MOCKABLE_FUNCTION(, int, session_send_disposition, LINK_ENDPOINT_HANDLE, link_endpoint, DISPOSITION_HANDLE, disposition);
     MOCKABLE_FUNCTION(, int, session_send_detach, LINK_ENDPOINT_HANDLE, link_endpoint, DETACH_HANDLE, detach);
     MOCKABLE_FUNCTION(, SESSION_SEND_TRANSFER_RESULT, session_send_transfer, LINK_ENDPOINT_HANDLE, link_endpoint, TRANSFER_HANDLE, transfer, PAYLOAD*, payloads, size_t, payload_count, delivery_number*, delivery_id, ON_SEND_COMPLETE, on_send_complete, void*, callback_context);
+    /**
+     * @brief   Gets the error last reported for the session, taken from an END frame or forwarded
+     *          from the connection.
+     * @param   session The session.
+     * @return  The error, or NULL if none was recorded. The handle is owned by the session and is
+     *          destroyed with it; do not call error_destroy on it.
+     */
     MOCKABLE_FUNCTION(, ERROR_HANDLE, session_get_last_error, SESSION_HANDLE, session);
 
 #ifdef __cplusplus

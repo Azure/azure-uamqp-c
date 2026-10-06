@@ -78,6 +78,13 @@ MOCKABLE_FUNCTION(, void, link_dowork, LINK_HANDLE, link);
 
 MOCKABLE_FUNCTION(, ON_LINK_DETACH_EVENT_SUBSCRIPTION_HANDLE, link_subscribe_on_link_detach_received, LINK_HANDLE, link, ON_LINK_DETACH_RECEIVED, on_link_detach_received, void*, context);
 MOCKABLE_FUNCTION(, void, link_unsubscribe_on_link_detach_received, ON_LINK_DETACH_EVENT_SUBSCRIPTION_HANDLE, event_subscription);
+/**
+ * @brief   Gets the delivery state describing why the link last failed.
+ * @param   link    The link.
+ * @return  A rejected delivery state, or NULL if no error was recorded. The value is owned by the
+ *          link and is replaced on the next failure and destroyed with the link; do not call
+ *          amqpvalue_destroy on it.
+ */
 MOCKABLE_FUNCTION(, AMQP_VALUE, link_get_last_error_delivery_state, LINK_HANDLE, link);
 
 #ifdef __cplusplus

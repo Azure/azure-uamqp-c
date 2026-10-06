@@ -103,6 +103,13 @@ extern "C" {
 
     MOCKABLE_FUNCTION(, ON_CONNECTION_CLOSED_EVENT_SUBSCRIPTION_HANDLE, connection_subscribe_on_connection_close_received, CONNECTION_HANDLE, connection, ON_CONNECTION_CLOSE_RECEIVED, on_connection_close_received, void*, context);
     MOCKABLE_FUNCTION(, void, connection_unsubscribe_on_connection_close_received, ON_CONNECTION_CLOSED_EVENT_SUBSCRIPTION_HANDLE, event_subscription);
+    /**
+     * @brief   Gets the error last reported by the peer in a CLOSE frame, or the one synthesized
+     *          for a transport failure.
+     * @param   connection  The connection.
+     * @return  The error, or NULL if none was recorded. The handle is owned by the connection and
+     *          is destroyed with it; do not call error_destroy on it.
+     */
     MOCKABLE_FUNCTION(, ERROR_HANDLE, connection_get_last_error, CONNECTION_HANDLE, connection);
 
 #ifdef __cplusplus

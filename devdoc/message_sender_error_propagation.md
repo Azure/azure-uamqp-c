@@ -68,8 +68,13 @@ hardcoded NULL. Callers that have no error info pass NULL (no behavior change).
 
 Update all callers:
 - Detach handler: pass a constructed `rejected` delivery_state (see Change 2)
-- Session DISCARDING: pass NULL (no error info at this level)
-- Session ERROR: pass NULL (no error info at this level)
+- Session DISCARDING: pass a `rejected` state built from `session_get_last_error()`, or NULL.
+  DISCARDING is also reached by a graceful peer END and by a local `session_end`, so no error is
+  synthesized here - reporting one would give callers a false transport-failure reason.
+- Session ERROR: pass a `rejected` state built from `session_get_last_error()`, falling back to a
+  synthetic `amqp:connection:forced` when the transport dropped with no frame. Transport loss
+  always reaches this state, not DISCARDING.
+- Malformed ATTACH/FLOW and `link_destroy`: pass NULL (no error info at this level)
 
 ### Change 2: Construct rejected delivery_state from detach error and store on link
 

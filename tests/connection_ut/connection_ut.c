@@ -3685,4 +3685,13 @@ TEST_FUNCTION(connection_unsubscribe_on_connection_close_received_with_NULL_even
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
+/* connection_get_last_error */
+
+TEST_FUNCTION(connection_get_last_error_with_NULL_connection_returns_NULL)
+{
+    // act / assert
+    ASSERT_IS_NULL(connection_get_last_error(NULL));
+}
+
+
 END_TEST_SUITE(connection_ut)

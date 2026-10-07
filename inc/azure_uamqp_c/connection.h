@@ -108,7 +108,8 @@ extern "C" {
      *          for a transport failure.
      * @param   connection  The connection.
      * @return  The error, or NULL if none was recorded. The handle is owned by the connection and
-     *          is destroyed with it; do not call error_destroy on it.
+     *          is valid until the next error is recorded or the connection is destroyed; do not
+     *          call error_destroy on it.
      */
     MOCKABLE_FUNCTION(, ERROR_HANDLE, connection_get_last_error, CONNECTION_HANDLE, connection);
 

@@ -88,7 +88,8 @@ MU_DEFINE_ENUM(SESSION_SEND_TRANSFER_RESULT, SESSION_SEND_TRANSFER_RESULT_VALUES
      *          from the connection.
      * @param   session The session.
      * @return  The error, or NULL if none was recorded. The handle is owned by the session and is
-     *          destroyed with it; do not call error_destroy on it.
+     *          valid until the next error is recorded or the session is destroyed; do not call
+     *          error_destroy on it.
      */
     MOCKABLE_FUNCTION(, ERROR_HANDLE, session_get_last_error, SESSION_HANDLE, session);
 

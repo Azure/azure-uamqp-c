@@ -70,6 +70,34 @@ static LINK_TRANSFER_RESULT g_link_transfer_result;
 static ASYNC_OPERATION_HANDLE g_link_transfer_async_result;
 static MESSAGE_HANDLE g_message_clone_result;
 
+/* Fake link: when enabled, link_transfer_async records each delivery as the real link does
+   (on_delivery_settled + callback_context), so tests can settle it later like link.c would. */
+#define MAX_FAKE_DELIVERIES 8
+#define MAX_LIVE_SENDS 8
+
+typedef struct FAKE_DELIVERY_TAG
+{
+    ON_DELIVERY_SETTLED on_delivery_settled;
+    void* callback_context;
+} FAKE_DELIVERY;
+
+static bool g_fake_link_enabled;
+static FAKE_DELIVERY* g_fake_deliveries[MAX_FAKE_DELIVERIES];
+static size_t g_fake_delivery_count;
+/* message sender pending sends that are allocated and not yet destroyed */
+static ASYNC_OPERATION_HANDLE g_live_sends[MAX_LIVE_SENDS];
+static size_t g_live_send_count;
+/* settlements the fake link attempted on a pending send the sender had already destroyed */
+static size_t g_stale_settle_count;
+/* async_operation_cancel calls on a handle that is not an outstanding fake delivery */
+static size_t g_stale_cancel_count;
+/* action run inside link_detach, e.g. to emulate a synchronous session/connection failure */
+static void (*g_link_detach_action)(void);
+static int g_link_detach_result;
+
+static size_t g_send_complete_count;
+static MESSAGE_SEND_RESULT g_last_send_result;
+
 MOCK_FUNCTION_WITH_CODE(, void, test_on_message_send_complete, void*, context, MESSAGE_SEND_RESULT, send_result, AMQP_VALUE, delivery_state);
 MOCK_FUNCTION_END();
 
@@ -92,11 +120,43 @@ static ASYNC_OPERATION_HANDLE my_link_transfer_async(LINK_HANDLE handle, message
     (void)message_format;
     (void)payloads;
     (void)payload_count;
+    (void)timeout;
+    if (g_fake_link_enabled)
+    {
+        FAKE_DELIVERY* delivery = (FAKE_DELIVERY*)my_gballoc_malloc(sizeof(FAKE_DELIVERY));
+        ASSERT_IS_NOT_NULL(delivery);
+        ASSERT_IS_TRUE(g_fake_delivery_count < MAX_FAKE_DELIVERIES);
+        delivery->on_delivery_settled = on_delivery_settled;
+        delivery->callback_context = callback_context;
+        g_fake_deliveries[g_fake_delivery_count++] = delivery;
+        return (ASYNC_OPERATION_HANDLE)delivery;
+    }
     (void)on_delivery_settled;
     (void)callback_context;
-    (void)timeout;
     *link_transfer_result = g_link_transfer_result;
     return g_link_transfer_async_result;
+}
+
+static int my_link_detach(LINK_HANDLE link, bool close, const char* error_condition, const char* error_description, AMQP_VALUE info)
+{
+    (void)link;
+    (void)close;
+    (void)error_condition;
+    (void)error_description;
+    (void)info;
+    if (g_link_detach_action != NULL)
+    {
+        g_link_detach_action();
+    }
+    return g_link_detach_result;
+}
+
+static void test_send_complete(void* context, MESSAGE_SEND_RESULT send_result, AMQP_VALUE delivery_state)
+{
+    (void)context;
+    (void)delivery_state;
+    g_send_complete_count++;
+    g_last_send_result = send_result;
 }
 
 static MESSAGE_HANDLE my_message_clone(MESSAGE_HANDLE source_message)
@@ -179,14 +239,90 @@ static ASYNC_OPERATION_HANDLE my_async_operation_create(ASYNC_OPERATION_CANCEL_H
     {
         (void)memset(result, 0, context_size);
         *result = async_operation_cancel_handler;
+        ASSERT_IS_TRUE(g_live_send_count < MAX_LIVE_SENDS);
+        g_live_sends[g_live_send_count++] = (ASYNC_OPERATION_HANDLE)result;
     }
     return (ASYNC_OPERATION_HANDLE)result;
 }
 
 static void my_async_operation_destroy(ASYNC_OPERATION_HANDLE async_operation)
 {
+    size_t i;
+    for (i = 0; i < g_live_send_count; i++)
+    {
+        if (g_live_sends[i] == async_operation)
+        {
+            g_live_sends[i] = g_live_sends[--g_live_send_count];
+            break;
+        }
+    }
     my_gballoc_free(async_operation);
 }
+
+static bool is_live_send(void* handle)
+{
+    size_t i;
+    for (i = 0; i < g_live_send_count; i++)
+    {
+        if (g_live_sends[i] == (ASYNC_OPERATION_HANDLE)handle)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+/* Removes delivery [index] from the fake link, settling it first, as link.c does. A settle whose
+   context is a destroyed pending send is counted and skipped instead of dereferenced. */
+static void fake_link_settle_and_remove(size_t index, LINK_DELIVERY_SETTLE_REASON reason)
+{
+    FAKE_DELIVERY* delivery = g_fake_deliveries[index];
+    g_fake_deliveries[index] = g_fake_deliveries[--g_fake_delivery_count];
+
+    if (is_live_send(delivery->callback_context))
+    {
+        delivery->on_delivery_settled(delivery->callback_context, 0, reason, NULL);
+    }
+    else
+    {
+        g_stale_settle_count++;
+    }
+    my_gballoc_free(delivery);
+}
+
+/* Emulates link.c remove_all_pending_deliveries(link, true): peer detach, session DISCARDING/ERROR. */
+static void fake_link_remove_all_pending_deliveries(void)
+{
+    while (g_fake_delivery_count > 0)
+    {
+        fake_link_settle_and_remove(0, LINK_DELIVERY_SETTLE_REASON_NOT_DELIVERED);
+    }
+}
+
+/* Emulates link_detach failing to send and the connection/session failing synchronously:
+   link.c on_session_state_changed drains pending deliveries and then reports the new state. */
+static void fake_link_detach_fails_synchronously(void)
+{
+    fake_link_remove_all_pending_deliveries();
+    saved_on_link_state_changed(saved_on_link_state_changed_context, LINK_STATE_DETACHED, LINK_STATE_ATTACHED);
+}
+
+/* Emulates link_transfer_cancel_handler: settle as CANCELLED, then drop the delivery. */
+static int my_async_operation_cancel(ASYNC_OPERATION_HANDLE async_operation)
+{
+    size_t i;
+    for (i = 0; i < g_fake_delivery_count; i++)
+    {
+        if (g_fake_deliveries[i] == (FAKE_DELIVERY*)async_operation)
+        {
+            fake_link_settle_and_remove(i, LINK_DELIVERY_SETTLE_REASON_CANCELLED);
+            return 0;
+        }
+    }
+    g_stale_cancel_count++;
+    return MU_FAILURE;
+}
+
 
 MU_DEFINE_ENUM_STRINGS(UMOCK_C_ERROR_CODE, UMOCK_C_ERROR_CODE_VALUES)
 
@@ -201,6 +337,20 @@ static MESSAGE_SENDER_HANDLE create_and_open_message_sender(void)
     MESSAGE_SENDER_HANDLE message_sender = messagesender_create(test_link, NULL, NULL);
     (void)messagesender_open(message_sender);
     saved_on_link_state_changed(saved_on_link_state_changed_context, LINK_STATE_ATTACHED, LINK_STATE_HALF_ATTACHED_ATTACH_SENT);
+    return message_sender;
+}
+
+/* Opens a sender over the fake link with one send in flight on the link. */
+static MESSAGE_SENDER_HANDLE create_sender_with_one_in_flight_send(void)
+{
+    MESSAGE_SENDER_HANDLE message_sender = create_and_open_message_sender();
+    ASYNC_OPERATION_HANDLE send;
+
+    g_fake_link_enabled = true;
+    send = messagesender_send_async(message_sender, test_message, test_send_complete, (void*)0x4711, 0);
+    ASSERT_IS_NOT_NULL(send);
+    ASSERT_ARE_EQUAL(size_t, 1, g_fake_delivery_count);
+    ASSERT_ARE_EQUAL(size_t, 0, g_send_complete_count);
     return message_sender;
 }
 
@@ -228,7 +378,7 @@ TEST_SUITE_INITIALIZE(suite_init)
     REGISTER_GLOBAL_MOCK_HOOK(gballoc_free, my_gballoc_free);
 
     REGISTER_GLOBAL_MOCK_HOOK(link_attach, my_link_attach);
-    REGISTER_GLOBAL_MOCK_RETURN(link_detach, 0);
+    REGISTER_GLOBAL_MOCK_HOOK(link_detach, my_link_detach);
     REGISTER_GLOBAL_MOCK_HOOK(link_transfer_async, my_link_transfer_async);
 
     REGISTER_GLOBAL_MOCK_HOOK(message_clone, my_message_clone);
@@ -246,6 +396,7 @@ TEST_SUITE_INITIALIZE(suite_init)
 
     REGISTER_GLOBAL_MOCK_HOOK(async_operation_create, my_async_operation_create);
     REGISTER_GLOBAL_MOCK_HOOK(async_operation_destroy, my_async_operation_destroy);
+    REGISTER_GLOBAL_MOCK_HOOK(async_operation_cancel, my_async_operation_cancel);
 
     REGISTER_TYPE(MESSAGE_SEND_RESULT, MESSAGE_SEND_RESULT);
 
@@ -287,10 +438,26 @@ TEST_FUNCTION_INITIALIZE(test_init)
     g_link_transfer_result = LINK_TRANSFER_ERROR;
     g_link_transfer_async_result = NULL;
     g_message_clone_result = test_message;
+
+    g_fake_link_enabled = false;
+    g_fake_delivery_count = 0;
+    g_live_send_count = 0;
+    g_stale_settle_count = 0;
+    g_stale_cancel_count = 0;
+    g_link_detach_action = NULL;
+    g_link_detach_result = 0;
+    g_send_complete_count = 0;
+    g_last_send_result = MESSAGE_SEND_OK;
 }
 
 TEST_FUNCTION_CLEANUP(test_cleanup)
 {
+    /* release anything a test left on the fake link without settling it */
+    while (g_fake_delivery_count > 0)
+    {
+        my_gballoc_free(g_fake_deliveries[--g_fake_delivery_count]);
+    }
+
     TEST_MUTEX_RELEASE(g_testByTest);
 }
 
@@ -417,6 +584,134 @@ TEST_FUNCTION(when_sending_the_message_fails_the_pending_send_is_removed_from_th
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+}
+
+/* messagesender_close / messagesender_destroy with sends in flight on the link.
+   The link keeps every in-flight delivery with the pending send as its callback context and settles
+   it later (peer detach, disposition, timeout, session DISCARDING/ERROR). Once the sender has
+   completed and destroyed a pending send, the link must not be able to settle it again. */
+
+/* link_detach fails to send and the session fails synchronously, so the link drains its deliveries
+   from inside link_detach. Each send must be completed once and never settled after destruction. */
+TEST_FUNCTION(close_when_link_detach_fails_synchronously_completes_each_in_flight_send_once)
+{
+    // arrange
+    MESSAGE_SENDER_HANDLE message_sender = create_sender_with_one_in_flight_send();
+    g_link_detach_action = fake_link_detach_fails_synchronously;
+    g_link_detach_result = MU_FAILURE;
+
+    // act
+    (void)messagesender_close(message_sender);
+
+    // assert
+    ASSERT_ARE_EQUAL(size_t, 0, g_stale_settle_count);
+    ASSERT_ARE_EQUAL(size_t, 1, g_send_complete_count);
+    ASSERT_ARE_EQUAL(MESSAGE_SEND_RESULT, MESSAGE_SEND_ERROR, g_last_send_result);
+    ASSERT_ARE_EQUAL(size_t, 0, g_live_send_count);
+
+    // cleanup
+    g_link_detach_action = NULL;
+    messagesender_destroy(message_sender);
+}
+
+/* link_detach succeeds; the link settles its deliveries later, when the peer answers the detach. */
+TEST_FUNCTION(close_when_link_detach_succeeds_the_link_cannot_settle_a_destroyed_send_later)
+{
+    // arrange
+    MESSAGE_SENDER_HANDLE message_sender = create_sender_with_one_in_flight_send();
+
+    // act
+    (void)messagesender_close(message_sender);
+    fake_link_remove_all_pending_deliveries();
+
+    // assert
+    ASSERT_ARE_EQUAL(size_t, 0, g_stale_settle_count);
+    ASSERT_ARE_EQUAL(size_t, 0, g_stale_cancel_count);
+    ASSERT_ARE_EQUAL(size_t, 1, g_send_complete_count);
+    ASSERT_ARE_EQUAL(MESSAGE_SEND_RESULT, MESSAGE_SEND_ERROR, g_last_send_result);
+    ASSERT_ARE_EQUAL(size_t, 0, g_live_send_count);
+
+    // cleanup
+    messagesender_destroy(message_sender);
+}
+
+/* Same as above, but the sender is destroyed before the link settles its deliveries. */
+TEST_FUNCTION(destroy_when_link_detach_succeeds_the_link_cannot_settle_a_destroyed_send_later)
+{
+    // arrange
+    MESSAGE_SENDER_HANDLE message_sender = create_sender_with_one_in_flight_send();
+
+    // act
+    messagesender_destroy(message_sender);
+    fake_link_remove_all_pending_deliveries();
+
+    // assert
+    ASSERT_ARE_EQUAL(size_t, 0, g_stale_settle_count);
+    ASSERT_ARE_EQUAL(size_t, 0, g_stale_cancel_count);
+    ASSERT_ARE_EQUAL(size_t, 1, g_send_complete_count);
+    ASSERT_ARE_EQUAL(MESSAGE_SEND_RESULT, MESSAGE_SEND_ERROR, g_last_send_result);
+    ASSERT_ARE_EQUAL(size_t, 0, g_live_send_count);
+}
+
+/* link_detach from a half attached state reports DETACHED without draining its deliveries. */
+TEST_FUNCTION(link_detached_without_draining_deliveries_the_link_cannot_settle_a_destroyed_send_later)
+{
+    // arrange
+    MESSAGE_SENDER_HANDLE message_sender = create_sender_with_one_in_flight_send();
+
+    // act
+    saved_on_link_state_changed(saved_on_link_state_changed_context, LINK_STATE_DETACHED, LINK_STATE_HALF_ATTACHED_ATTACH_SENT);
+    fake_link_remove_all_pending_deliveries();
+
+    // assert
+    ASSERT_ARE_EQUAL(size_t, 0, g_stale_settle_count);
+    ASSERT_ARE_EQUAL(size_t, 0, g_stale_cancel_count);
+    ASSERT_ARE_EQUAL(size_t, 1, g_send_complete_count);
+    ASSERT_ARE_EQUAL(MESSAGE_SEND_RESULT, MESSAGE_SEND_ERROR, g_last_send_result);
+
+    // cleanup
+    messagesender_destroy(message_sender);
+}
+
+/* The link drains its deliveries before reporting LINK_STATE_ERROR; each send completes once. */
+TEST_FUNCTION(link_error_after_the_link_drained_its_deliveries_completes_each_send_once)
+{
+    // arrange
+    MESSAGE_SENDER_HANDLE message_sender = create_sender_with_one_in_flight_send();
+
+    // act
+    fake_link_remove_all_pending_deliveries();
+    saved_on_link_state_changed(saved_on_link_state_changed_context, LINK_STATE_ERROR, LINK_STATE_ATTACHED);
+
+    // assert
+    ASSERT_ARE_EQUAL(size_t, 0, g_stale_settle_count);
+    ASSERT_ARE_EQUAL(size_t, 1, g_send_complete_count);
+    ASSERT_ARE_EQUAL(MESSAGE_SEND_RESULT, MESSAGE_SEND_ERROR, g_last_send_result);
+    ASSERT_ARE_EQUAL(size_t, 0, g_live_send_count);
+
+    // cleanup
+    messagesender_destroy(message_sender);
+}
+
+/* A disposition without a delivery state settles and destroys the link delivery but leaves the
+   send pending; closing must not cancel the already destroyed link delivery. */
+TEST_FUNCTION(close_after_the_link_settled_a_delivery_does_not_cancel_it_again)
+{
+    // arrange
+    MESSAGE_SENDER_HANDLE message_sender = create_sender_with_one_in_flight_send();
+    fake_link_settle_and_remove(0, LINK_DELIVERY_SETTLE_REASON_DISPOSITION_RECEIVED);
+
+    // act
+    (void)messagesender_close(message_sender);
+
+    // assert
+    ASSERT_ARE_EQUAL(size_t, 0, g_stale_cancel_count);
+    ASSERT_ARE_EQUAL(size_t, 0, g_stale_settle_count);
+    ASSERT_ARE_EQUAL(size_t, 1, g_send_complete_count);
+    ASSERT_ARE_EQUAL(MESSAGE_SEND_RESULT, MESSAGE_SEND_ERROR, g_last_send_result);
+
+    // cleanup
+    messagesender_destroy(message_sender);
 }
 
 END_TEST_SUITE(messagesender_ut)

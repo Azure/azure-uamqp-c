@@ -110,6 +110,12 @@ static void on_delivery_settled(void* context, delivery_number delivery_no, LINK
     MESSAGE_WITH_CALLBACK* message_with_callback = GET_ASYNC_OPERATION_CONTEXT(MESSAGE_WITH_CALLBACK, pending_send);
     (void)delivery_no;
 
+    if (message_with_callback != NULL)
+    {
+        /* The link destroys its delivery once this returns; do not keep a handle to it. */
+        message_with_callback->transfer_async_operation = NULL;
+    }
+
     if (message_with_callback != NULL && 
         message_with_callback->on_message_send_complete != NULL)
     {
@@ -703,6 +709,15 @@ static void indicate_all_messages_as_error(MESSAGE_SENDER_INSTANCE* message_send
             message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_ERROR, NULL);
         }
 
+        /* Remove the delivery from the link, so the link cannot settle this send after it is
+        destroyed. The callback is cleared first so the cancel does not complete it again. */
+        if (message_with_callback->transfer_async_operation != NULL)
+        {
+            message_with_callback->on_message_send_complete = NULL;
+            (void)async_operation_cancel(message_with_callback->transfer_async_operation);
+            message_with_callback->transfer_async_operation = NULL;
+        }
+
         if (message_with_callback->message != NULL)
         {
             message_destroy(message_with_callback->message);
@@ -864,7 +879,7 @@ int messagesender_close(MESSAGE_SENDER_HANDLE message_sender)
         {
             result = 0;
         }
-        
+
         indicate_all_messages_as_error(message_sender);
     }
 

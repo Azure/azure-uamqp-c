@@ -1130,6 +1130,36 @@ TEST_FUNCTION(cbs_put_token_async_with_NULL_complete_context_succeeds)
 }
 
 /* Tests_SRS_CBS_01_072: [ If constructing the message fails, `cbs_put_token_async` shall fail and return a non-zero value. ]*/
+TEST_FUNCTION(when_message_set_body_amqp_value_fails_cbs_put_token_async_destroys_the_token_value)
+{
+    // arrange
+    CBS_HANDLE cbs;
+    ASYNC_OPERATION_HANDLE result;
+    cbs = cbs_create(test_session_handle);
+    (void)cbs_open_async(cbs, test_on_cbs_open_complete, (void*)0x4242, test_on_cbs_error, (void*)0x4243);
+    saved_on_amqp_management_open_complete(saved_on_amqp_management_open_complete_context, AMQP_MANAGEMENT_OPEN_OK);
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(message_create());
+    STRICT_EXPECTED_CALL(amqpvalue_create_string("blah_token"))
+        .SetReturn(test_token_value);
+    STRICT_EXPECTED_CALL(message_set_body_amqp_value(test_message, test_token_value))
+        .SetReturn(42);
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(test_token_value));
+    STRICT_EXPECTED_CALL(message_destroy(test_message));
+
+    // act
+    result = cbs_put_token_async(cbs, "some_type", "my_audience", "blah_token", test_on_cbs_put_token_complete, (void*)0x4242);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NULL(result);
+
+    // cleanup
+    cbs_destroy(cbs);
+}
+
+/* Tests_SRS_CBS_01_072: [ If constructing the message fails, `cbs_put_token_async` shall fail and return a non-zero value. ]*/
 /* Tests_SRS_CBS_01_084: [ If `amqp_management_execute_operation_async` fails `cbs_put_token_async` shall fail and return a non-zero value. ]*/
 TEST_FUNCTION(when_any_underlying_call_fails_cbs_put_token_async_fails)
 {

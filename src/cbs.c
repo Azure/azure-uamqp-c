@@ -645,9 +645,9 @@ ASYNC_OPERATION_HANDLE cbs_put_token_async(CBS_HANDLE cbs, const char* type, con
 
                         amqpvalue_destroy(application_properties);
                     }
-
-                    amqpvalue_destroy(token_value);
                 }
+
+                amqpvalue_destroy(token_value);
             }
 
             message_destroy(message);

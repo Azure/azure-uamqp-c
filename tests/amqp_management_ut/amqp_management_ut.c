@@ -3537,7 +3537,8 @@ TEST_FUNCTION(on_message_sender_state_changed_when_a_new_SENDER_IDLE_state_is_de
    be reported through `on_amqp_management_error`, otherwise a clean, user-initiated shutdown
    surfaces as a CBS error to the application. */
 
-// Tests_SRS_AMQP_MANAGEMENT_09_001: [ For the current state of AMQP management being `CLOSING`: ]
+// Tests_SRS_AMQP_MANAGEMENT_09_005: [ For the current state of AMQP management being `CLOSING`: ]
+// Tests_SRS_AMQP_MANAGEMENT_09_006: [ - All state transitions shall be ignored, so that a close initiated by the application is not reported as an error. ]
 TEST_FUNCTION(on_message_receiver_state_changed_when_a_new_RECEIVER_CLOSING_state_is_detected_while_in_CLOSING_does_not_raise_on_amqp_management_error)
 {
     // arrange
@@ -3568,7 +3569,8 @@ TEST_FUNCTION(on_message_receiver_state_changed_when_a_new_RECEIVER_CLOSING_stat
     amqp_management_destroy(amqp_management);
 }
 
-// Tests_SRS_AMQP_MANAGEMENT_09_001: [ For the current state of AMQP management being `CLOSING`: ]
+// Tests_SRS_AMQP_MANAGEMENT_09_005: [ For the current state of AMQP management being `CLOSING`: ]
+// Tests_SRS_AMQP_MANAGEMENT_09_006: [ - All state transitions shall be ignored, so that a close initiated by the application is not reported as an error. ]
 TEST_FUNCTION(on_message_receiver_state_changed_when_a_new_RECEIVER_IDLE_state_is_detected_while_in_CLOSING_does_not_raise_on_amqp_management_error)
 {
     // arrange
@@ -3599,7 +3601,8 @@ TEST_FUNCTION(on_message_receiver_state_changed_when_a_new_RECEIVER_IDLE_state_i
     amqp_management_destroy(amqp_management);
 }
 
-// Tests_SRS_AMQP_MANAGEMENT_09_001: [ For the current state of AMQP management being `CLOSING`: ]
+// Tests_SRS_AMQP_MANAGEMENT_09_005: [ For the current state of AMQP management being `CLOSING`: ]
+// Tests_SRS_AMQP_MANAGEMENT_09_006: [ - All state transitions shall be ignored, so that a close initiated by the application is not reported as an error. ]
 TEST_FUNCTION(on_message_receiver_state_changed_when_a_new_RECEIVER_ERROR_state_is_detected_while_in_CLOSING_does_not_raise_on_amqp_management_error)
 {
     // arrange

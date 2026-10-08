@@ -579,6 +579,11 @@ static void on_message_receiver_state_changed(const void* context, MESSAGE_RECEI
                 }
                 break;
             }
+            /* Codes_SRS_AMQP_MANAGEMENT_09_005: [ For the current state of AMQP management being `CLOSING`: ]*/
+            case AMQP_MANAGEMENT_STATE_CLOSING:
+                /* Codes_SRS_AMQP_MANAGEMENT_09_006: [ - All state transitions shall be ignored, so that a close initiated by the application is not reported as an error. ]*/
+                break;
+
             /* Codes_SRS_AMQP_MANAGEMENT_01_158: [ For the current state of AMQP management being `ERROR`: ]*/
             case AMQP_MANAGEMENT_STATE_ERROR:
                 /* Codes_SRS_AMQP_MANAGEMENT_01_159: [ - All state transitions shall be ignored. ]*/

@@ -396,6 +396,10 @@ void on_message_receiver_state_changed(void* context, MESSAGE_RECEIVER_STATE new
 
 **SRS_AMQP_MANAGEMENT_01_157: [** - If `new_state` is `MESSAGE_RECEIVER_STATE_OPEN`, `on_message_receiver_state_changed` shall do nothing. **]**
 
+**SRS_AMQP_MANAGEMENT_09_005: [** For the current state of AMQP management being `CLOSING`: **]**
+
+**SRS_AMQP_MANAGEMENT_09_006: [** - All state transitions shall be ignored, so that a close initiated by the application is not reported as an error. **]**
+
 **SRS_AMQP_MANAGEMENT_01_158: [** For the current state of AMQP management being `ERROR`: **]**
 
 **SRS_AMQP_MANAGEMENT_01_159: [** - All state transitions shall be ignored. **]**

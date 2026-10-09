@@ -452,7 +452,7 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                 else
                 {
                     link_instance->current_link_credit = rcv_delivery_count + rcv_link_credit - link_instance->delivery_count;
-                    if (link_instance->current_link_credit > 0)
+                    if ((link_instance->current_link_credit > 0) && (link_instance->on_link_flow_on != NULL))
                     {
                         link_instance->on_link_flow_on(link_instance->callback_context);
                     }
@@ -758,7 +758,7 @@ static void on_session_state_changed(void* context, SESSION_STATE new_session_st
 static void on_session_flow_on(void* context)
 {
     LINK_INSTANCE* link_instance = (LINK_INSTANCE*)context;
-    if (link_instance->role == role_sender)
+    if ((link_instance->role == role_sender) && (link_instance->on_link_flow_on != NULL))
     {
         link_instance->on_link_flow_on(link_instance->callback_context);
     }

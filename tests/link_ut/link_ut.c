@@ -1781,4 +1781,82 @@ TEST_FUNCTION(session_state_error_hands_synthetic_delivery_state_to_pending_deli
     link_destroy(link);
 }
 
+
+// Attaches a sender link passing NULL for on_link_flow_on, capturing the session callbacks.
+static int attach_sender_link_without_flow_on(LINK_HANDLE link, ON_ENDPOINT_FRAME_RECEIVED* on_frame_received, ON_SESSION_FLOW_ON* on_session_flow_on)
+{
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(session_begin(TEST_SESSION_HANDLE));
+    STRICT_EXPECTED_CALL(session_start_link_endpoint(TEST_LINK_ENDPOINT, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, link))
+        .CaptureArgumentValue_frame_received_callback(on_frame_received)
+        .CaptureArgumentValue_on_session_flow_on(on_session_flow_on);
+
+    return link_attach(link, test_on_transfer_received, test_on_link_state_changed, NULL, NULL);
+}
+
+TEST_FUNCTION(link_sender_flow_frame_received_with_NULL_on_link_flow_on_does_not_call_it)
+{
+    // arrange
+    LINK_HANDLE link = create_link(role_sender);
+    ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
+    ON_SESSION_FLOW_ON on_session_flow_on = NULL;
+    int attach_result = attach_sender_link_without_flow_on(link, &on_frame_received, &on_session_flow_on);
+    ASSERT_ARE_EQUAL(int, 0, attach_result);
+
+    AMQP_VALUE performative = (AMQP_VALUE)0x5000;
+    AMQP_VALUE descriptor = (AMQP_VALUE)0x5001;
+    FLOW_HANDLE flow = (FLOW_HANDLE)0x5002;
+    uint32_t frame_payload_size = 30;
+    const unsigned char payload_bytes[30] = { 0 };
+    uint32_t link_credit_value = 700;
+    uint32_t delivery_count_value = 300;
+
+    umock_c_reset_all_calls();
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(performative))
+        .SetReturn(descriptor);
+    STRICT_EXPECTED_CALL(is_attach_type_by_descriptor(IGNORED_ARG))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_flow_type_by_descriptor(IGNORED_ARG))
+        .SetReturn(1);
+    STRICT_EXPECTED_CALL(amqpvalue_get_flow(IGNORED_ARG, IGNORED_ARG))
+        .CopyOutArgumentBuffer(2, &flow, sizeof(flow));
+    STRICT_EXPECTED_CALL(flow_get_link_credit(IGNORED_ARG, IGNORED_ARG))
+        .CopyOutArgumentBuffer(2, &link_credit_value, sizeof(link_credit_value));
+    STRICT_EXPECTED_CALL(flow_get_delivery_count(IGNORED_ARG, IGNORED_ARG))
+        .CopyOutArgumentBuffer(2, &delivery_count_value, sizeof(delivery_count_value));
+    STRICT_EXPECTED_CALL(flow_destroy(IGNORED_ARG));
+
+    // act
+    on_frame_received(link, performative, frame_payload_size, payload_bytes);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    link_destroy(link);
+}
+
+TEST_FUNCTION(on_session_flow_on_with_NULL_on_link_flow_on_does_not_call_it)
+{
+    // arrange
+    LINK_HANDLE link = create_link(role_sender);
+    ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
+    ON_SESSION_FLOW_ON on_session_flow_on = NULL;
+    int attach_result = attach_sender_link_without_flow_on(link, &on_frame_received, &on_session_flow_on);
+    ASSERT_ARE_EQUAL(int, 0, attach_result);
+    ASSERT_IS_NOT_NULL(on_session_flow_on);
+
+    umock_c_reset_all_calls();
+
+    // act
+    on_session_flow_on(link);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    link_destroy(link);
+}
+
 END_TEST_SUITE(link_ut)

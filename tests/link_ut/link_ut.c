@@ -355,6 +355,20 @@ static void on_delivery_settled(void* context, delivery_number delivery_no, LINK
     (void)delivery_state;
 }
 
+static ON_SESSION_STATE_CHANGED last_captured_on_session_state_changed;
+static AMQP_VALUE recorded_delivery_state;
+static LINK_DELIVERY_SETTLE_REASON recorded_settle_reason;
+static size_t recorded_settle_count;
+
+static void recording_on_delivery_settled(void* context, delivery_number delivery_no, LINK_DELIVERY_SETTLE_REASON reason, AMQP_VALUE delivery_state)
+{
+    (void)context;
+    (void)delivery_no;
+    recorded_settle_reason = reason;
+    recorded_delivery_state = delivery_state;
+    recorded_settle_count++;
+}
+
 static LINK_HANDLE create_link(role link_role)
 {
     umock_c_reset_all_calls();
@@ -424,6 +438,7 @@ static int attach_link(LINK_HANDLE link, role link_role, ON_ENDPOINT_FRAME_RECEI
         STRICT_EXPECTED_CALL(session_send_attach(IGNORED_ARG, IGNORED_ARG));
         STRICT_EXPECTED_CALL(attach_destroy(IGNORED_ARG));
 
+        last_captured_on_session_state_changed = local_on_session_state_changed;
         local_on_session_state_changed(link, SESSION_STATE_MAPPED, SESSION_STATE_UNMAPPED);
         ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
@@ -523,6 +538,9 @@ TEST_SUITE_INITIALIZE(suite_init)
     REGISTER_UMOCK_ALIAS_TYPE(ON_SESSION_FLOW_ON, void*);
     REGISTER_UMOCK_ALIAS_TYPE(ASYNC_OPERATION_CANCEL_HANDLER_FUNC, void*);
     REGISTER_UMOCK_ALIAS_TYPE(ASYNC_OPERATION_HANDLE, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(DETACH_HANDLE, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(ERROR_HANDLE, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(REJECTED_HANDLE, void*);
     REGISTER_UMOCK_ALIAS_TYPE(message_format, uint32_t);
     REGISTER_UMOCK_ALIAS_TYPE(ON_SEND_COMPLETE, void*);
     REGISTER_UMOCK_ALIAS_TYPE(SESSION_SEND_TRANSFER_RESULT, int);
@@ -1254,6 +1272,515 @@ TEST_FUNCTION(link_transfer_async_SESSION_SEND_TRANSFER_BUSY_result_already_dest
     // cleanup
     link_destroy(link);
 }
+
+TEST_FUNCTION(link_get_last_error_delivery_state_NULL_link_returns_NULL)
+{
+    // arrange
+
+    // act
+    AMQP_VALUE result = link_get_last_error_delivery_state(NULL);
+
+    // assert
+    ASSERT_IS_NULL(result);
+}
+
+TEST_FUNCTION(link_get_last_error_delivery_state_no_error_returns_NULL)
+{
+    // arrange
+    LINK_HANDLE link = create_link(role_sender);
+    ASSERT_IS_NOT_NULL(link);
+
+    // act
+    AMQP_VALUE result = link_get_last_error_delivery_state(link);
+
+    // assert
+    ASSERT_IS_NULL(result);
+
+    // cleanup
+    link_destroy(link);
+}
+
+TEST_FUNCTION(link_detach_with_error_propagates_delivery_state_to_on_delivery_settled)
+{
+    // arrange
+    ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
+    LINK_HANDLE link = create_link(role_sender);
+    ASSERT_IS_NOT_NULL(link);
+    int attach_result = attach_link(link, role_sender, &on_frame_received, NULL);
+    ASSERT_ARE_EQUAL(int, 0, attach_result);
+    ASSERT_IS_NOT_NULL(on_frame_received);
+
+    AMQP_VALUE performative = (AMQP_VALUE)0x7000;
+    AMQP_VALUE descriptor = (AMQP_VALUE)0x7001;
+    DETACH_HANDLE detach = (DETACH_HANDLE)0x7002;
+    ERROR_HANDLE error = (ERROR_HANDLE)0x7003;
+    REJECTED_HANDLE rejected = (REJECTED_HANDLE)0x7004;
+    AMQP_VALUE rejected_amqp_value = (AMQP_VALUE)0x7005;
+    bool closed = false;
+    uint32_t frame_payload_size = 10;
+    const unsigned char payload_bytes[10] = { 0 };
+
+    umock_c_reset_all_calls();
+
+    // Simulate receiving a DETACH frame with error
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(performative))
+        .SetReturn(descriptor);
+    STRICT_EXPECTED_CALL(is_attach_type_by_descriptor(IGNORED_ARG))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_flow_type_by_descriptor(IGNORED_ARG))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_transfer_type_by_descriptor(IGNORED_ARG))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_disposition_type_by_descriptor(IGNORED_ARG))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_detach_type_by_descriptor(IGNORED_ARG))
+        .SetReturn(true);
+    STRICT_EXPECTED_CALL(amqpvalue_get_detach(IGNORED_ARG, IGNORED_ARG))
+        .CopyOutArgumentBuffer(2, &detach, sizeof(detach));
+    STRICT_EXPECTED_CALL(detach_get_closed(IGNORED_ARG, IGNORED_ARG))
+        .CopyOutArgumentBuffer(2, &closed, sizeof(closed));
+    // Link is ATTACHED, so it sends a detach ack via send_detach(link, false, NULL)
+    STRICT_EXPECTED_CALL(detach_create(IGNORED_ARG))
+        .SetReturn((DETACH_HANDLE)0x8000);
+    STRICT_EXPECTED_CALL(session_send_detach(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(detach_destroy(IGNORED_ARG));
+
+    // detach_get_error succeeds, returning an error
+    STRICT_EXPECTED_CALL(detach_get_error(IGNORED_ARG, IGNORED_ARG))
+        .CopyOutArgumentBuffer(2, &error, sizeof(error))
+        .SetReturn(0);
+
+    // Construct rejected delivery_state from error
+    STRICT_EXPECTED_CALL(rejected_create())
+        .SetReturn(rejected);
+    STRICT_EXPECTED_CALL(rejected_set_error(IGNORED_ARG, IGNORED_ARG))
+        .SetReturn(0);
+    STRICT_EXPECTED_CALL(amqpvalue_create_rejected(IGNORED_ARG))
+        .SetReturn(rejected_amqp_value);
+    STRICT_EXPECTED_CALL(rejected_destroy(IGNORED_ARG));
+
+    // remove_all_pending_deliveries (no pending deliveries in list)
+    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(IGNORED_ARG))
+        .SetReturn(NULL);
+    STRICT_EXPECTED_CALL(singlylinkedlist_destroy(IGNORED_ARG));
+
+    // error_destroy and detach_destroy
+    STRICT_EXPECTED_CALL(error_destroy(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(detach_destroy(IGNORED_ARG));
+
+    // act
+    on_frame_received(link, performative, frame_payload_size, payload_bytes);
+
+    // assert
+    AMQP_VALUE last_error = link_get_last_error_delivery_state(link);
+    ASSERT_IS_NOT_NULL(last_error);
+    ASSERT_ARE_EQUAL(void_ptr, rejected_amqp_value, last_error);
+
+    // cleanup
+    link_destroy(link);
+}
+
+TEST_FUNCTION(link_detach_without_error_passes_NULL_delivery_state)
+{
+    // arrange
+    ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
+    LINK_HANDLE link = create_link(role_sender);
+    ASSERT_IS_NOT_NULL(link);
+    int attach_result = attach_link(link, role_sender, &on_frame_received, NULL);
+    ASSERT_ARE_EQUAL(int, 0, attach_result);
+    ASSERT_IS_NOT_NULL(on_frame_received);
+
+    AMQP_VALUE performative = (AMQP_VALUE)0x7000;
+    AMQP_VALUE descriptor = (AMQP_VALUE)0x7001;
+    DETACH_HANDLE detach = (DETACH_HANDLE)0x7002;
+    bool closed = false;
+    uint32_t frame_payload_size = 10;
+    const unsigned char payload_bytes[10] = { 0 };
+
+    umock_c_reset_all_calls();
+
+    // Simulate receiving a DETACH frame without error
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(performative))
+        .SetReturn(descriptor);
+    STRICT_EXPECTED_CALL(is_attach_type_by_descriptor(IGNORED_ARG))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_flow_type_by_descriptor(IGNORED_ARG))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_transfer_type_by_descriptor(IGNORED_ARG))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_disposition_type_by_descriptor(IGNORED_ARG))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_detach_type_by_descriptor(IGNORED_ARG))
+        .SetReturn(true);
+    STRICT_EXPECTED_CALL(amqpvalue_get_detach(IGNORED_ARG, IGNORED_ARG))
+        .CopyOutArgumentBuffer(2, &detach, sizeof(detach));
+    STRICT_EXPECTED_CALL(detach_get_closed(IGNORED_ARG, IGNORED_ARG))
+        .CopyOutArgumentBuffer(2, &closed, sizeof(closed));
+    // Link is ATTACHED, so it sends a detach ack via send_detach(link, false, NULL)
+    STRICT_EXPECTED_CALL(detach_create(IGNORED_ARG))
+        .SetReturn((DETACH_HANDLE)0x8000);
+    STRICT_EXPECTED_CALL(session_send_detach(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(detach_destroy(IGNORED_ARG));
+
+    // detach_get_error fails (no error in frame)
+    STRICT_EXPECTED_CALL(detach_get_error(IGNORED_ARG, IGNORED_ARG))
+        .SetReturn(1);
+
+    // remove_all_pending_deliveries with NULL delivery_state
+    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(IGNORED_ARG))
+        .SetReturn(NULL);
+    STRICT_EXPECTED_CALL(singlylinkedlist_destroy(IGNORED_ARG));
+
+    // detach_destroy (the incoming detach frame)
+    STRICT_EXPECTED_CALL(detach_destroy(IGNORED_ARG));
+
+    // act
+    on_frame_received(link, performative, frame_payload_size, payload_bytes);
+
+    // assert
+    AMQP_VALUE last_error = link_get_last_error_delivery_state(link);
+    ASSERT_IS_NULL(last_error);
+
+    // cleanup
+    link_destroy(link);
+}
+
+TEST_FUNCTION(session_state_error_propagates_synthetic_delivery_state)
+{
+    // arrange
+    ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
+    ON_SESSION_STATE_CHANGED on_session_state_changed = NULL;
+    LINK_HANDLE link = create_link(role_sender);
+    ASSERT_IS_NOT_NULL(link);
+    int attach_result = attach_link(link, role_sender, &on_frame_received, &on_session_state_changed);
+    ASSERT_ARE_EQUAL(int, 0, attach_result);
+    ASSERT_IS_NOT_NULL(on_session_state_changed);
+
+    ERROR_HANDLE synthetic_error = (ERROR_HANDLE)0x9001;
+    REJECTED_HANDLE rejected = (REJECTED_HANDLE)0x9002;
+    AMQP_VALUE rejected_amqp_value = (AMQP_VALUE)0x9003;
+
+    umock_c_reset_all_calls();
+
+    // session_get_last_error returns NULL — no real broker error available
+    STRICT_EXPECTED_CALL(session_get_last_error(IGNORED_ARG))
+        .SetReturn(NULL);
+
+    // create_error_delivery_state("amqp:connection:forced", "The underlying connection was lost")
+    STRICT_EXPECTED_CALL(error_create(IGNORED_ARG))
+        .SetReturn(synthetic_error);
+    STRICT_EXPECTED_CALL(error_set_description(IGNORED_ARG, IGNORED_ARG))
+        .SetReturn(0);
+    STRICT_EXPECTED_CALL(rejected_create())
+        .SetReturn(rejected);
+    STRICT_EXPECTED_CALL(rejected_set_error(IGNORED_ARG, IGNORED_ARG))
+        .SetReturn(0);
+    STRICT_EXPECTED_CALL(amqpvalue_create_rejected(IGNORED_ARG))
+        .SetReturn(rejected_amqp_value);
+    STRICT_EXPECTED_CALL(rejected_destroy(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(error_destroy(IGNORED_ARG));
+
+    // remove_all_pending_deliveries (no pending deliveries)
+    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(IGNORED_ARG))
+        .SetReturn(NULL);
+    STRICT_EXPECTED_CALL(singlylinkedlist_destroy(IGNORED_ARG));
+
+    // act
+    on_session_state_changed(link, SESSION_STATE_ERROR, SESSION_STATE_MAPPED);
+
+    // assert
+    AMQP_VALUE last_error = link_get_last_error_delivery_state(link);
+    ASSERT_IS_NOT_NULL(last_error);
+    ASSERT_ARE_EQUAL(void_ptr, rejected_amqp_value, last_error);
+
+    // cleanup
+    link_destroy(link);
+}
+
+/* A graceful peer END or a local session_end also reaches DISCARDING, so no error must be
+   invented when the session recorded none. */
+TEST_FUNCTION(session_state_discarding_without_an_error_reports_no_delivery_state)
+{
+    // arrange
+    ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
+    ON_SESSION_STATE_CHANGED on_session_state_changed = NULL;
+    LINK_HANDLE link = create_link(role_sender);
+    ASSERT_IS_NOT_NULL(link);
+    int attach_result = attach_link(link, role_sender, &on_frame_received, &on_session_state_changed);
+    ASSERT_ARE_EQUAL(int, 0, attach_result);
+    ASSERT_IS_NOT_NULL(on_session_state_changed);
+
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(session_get_last_error(IGNORED_ARG))
+        .SetReturn(NULL);
+
+    // remove_all_pending_deliveries (no pending deliveries)
+    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(IGNORED_ARG))
+        .SetReturn(NULL);
+    STRICT_EXPECTED_CALL(singlylinkedlist_destroy(IGNORED_ARG));
+
+    // act
+    on_session_state_changed(link, SESSION_STATE_DISCARDING, SESSION_STATE_MAPPED);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_IS_NULL(link_get_last_error_delivery_state(link));
+
+    // cleanup
+    link_destroy(link);
+}
+
+/* An END that did carry an error is still reported. */
+TEST_FUNCTION(session_state_discarding_with_an_error_propagates_the_broker_error)
+{
+    // arrange
+    ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
+    ON_SESSION_STATE_CHANGED on_session_state_changed = NULL;
+    LINK_HANDLE link = create_link(role_sender);
+    ASSERT_IS_NOT_NULL(link);
+    int attach_result = attach_link(link, role_sender, &on_frame_received, &on_session_state_changed);
+    ASSERT_ARE_EQUAL(int, 0, attach_result);
+    ASSERT_IS_NOT_NULL(on_session_state_changed);
+
+    ERROR_HANDLE broker_error = (ERROR_HANDLE)0x9001;
+    REJECTED_HANDLE rejected = (REJECTED_HANDLE)0x9002;
+    AMQP_VALUE rejected_amqp_value = (AMQP_VALUE)0x9003;
+
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(session_get_last_error(IGNORED_ARG))
+        .SetReturn(broker_error);
+    STRICT_EXPECTED_CALL(rejected_create())
+        .SetReturn(rejected);
+    STRICT_EXPECTED_CALL(rejected_set_error(IGNORED_ARG, IGNORED_ARG))
+        .SetReturn(0);
+    STRICT_EXPECTED_CALL(amqpvalue_create_rejected(IGNORED_ARG))
+        .SetReturn(rejected_amqp_value);
+    STRICT_EXPECTED_CALL(rejected_destroy(IGNORED_ARG));
+
+    // remove_all_pending_deliveries (no pending deliveries)
+    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(IGNORED_ARG))
+        .SetReturn(NULL);
+    STRICT_EXPECTED_CALL(singlylinkedlist_destroy(IGNORED_ARG));
+
+    // act
+    on_session_state_changed(link, SESSION_STATE_DISCARDING, SESSION_STATE_MAPPED);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_EQUAL(void_ptr, rejected_amqp_value, link_get_last_error_delivery_state(link));
+
+    // cleanup
+    link_destroy(link);
+}
+
+TEST_FUNCTION(session_state_error_uses_real_broker_error_when_available)
+{
+    // arrange
+    ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
+    ON_SESSION_STATE_CHANGED on_session_state_changed = NULL;
+    LINK_HANDLE link = create_link(role_sender);
+    ASSERT_IS_NOT_NULL(link);
+    int attach_result = attach_link(link, role_sender, &on_frame_received, &on_session_state_changed);
+    ASSERT_ARE_EQUAL(int, 0, attach_result);
+    ASSERT_IS_NOT_NULL(on_session_state_changed);
+
+    ERROR_HANDLE broker_error = (ERROR_HANDLE)0xA001;
+    REJECTED_HANDLE rejected = (REJECTED_HANDLE)0xA002;
+    AMQP_VALUE rejected_amqp_value = (AMQP_VALUE)0xA003;
+
+    umock_c_reset_all_calls();
+
+    // session_get_last_error returns a real broker error
+    STRICT_EXPECTED_CALL(session_get_last_error(IGNORED_ARG))
+        .SetReturn(broker_error);
+
+    // Build rejected delivery_state from the real error
+    STRICT_EXPECTED_CALL(rejected_create())
+        .SetReturn(rejected);
+    STRICT_EXPECTED_CALL(rejected_set_error(IGNORED_ARG, IGNORED_ARG))
+        .SetReturn(0);
+    STRICT_EXPECTED_CALL(amqpvalue_create_rejected(IGNORED_ARG))
+        .SetReturn(rejected_amqp_value);
+    STRICT_EXPECTED_CALL(rejected_destroy(IGNORED_ARG));
+
+    // remove_all_pending_deliveries (no pending deliveries)
+    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(IGNORED_ARG))
+        .SetReturn(NULL);
+    STRICT_EXPECTED_CALL(singlylinkedlist_destroy(IGNORED_ARG));
+
+    // act
+    on_session_state_changed(link, SESSION_STATE_ERROR, SESSION_STATE_MAPPED);
+
+    // assert
+    AMQP_VALUE last_error = link_get_last_error_delivery_state(link);
+    ASSERT_IS_NOT_NULL(last_error);
+    ASSERT_ARE_EQUAL(void_ptr, rejected_amqp_value, last_error);
+
+    // cleanup
+    link_destroy(link);
+}
+
+
+/* Verifies that a pending delivery actually receives the constructed delivery_state
+   (and not NULL) when the remote side detaches the link with an error. */
+TEST_FUNCTION(link_detach_with_error_hands_delivery_state_to_pending_delivery)
+{
+    // arrange
+    ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
+    LINK_HANDLE link = create_link(role_sender);
+    LINK_TRANSFER_RESULT link_transfer_error;
+    uint8_t data_bytes[16];
+    PAYLOAD payload;
+    uint8_t async_op_result[128];
+    AMQP_VALUE performative = (AMQP_VALUE)0x7000;
+    AMQP_VALUE descriptor = (AMQP_VALUE)0x7001;
+    DETACH_HANDLE detach = (DETACH_HANDLE)0x7002;
+    ERROR_HANDLE error = (ERROR_HANDLE)0x7003;
+    REJECTED_HANDLE rejected = (REJECTED_HANDLE)0x7004;
+    AMQP_VALUE rejected_amqp_value = (AMQP_VALUE)0x7005;
+    bool closed = false;
+    uint32_t frame_payload_size = 10;
+    const unsigned char payload_bytes[10] = { 0 };
+    int attach_result;
+
+    payload.bytes = (const unsigned char*)data_bytes;
+    payload.length = 0;
+
+    ASSERT_IS_NOT_NULL(link);
+    attach_result = attach_link(link, role_sender, &on_frame_received, NULL);
+    ASSERT_ARE_EQUAL(int, 0, attach_result);
+    ASSERT_IS_NOT_NULL(on_frame_received);
+
+    umock_c_reset_all_calls();
+    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_ARG, IGNORED_ARG))
+        .SetReturn((ASYNC_OPERATION_HANDLE)async_op_result);
+    STRICT_EXPECTED_CALL(session_send_transfer(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG))
+        .SetReturn(SESSION_SEND_TRANSFER_OK);
+    ASSERT_IS_NOT_NULL(link_transfer_async(link, AMQP_BATCHING_FORMAT_CODE, &payload, 1, recording_on_delivery_settled, NULL, &link_transfer_error, 1000));
+
+    recorded_delivery_state = NULL;
+    recorded_settle_count = 0;
+    recorded_settle_reason = LINK_DELIVERY_SETTLE_REASON_SETTLED;
+
+    umock_c_reset_all_calls();
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(performative))
+        .SetReturn(descriptor);
+    STRICT_EXPECTED_CALL(is_attach_type_by_descriptor(IGNORED_ARG)).SetReturn(false);
+    STRICT_EXPECTED_CALL(is_flow_type_by_descriptor(IGNORED_ARG)).SetReturn(false);
+    STRICT_EXPECTED_CALL(is_transfer_type_by_descriptor(IGNORED_ARG)).SetReturn(false);
+    STRICT_EXPECTED_CALL(is_disposition_type_by_descriptor(IGNORED_ARG)).SetReturn(false);
+    STRICT_EXPECTED_CALL(is_detach_type_by_descriptor(IGNORED_ARG)).SetReturn(true);
+    STRICT_EXPECTED_CALL(amqpvalue_get_detach(IGNORED_ARG, IGNORED_ARG))
+        .CopyOutArgumentBuffer(2, &detach, sizeof(detach));
+    STRICT_EXPECTED_CALL(detach_get_closed(IGNORED_ARG, IGNORED_ARG))
+        .CopyOutArgumentBuffer(2, &closed, sizeof(closed));
+    STRICT_EXPECTED_CALL(detach_create(IGNORED_ARG)).SetReturn((DETACH_HANDLE)0x8000);
+    STRICT_EXPECTED_CALL(session_send_detach(IGNORED_ARG, IGNORED_ARG));
+    STRICT_EXPECTED_CALL(detach_destroy(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(detach_get_error(IGNORED_ARG, IGNORED_ARG))
+        .CopyOutArgumentBuffer(2, &error, sizeof(error))
+        .SetReturn(0);
+    STRICT_EXPECTED_CALL(rejected_create()).SetReturn(rejected);
+    STRICT_EXPECTED_CALL(rejected_set_error(IGNORED_ARG, IGNORED_ARG)).SetReturn(0);
+    STRICT_EXPECTED_CALL(amqpvalue_create_rejected(IGNORED_ARG)).SetReturn(rejected_amqp_value);
+    STRICT_EXPECTED_CALL(rejected_destroy(IGNORED_ARG));
+    // one pending delivery is in the list and must be settled with the error delivery state
+    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(IGNORED_ARG))
+        .SetReturn(TEST_LIST_ITEM_HANDLE);
+    STRICT_EXPECTED_CALL(singlylinkedlist_get_next_item(TEST_LIST_ITEM_HANDLE))
+        .SetReturn(NULL);
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(TEST_LIST_ITEM_HANDLE))
+        .SetReturn((ASYNC_OPERATION_HANDLE)async_op_result);
+    STRICT_EXPECTED_CALL(async_operation_destroy(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_destroy(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(error_destroy(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(detach_destroy(IGNORED_ARG));
+
+    // act
+    on_frame_received(link, performative, frame_payload_size, payload_bytes);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_EQUAL(size_t, (size_t)1, recorded_settle_count);
+    ASSERT_ARE_EQUAL(int, (int)LINK_DELIVERY_SETTLE_REASON_NOT_DELIVERED, (int)recorded_settle_reason);
+    ASSERT_IS_NOT_NULL(recorded_delivery_state);
+    ASSERT_ARE_EQUAL(void_ptr, rejected_amqp_value, recorded_delivery_state);
+
+    // cleanup
+    link_destroy(link);
+}
+
+/* Same, but for a session/connection level failure with no AMQP error available:
+   the pending delivery must still get a non-NULL synthetic delivery state. */
+TEST_FUNCTION(session_state_error_hands_synthetic_delivery_state_to_pending_delivery)
+{
+    // arrange
+    ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
+    ON_SESSION_STATE_CHANGED on_session_state_changed = NULL;
+    LINK_HANDLE link = create_link(role_sender);
+    LINK_TRANSFER_RESULT link_transfer_error;
+    uint8_t data_bytes[16];
+    PAYLOAD payload;
+    uint8_t async_op_result[128];
+    ERROR_HANDLE synthetic_error = (ERROR_HANDLE)0x9001;
+    REJECTED_HANDLE rejected = (REJECTED_HANDLE)0x9002;
+    AMQP_VALUE rejected_amqp_value = (AMQP_VALUE)0x9003;
+    int attach_result;
+
+    payload.bytes = (const unsigned char*)data_bytes;
+    payload.length = 0;
+
+    ASSERT_IS_NOT_NULL(link);
+    attach_result = attach_link(link, role_sender, &on_frame_received, NULL);
+    ASSERT_ARE_EQUAL(int, 0, attach_result);
+    on_session_state_changed = last_captured_on_session_state_changed;
+    ASSERT_IS_NOT_NULL(on_session_state_changed);
+
+    umock_c_reset_all_calls();
+    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_ARG, IGNORED_ARG))
+        .SetReturn((ASYNC_OPERATION_HANDLE)async_op_result);
+    STRICT_EXPECTED_CALL(session_send_transfer(IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG))
+        .SetReturn(SESSION_SEND_TRANSFER_OK);
+    ASSERT_IS_NOT_NULL(link_transfer_async(link, AMQP_BATCHING_FORMAT_CODE, &payload, 1, recording_on_delivery_settled, NULL, &link_transfer_error, 1000));
+
+    recorded_delivery_state = NULL;
+    recorded_settle_count = 0;
+    recorded_settle_reason = LINK_DELIVERY_SETTLE_REASON_SETTLED;
+
+    umock_c_reset_all_calls();
+    STRICT_EXPECTED_CALL(session_get_last_error(IGNORED_ARG)).SetReturn(NULL);
+    STRICT_EXPECTED_CALL(error_create(IGNORED_ARG)).SetReturn(synthetic_error);
+    STRICT_EXPECTED_CALL(error_set_description(IGNORED_ARG, IGNORED_ARG)).SetReturn(0);
+    STRICT_EXPECTED_CALL(rejected_create()).SetReturn(rejected);
+    STRICT_EXPECTED_CALL(rejected_set_error(IGNORED_ARG, IGNORED_ARG)).SetReturn(0);
+    STRICT_EXPECTED_CALL(amqpvalue_create_rejected(IGNORED_ARG)).SetReturn(rejected_amqp_value);
+    STRICT_EXPECTED_CALL(rejected_destroy(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(error_destroy(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(IGNORED_ARG))
+        .SetReturn(TEST_LIST_ITEM_HANDLE);
+    STRICT_EXPECTED_CALL(singlylinkedlist_get_next_item(TEST_LIST_ITEM_HANDLE))
+        .SetReturn(NULL);
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(TEST_LIST_ITEM_HANDLE))
+        .SetReturn((ASYNC_OPERATION_HANDLE)async_op_result);
+    STRICT_EXPECTED_CALL(async_operation_destroy(IGNORED_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_destroy(IGNORED_ARG));
+
+    // act
+    on_session_state_changed(link, SESSION_STATE_ERROR, SESSION_STATE_MAPPED);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_EQUAL(size_t, (size_t)1, recorded_settle_count);
+    ASSERT_ARE_EQUAL(int, (int)LINK_DELIVERY_SETTLE_REASON_NOT_DELIVERED, (int)recorded_settle_reason);
+    ASSERT_IS_NOT_NULL(recorded_delivery_state);
+    ASSERT_ARE_EQUAL(void_ptr, rejected_amqp_value, recorded_delivery_state);
+
+    // cleanup
+    link_destroy(link);
+}
+
 
 // Attaches a sender link passing NULL for on_link_flow_on, capturing the session callbacks.
 static int attach_sender_link_without_flow_on(LINK_HANDLE link, ON_ENDPOINT_FRAME_RECEIVED* on_frame_received, ON_SESSION_FLOW_ON* on_session_flow_on)

@@ -74,6 +74,8 @@ typedef struct CONNECTION_INSTANCE_TAG
 
     ON_CONNECTION_CLOSED_EVENT_SUBSCRIPTION on_connection_close_received_event_subscription;
 
+    ERROR_HANDLE last_error;
+
     /* options */
     uint32_t max_frame_size;
     uint16_t channel_max;
@@ -786,6 +788,17 @@ static void connection_on_io_error(void* context)
 
     if (connection->connection_state != CONNECTION_STATE_END)
     {
+        // Store a synthetic error for IO-level failures (no CLOSE frame received)
+        if (connection->last_error != NULL)
+        {
+            error_destroy(connection->last_error);
+        }
+        connection->last_error = error_create("amqp:connection:forced");
+        if (connection->last_error != NULL)
+        {
+            (void)error_set_description(connection->last_error, "The underlying connection was lost");
+        }
+
         /* Codes_S_R_S_CONNECTION_01_202: [If the io notifies the connection instance of an IO_STATE_ERROR state the connection shall be closed and the state set to END.] */
         connection_set_state(connection, CONNECTION_STATE_ERROR);
         if (xio_close(connection->io, NULL, NULL) != 0)
@@ -960,6 +973,13 @@ static void on_amqp_frame_received(void* context, uint16_t channel, AMQP_VALUE p
                                     {
                                         error = NULL;
                                     }
+
+                                    // Store the broker's error for downstream layers to query
+                                    if (connection->last_error != NULL)
+                                    {
+                                        error_destroy(connection->last_error);
+                                    }
+                                    connection->last_error = (error != NULL) ? error_clone(error) : NULL;
 
                                     close_destroy(close_handle);
 
@@ -1317,6 +1337,11 @@ void connection_destroy(CONNECTION_HANDLE connection)
         if (connection->properties != NULL)
         {
             amqpvalue_destroy(connection->properties);
+        }
+
+        if (connection->last_error != NULL)
+        {
+            error_destroy(connection->last_error);
         }
 
         free(connection->host_name);
@@ -2195,4 +2220,21 @@ void connection_unsubscribe_on_connection_close_received(ON_CONNECTION_CLOSED_EV
         event_subscription->on_connection_close_received = NULL;
         event_subscription->context = NULL;
     }
+}
+
+ERROR_HANDLE connection_get_last_error(CONNECTION_HANDLE connection)
+{
+    ERROR_HANDLE result;
+
+    if (connection == NULL)
+    {
+        LogError("NULL connection");
+        result = NULL;
+    }
+    else
+    {
+        result = connection->last_error;
+    }
+
+    return result;
 }

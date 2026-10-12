@@ -921,4 +921,25 @@ TEST_FUNCTION(when_if_sending_the_frame_to_the_connection_fails_the_next_outgoin
 }
 #endif
 
+
+/* session_get_last_error */
+
+TEST_FUNCTION(session_get_last_error_with_NULL_session_returns_NULL)
+{
+    // act / assert
+    ASSERT_IS_NULL(session_get_last_error(NULL));
+}
+
+TEST_FUNCTION(session_get_last_error_with_no_error_returns_NULL)
+{
+    // arrange
+    SESSION_HANDLE session = session_create(TEST_CONNECTION_HANDLE, NULL, NULL);
+
+    // act / assert
+    ASSERT_IS_NULL(session_get_last_error(session));
+
+    // cleanup
+    session_destroy(session);
+}
+
 END_TEST_SUITE(session_ut)

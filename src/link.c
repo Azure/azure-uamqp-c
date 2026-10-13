@@ -1407,11 +1407,15 @@ int link_detach(LINK_HANDLE link, bool close, const char* error_condition, const
     return result;
 }
 
-void link_clear_callbacks(LINK_HANDLE link)
+void link_clear_callbacks(LINK_HANDLE link, void* callback_context)
 {
     if (link == NULL)
     {
         LogError("NULL link");
+    }
+    else if (link->callback_context != callback_context)
+    {
+        LogInfo("Link callbacks are registered with another context; not clearing them");
     }
     else
     {

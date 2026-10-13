@@ -832,7 +832,7 @@ void messagesender_destroy(MESSAGE_SENDER_HANDLE message_sender)
     {
         (void)messagesender_close(message_sender);
         /* The link can outlive this instance; stop it from calling back into freed memory. */
-        link_clear_callbacks(message_sender->link);
+        link_clear_callbacks(message_sender->link, message_sender);
 
         free(message_sender);
     }

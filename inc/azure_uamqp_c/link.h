@@ -75,11 +75,13 @@ MOCKABLE_FUNCTION(, int, link_attach, LINK_HANDLE, link, ON_TRANSFER_RECEIVED, o
 MOCKABLE_FUNCTION(, int, link_detach, LINK_HANDLE, link, bool, close, const char*, error_condition, const char*, error_description, AMQP_VALUE, info);
 /**
  * @brief   Stops @p link from invoking the callbacks registered with link_attach.
- * @param   link    The link.
- * @remarks Call before freeing the context passed to link_attach when the link outlives it.
+ * @param   link                The link.
+ * @param   callback_context    The context passed to link_attach. Nothing is cleared if the link
+ *                              is registered with a different context.
+ * @remarks Call before freeing @p callback_context when the link outlives it.
  *          Callbacks passed to link_transfer_async are not affected.
  */
-MOCKABLE_FUNCTION(, void, link_clear_callbacks, LINK_HANDLE, link);
+MOCKABLE_FUNCTION(, void, link_clear_callbacks, LINK_HANDLE, link, void*, callback_context);
 MOCKABLE_FUNCTION(, ASYNC_OPERATION_HANDLE, link_transfer_async, LINK_HANDLE, handle, message_format, message_format, PAYLOAD*, payloads, size_t, payload_count, ON_DELIVERY_SETTLED, on_delivery_settled, void*, callback_context, LINK_TRANSFER_RESULT*, link_transfer_result,tickcounter_ms_t, timeout);
 MOCKABLE_FUNCTION(, void, link_dowork, LINK_HANDLE, link);
 

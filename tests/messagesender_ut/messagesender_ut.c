@@ -613,7 +613,7 @@ TEST_FUNCTION(when_the_link_is_busy_and_cloning_the_message_fails_the_pending_se
        left behind. */
     umock_c_reset_all_calls();
     STRICT_EXPECTED_CALL(link_detach(test_link, true, NULL, NULL, NULL));
-    STRICT_EXPECTED_CALL(link_clear_callbacks(test_link));
+    STRICT_EXPECTED_CALL(link_clear_callbacks(test_link, message_sender));
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
@@ -641,7 +641,7 @@ TEST_FUNCTION(when_sending_the_message_fails_the_pending_send_is_removed_from_th
 
     umock_c_reset_all_calls();
     STRICT_EXPECTED_CALL(link_detach(test_link, true, NULL, NULL, NULL));
-    STRICT_EXPECTED_CALL(link_clear_callbacks(test_link));
+    STRICT_EXPECTED_CALL(link_clear_callbacks(test_link, message_sender));
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
@@ -1088,7 +1088,7 @@ TEST_FUNCTION(messagesender_destroy_stops_the_link_from_calling_back_into_the_se
     MESSAGE_SENDER_HANDLE message_sender = create_and_open_message_sender();
     umock_c_reset_all_calls();
     STRICT_EXPECTED_CALL(link_detach(test_link, true, NULL, NULL, NULL));
-    STRICT_EXPECTED_CALL(link_clear_callbacks(test_link));
+    STRICT_EXPECTED_CALL(link_clear_callbacks(test_link, message_sender));
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act

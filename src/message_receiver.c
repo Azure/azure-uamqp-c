@@ -345,7 +345,7 @@ void messagereceiver_destroy(MESSAGE_RECEIVER_HANDLE message_receiver)
     {
         (void)messagereceiver_close(message_receiver);
         /* The link can outlive this instance; stop it from calling back into freed memory. */
-        link_clear_callbacks(message_receiver->link);
+        link_clear_callbacks(message_receiver->link, message_receiver);
         free(message_receiver);
     }
 }

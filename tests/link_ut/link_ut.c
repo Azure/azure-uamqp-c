@@ -1859,4 +1859,82 @@ TEST_FUNCTION(on_session_flow_on_with_NULL_on_link_flow_on_does_not_call_it)
     link_destroy(link);
 }
 
+
+/* link_clear_callbacks */
+
+TEST_FUNCTION(link_clear_callbacks_with_NULL_link_does_nothing)
+{
+    // arrange
+    umock_c_reset_all_calls();
+
+    // act
+    link_clear_callbacks(NULL);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+}
+
+/* After link_clear_callbacks, a link state change is not reported to the context passed to link_attach. */
+TEST_FUNCTION(link_clear_callbacks_stops_link_state_changed_notifications)
+{
+    // arrange
+    ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
+    ON_SESSION_STATE_CHANGED on_session_state_changed = NULL;
+    LINK_HANDLE link = create_link(role_sender);
+    ASSERT_IS_NOT_NULL(link);
+    int attach_result = attach_link(link, role_sender, &on_frame_received, &on_session_state_changed);
+    ASSERT_ARE_EQUAL(int, 0, attach_result);
+    ASSERT_IS_NOT_NULL(on_session_state_changed);
+
+    link_clear_callbacks(link);
+    test_on_link_state_changed_new_link_state = LINK_STATE_ERROR;
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(session_get_last_error(IGNORED_ARG))
+        .SetReturn(NULL);
+    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(IGNORED_ARG))
+        .SetReturn(NULL);
+    STRICT_EXPECTED_CALL(singlylinkedlist_destroy(IGNORED_ARG));
+
+    // act
+    on_session_state_changed(link, SESSION_STATE_DISCARDING, SESSION_STATE_MAPPED);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_EQUAL(int, (int)LINK_STATE_ERROR, (int)test_on_link_state_changed_new_link_state);
+
+    // cleanup
+    link_destroy(link);
+}
+
+/* Control for the test above: without link_clear_callbacks the state change is reported. */
+TEST_FUNCTION(without_link_clear_callbacks_link_state_changed_is_notified)
+{
+    // arrange
+    ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
+    ON_SESSION_STATE_CHANGED on_session_state_changed = NULL;
+    LINK_HANDLE link = create_link(role_sender);
+    ASSERT_IS_NOT_NULL(link);
+    int attach_result = attach_link(link, role_sender, &on_frame_received, &on_session_state_changed);
+    ASSERT_ARE_EQUAL(int, 0, attach_result);
+
+    test_on_link_state_changed_new_link_state = LINK_STATE_ERROR;
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(session_get_last_error(IGNORED_ARG))
+        .SetReturn(NULL);
+    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(IGNORED_ARG))
+        .SetReturn(NULL);
+    STRICT_EXPECTED_CALL(singlylinkedlist_destroy(IGNORED_ARG));
+
+    // act
+    on_session_state_changed(link, SESSION_STATE_DISCARDING, SESSION_STATE_MAPPED);
+
+    // assert
+    ASSERT_ARE_EQUAL(int, (int)LINK_STATE_DETACHED, (int)test_on_link_state_changed_new_link_state);
+
+    // cleanup
+    link_destroy(link);
+}
+
 END_TEST_SUITE(link_ut)

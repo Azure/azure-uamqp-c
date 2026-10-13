@@ -64,6 +64,8 @@ static AMQP_VALUE test_amqp_value = (AMQP_VALUE)0x4245;
 /* captured by the link_attach mock so tests can drive link state changes */
 static ON_LINK_STATE_CHANGED saved_on_link_state_changed;
 static void* saved_on_link_state_changed_context;
+/* captured by the link_attach mock so tests can report link flow on */
+static ON_LINK_FLOW_ON saved_on_link_flow_on;
 
 /* knobs used to steer the mocked link/message behaviour */
 static LINK_TRANSFER_RESULT g_link_transfer_result;
@@ -98,6 +100,9 @@ static size_t g_stale_cancel_count;
 /* action run inside link_detach, e.g. to emulate a synchronous session/connection failure */
 static void (*g_link_detach_action)(void);
 static int g_link_detach_result;
+/* fake link settles the delivery as NOT_DELIVERED and then fails the transfer, as link.c does
+   when the connection ends while the transfer frame is sent */
+static bool g_fake_link_settles_then_fails;
 
 static size_t g_send_complete_count;
 static MESSAGE_SEND_RESULT g_last_send_result;
@@ -112,7 +117,7 @@ static int my_link_attach(LINK_HANDLE link, ON_TRANSFER_RECEIVED on_transfer_rec
 {
     (void)link;
     (void)on_transfer_received;
-    (void)on_link_flow_on;
+    saved_on_link_flow_on = on_link_flow_on;
     saved_on_link_state_changed = on_link_state_changed;
     saved_on_link_state_changed_context = callback_context;
     return 0;
@@ -125,6 +130,13 @@ static ASYNC_OPERATION_HANDLE my_link_transfer_async(LINK_HANDLE handle, message
     (void)payloads;
     (void)payload_count;
     (void)timeout;
+    if (g_fake_link_enabled && g_fake_link_settles_then_fails)
+    {
+        on_delivery_settled(callback_context, 0, LINK_DELIVERY_SETTLE_REASON_NOT_DELIVERED, NULL);
+        saved_on_link_state_changed(saved_on_link_state_changed_context, LINK_STATE_DETACHED, LINK_STATE_ATTACHED);
+        *link_transfer_result = LINK_TRANSFER_ERROR;
+        return NULL;
+    }
     if (g_fake_link_enabled)
     {
         FAKE_DELIVERY* delivery = (FAKE_DELIVERY*)my_gballoc_malloc(sizeof(FAKE_DELIVERY));
@@ -497,6 +509,8 @@ TEST_FUNCTION_INITIALIZE(test_init)
     g_reentrant_sender = NULL;
     g_reentrant_send_result = NULL;
     g_reentrant_destroy = false;
+    g_fake_link_settles_then_fails = false;
+    saved_on_link_flow_on = NULL;
 }
 
 TEST_FUNCTION_CLEANUP(test_cleanup)
@@ -1018,6 +1032,50 @@ TEST_FUNCTION(cancelling_an_in_flight_send_whose_callback_destroys_the_sender_co
     ASSERT_ARE_EQUAL(size_t, 0, g_fake_delivery_count);
     ASSERT_ARE_EQUAL(size_t, 0, g_stale_settle_count);
     ASSERT_ARE_EQUAL(size_t, 0, g_stale_cancel_count);
+}
+
+/* The link can settle a delivery and then fail the transfer, when the connection ends while
+   the transfer frame is sent. The send is then already completed and removed. */
+TEST_FUNCTION(when_the_link_settles_the_send_and_then_fails_the_transfer_the_send_is_completed_once)
+{
+    // arrange
+    MESSAGE_SENDER_HANDLE message_sender = create_and_open_message_sender();
+    g_fake_link_enabled = true;
+    g_fake_link_settles_then_fails = true;
+
+    // act
+    (void)messagesender_send_async(message_sender, test_message, test_send_complete, (void*)0x4711, 0);
+
+    // assert
+    ASSERT_ARE_EQUAL(size_t, 1, g_send_complete_count);
+    ASSERT_ARE_EQUAL(MESSAGE_SEND_RESULT, MESSAGE_SEND_ERROR, g_last_send_result);
+    ASSERT_ARE_EQUAL(size_t, 0, g_live_send_count);
+
+    // cleanup
+    messagesender_destroy(message_sender);
+}
+
+/* Same, for a queued send that is sent when the link reports flow on. */
+TEST_FUNCTION(when_the_link_settles_a_queued_send_and_then_fails_the_transfer_the_send_is_completed_once)
+{
+    // arrange
+    MESSAGE_SENDER_HANDLE message_sender = messagesender_create(test_link, NULL, NULL);
+    (void)messagesender_open(message_sender);
+    ASSERT_IS_NOT_NULL(messagesender_send_async(message_sender, test_message, test_send_complete, (void*)0x4711, 0));
+    saved_on_link_state_changed(saved_on_link_state_changed_context, LINK_STATE_ATTACHED, LINK_STATE_HALF_ATTACHED_ATTACH_SENT);
+    g_fake_link_enabled = true;
+    g_fake_link_settles_then_fails = true;
+
+    // act
+    saved_on_link_flow_on(saved_on_link_state_changed_context);
+
+    // assert
+    ASSERT_ARE_EQUAL(size_t, 1, g_send_complete_count);
+    ASSERT_ARE_EQUAL(MESSAGE_SEND_RESULT, MESSAGE_SEND_ERROR, g_last_send_result);
+    ASSERT_ARE_EQUAL(size_t, 0, g_live_send_count);
+
+    // cleanup
+    messagesender_destroy(message_sender);
 }
 
 END_TEST_SUITE(messagesender_ut)

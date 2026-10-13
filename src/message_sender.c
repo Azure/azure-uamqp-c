@@ -904,15 +904,21 @@ static void messagesender_send_cancel_handler(ASYNC_OPERATION_HANDLE send_operat
 {
     MESSAGE_WITH_CALLBACK* message_with_callback = GET_ASYNC_OPERATION_CONTEXT(MESSAGE_WITH_CALLBACK, send_operation);
     MESSAGE_SENDER_HANDLE messager_sender = message_with_callback->message_sender;
+    ON_MESSAGE_SEND_COMPLETE on_message_send_complete = message_with_callback->on_message_send_complete;
 
-    if (message_with_callback->on_message_send_complete != NULL)
+    /* Cleared before cancelling the link delivery, whose settlement would otherwise complete
+    this send a second time. */
+    message_with_callback->on_message_send_complete = NULL;
+
+    if (on_message_send_complete != NULL)
     {
-        message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_CANCELLED, NULL);
+        on_message_send_complete(message_with_callback->context, MESSAGE_SEND_CANCELLED, NULL);
     }
 
     if (message_with_callback->transfer_async_operation != NULL)
     {
-        async_operation_cancel(message_with_callback->transfer_async_operation);
+        (void)async_operation_cancel(message_with_callback->transfer_async_operation);
+        message_with_callback->transfer_async_operation = NULL;
     }
 
     remove_pending_message(messager_sender, send_operation);

@@ -163,6 +163,42 @@ static void test_send_complete(void* context, MESSAGE_SEND_RESULT send_result, A
     g_last_send_result = send_result;
 }
 
+/* Completion callback that queues one more send from inside the first completion. */
+static MESSAGE_SENDER_HANDLE g_reentrant_sender;
+static ASYNC_OPERATION_HANDLE g_reentrant_send_result;
+
+static void reentrant_send_complete(void* context, MESSAGE_SEND_RESULT send_result, AMQP_VALUE delivery_state)
+{
+    test_send_complete(context, send_result, delivery_state);
+    if (g_reentrant_sender != NULL)
+    {
+        MESSAGE_SENDER_HANDLE message_sender = g_reentrant_sender;
+        g_reentrant_sender = NULL;
+        g_reentrant_send_result = messagesender_send_async(message_sender, test_message, test_send_complete, (void*)0x4712, 0);
+    }
+}
+
+/* Completion callback that closes, or destroys, g_reentrant_sender from inside the completion. */
+static bool g_reentrant_destroy;
+
+static void closing_send_complete(void* context, MESSAGE_SEND_RESULT send_result, AMQP_VALUE delivery_state)
+{
+    test_send_complete(context, send_result, delivery_state);
+    if (g_reentrant_sender != NULL)
+    {
+        MESSAGE_SENDER_HANDLE message_sender = g_reentrant_sender;
+        g_reentrant_sender = NULL;
+        if (g_reentrant_destroy)
+        {
+            messagesender_destroy(message_sender);
+        }
+        else
+        {
+            (void)messagesender_close(message_sender);
+        }
+    }
+}
+
 static MESSAGE_HANDLE my_message_clone(MESSAGE_HANDLE source_message)
 {
     (void)source_message;
@@ -311,10 +347,16 @@ static void fake_link_detach_fails_synchronously(void)
     saved_on_link_state_changed(saved_on_link_state_changed_context, LINK_STATE_DETACHED, LINK_STATE_ATTACHED);
 }
 
-/* Emulates link_transfer_cancel_handler: settle as CANCELLED, then drop the delivery. */
+/* Emulates async_operation_cancel: a pending send runs its own cancel handler; a fake link
+   delivery is settled as CANCELLED and dropped, as link_transfer_cancel_handler does. */
 static int my_async_operation_cancel(ASYNC_OPERATION_HANDLE async_operation)
 {
     size_t i;
+    if (is_live_send(async_operation))
+    {
+        (*(ASYNC_OPERATION_CANCEL_HANDLER_FUNC*)async_operation)(async_operation);
+        return 0;
+    }
     for (i = 0; i < g_fake_delivery_count; i++)
     {
         if (g_fake_deliveries[i] == (FAKE_DELIVERY*)async_operation)
@@ -452,6 +494,9 @@ TEST_FUNCTION_INITIALIZE(test_init)
     g_link_detach_result = 0;
     g_send_complete_count = 0;
     g_last_send_result = MESSAGE_SEND_OK;
+    g_reentrant_sender = NULL;
+    g_reentrant_send_result = NULL;
+    g_reentrant_destroy = false;
 }
 
 TEST_FUNCTION_CLEANUP(test_cleanup)
@@ -848,6 +893,131 @@ TEST_FUNCTION(a_disposition_with_a_NULL_delivery_state_completes_the_caller_once
 
     // cleanup
     messagesender_destroy(message_sender);
+}
+
+/* Cancelling a send that is in flight cancels its link delivery too. The link settles that
+   delivery as CANCELLED; the caller must still be completed only once. */
+TEST_FUNCTION(cancelling_an_in_flight_send_completes_it_once)
+{
+    // arrange
+    MESSAGE_SENDER_HANDLE message_sender = create_sender_with_one_in_flight_send();
+    ASYNC_OPERATION_HANDLE send;
+    ASSERT_ARE_EQUAL(size_t, 1, g_live_send_count);
+    send = g_live_sends[0];
+
+    // act
+    (void)async_operation_cancel(send);
+
+    // assert
+    ASSERT_ARE_EQUAL(size_t, 1, g_send_complete_count);
+    ASSERT_ARE_EQUAL(MESSAGE_SEND_RESULT, MESSAGE_SEND_CANCELLED, g_last_send_result);
+    ASSERT_ARE_EQUAL(size_t, 0, g_fake_delivery_count);
+    ASSERT_ARE_EQUAL(size_t, 0, g_live_send_count);
+    ASSERT_ARE_EQUAL(size_t, 0, g_stale_settle_count);
+    ASSERT_ARE_EQUAL(size_t, 0, g_stale_cancel_count);
+
+    // cleanup
+    messagesender_destroy(message_sender);
+}
+
+/* A send queued from a completion callback while close fails the pending sends is failed too. */
+TEST_FUNCTION(a_send_queued_from_a_completion_during_close_is_completed_once)
+{
+    // arrange
+    MESSAGE_SENDER_HANDLE message_sender = create_and_open_message_sender();
+    g_fake_link_enabled = true;
+    ASSERT_IS_NOT_NULL(messagesender_send_async(message_sender, test_message, reentrant_send_complete, (void*)0x4711, 0));
+    g_reentrant_sender = message_sender;
+
+    // act
+    (void)messagesender_close(message_sender);
+
+    // assert
+    ASSERT_IS_NOT_NULL(g_reentrant_send_result);
+    ASSERT_ARE_EQUAL(size_t, 2, g_send_complete_count);
+    ASSERT_ARE_EQUAL(MESSAGE_SEND_RESULT, MESSAGE_SEND_ERROR, g_last_send_result);
+    ASSERT_ARE_EQUAL(size_t, 0, g_live_send_count);
+    ASSERT_ARE_EQUAL(size_t, 0, g_fake_delivery_count);
+    ASSERT_ARE_EQUAL(size_t, 0, g_stale_settle_count);
+    ASSERT_ARE_EQUAL(size_t, 0, g_stale_cancel_count);
+
+    // cleanup
+    messagesender_destroy(message_sender);
+}
+
+/* Same, when the link detaches while the sender is open and the new send goes onto the link. */
+TEST_FUNCTION(a_send_queued_from_a_completion_on_link_detached_is_completed_once)
+{
+    // arrange
+    MESSAGE_SENDER_HANDLE message_sender = create_and_open_message_sender();
+    g_fake_link_enabled = true;
+    ASSERT_IS_NOT_NULL(messagesender_send_async(message_sender, test_message, reentrant_send_complete, (void*)0x4711, 0));
+    g_reentrant_sender = message_sender;
+
+    // act
+    saved_on_link_state_changed(saved_on_link_state_changed_context, LINK_STATE_DETACHED, LINK_STATE_HALF_ATTACHED_ATTACH_SENT);
+
+    // assert
+    ASSERT_IS_NOT_NULL(g_reentrant_send_result);
+    ASSERT_ARE_EQUAL(size_t, 2, g_send_complete_count);
+    ASSERT_ARE_EQUAL(MESSAGE_SEND_RESULT, MESSAGE_SEND_ERROR, g_last_send_result);
+    ASSERT_ARE_EQUAL(size_t, 0, g_live_send_count);
+    ASSERT_ARE_EQUAL(size_t, 0, g_fake_delivery_count);
+    ASSERT_ARE_EQUAL(size_t, 0, g_stale_settle_count);
+    ASSERT_ARE_EQUAL(size_t, 0, g_stale_cancel_count);
+
+    // cleanup
+    messagesender_destroy(message_sender);
+}
+
+/* The cancellation callback may close the sender; the cancel handler must not use the send after. */
+TEST_FUNCTION(cancelling_an_in_flight_send_whose_callback_closes_the_sender_completes_it_once)
+{
+    // arrange
+    MESSAGE_SENDER_HANDLE message_sender = create_and_open_message_sender();
+    ASYNC_OPERATION_HANDLE send;
+    g_fake_link_enabled = true;
+    send = messagesender_send_async(message_sender, test_message, closing_send_complete, (void*)0x4711, 0);
+    ASSERT_IS_NOT_NULL(send);
+    g_reentrant_sender = message_sender;
+
+    // act
+    (void)async_operation_cancel(send);
+
+    // assert
+    ASSERT_ARE_EQUAL(size_t, 1, g_send_complete_count);
+    ASSERT_ARE_EQUAL(MESSAGE_SEND_RESULT, MESSAGE_SEND_CANCELLED, g_last_send_result);
+    ASSERT_ARE_EQUAL(size_t, 0, g_live_send_count);
+    ASSERT_ARE_EQUAL(size_t, 0, g_fake_delivery_count);
+    ASSERT_ARE_EQUAL(size_t, 0, g_stale_settle_count);
+    ASSERT_ARE_EQUAL(size_t, 0, g_stale_cancel_count);
+
+    // cleanup
+    messagesender_destroy(message_sender);
+}
+
+/* The cancellation callback may destroy the sender; the cancel handler must not use either after. */
+TEST_FUNCTION(cancelling_an_in_flight_send_whose_callback_destroys_the_sender_completes_it_once)
+{
+    // arrange
+    MESSAGE_SENDER_HANDLE message_sender = create_and_open_message_sender();
+    ASYNC_OPERATION_HANDLE send;
+    g_fake_link_enabled = true;
+    send = messagesender_send_async(message_sender, test_message, closing_send_complete, (void*)0x4711, 0);
+    ASSERT_IS_NOT_NULL(send);
+    g_reentrant_sender = message_sender;
+    g_reentrant_destroy = true;
+
+    // act
+    (void)async_operation_cancel(send);
+
+    // assert
+    ASSERT_ARE_EQUAL(size_t, 1, g_send_complete_count);
+    ASSERT_ARE_EQUAL(MESSAGE_SEND_RESULT, MESSAGE_SEND_CANCELLED, g_last_send_result);
+    ASSERT_ARE_EQUAL(size_t, 0, g_live_send_count);
+    ASSERT_ARE_EQUAL(size_t, 0, g_fake_delivery_count);
+    ASSERT_ARE_EQUAL(size_t, 0, g_stale_settle_count);
+    ASSERT_ARE_EQUAL(size_t, 0, g_stale_cancel_count);
 }
 
 END_TEST_SUITE(messagesender_ut)

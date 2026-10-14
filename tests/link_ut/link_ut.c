@@ -323,9 +323,11 @@ static void umock_free_delivery_tag(delivery_tag* value)
 static TRANSFER_HANDLE test_on_transfer_received_transfer;
 static uint32_t test_on_transfer_received_payload_size;
 static unsigned char test_on_transfer_received_payload_bytes[2048];
+static size_t test_on_transfer_received_call_count;
 static AMQP_VALUE test_on_transfer_received(void* context, TRANSFER_HANDLE transfer, uint32_t payload_size, const unsigned char* payload_bytes)
 {
     (void)context;
+    test_on_transfer_received_call_count++;
     test_on_transfer_received_transfer = transfer;
     test_on_transfer_received_payload_size = payload_size;
     memcpy(test_on_transfer_received_payload_bytes, payload_bytes, payload_size);
@@ -342,9 +344,11 @@ static void test_on_link_state_changed(void* context, LINK_STATE new_link_state,
     test_on_link_state_changed_previous_link_state = previous_link_state;
 }
 
+static size_t test_on_link_flow_on_call_count;
 static void test_on_link_flow_on(void* context)
 {
     (void)context;
+    test_on_link_flow_on_call_count++;
 }
 
 static void on_delivery_settled(void* context, delivery_number delivery_no, LINK_DELIVERY_SETTLE_REASON reason, AMQP_VALUE delivery_state)
@@ -1854,6 +1858,207 @@ TEST_FUNCTION(on_session_flow_on_with_NULL_on_link_flow_on_does_not_call_it)
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    link_destroy(link);
+}
+
+
+/* link_clear_callbacks */
+
+TEST_FUNCTION(link_clear_callbacks_with_NULL_link_does_nothing)
+{
+    // arrange
+    umock_c_reset_all_calls();
+
+    // act
+    link_clear_callbacks(NULL, NULL);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+}
+
+/* After link_clear_callbacks, a link state change is not reported to the context passed to link_attach. */
+TEST_FUNCTION(link_clear_callbacks_stops_link_state_changed_notifications)
+{
+    // arrange
+    ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
+    ON_SESSION_STATE_CHANGED on_session_state_changed = NULL;
+    LINK_HANDLE link = create_link(role_sender);
+    ASSERT_IS_NOT_NULL(link);
+    int attach_result = attach_link(link, role_sender, &on_frame_received, &on_session_state_changed);
+    ASSERT_ARE_EQUAL(int, 0, attach_result);
+    ASSERT_IS_NOT_NULL(on_session_state_changed);
+
+    link_clear_callbacks(link, NULL);
+    test_on_link_state_changed_new_link_state = LINK_STATE_ERROR;
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(session_get_last_error(IGNORED_ARG))
+        .SetReturn(NULL);
+    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(IGNORED_ARG))
+        .SetReturn(NULL);
+    STRICT_EXPECTED_CALL(singlylinkedlist_destroy(IGNORED_ARG));
+
+    // act
+    on_session_state_changed(link, SESSION_STATE_DISCARDING, SESSION_STATE_MAPPED);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_EQUAL(int, (int)LINK_STATE_ERROR, (int)test_on_link_state_changed_new_link_state);
+
+    // cleanup
+    link_destroy(link);
+}
+
+/* Control for the test above: without link_clear_callbacks the state change is reported. */
+TEST_FUNCTION(without_link_clear_callbacks_link_state_changed_is_notified)
+{
+    // arrange
+    ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
+    ON_SESSION_STATE_CHANGED on_session_state_changed = NULL;
+    LINK_HANDLE link = create_link(role_sender);
+    ASSERT_IS_NOT_NULL(link);
+    int attach_result = attach_link(link, role_sender, &on_frame_received, &on_session_state_changed);
+    ASSERT_ARE_EQUAL(int, 0, attach_result);
+
+    test_on_link_state_changed_new_link_state = LINK_STATE_ERROR;
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(session_get_last_error(IGNORED_ARG))
+        .SetReturn(NULL);
+    STRICT_EXPECTED_CALL(singlylinkedlist_get_head_item(IGNORED_ARG))
+        .SetReturn(NULL);
+    STRICT_EXPECTED_CALL(singlylinkedlist_destroy(IGNORED_ARG));
+
+    // act
+    on_session_state_changed(link, SESSION_STATE_DISCARDING, SESSION_STATE_MAPPED);
+
+    // assert
+    ASSERT_ARE_EQUAL(int, (int)LINK_STATE_DETACHED, (int)test_on_link_state_changed_new_link_state);
+
+    // cleanup
+    link_destroy(link);
+}
+
+#define TEST_ATTACH_CONTEXT ((void*)0x7A7A)
+
+/* Attaches with all callbacks and TEST_ATTACH_CONTEXT, capturing the frame and flow on callbacks. */
+static int attach_link_with_context(LINK_HANDLE link, ON_ENDPOINT_FRAME_RECEIVED* on_frame_received, ON_SESSION_FLOW_ON* on_session_flow_on)
+{
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(session_begin(TEST_SESSION_HANDLE));
+    STRICT_EXPECTED_CALL(session_start_link_endpoint(TEST_LINK_ENDPOINT, IGNORED_ARG, IGNORED_ARG, IGNORED_ARG, link))
+        .CaptureArgumentValue_frame_received_callback(on_frame_received)
+        .CaptureArgumentValue_on_session_flow_on(on_session_flow_on);
+
+    return link_attach(link, test_on_transfer_received, test_on_link_state_changed, test_on_link_flow_on, TEST_ATTACH_CONTEXT);
+}
+
+/* After link_clear_callbacks, neither session flow on nor a FLOW frame reaches on_link_flow_on. */
+TEST_FUNCTION(link_clear_callbacks_stops_link_flow_on_notifications)
+{
+    // arrange
+    LINK_HANDLE link = create_link(role_sender);
+    ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
+    ON_SESSION_FLOW_ON on_session_flow_on = NULL;
+    ASSERT_ARE_EQUAL(int, 0, attach_link_with_context(link, &on_frame_received, &on_session_flow_on));
+    ASSERT_IS_NOT_NULL(on_session_flow_on);
+
+    AMQP_VALUE performative = (AMQP_VALUE)0x5000;
+    AMQP_VALUE descriptor = (AMQP_VALUE)0x5001;
+    FLOW_HANDLE flow = (FLOW_HANDLE)0x5002;
+    const unsigned char payload_bytes[30] = { 0 };
+    uint32_t link_credit_value = 700;
+    uint32_t delivery_count_value = 300;
+
+    link_clear_callbacks(link, TEST_ATTACH_CONTEXT);
+    test_on_link_flow_on_call_count = 0;
+
+    umock_c_reset_all_calls();
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(performative))
+        .SetReturn(descriptor);
+    STRICT_EXPECTED_CALL(is_attach_type_by_descriptor(IGNORED_ARG))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_flow_type_by_descriptor(IGNORED_ARG))
+        .SetReturn(1);
+    STRICT_EXPECTED_CALL(amqpvalue_get_flow(IGNORED_ARG, IGNORED_ARG))
+        .CopyOutArgumentBuffer(2, &flow, sizeof(flow));
+    STRICT_EXPECTED_CALL(flow_get_link_credit(IGNORED_ARG, IGNORED_ARG))
+        .CopyOutArgumentBuffer(2, &link_credit_value, sizeof(link_credit_value));
+    STRICT_EXPECTED_CALL(flow_get_delivery_count(IGNORED_ARG, IGNORED_ARG))
+        .CopyOutArgumentBuffer(2, &delivery_count_value, sizeof(delivery_count_value));
+    STRICT_EXPECTED_CALL(flow_destroy(IGNORED_ARG));
+
+    // act
+    on_session_flow_on(link);
+    on_frame_received(link, performative, sizeof(payload_bytes), payload_bytes);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_EQUAL(size_t, 0, test_on_link_flow_on_call_count);
+
+    // cleanup
+    link_destroy(link);
+}
+
+/* A context other than the registered one leaves the callbacks in place. */
+TEST_FUNCTION(link_clear_callbacks_with_another_context_keeps_the_callbacks)
+{
+    // arrange
+    LINK_HANDLE link = create_link(role_sender);
+    ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
+    ON_SESSION_FLOW_ON on_session_flow_on = NULL;
+    ASSERT_ARE_EQUAL(int, 0, attach_link_with_context(link, &on_frame_received, &on_session_flow_on));
+    ASSERT_IS_NOT_NULL(on_session_flow_on);
+
+    link_clear_callbacks(link, (void*)0x7B7B);
+    test_on_link_flow_on_call_count = 0;
+
+    // act
+    on_session_flow_on(link);
+
+    // assert
+    ASSERT_ARE_EQUAL(size_t, 1, test_on_link_flow_on_call_count);
+
+    // cleanup
+    link_destroy(link);
+}
+
+/* After link_clear_callbacks, a TRANSFER frame is not processed or reported. */
+TEST_FUNCTION(link_clear_callbacks_stops_transfer_received_notifications)
+{
+    // arrange
+    LINK_HANDLE link = create_link(role_receiver);
+    ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
+    ON_SESSION_FLOW_ON on_session_flow_on = NULL;
+    ASSERT_ARE_EQUAL(int, 0, attach_link_with_context(link, &on_frame_received, &on_session_flow_on));
+    ASSERT_IS_NOT_NULL(on_frame_received);
+
+    AMQP_VALUE performative = (AMQP_VALUE)0x5000;
+    AMQP_VALUE descriptor = (AMQP_VALUE)0x5001;
+    const unsigned char payload_bytes[30] = { 0 };
+
+    link_clear_callbacks(link, TEST_ATTACH_CONTEXT);
+    test_on_transfer_received_call_count = 0;
+
+    umock_c_reset_all_calls();
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(performative))
+        .SetReturn(descriptor);
+    STRICT_EXPECTED_CALL(is_attach_type_by_descriptor(IGNORED_ARG))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_flow_type_by_descriptor(IGNORED_ARG))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_transfer_type_by_descriptor(IGNORED_ARG))
+        .SetReturn(true);
+
+    // act
+    on_frame_received(link, performative, sizeof(payload_bytes), payload_bytes);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+    ASSERT_ARE_EQUAL(size_t, 0, test_on_transfer_received_call_count);
 
     // cleanup
     link_destroy(link);

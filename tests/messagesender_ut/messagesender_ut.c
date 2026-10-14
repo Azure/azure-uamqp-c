@@ -613,6 +613,7 @@ TEST_FUNCTION(when_the_link_is_busy_and_cloning_the_message_fails_the_pending_se
        left behind. */
     umock_c_reset_all_calls();
     STRICT_EXPECTED_CALL(link_detach(test_link, true, NULL, NULL, NULL));
+    STRICT_EXPECTED_CALL(link_clear_callbacks(test_link, message_sender));
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
@@ -640,6 +641,7 @@ TEST_FUNCTION(when_sending_the_message_fails_the_pending_send_is_removed_from_th
 
     umock_c_reset_all_calls();
     STRICT_EXPECTED_CALL(link_detach(test_link, true, NULL, NULL, NULL));
+    STRICT_EXPECTED_CALL(link_clear_callbacks(test_link, message_sender));
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
 
     // act
@@ -1076,6 +1078,24 @@ TEST_FUNCTION(when_the_link_settles_a_queued_send_and_then_fails_the_transfer_th
 
     // cleanup
     messagesender_destroy(message_sender);
+}
+
+/* The link can outlive the message sender. Destroying the sender must stop the link from calling
+   back into it, after the link has been detached. */
+TEST_FUNCTION(messagesender_destroy_stops_the_link_from_calling_back_into_the_sender)
+{
+    // arrange
+    MESSAGE_SENDER_HANDLE message_sender = create_and_open_message_sender();
+    umock_c_reset_all_calls();
+    STRICT_EXPECTED_CALL(link_detach(test_link, true, NULL, NULL, NULL));
+    STRICT_EXPECTED_CALL(link_clear_callbacks(test_link, message_sender));
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_ARG));
+
+    // act
+    messagesender_destroy(message_sender);
+
+    // assert
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 }
 
 END_TEST_SUITE(messagesender_ut)

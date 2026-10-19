@@ -149,7 +149,10 @@ stages:
   - job: windowsx64
     timeoutInMinutes: 90
     variables:
-      Codeql.Enabled: false
+      # Owns the 'cpp' CodeQL snapshot for this branch. Overrides the pipeline-level
+      # Codeql.Enabled: false. Only on lts_03_2025 itself, so PR builds stay fast.
+      Codeql.Enabled: $[eq(variables['Build.SourceBranch'], 'refs/heads/lts_03_2025')]
+      Codeql.Language: cpp
     pool:
       vmImage: 'windows-2022'
     displayName: 'Windows x64'
@@ -161,10 +164,13 @@ stages:
     - download: current
       artifact: test_config_scripts
       displayName: 'Download artifact (test config scripts)'
+    - task: CodeQL3000Init@0
     - powershell: |
         . "$(Pipeline.Workspace)\test_config_scripts\Set-E2ETestEnvVars.ps1"
         cmd /c "call jenkins\windows_c_VsDevCmd.cmd x64 && call jenkins\windows_c.cmd --platform x64"
       displayName: 'Build and Test'
+    - task: CodeQL3000Finalize@0
+      condition: always()
     - task: ComponentGovernanceComponentDetection@0
       displayName: 'Component Detection'
 
@@ -214,6 +220,9 @@ stages:
         set -e
         export OPENSSL_ia32cap=0x00000000
         sudo chmod -R 755 .
+        # Nothing on a hosted agent selects clang; without these the job builds with gcc.
+        export CC=clang
+        export CXX=clang++
         sudo -E bash -c 'source "$(Pipeline.Workspace)/test_config_scripts/set_e2e_test_env_vars.sh" && ./jenkins/ubuntu_clang.sh'
       displayName: 'Build and Test'
 

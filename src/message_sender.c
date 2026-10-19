@@ -973,7 +973,10 @@ ASYNC_OPERATION_HANDLE messagesender_send_async(MESSAGE_SENDER_HANDLE message_se
                                 if (message_with_callback->message == NULL)
                                 {
                                     LogError("Error cloning message for placing it in the pending sends list");
-                                    async_operation_destroy(result);
+                                    /* The async operation is already in the pending sends array, so it has to be
+                                    removed from there as well, not only destroyed, otherwise the array is left
+                                    holding a dangling pointer. */
+                                    remove_pending_message_by_index(message_sender, message_sender->message_count - 1);
                                     result = NULL;
                                 }
                                 else

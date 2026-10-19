@@ -1344,7 +1344,7 @@ TEST_FUNCTION(link_detach_with_error_propagates_delivery_state_to_on_delivery_se
     STRICT_EXPECTED_CALL(detach_get_closed(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .CopyOutArgumentBuffer(2, &closed, sizeof(closed));
     // Link is ATTACHED, so it sends a detach ack via send_detach(link, false, NULL)
-    STRICT_EXPECTED_CALL(detach_create(IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(detach_create(IGNORED_NUM_ARG))
         .SetReturn((DETACH_HANDLE)0x8000);
     STRICT_EXPECTED_CALL(session_send_detach(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(detach_destroy(IGNORED_PTR_ARG));
@@ -1421,7 +1421,7 @@ TEST_FUNCTION(link_detach_without_error_passes_NULL_delivery_state)
     STRICT_EXPECTED_CALL(detach_get_closed(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .CopyOutArgumentBuffer(2, &closed, sizeof(closed));
     // Link is ATTACHED, so it sends a detach ack via send_detach(link, false, NULL)
-    STRICT_EXPECTED_CALL(detach_create(IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(detach_create(IGNORED_NUM_ARG))
         .SetReturn((DETACH_HANDLE)0x8000);
     STRICT_EXPECTED_CALL(session_send_detach(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(detach_destroy(IGNORED_PTR_ARG));
@@ -1658,9 +1658,9 @@ TEST_FUNCTION(link_detach_with_error_hands_delivery_state_to_pending_delivery)
     ASSERT_IS_NOT_NULL(on_frame_received);
 
     umock_c_reset_all_calls();
-    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG))
         .SetReturn((ASYNC_OPERATION_HANDLE)async_op_result);
-    STRICT_EXPECTED_CALL(session_send_transfer(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(session_send_transfer(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .SetReturn(SESSION_SEND_TRANSFER_OK);
     ASSERT_IS_NOT_NULL(link_transfer_async(link, AMQP_BATCHING_FORMAT_CODE, &payload, 1, recording_on_delivery_settled, NULL, &link_transfer_error, 1000));
 
@@ -1680,7 +1680,7 @@ TEST_FUNCTION(link_detach_with_error_hands_delivery_state_to_pending_delivery)
         .CopyOutArgumentBuffer(2, &detach, sizeof(detach));
     STRICT_EXPECTED_CALL(detach_get_closed(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .CopyOutArgumentBuffer(2, &closed, sizeof(closed));
-    STRICT_EXPECTED_CALL(detach_create(IGNORED_PTR_ARG)).SetReturn((DETACH_HANDLE)0x8000);
+    STRICT_EXPECTED_CALL(detach_create(IGNORED_NUM_ARG)).SetReturn((DETACH_HANDLE)0x8000);
     STRICT_EXPECTED_CALL(session_send_detach(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(detach_destroy(IGNORED_PTR_ARG));
     STRICT_EXPECTED_CALL(detach_get_error(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
@@ -1743,9 +1743,9 @@ TEST_FUNCTION(session_state_error_hands_synthetic_delivery_state_to_pending_deli
     ASSERT_IS_NOT_NULL(on_session_state_changed);
 
     umock_c_reset_all_calls();
-    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG))
         .SetReturn((ASYNC_OPERATION_HANDLE)async_op_result);
-    STRICT_EXPECTED_CALL(session_send_transfer(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+    STRICT_EXPECTED_CALL(session_send_transfer(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_NUM_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
         .SetReturn(SESSION_SEND_TRANSFER_OK);
     ASSERT_IS_NOT_NULL(link_transfer_async(link, AMQP_BATCHING_FORMAT_CODE, &payload, 1, recording_on_delivery_settled, NULL, &link_transfer_error, 1000));
 

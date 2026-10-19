@@ -236,6 +236,8 @@ static ON_MESSAGE_RECEIVED saved_on_message_received;
 static void* saved_on_message_received_context;
 static ON_MESSAGE_SEND_COMPLETE saved_on_message_send_complete;
 static void* saved_on_message_send_complete_context;
+static bool complete_send_in_send_async;
+static MESSAGE_SEND_RESULT send_result_in_send_async;
 static MESSAGE_SENDER_STATE messagesender_close_on_message_sender_state_changed_new_state;
 static MESSAGE_SENDER_STATE messagesender_close_on_message_sender_state_changed_previous_state;
 
@@ -285,6 +287,12 @@ static ASYNC_OPERATION_HANDLE my_messagesender_send_async(MESSAGE_SENDER_HANDLE 
     (void)timeout;
     saved_on_message_send_complete = on_message_send_complete;
     saved_on_message_send_complete_context = callback_context;
+
+    if (complete_send_in_send_async)
+    {
+        on_message_send_complete(callback_context, send_result_in_send_async, NULL);
+    }
+
     return test_send_operation;
 }
 
@@ -427,6 +435,8 @@ TEST_FUNCTION_INITIALIZE(test_init)
 
     umock_c_reset_all_calls();
     singlylinkedlist_remove_result = 0;
+    complete_send_in_send_async = false;
+    send_result_in_send_async = MESSAGE_SEND_OK;
     messagesender_close_on_message_sender_state_changed_previous_state = MESSAGE_SENDER_STATE_OPEN;
     messagesender_close_on_message_sender_state_changed_new_state = MESSAGE_SENDER_STATE_CLOSING;
 }
@@ -1959,6 +1969,100 @@ TEST_FUNCTION(amqp_management_execute_operation_async_the_2nd_time_uses_the_next
 
     // assert
     ASSERT_ARE_NOT_EQUAL(ASYNC_OPERATION_HANDLE, NULL, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqp_management_destroy(amqp_management);
+}
+
+static void setup_calls_for_execute_operation_until_send(uint64_t message_id)
+{
+    setup_calls_for_pending_operation_with_correlation_id(message_id);
+    STRICT_EXPECTED_CALL(properties_set_message_id(test_properties, test_message_id_value));
+    STRICT_EXPECTED_CALL(message_set_properties(test_cloned_message, test_properties));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(test_message_id_value));
+    STRICT_EXPECTED_CALL(properties_destroy(test_properties));
+    STRICT_EXPECTED_CALL(async_operation_create(IGNORED_PTR_ARG, IGNORED_NUM_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_add(test_singlylinkedlist_handle, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(messagesender_send_async(test_message_sender, test_cloned_message, IGNORED_PTR_ARG, IGNORED_PTR_ARG, 0));
+}
+
+/* Tests_SRS_AMQP_MANAGEMENT_01_199: [ If `send_result` is different than `MESSAGE_SEND_OK` while `messagesender_send_async` is still running for the pending operation, `on_message_send_complete` shall only record the failure, leaving it to `amqp_management_execute_operation_async` to fail. ]*/
+/* Tests_SRS_AMQP_MANAGEMENT_01_200: [ If the send failed while `messagesender_send_async` was running, `amqp_management_execute_operation_async` shall fail and return NULL without calling `on_execute_operation_complete`. ]*/
+TEST_FUNCTION(amqp_management_execute_operation_async_when_send_fails_inside_messagesender_send_async_fails)
+{
+    // arrange
+    AMQP_MANAGEMENT_HANDLE amqp_management;
+    ASYNC_OPERATION_HANDLE result;
+    amqp_management = amqp_management_create(test_session_handle, "test_node");
+    (void)amqp_management_open_async(amqp_management, test_on_amqp_management_open_complete, (void*)0x4242, test_on_amqp_management_error, (void*)0x4243);
+    saved_on_message_sender_state_changed(saved_on_message_sender_state_changed_context, MESSAGE_SENDER_STATE_OPEN, MESSAGE_SENDER_STATE_OPENING);
+    saved_on_message_receiver_state_changed(saved_on_message_receiver_state_changed_context, MESSAGE_RECEIVER_STATE_OPEN, MESSAGE_RECEIVER_STATE_OPENING);
+    umock_c_reset_all_calls();
+
+    complete_send_in_send_async = true;
+    send_result_in_send_async = MESSAGE_SEND_ERROR;
+
+    setup_calls_for_execute_operation_until_send(0);
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove(test_singlylinkedlist_handle, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(async_operation_destroy(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(test_application_properties));
+    STRICT_EXPECTED_CALL(message_destroy(test_cloned_message));
+
+    // act
+    result = amqp_management_execute_operation_async(amqp_management, "some_operation", "some_type", "en-US", test_message, test_on_amqp_management_execute_operation_complete, (void*)0x4244);
+
+    // assert
+    ASSERT_IS_NULL(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // The failed operation does not consume a message Id.
+    complete_send_in_send_async = false;
+    umock_c_reset_all_calls();
+    setup_calls_for_execute_operation_until_send(0);
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(test_application_properties));
+    STRICT_EXPECTED_CALL(message_destroy(test_cloned_message));
+    result = amqp_management_execute_operation_async(amqp_management, "some_operation", "some_type", "en-US", test_message, test_on_amqp_management_execute_operation_complete, (void*)0x4244);
+    ASSERT_IS_NOT_NULL(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    amqp_management_destroy(amqp_management);
+}
+
+/* Tests_SRS_AMQP_MANAGEMENT_01_201: [ If the send completed while `messagesender_send_async` was running, the handle returned by `messagesender_send_async` shall not be stored. ]*/
+TEST_FUNCTION(amqp_management_execute_operation_async_when_send_completes_inside_messagesender_send_async_does_not_keep_the_send_handle)
+{
+    // arrange
+    AMQP_MANAGEMENT_HANDLE amqp_management;
+    ASYNC_OPERATION_HANDLE result;
+    amqp_management = amqp_management_create(test_session_handle, "test_node");
+    (void)amqp_management_open_async(amqp_management, test_on_amqp_management_open_complete, (void*)0x4242, test_on_amqp_management_error, (void*)0x4243);
+    saved_on_message_sender_state_changed(saved_on_message_sender_state_changed_context, MESSAGE_SENDER_STATE_OPEN, MESSAGE_SENDER_STATE_OPENING);
+    saved_on_message_receiver_state_changed(saved_on_message_receiver_state_changed_context, MESSAGE_RECEIVER_STATE_OPEN, MESSAGE_RECEIVER_STATE_OPENING);
+    umock_c_reset_all_calls();
+
+    complete_send_in_send_async = true;
+    send_result_in_send_async = MESSAGE_SEND_OK;
+
+    setup_calls_for_execute_operation_until_send(0);
+    STRICT_EXPECTED_CALL(singlylinkedlist_item_get_value(IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(amqpvalue_destroy(test_application_properties));
+    STRICT_EXPECTED_CALL(message_destroy(test_cloned_message));
+
+    // act
+    result = amqp_management_execute_operation_async(amqp_management, "some_operation", "some_type", "en-US", test_message, test_on_amqp_management_execute_operation_complete, (void*)0x4244);
+
+    // assert
+    ASSERT_IS_NOT_NULL(result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // Cancelling the operation must not cancel the completed send.
+    umock_c_reset_all_calls();
+    STRICT_EXPECTED_CALL(singlylinkedlist_remove_if(IGNORED_PTR_ARG, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(async_operation_destroy(result));
+    ((ASYNC_OPERATION_CONTEXT_STRUCT_TEST*)result)->async_operation_cancel_handler(result);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
     // cleanup

@@ -530,7 +530,7 @@ TEST_FUNCTION(messagesender_create_returns_a_valid_handle)
 {
     // arrange
     MESSAGE_SENDER_HANDLE message_sender;
-    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG));
 
     // act
     message_sender = messagesender_create(test_link, NULL, NULL);

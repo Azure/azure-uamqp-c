@@ -3726,6 +3726,13 @@ static int my_open_get_max_frame_size(OPEN_HANDLE open, uint32_t* max_frame_size
     return 0;
 }
 
+static int my_amqpvalue_get_open(AMQP_VALUE value, OPEN_HANDLE* open_handle)
+{
+    (void)value;
+    *open_handle = (OPEN_HANDLE)0x4F02;
+    return 0;
+}
+
 static void test_on_endpoint_connection_state_changed(void* context, CONNECTION_STATE new_connection_state, CONNECTION_STATE previous_connection_state)
 {
     (void)context;
@@ -3749,11 +3756,13 @@ static CONNECTION_HANDLE create_opened_connection(ENDPOINT_HANDLE* endpoint)
     REGISTER_GLOBAL_MOCK_RETURN(open_create, NULL);
     REGISTER_GLOBAL_MOCK_RETURN(amqpvalue_create_open, NULL);
 
+    REGISTER_GLOBAL_MOCK_HOOK(amqpvalue_get_open, my_amqpvalue_get_open);
     REGISTER_GLOBAL_MOCK_HOOK(open_get_max_frame_size, my_open_get_max_frame_size);
     REGISTER_GLOBAL_MOCK_RETURN(is_open_type_by_descriptor, true);
     saved_frame_received_callback(saved_amqp_frame_codec_callback_context, 0, TEST_OPEN_PERFORMATIVE, 0, 0);
     REGISTER_GLOBAL_MOCK_RETURN(is_open_type_by_descriptor, false);
     REGISTER_GLOBAL_MOCK_HOOK(open_get_max_frame_size, NULL);
+    REGISTER_GLOBAL_MOCK_HOOK(amqpvalue_get_open, NULL);
 
     umock_c_reset_all_calls();
     return connection;

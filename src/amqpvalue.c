@@ -5949,7 +5949,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                             else
                             {
                                 size_t malloc_size = (size_t)internal_decoder_data->decode_to_value->value.binary_value.length + 1;
-                                if (malloc_size == 0)
+                                if (malloc_size == 0 || malloc_size > MAX_AMQPVALUE_MALLOC_SIZE_BYTES)
                                 {
                                     internal_decoder_data->decode_to_value->value.binary_value.bytes = NULL;
                                     LogError("Invalid binary_value size exceeded max allocation");
@@ -6089,7 +6089,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                             size_t malloc_size = (size_t)internal_decoder_data->decode_value_state.string_value_state.length + 1;
                             // If the result of malloc_size is zero it means it had a type overflow (size_t is an unsigned type).
                             // It is very unlikely but could happen.
-                            if (malloc_size == 0)
+                            if (malloc_size == 0 || malloc_size > MAX_AMQPVALUE_MALLOC_SIZE_BYTES)
                             {
                                 internal_decoder_data->decode_to_value->value.string_value.chars = NULL;
                                 LogError("Invalid string value size exceeded max allocation");
@@ -6242,7 +6242,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                             size_t malloc_size = (size_t)internal_decoder_data->decode_value_state.symbol_value_state.length + 1;
                             // If the result of malloc_size is zero it means it had a type overflow (size_t is an unsigned type).
                             // It is very unlikely but could happen.
-                            if (malloc_size == 0)
+                            if (malloc_size == 0 || malloc_size > MAX_AMQPVALUE_MALLOC_SIZE_BYTES)
                             {
                                 internal_decoder_data->decode_to_value->value.symbol_value.chars = NULL;
                                 LogError("Invalid symbol value size exceeded max allocation");

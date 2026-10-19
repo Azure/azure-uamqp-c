@@ -16528,4 +16528,168 @@ TEST_FUNCTION(amqpvalue_decode_array_0xF0_256_null_items_succeeds)
     amqpvalue_decoder_destroy(amqpvalue_decoder);
 }
 
+/* Tests_SRS_AMQPVALUE_01_XXX: [If the decoder nesting depth exceeds MAX_DECODER_DEPTH (128), decoding shall fail.] */
+TEST_FUNCTION(amqpvalue_decode_bytes_with_recursive_descriptors_exceeding_max_depth_fails)
+{
+    // arrange
+    AMQPVALUE_DECODER_HANDLE amqpvalue_decoder = amqpvalue_decoder_create(value_decoded_callback, test_context);
+    int result;
+
+    // Create a payload of 200 consecutive 0x00 bytes (descriptor constructors) followed by 0x40 (null).
+    // Each 0x00 byte causes the decoder to create a nested inner decoder.
+    // With MAX_DECODER_DEPTH=128, decoding should fail before reaching the 0x40.
+    unsigned char bytes[201];
+    (void)memset(bytes, 0x00, 200);
+    bytes[200] = 0x40; // null terminator value
+
+    umock_c_reset_all_calls();
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
+        .IgnoreAllCalls();
+
+    // act
+    result = amqpvalue_decode_bytes(amqpvalue_decoder, bytes, sizeof(bytes));
+
+    // assert
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+
+    // cleanup
+    amqpvalue_decoder_destroy(amqpvalue_decoder);
+}
+
+/* Tests_SRS_AMQPVALUE_01_XXX: [Nesting at exactly MAX_DECODER_DEPTH shall succeed.] */
+TEST_FUNCTION(amqpvalue_decode_bytes_with_descriptors_at_max_depth_succeeds)
+{
+    // arrange
+    AMQPVALUE_DECODER_HANDLE amqpvalue_decoder = amqpvalue_decoder_create(value_decoded_callback, test_context);
+    int result;
+
+    // Create a payload with 128 consecutive 0x00 bytes (descriptor constructors).
+    // This exercises depth up to 128 (the root is depth 0, each 0x00 adds one level).
+    // The inner decoder at depth 128 receives 0x40 as the descriptor value,
+    // then we need to provide the described value as well (another 0x40).
+    // Format: 128x 0x00, then 0x40 (null descriptor), then 0x40 (null value) for each level.
+    // Actually, described value = descriptor + value. So we need:
+    // 128 x 0x00 bytes, then 0x40 (innermost descriptor), then 128 x 0x40 (one value per described level)
+    size_t depth = 128;
+    size_t payload_size = depth + 1 + depth; // 128 descriptors + 1 innermost null + 128 values
+    unsigned char* bytes = (unsigned char*)malloc(payload_size);
+    ASSERT_IS_NOT_NULL(bytes);
+
+    (void)memset(bytes, 0x00, depth);       // 128 descriptor constructor bytes
+    bytes[depth] = 0x40;                     // innermost descriptor is null
+    (void)memset(bytes + depth + 1, 0x40, depth); // one null value for each described level
+
+    umock_c_reset_all_calls();
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG));
+
+    // act
+    result = amqpvalue_decode_bytes(amqpvalue_decoder, bytes, payload_size);
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    // cleanup
+    free(bytes);
+    amqpvalue_decoder_destroy(amqpvalue_decoder);
+}
+
+/* Tests for vbin32 allocation size limit */
+TEST_FUNCTION(amqpvalue_decode_vbin32_with_size_exceeding_max_fails)
+{
+    // arrange
+    int result;
+    AMQPVALUE_DECODER_HANDLE amqpvalue_decoder = amqpvalue_decoder_create(value_decoded_callback, test_context);
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
+        .IgnoreAllCalls();
+
+    // vbin32 encoding: constructor byte 0xB0, then 4 bytes of length (big-endian)
+    // MAX_AMQPVALUE_MALLOC_SIZE_BYTES is 100*1024*1024 = 104857600 = 0x06400000
+    // Use a length that exceeds this: 0x06400001 = 104857601
+    unsigned char bytes[] = { 0xB0, 0x06, 0x40, 0x00, 0x01 };
+
+    // act
+    result = amqpvalue_decode_bytes(amqpvalue_decoder, bytes, sizeof(bytes));
+
+    // assert
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+
+    // cleanup
+    amqpvalue_decoder_destroy(amqpvalue_decoder);
+}
+
+/* Tests for str32 allocation size limit */
+TEST_FUNCTION(amqpvalue_decode_str32_with_size_exceeding_max_fails)
+{
+    // arrange
+    int result;
+    AMQPVALUE_DECODER_HANDLE amqpvalue_decoder = amqpvalue_decoder_create(value_decoded_callback, test_context);
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
+        .IgnoreAllCalls();
+
+    // str32 encoding: constructor byte 0xB1, then 4 bytes of length (big-endian)
+    // Use a length that exceeds MAX_AMQPVALUE_MALLOC_SIZE_BYTES: 0x06400001
+    unsigned char bytes[] = { 0xB1, 0x06, 0x40, 0x00, 0x01 };
+
+    // act
+    result = amqpvalue_decode_bytes(amqpvalue_decoder, bytes, sizeof(bytes));
+
+    // assert
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+
+    // cleanup
+    amqpvalue_decoder_destroy(amqpvalue_decoder);
+}
+
+/* Tests for sym32 allocation size limit */
+TEST_FUNCTION(amqpvalue_decode_sym32_with_size_exceeding_max_fails)
+{
+    // arrange
+    int result;
+    AMQPVALUE_DECODER_HANDLE amqpvalue_decoder = amqpvalue_decoder_create(value_decoded_callback, test_context);
+    umock_c_reset_all_calls();
+
+    STRICT_EXPECTED_CALL(gballoc_calloc(IGNORED_NUM_ARG, IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_malloc(IGNORED_NUM_ARG))
+        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
+        .IgnoreAllCalls();
+
+    // sym32 encoding: constructor byte 0xB3, then 4 bytes of length (big-endian)
+    // Use a length that exceeds MAX_AMQPVALUE_MALLOC_SIZE_BYTES: 0x06400001
+    unsigned char bytes[] = { 0xB3, 0x06, 0x40, 0x00, 0x01 };
+
+    // act
+    result = amqpvalue_decode_bytes(amqpvalue_decoder, bytes, sizeof(bytes));
+
+    // assert
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+
+    // cleanup
+    amqpvalue_decoder_destroy(amqpvalue_decoder);
+}
+
 END_TEST_SUITE(amqpvalue_ut)

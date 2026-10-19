@@ -324,6 +324,8 @@ void on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_result, AM
 
 **SRS_AMQP_MANAGEMENT_01_169: [** - `on_message_send_complete` shall obtain the pending operation by calling `singlylinkedlist_item_get_value`. **]**
 
+**SRS_AMQP_MANAGEMENT_01_183: [** If `singlylinkedlist_item_get_value` returns NULL, `on_message_send_complete` shall return. **]**
+
 **SRS_AMQP_MANAGEMENT_01_171: [** - `on_message_send_complete` shall removed the pending operation from the pending operations list. **]**
 
 **SRS_AMQP_MANAGEMENT_01_173: [** - The callback associated with the pending operation shall be called with `AMQP_MANAGEMENT_EXECUTE_OPERATION_ERROR`. **]**

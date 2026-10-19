@@ -368,7 +368,12 @@ static void on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_res
         /* Codes_SRS_AMQP_MANAGEMENT_01_169: [ - `on_message_send_complete` shall obtain the pending operation by calling `singlylinkedlist_item_get_value`. ]*/
         OPERATION_MESSAGE_INSTANCE* pending_operation_message = (OPERATION_MESSAGE_INSTANCE*)singlylinkedlist_item_get_value(pending_operation_list_item_handle);
 
-        if (send_result == MESSAGE_SEND_OK)
+        if (pending_operation_message == NULL)
+        {
+            /* Codes_SRS_AMQP_MANAGEMENT_01_183: [ If `singlylinkedlist_item_get_value` returns NULL, `on_message_send_complete` shall return. ]*/
+            LogError("Cannot obtain pending operation");
+        }
+        else if (send_result == MESSAGE_SEND_OK)
         {
             /* Codes_SRS_AMQP_MANAGEMENT_01_170: [ If `send_result` is `MESSAGE_SEND_OK`, `on_message_send_complete` shall return. ]*/
             pending_operation_message->message_send_confirmed = true;

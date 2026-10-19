@@ -62,11 +62,11 @@ int test_max_depth_accepted(void)
     amqpvalue_decoder_destroy(dec);
     free(buf);
 
-    if (result == 0) {
+    if (result == 0 && value_decoded_count == 1) {
         printf("PASS: depth 128 accepted (result=%d, decoded=%d)\n", result, value_decoded_count);
         return 0;
     } else {
-        printf("FAIL: depth 128 was rejected (result=%d)\n", result);
+        printf("FAIL: depth 128 was not decoded (result=%d, count=%d)\n", result, value_decoded_count);
         return 1;
     }
 }

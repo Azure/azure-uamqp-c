@@ -1,29 +1,30 @@
 #!/bin/bash
 set -e
 
+# Paths are relative to the azure-uamqp-c checkout root.
+cd "$(dirname "$0")/.."
+
 apt-get update -qq && apt-get install -y -qq gcc python3 > /dev/null 2>&1
 
 echo "=== Compiling amqpvalue.c ==="
 gcc -O1 -g \
   -DNO_LOGGING -DREFCOUNT_ATOMIC_DONTCARE -D__STDC_NO_ATOMICS__=1 \
-  -I uamqp/inc \
-  -I c-utility/inc \
-  -I c-utility/pal/generic \
+  -I inc \
+  -I deps/azure-c-shared-utility/inc \
+  -I deps/azure-c-shared-utility/pal/generic \
   -I deps/azure-macro-utils-c/inc \
   -I deps/umock-c/inc \
-  -I deps/c-logging/v2/inc \
-  -c uamqp/src/amqpvalue.c -o /tmp/amqpvalue.o
+  -c src/amqpvalue.c -o /tmp/amqpvalue.o
 
 echo "=== Compiling test_depth_limit.c ==="
 gcc -O1 -g \
   -DNO_LOGGING -DREFCOUNT_ATOMIC_DONTCARE -D__STDC_NO_ATOMICS__=1 \
-  -I uamqp/inc \
-  -I c-utility/inc \
-  -I c-utility/pal/generic \
+  -I inc \
+  -I deps/azure-c-shared-utility/inc \
+  -I deps/azure-c-shared-utility/pal/generic \
   -I deps/azure-macro-utils-c/inc \
   -I deps/umock-c/inc \
-  -I deps/c-logging/v2/inc \
-  uamqp/tests/test_depth_limit.c /tmp/amqpvalue.o -o /tmp/test_depth_limit
+  tests/test_depth_limit.c /tmp/amqpvalue.o -o /tmp/test_depth_limit
 
 echo "=== Running depth limit tests ==="
 /tmp/test_depth_limit
@@ -76,12 +77,11 @@ EOF
 
 gcc -O1 -g \
   -DNO_LOGGING -DREFCOUNT_ATOMIC_DONTCARE -D__STDC_NO_ATOMICS__=1 \
-  -I uamqp/inc \
-  -I c-utility/inc \
-  -I c-utility/pal/generic \
+  -I inc \
+  -I deps/azure-c-shared-utility/inc \
+  -I deps/azure-c-shared-utility/pal/generic \
   -I deps/azure-macro-utils-c/inc \
   -I deps/umock-c/inc \
-  -I deps/c-logging/v2/inc \
   /tmp/large_nesting_driver.c /tmp/amqpvalue.o -o /tmp/large_nesting_driver
 
 echo "=== Running large nesting payload with 8MB stack limit ==="

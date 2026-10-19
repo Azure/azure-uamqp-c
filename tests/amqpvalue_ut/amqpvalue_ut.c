@@ -16590,14 +16590,14 @@ TEST_FUNCTION(amqpvalue_decode_bytes_with_descriptors_at_max_depth_succeeds)
         .IgnoreAllCalls();
     STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
         .IgnoreAllCalls();
-    STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG))
-        .IgnoreAllCalls();
+    STRICT_EXPECTED_CALL(value_decoded_callback(test_context, IGNORED_PTR_ARG));
 
     // act
     result = amqpvalue_decode_bytes(amqpvalue_decoder, bytes, payload_size);
 
     // assert
     ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
     // cleanup
     free(bytes);

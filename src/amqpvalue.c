@@ -16,6 +16,7 @@
 // max alloc size 100MB
 #define MAX_AMQPVALUE_MALLOC_SIZE_BYTES (100 * 1024 * 1024) 
 #define MAX_AMQPVALUE_ITEM_COUNT 65536
+#define MAX_DECODER_DEPTH 128
 
 /* Requirements satisfied by the current implementation without any code:
 Codes_SRS_AMQPVALUE_01_270: [<encoding code="0x56" category="fixed" width="1" label="boolean with the octet 0x00 being false and octet 0x01 being true"/>]
@@ -193,6 +194,7 @@ typedef struct INTERNAL_DECODER_DATA_TAG
     INTERNAL_DECODER_HANDLE inner_decoder;
     DECODE_VALUE_STATE_UNION decode_value_state;
     bool is_internal;
+    uint32_t depth;
 } INTERNAL_DECODER_DATA;
 
 typedef struct AMQPVALUE_DECODER_HANDLE_DATA_TAG
@@ -4892,21 +4894,32 @@ void amqpvalue_destroy(AMQP_VALUE value)
     }
 }
 
-static INTERNAL_DECODER_DATA* internal_decoder_create(ON_VALUE_DECODED on_value_decoded, void* callback_context, AMQP_VALUE_DATA* value_data, bool is_internal)
+static INTERNAL_DECODER_DATA* internal_decoder_create(ON_VALUE_DECODED on_value_decoded, void* callback_context, AMQP_VALUE_DATA* value_data, bool is_internal, uint32_t depth)
 {
-    INTERNAL_DECODER_DATA* internal_decoder_data = (INTERNAL_DECODER_DATA*)calloc(1, sizeof(INTERNAL_DECODER_DATA));
-    if (internal_decoder_data == NULL)
+    INTERNAL_DECODER_DATA* internal_decoder_data;
+
+    if (depth > MAX_DECODER_DEPTH)
     {
-        LogError("Cannot allocate memory for internal decoder structure");
+        LogError("Decoder depth exceeded max allowed (%d)", MAX_DECODER_DEPTH);
+        internal_decoder_data = NULL;
     }
     else
     {
-        internal_decoder_data->is_internal = is_internal;
-        internal_decoder_data->on_value_decoded = on_value_decoded;
-        internal_decoder_data->on_value_decoded_context = callback_context;
-        internal_decoder_data->decoder_state = DECODER_STATE_CONSTRUCTOR;
-        internal_decoder_data->inner_decoder = NULL;
-        internal_decoder_data->decode_to_value = value_data;
+        internal_decoder_data = (INTERNAL_DECODER_DATA*)calloc(1, sizeof(INTERNAL_DECODER_DATA));
+        if (internal_decoder_data == NULL)
+        {
+            LogError("Cannot allocate memory for internal decoder structure");
+        }
+        else
+        {
+            internal_decoder_data->is_internal = is_internal;
+            internal_decoder_data->on_value_decoded = on_value_decoded;
+            internal_decoder_data->on_value_decoded_context = callback_context;
+            internal_decoder_data->decoder_state = DECODER_STATE_CONSTRUCTOR;
+            internal_decoder_data->inner_decoder = NULL;
+            internal_decoder_data->decode_to_value = value_data;
+            internal_decoder_data->depth = depth;
+        }
     }
 
     return internal_decoder_data;
@@ -5004,7 +5017,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                     {
                         descriptor->type = AMQP_TYPE_UNKNOWN;
                         internal_decoder_data->decode_to_value->value.described_value.descriptor = descriptor;
-                        internal_decoder_data->inner_decoder = internal_decoder_create(inner_decoder_callback, internal_decoder_data, descriptor, true);
+                        internal_decoder_data->inner_decoder = internal_decoder_create(inner_decoder_callback, internal_decoder_data, descriptor, true, internal_decoder_data->depth + 1);
                         if (internal_decoder_data->inner_decoder == NULL)
                         {
                             internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
@@ -5431,7 +5444,6 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                         if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, buffer, size, &inner_used_bytes) != 0)
                         {
                             LogError("Decoding bytes for described value failed");
-                            internal_decoder_data->decode_to_value->type = AMQP_TYPE_UNKNOWN;
                             result = MU_FAILURE;
                         }
                         else
@@ -5457,7 +5469,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                                 {
                                     described_value->type = AMQP_TYPE_UNKNOWN;
                                     internal_decoder_data->decode_to_value->value.described_value.value = (AMQP_VALUE)described_value;
-                                    internal_decoder_data->inner_decoder = internal_decoder_create(inner_decoder_callback, internal_decoder_data, described_value, true);
+                                    internal_decoder_data->inner_decoder = internal_decoder_create(inner_decoder_callback, internal_decoder_data, described_value, true, internal_decoder_data->depth + 1);
                                     if (internal_decoder_data->inner_decoder == NULL)
                                     {
                                         internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
@@ -6466,7 +6478,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                             {
                                 list_item->type = AMQP_TYPE_UNKNOWN;
                                 internal_decoder_data->decode_to_value->value.list_value.items[internal_decoder_data->decode_value_state.list_value_state.item] = list_item;
-                                internal_decoder_data->inner_decoder = internal_decoder_create(inner_decoder_callback, internal_decoder_data, list_item, true);
+                                internal_decoder_data->inner_decoder = internal_decoder_create(inner_decoder_callback, internal_decoder_data, list_item, true, internal_decoder_data->depth + 1);
                                 if (internal_decoder_data->inner_decoder == NULL)
                                 {
                                     LogError("Could not create inner decoder for list items");
@@ -6711,7 +6723,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                                 {
                                     internal_decoder_data->decode_to_value->value.map_value.pairs[internal_decoder_data->decode_value_state.map_value_state.item].value = map_item;
                                 }
-                                internal_decoder_data->inner_decoder = internal_decoder_create(inner_decoder_callback, internal_decoder_data, map_item, true);
+                                internal_decoder_data->inner_decoder = internal_decoder_create(inner_decoder_callback, internal_decoder_data, map_item, true, internal_decoder_data->depth + 1);
                                 if (internal_decoder_data->inner_decoder == NULL)
                                 {
                                     LogError("Could not create inner decoder for map item");
@@ -6922,7 +6934,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                             {
                                 array_item->type = AMQP_TYPE_UNKNOWN;
                                 internal_decoder_data->decode_to_value->value.array_value.items[internal_decoder_data->decode_value_state.array_value_state.item] = array_item;
-                                internal_decoder_data->inner_decoder = internal_decoder_create(inner_decoder_callback, internal_decoder_data, array_item, true);
+                                internal_decoder_data->inner_decoder = internal_decoder_create(inner_decoder_callback, internal_decoder_data, array_item, true, internal_decoder_data->depth + 1);
                                 if (internal_decoder_data->inner_decoder == NULL)
                                 {
                                     internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
@@ -6992,7 +7004,7 @@ static int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder
                                     {
                                         array_item->type = AMQP_TYPE_UNKNOWN;
                                         internal_decoder_data->decode_to_value->value.array_value.items[internal_decoder_data->decode_value_state.array_value_state.item] = array_item;
-                                        internal_decoder_data->inner_decoder = internal_decoder_create(inner_decoder_callback, internal_decoder_data, array_item, true);
+                                        internal_decoder_data->inner_decoder = internal_decoder_create(inner_decoder_callback, internal_decoder_data, array_item, true, internal_decoder_data->depth + 1);
                                         if (internal_decoder_data->inner_decoder == NULL)
                                         {
                                             LogError("Could not create inner decoder for array item");
@@ -7078,7 +7090,7 @@ AMQPVALUE_DECODER_HANDLE amqpvalue_decoder_create(ON_VALUE_DECODED on_value_deco
             else
             {
                 decoder_instance->decode_to_value->type = AMQP_TYPE_UNKNOWN;
-                decoder_instance->internal_decoder = internal_decoder_create(on_value_decoded, callback_context, decoder_instance->decode_to_value, false);
+                decoder_instance->internal_decoder = internal_decoder_create(on_value_decoded, callback_context, decoder_instance->decode_to_value, false, 0);
                 if (decoder_instance->internal_decoder == NULL)
                 {
                     /* Codes_SRS_AMQPVALUE_01_313: [If creating the decoder fails, amqpvalue_decoder_create shall return NULL.] */

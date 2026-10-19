@@ -234,12 +234,15 @@ static int my_singlylinkedlist_remove(SINGLYLINKEDLIST_HANDLE list, LIST_ITEM_HA
 {
     size_t index = (size_t)item - 1;
     (void)list;
-    (void)memmove((void*)&list_items[index], &list_items[index + 1], sizeof(const void*) * (list_item_count - index - 1));
-    list_item_count--;
-    if (list_item_count == 0)
+    if (singlylinkedlist_remove_result == 0)
     {
-        umockalloc_free((void*)list_items);
-        list_items = NULL;
+        (void)memmove((void*)&list_items[index], &list_items[index + 1], sizeof(const void*) * (list_item_count - index - 1));
+        list_item_count--;
+        if (list_item_count == 0)
+        {
+            umockalloc_free((void*)list_items);
+            list_items = NULL;
+        }
     }
     return singlylinkedlist_remove_result;
 }

@@ -69,9 +69,9 @@ static void destroy_io_chain(HEADER_DETECT_IO_INSTANCE* header_detect_io)
         if (singlylinkedlist_remove(header_detect_io->chained_io_list, list_item) != 0)
         {
             LogError("Cannot remove detected IO from list");
+            break;
         }
-
-        if (chained_io != NULL)
+        else if (chained_io != NULL)
         {
             xio_destroy(chained_io->detected_io);
             free(chained_io);

@@ -73,11 +73,28 @@ MOCKABLE_FUNCTION(, int, link_get_received_message_id, LINK_HANDLE, link, delive
 MOCKABLE_FUNCTION(, int, link_send_disposition, LINK_HANDLE, link, delivery_number, message_number, AMQP_VALUE, delivery_state);
 MOCKABLE_FUNCTION(, int, link_attach, LINK_HANDLE, link, ON_TRANSFER_RECEIVED, on_transfer_received, ON_LINK_STATE_CHANGED, on_link_state_changed, ON_LINK_FLOW_ON, on_link_flow_on, void*, callback_context);
 MOCKABLE_FUNCTION(, int, link_detach, LINK_HANDLE, link, bool, close, const char*, error_condition, const char*, error_description, AMQP_VALUE, info);
+/**
+ * @brief   Stops @p link from invoking the callbacks registered with link_attach.
+ * @param   link                The link.
+ * @param   callback_context    The context passed to link_attach. Nothing is cleared if the link
+ *                              is registered with a different context.
+ * @remarks Call before freeing @p callback_context when the link outlives it.
+ *          Callbacks passed to link_transfer_async are not affected.
+ */
+MOCKABLE_FUNCTION(, void, link_clear_callbacks, LINK_HANDLE, link, void*, callback_context);
 MOCKABLE_FUNCTION(, ASYNC_OPERATION_HANDLE, link_transfer_async, LINK_HANDLE, handle, message_format, message_format, PAYLOAD*, payloads, size_t, payload_count, ON_DELIVERY_SETTLED, on_delivery_settled, void*, callback_context, LINK_TRANSFER_RESULT*, link_transfer_result,tickcounter_ms_t, timeout);
 MOCKABLE_FUNCTION(, void, link_dowork, LINK_HANDLE, link);
 
 MOCKABLE_FUNCTION(, ON_LINK_DETACH_EVENT_SUBSCRIPTION_HANDLE, link_subscribe_on_link_detach_received, LINK_HANDLE, link, ON_LINK_DETACH_RECEIVED, on_link_detach_received, void*, context);
 MOCKABLE_FUNCTION(, void, link_unsubscribe_on_link_detach_received, ON_LINK_DETACH_EVENT_SUBSCRIPTION_HANDLE, event_subscription);
+/**
+ * @brief   Gets the delivery state describing why the link last failed.
+ * @param   link    The link.
+ * @return  A rejected delivery state, or NULL if no error was recorded. The value is owned by the
+ *          link and is destroyed on the next failure, when the link attaches again and when the link
+ *          is destroyed; clone it to keep it longer. Do not call amqpvalue_destroy on it.
+ */
+MOCKABLE_FUNCTION(, AMQP_VALUE, link_get_last_error_delivery_state, LINK_HANDLE, link);
 
 #ifdef __cplusplus
 }

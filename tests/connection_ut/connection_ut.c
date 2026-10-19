@@ -14,6 +14,7 @@
 #include "testrunnerswitcher.h"
 #include "umock_c/umock_c.h"
 #include "umock_c/umocktypes_charptr.h"
+#include "umock_c/umocktypes_stdint.h"
 
 static void* my_gballoc_malloc(size_t size)
 {
@@ -226,6 +227,19 @@ static void on_umock_c_error(UMOCK_C_ERROR_CODE error_code)
     ASSERT_FAIL("umock_c reported error :%" PRI_MU_ENUM "", MU_ENUM_VALUE(UMOCK_C_ERROR_CODE, error_code));
 }
 
+/* Hook for amqp_frame_codec_encode_frame that hands one encoded byte to on_bytes_encoded. */
+static int my_amqp_frame_codec_encode_frame(AMQP_FRAME_CODEC_HANDLE amqp_frame_codec, uint16_t channel, AMQP_VALUE performative, const PAYLOAD* payloads, size_t payload_count, ON_BYTES_ENCODED on_bytes_encoded, void* callback_context)
+{
+    static const unsigned char test_encoded_byte = 0x42;
+    (void)amqp_frame_codec;
+    (void)channel;
+    (void)performative;
+    (void)payloads;
+    (void)payload_count;
+    on_bytes_encoded(callback_context, &test_encoded_byte, 1, true);
+    return 0;
+}
+
 BEGIN_TEST_SUITE(connection_ut)
 
 TEST_SUITE_INITIALIZE(suite_init)
@@ -238,6 +252,8 @@ TEST_SUITE_INITIALIZE(suite_init)
     umock_c_init(on_umock_c_error);
 
     result = umocktypes_charptr_register_types();
+    ASSERT_ARE_EQUAL(int, 0, result);
+    result = umocktypes_stdint_register_types();
     ASSERT_ARE_EQUAL(int, 0, result);
 
     REGISTER_GLOBAL_MOCK_HOOK(gballoc_malloc, my_gballoc_malloc);
@@ -279,6 +295,13 @@ TEST_SUITE_INITIALIZE(suite_init)
     REGISTER_UMOCK_ALIAS_TYPE(AMQP_FRAME_CODEC_HANDLE, void*);
     REGISTER_UMOCK_ALIAS_TYPE(AMQP_VALUE, void*);
     REGISTER_UMOCK_ALIAS_TYPE(XIO_HANDLE, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(OPEN_HANDLE, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(ON_BYTES_ENCODED, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(ON_BYTES_RECEIVED, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(ON_IO_OPEN_COMPLETE, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(ON_IO_CLOSE_COMPLETE, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(ON_IO_ERROR, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(ON_SEND_COMPLETE, void*);
 }
 
 TEST_SUITE_CLEANUP(suite_cleanup)
@@ -3683,6 +3706,113 @@ TEST_FUNCTION(connection_unsubscribe_on_connection_close_received_with_NULL_even
 
     // assert
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+}
+
+/* connection_get_last_error */
+
+TEST_FUNCTION(connection_get_last_error_with_NULL_connection_returns_NULL)
+{
+    // act / assert
+    ASSERT_IS_NULL(connection_get_last_error(NULL));
+}
+
+
+/* connection_encode_frame */
+
+static int my_open_get_max_frame_size(OPEN_HANDLE open, uint32_t* max_frame_size)
+{
+    (void)open;
+    *max_frame_size = 1024;
+    return 0;
+}
+
+static int my_amqpvalue_get_open(AMQP_VALUE value, OPEN_HANDLE* open_handle)
+{
+    (void)value;
+    *open_handle = (OPEN_HANDLE)0x4F02;
+    return 0;
+}
+
+static void test_on_endpoint_connection_state_changed(void* context, CONNECTION_STATE new_connection_state, CONNECTION_STATE previous_connection_state)
+{
+    (void)context;
+    (void)new_connection_state;
+    (void)previous_connection_state;
+}
+
+/* Creates a connection with one endpoint and drives it to CONNECTION_STATE_OPENED. */
+static CONNECTION_HANDLE create_opened_connection(ENDPOINT_HANDLE* endpoint)
+{
+    const unsigned char amqp_header[] = { 'A', 'M', 'Q', 'P', 0, 1, 0, 0 };
+    CONNECTION_HANDLE connection = connection_create(TEST_IO_HANDLE, "testhost", test_container_id, NULL, NULL);
+    *endpoint = connection_create_endpoint(connection);
+    (void)connection_start_endpoint(*endpoint, test_on_frame_received, test_on_endpoint_connection_state_changed, TEST_CONTEXT);
+    (void)connection_open(connection);
+    saved_on_io_open_complete(saved_on_io_open_complete_context, IO_OPEN_OK);
+
+    REGISTER_GLOBAL_MOCK_RETURN(open_create, (OPEN_HANDLE)0x4F01);
+    REGISTER_GLOBAL_MOCK_RETURN(amqpvalue_create_open, TEST_OPEN_PERFORMATIVE);
+    saved_on_bytes_received(saved_on_bytes_received_context, amqp_header, sizeof(amqp_header));
+    REGISTER_GLOBAL_MOCK_RETURN(open_create, NULL);
+    REGISTER_GLOBAL_MOCK_RETURN(amqpvalue_create_open, NULL);
+
+    REGISTER_GLOBAL_MOCK_HOOK(amqpvalue_get_open, my_amqpvalue_get_open);
+    REGISTER_GLOBAL_MOCK_HOOK(open_get_max_frame_size, my_open_get_max_frame_size);
+    REGISTER_GLOBAL_MOCK_RETURN(is_open_type_by_descriptor, true);
+    saved_frame_received_callback(saved_amqp_frame_codec_callback_context, 0, TEST_OPEN_PERFORMATIVE, 0, 0);
+    REGISTER_GLOBAL_MOCK_RETURN(is_open_type_by_descriptor, false);
+    REGISTER_GLOBAL_MOCK_HOOK(open_get_max_frame_size, NULL);
+    REGISTER_GLOBAL_MOCK_HOOK(amqpvalue_get_open, NULL);
+
+    umock_c_reset_all_calls();
+    return connection;
+}
+
+/* Tests that a frame whose bytes were sent is reported as a success. */
+TEST_FUNCTION(connection_encode_frame_when_sending_the_encoded_bytes_succeeds_succeeds)
+{
+    // arrange
+    ENDPOINT_HANDLE endpoint;
+    CONNECTION_HANDLE connection = create_opened_connection(&endpoint);
+    int result;
+
+    REGISTER_GLOBAL_MOCK_HOOK(amqp_frame_codec_encode_frame, my_amqp_frame_codec_encode_frame);
+    STRICT_EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, 1, IGNORED_PTR_ARG, IGNORED_PTR_ARG));
+
+    // act
+    result = connection_encode_frame(endpoint, TEST_TRANSFER_PERFORMATIVE, NULL, 0, test_on_send_complete, (void*)0x4242);
+    REGISTER_GLOBAL_MOCK_HOOK(amqp_frame_codec_encode_frame, NULL);
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+
+    // cleanup
+    connection_destroy_endpoint(endpoint);
+    connection_destroy(connection);
+}
+
+/* Tests_S_R_S_CONNECTION_01_283: [If sending the encoded bytes fails, connection_encode_frame shall fail and return a non-zero value.] */
+TEST_FUNCTION(connection_encode_frame_when_sending_the_encoded_bytes_fails_fails)
+{
+    // arrange
+    ENDPOINT_HANDLE endpoint;
+    CONNECTION_HANDLE connection = create_opened_connection(&endpoint);
+    int result;
+
+    REGISTER_GLOBAL_MOCK_HOOK(amqp_frame_codec_encode_frame, my_amqp_frame_codec_encode_frame);
+    STRICT_EXPECTED_CALL(xio_send(TEST_IO_HANDLE, IGNORED_PTR_ARG, 1, IGNORED_PTR_ARG, IGNORED_PTR_ARG))
+        .SetReturn(1);
+
+    // act
+    result = connection_encode_frame(endpoint, TEST_TRANSFER_PERFORMATIVE, NULL, 0, test_on_send_complete, (void*)0x4242);
+    REGISTER_GLOBAL_MOCK_HOOK(amqp_frame_codec_encode_frame, NULL);
+
+    // assert
+    ASSERT_ARE_NOT_EQUAL(int, 0, result);
+
+    // cleanup
+    connection_destroy_endpoint(endpoint);
+    connection_destroy(connection);
 }
 
 END_TEST_SUITE(connection_ut)

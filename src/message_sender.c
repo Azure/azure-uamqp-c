@@ -104,11 +104,25 @@ static void remove_pending_message(MESSAGE_SENDER_INSTANCE* message_sender, ASYN
     }
 }
 
+// The third argument of ON_MESSAGE_SEND_COMPLETE is the *described* part of the AMQP delivery
+// state (for a rejected outcome: the list holding the error), which is what callers parse.
+// Normalize any composite delivery state to that shape so every code path is consistent.
+static AMQP_VALUE get_described_delivery_state(AMQP_VALUE delivery_state)
+{
+    return (delivery_state == NULL) ? NULL : amqpvalue_get_inplace_described_value(delivery_state);
+}
+
 static void on_delivery_settled(void* context, delivery_number delivery_no, LINK_DELIVERY_SETTLE_REASON reason, AMQP_VALUE delivery_state)
 {
     ASYNC_OPERATION_HANDLE pending_send = (ASYNC_OPERATION_HANDLE)context;
     MESSAGE_WITH_CALLBACK* message_with_callback = GET_ASYNC_OPERATION_CONTEXT(MESSAGE_WITH_CALLBACK, pending_send);
     (void)delivery_no;
+
+    if (message_with_callback != NULL)
+    {
+        /* The link destroys its delivery once this returns; do not keep a handle to it. */
+        message_with_callback->transfer_async_operation = NULL;
+    }
 
     if (message_with_callback != NULL && 
         message_with_callback->on_message_send_complete != NULL)
@@ -120,6 +134,8 @@ static void on_delivery_settled(void* context, delivery_number delivery_no, LINK
             if (delivery_state == NULL)
             {
                 LogError("delivery state not provided");
+                message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_ERROR, NULL);
+                remove_pending_message(message_sender, pending_send);
             }
             else
             {
@@ -161,7 +177,7 @@ static void on_delivery_settled(void* context, delivery_number delivery_no, LINK
             break;
         case LINK_DELIVERY_SETTLE_REASON_NOT_DELIVERED:
         default:
-            message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_ERROR, NULL);
+            message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_ERROR, get_described_delivery_state(delivery_state));
             remove_pending_message(message_sender, pending_send);
             break;
         }
@@ -566,7 +582,14 @@ static SEND_ONE_MESSAGE_RESULT send_one_message(MESSAGE_SENDER_INSTANCE* message
                     transfer_async_operation = link_transfer_async(message_sender->link, message_format, &payload, 1, on_delivery_settled, pending_send, &link_transfer_error, message_with_callback->timeout);
                     if (transfer_async_operation == NULL)
                     {
-                        if (link_transfer_error == LINK_TRANSFER_BUSY)
+                        if (!is_message_in_queue(message_sender, pending_send))
+                        {
+                            /* The link already settled, completed and removed this send, e.g. when the
+                            connection ended while sending it. Report it like a send settled in-line. */
+                            LogError("Link transfer failed after the send was completed");
+                            result = SEND_ONE_MESSAGE_OK;
+                        }
+                        else if (link_transfer_error == LINK_TRANSFER_BUSY)
                         {
                             message_with_callback->message_send_state = MESSAGE_SEND_STATE_NOT_SENT;
                             result = SEND_ONE_MESSAGE_BUSY;
@@ -694,13 +717,26 @@ static void set_message_sender_state(MESSAGE_SENDER_INSTANCE* message_sender, ME
 static void indicate_all_messages_as_error(MESSAGE_SENDER_INSTANCE* message_sender)
 {
     size_t i;
+    /* Only query the link when there is something to report, so a close with no pending
+    sends does not reach across into the link. */
+    AMQP_VALUE error_delivery_state = (message_sender->message_count == 0) ? NULL :
+        get_described_delivery_state(link_get_last_error_delivery_state(message_sender->link));
 
     for (i = 0; i < message_sender->message_count; i++)
     {
         MESSAGE_WITH_CALLBACK* message_with_callback = GET_ASYNC_OPERATION_CONTEXT(MESSAGE_WITH_CALLBACK, message_sender->messages[i]);
         if (message_with_callback->on_message_send_complete != NULL)
         {
-            message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_ERROR, NULL);
+            message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_ERROR, error_delivery_state);
+        }
+
+        /* Remove the delivery from the link, so the link cannot settle this send after it is
+        destroyed. The callback is cleared first so the cancel does not complete it again. */
+        if (message_with_callback->transfer_async_operation != NULL)
+        {
+            message_with_callback->on_message_send_complete = NULL;
+            (void)async_operation_cancel(message_with_callback->transfer_async_operation);
+            message_with_callback->transfer_async_operation = NULL;
         }
 
         if (message_with_callback->message != NULL)
@@ -795,6 +831,8 @@ void messagesender_destroy(MESSAGE_SENDER_HANDLE message_sender)
     else
     {
         (void)messagesender_close(message_sender);
+        /* The link can outlive this instance; stop it from calling back into freed memory. */
+        link_clear_callbacks(message_sender->link, message_sender);
 
         free(message_sender);
     }
@@ -845,8 +883,6 @@ int messagesender_close(MESSAGE_SENDER_HANDLE message_sender)
     }
     else
     {
-        indicate_all_messages_as_error(message_sender);
-
         if ((message_sender->message_sender_state == MESSAGE_SENDER_STATE_OPENING) ||
             (message_sender->message_sender_state == MESSAGE_SENDER_STATE_OPEN))
         {
@@ -866,6 +902,8 @@ int messagesender_close(MESSAGE_SENDER_HANDLE message_sender)
         {
             result = 0;
         }
+
+        indicate_all_messages_as_error(message_sender);
     }
 
     return result;
@@ -874,19 +912,26 @@ int messagesender_close(MESSAGE_SENDER_HANDLE message_sender)
 static void messagesender_send_cancel_handler(ASYNC_OPERATION_HANDLE send_operation)
 {
     MESSAGE_WITH_CALLBACK* message_with_callback = GET_ASYNC_OPERATION_CONTEXT(MESSAGE_WITH_CALLBACK, send_operation);
-    MESSAGE_SENDER_HANDLE messager_sender = message_with_callback->message_sender;
+    ON_MESSAGE_SEND_COMPLETE on_message_send_complete = message_with_callback->on_message_send_complete;
+    void* context = message_with_callback->context;
+    ASYNC_OPERATION_HANDLE transfer_async_operation = message_with_callback->transfer_async_operation;
 
-    if (message_with_callback->on_message_send_complete != NULL)
+    /* Cleared so the link settling the cancelled delivery does not complete this send again. */
+    message_with_callback->on_message_send_complete = NULL;
+    message_with_callback->transfer_async_operation = NULL;
+
+    if (transfer_async_operation != NULL)
     {
-        message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_CANCELLED, NULL);
+        (void)async_operation_cancel(transfer_async_operation);
     }
 
-    if (message_with_callback->transfer_async_operation != NULL)
-    {
-        async_operation_cancel(message_with_callback->transfer_async_operation);
-    }
+    remove_pending_message(message_with_callback->message_sender, send_operation);
 
-    remove_pending_message(messager_sender, send_operation);
+    /* Called last: the callback may close or destroy the message sender. */
+    if (on_message_send_complete != NULL)
+    {
+        on_message_send_complete(context, MESSAGE_SEND_CANCELLED, NULL);
+    }
 }
 
 ASYNC_OPERATION_HANDLE messagesender_send_async(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDLE message, ON_MESSAGE_SEND_COMPLETE on_message_send_complete, void* callback_context, tickcounter_ms_t timeout)
@@ -973,7 +1018,10 @@ ASYNC_OPERATION_HANDLE messagesender_send_async(MESSAGE_SENDER_HANDLE message_se
                                 if (message_with_callback->message == NULL)
                                 {
                                     LogError("Error cloning message for placing it in the pending sends list");
-                                    async_operation_destroy(result);
+                                    /* The async operation is already in the pending sends array, so it has to be
+                                    removed from there as well, not only destroyed, otherwise the array is left
+                                    holding a dangling pointer. */
+                                    remove_pending_message_by_index(message_sender, message_sender->message_count - 1);
                                     result = NULL;
                                 }
                                 else

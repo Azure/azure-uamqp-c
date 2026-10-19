@@ -1,7 +1,7 @@
 #Copyright (c) Microsoft. All rights reserved.
 #Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-add_executable(local_client_server_tcp_perf
+add_executable(local_client_server_tcp_perf EXCLUDE_FROM_ALL
 	local_client_server_tcp_perf.c)
 
 compileTargetAsC99(local_client_server_tcp_perf)
@@ -34,4 +34,3 @@ else()
 	target_link_libraries(local_client_server_tcp_perf uamqp aziotsharedutil)
         target_link_libraries(local_client_server_tcp_perf ${OPENSSL_LIBRARIES})
 endif()
-

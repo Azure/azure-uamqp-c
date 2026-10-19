@@ -31,6 +31,12 @@ typedef struct OPERATION_MESSAGE_INSTANCE_TAG
     AMQP_MANAGEMENT_HANDLE amqp_management;
     ASYNC_OPERATION_HANDLE send_async_context;
     ASYNC_OPERATION_HANDLE execute_async_operation;
+    /** @brief True while `messagesender_send_async` runs for this operation. */
+    bool in_send_async;
+    /** @brief The send completed inside `messagesender_send_async`; its returned handle is not valid. */
+    bool send_completed_in_send_async;
+    /** @brief The send failed inside `messagesender_send_async`; handled by its caller. */
+    bool send_failed_in_send_async;
 } OPERATION_MESSAGE_INSTANCE;
 
 DEFINE_ASYNC_OPERATION_CONTEXT(OPERATION_MESSAGE_INSTANCE);
@@ -264,7 +270,7 @@ static AMQP_VALUE on_message_received(const void* context, MESSAGE_HANDLE messag
                                                         }
 
                                                         /* Codes_SRS_AMQP_MANAGEMENT_01_126: [ If a corresponding correlation Id is found in the pending operations list, the callback associated with the pending operation shall be called. ]*/
-                                                        /* Codes_SRS_AMQP_MANAGEMENT_01_166: [ The `message` shall be passed as argument to the callback. ]*/
+                                                        /* Codes_SRS_AMQP_MANAGEMENT_01_184: [ The `message` shall be passed as argument to the callback. ]*/
                                                         if (operation_message->on_execute_operation_complete != NULL)
                                                         {
                                                             // Check for NULL in case operation has been cancelled.
@@ -368,11 +374,23 @@ static void on_message_send_complete(void* context, MESSAGE_SEND_RESULT send_res
         /* Codes_SRS_AMQP_MANAGEMENT_01_169: [ - `on_message_send_complete` shall obtain the pending operation by calling `singlylinkedlist_item_get_value`. ]*/
         OPERATION_MESSAGE_INSTANCE* pending_operation_message = (OPERATION_MESSAGE_INSTANCE*)singlylinkedlist_item_get_value(pending_operation_list_item_handle);
 
-        if (send_result == MESSAGE_SEND_OK)
+        if (pending_operation_message == NULL)
+        {
+            /* Codes_SRS_AMQP_MANAGEMENT_01_183: [ If `singlylinkedlist_item_get_value` returns NULL, `on_message_send_complete` shall return. ]*/
+            LogError("Cannot obtain pending operation");
+        }
+        else if (send_result == MESSAGE_SEND_OK)
         {
             /* Codes_SRS_AMQP_MANAGEMENT_01_170: [ If `send_result` is `MESSAGE_SEND_OK`, `on_message_send_complete` shall return. ]*/
             pending_operation_message->message_send_confirmed = true;
             pending_operation_message->send_async_context = NULL;
+            pending_operation_message->send_completed_in_send_async = pending_operation_message->in_send_async;
+        }
+        else if (pending_operation_message->in_send_async)
+        {
+            /* Codes_SRS_AMQP_MANAGEMENT_01_199: [ If `send_result` is different than `MESSAGE_SEND_OK` while `messagesender_send_async` is still running for the pending operation, `on_message_send_complete` shall only record the failure, leaving it to `amqp_management_execute_operation_async` to fail. ]*/
+            pending_operation_message->send_completed_in_send_async = true;
+            pending_operation_message->send_failed_in_send_async = true;
         }
         else if (send_result == MESSAGE_SEND_CANCELLED)
         {
@@ -1290,8 +1308,15 @@ ASYNC_OPERATION_HANDLE amqp_management_execute_operation_async(AMQP_MANAGEMENT_H
                                 {
                                     /* Codes_SRS_AMQP_MANAGEMENT_01_088: [ `amqp_management_execute_operation_async` shall send the message by calling `messagesender_send_async`. ]*/
                                     /* Codes_SRS_AMQP_MANAGEMENT_01_166: [ The `on_message_send_complete` callback shall be passed to the `messagesender_send_async` call. ]*/
-                                    pending_operation_message->send_async_context = messagesender_send_async(amqp_management->message_sender, cloned_message, on_message_send_complete, added_item, 0);
-                                    if (pending_operation_message->send_async_context == NULL)
+                                    ASYNC_OPERATION_HANDLE send_async_context;
+
+                                    pending_operation_message->in_send_async = true;
+                                    send_async_context = messagesender_send_async(amqp_management->message_sender, cloned_message, on_message_send_complete, added_item, 0);
+                                    pending_operation_message->in_send_async = false;
+
+                                    if ((send_async_context == NULL) ||
+                                        /* Codes_SRS_AMQP_MANAGEMENT_01_200: [ If the send failed while `messagesender_send_async` was running, `amqp_management_execute_operation_async` shall fail and return NULL without calling `on_execute_operation_complete`. ]*/
+                                        pending_operation_message->send_failed_in_send_async)
                                     {
                                         /* Codes_SRS_AMQP_MANAGEMENT_01_089: [ If `messagesender_send_async` fails, `amqp_management_execute_operation_async` shall fail and return NULL. ]*/
                                         LogError("Could not send request message");
@@ -1301,6 +1326,12 @@ ASYNC_OPERATION_HANDLE amqp_management_execute_operation_async(AMQP_MANAGEMENT_H
                                     }
                                     else
                                     {
+                                        /* Codes_SRS_AMQP_MANAGEMENT_01_201: [ If the send completed while `messagesender_send_async` was running, the handle returned by `messagesender_send_async` shall not be stored. ]*/
+                                        if (!pending_operation_message->send_completed_in_send_async)
+                                        {
+                                            pending_operation_message->send_async_context = send_async_context;
+                                        }
+
                                         /* Codes_SRS_AMQP_MANAGEMENT_01_107: [ The message Id set on the message properties shall be incremented with each operation. ]*/
                                         amqp_management->next_message_id++;
                                     }
@@ -1340,9 +1371,9 @@ int amqp_management_set_override_status_code_key_name(AMQP_MANAGEMENT_HANDLE amq
 {
     int result;
 
-    /* Codes_SRS_AMQP_MANAGEMENT_01_171: [ If `amqp_management` is NULL, `amqp_management_set_override_status_code_key_name` shall fail and return a non-zero value. ]*/
+    /* Codes_SRS_AMQP_MANAGEMENT_01_189: [ If `amqp_management` is NULL, `amqp_management_set_override_status_code_key_name` shall fail and return a non-zero value. ]*/
     if ((amqp_management == NULL) ||
-        /* Codes_SRS_AMQP_MANAGEMENT_01_172: [ If `override_status_code_key_name` is NULL, `amqp_management_set_override_status_code_key_name` shall fail and return a non-zero value. ]*/
+        /* Codes_SRS_AMQP_MANAGEMENT_01_190: [ If `override_status_code_key_name` is NULL, `amqp_management_set_override_status_code_key_name` shall fail and return a non-zero value. ]*/
         (override_status_code_key_name == NULL))
     {
         LogError("Bad arguments: amqp_management = %p, override_status_code_key_name = %s",
@@ -1351,18 +1382,18 @@ int amqp_management_set_override_status_code_key_name(AMQP_MANAGEMENT_HANDLE amq
     }
     else
     {
-        /* Codes_SRS_AMQP_MANAGEMENT_01_167: [ `amqp_management_set_override_status_code_key_name` shall set the status code key name used to parse the status code from the reply messages to `override_status_code_key_name`. ]*/
-        /* Codes_SRS_AMQP_MANAGEMENT_01_168: [ `amqp_management_set_override_status_code_key_name` shall copy the `override_status_code_key_name` string. ]*/
-        /* Codes_SRS_AMQP_MANAGEMENT_01_169: [ `amqp_management_set_override_status_code_key_name` shall free any string previously used for the status code key name. ]*/
+        /* Codes_SRS_AMQP_MANAGEMENT_01_185: [ `amqp_management_set_override_status_code_key_name` shall set the status code key name used to parse the status code from the reply messages to `override_status_code_key_name`. ]*/
+        /* Codes_SRS_AMQP_MANAGEMENT_01_186: [ `amqp_management_set_override_status_code_key_name` shall copy the `override_status_code_key_name` string. ]*/
+        /* Codes_SRS_AMQP_MANAGEMENT_01_187: [ `amqp_management_set_override_status_code_key_name` shall free any string previously used for the status code key name. ]*/
         if (internal_set_status_code_key_name(amqp_management, override_status_code_key_name) != 0)
         {
-            /* Codes_SRS_AMQP_MANAGEMENT_01_173: [ If any error occurs in copying the `override_status_code_key_name` string, `amqp_management_set_override_status_code_key_name` shall fail and return a non-zero value. ]*/
+            /* Codes_SRS_AMQP_MANAGEMENT_01_191: [ If any error occurs in copying the `override_status_code_key_name` string, `amqp_management_set_override_status_code_key_name` shall fail and return a non-zero value. ]*/
             LogError("Cannot set status code key name");
             result = MU_FAILURE;
         }
         else
         {
-            /* Codes_SRS_AMQP_MANAGEMENT_01_170: [ On success, `amqp_management_set_override_status_code_key_name` shall return 0. ]*/
+            /* Codes_SRS_AMQP_MANAGEMENT_01_188: [ On success, `amqp_management_set_override_status_code_key_name` shall return 0. ]*/
             result = 0;
         }
     }
@@ -1374,9 +1405,9 @@ int amqp_management_set_override_status_description_key_name(AMQP_MANAGEMENT_HAN
 {
     int result;
 
-    /* Codes_SRS_AMQP_MANAGEMENT_01_178: [ If `amqp_management` is NULL, `amqp_management_set_override_status_description_key_name` shall fail and return a non-zero value. ]*/
+    /* Codes_SRS_AMQP_MANAGEMENT_01_196: [ If `amqp_management` is NULL, `amqp_management_set_override_status_description_key_name` shall fail and return a non-zero value. ]*/
     if ((amqp_management == NULL) ||
-        /* Tests_SRS_AMQP_MANAGEMENT_01_179: [ If `override_status_description_key_name` is NULL, `amqp_management_set_override_status_description_key_name` shall fail and return a non-zero value. ]*/
+        /* Tests_SRS_AMQP_MANAGEMENT_01_197: [ If `override_status_description_key_name` is NULL, `amqp_management_set_override_status_description_key_name` shall fail and return a non-zero value. ]*/
         (override_status_description_key_name == NULL))
     {
         LogError("Bad arguments: amqp_management = %p, override_status_description_key_name = %s",
@@ -1385,13 +1416,13 @@ int amqp_management_set_override_status_description_key_name(AMQP_MANAGEMENT_HAN
     }
     else
     {
-        /* Codes_SRS_AMQP_MANAGEMENT_01_174: [ `amqp_management_set_override_status_description_key_name` shall set the status description key name used to parse the status description from the reply messages to `over ride_status_description_key_name`.]*/
-        /* Codes_SRS_AMQP_MANAGEMENT_01_175: [ `amqp_management_set_override_status_description_key_name` shall copy the `override_status_description_key_name` string. ]*/
-        /* Codes_SRS_AMQP_MANAGEMENT_01_176: [ `amqp_management_set_override_status_description_key_name` shall free any string previously used for the status description key name. ]*/
-        /* Codes_SRS_AMQP_MANAGEMENT_01_177: [ On success, `amqp_management_set_override_status_description_key_name` shall return 0. ]*/
+        /* Codes_SRS_AMQP_MANAGEMENT_01_192: [ `amqp_management_set_override_status_description_key_name` shall set the status description key name used to parse the status description from the reply messages to `over ride_status_description_key_name`.]*/
+        /* Codes_SRS_AMQP_MANAGEMENT_01_193: [ `amqp_management_set_override_status_description_key_name` shall copy the `override_status_description_key_name` string. ]*/
+        /* Codes_SRS_AMQP_MANAGEMENT_01_194: [ `amqp_management_set_override_status_description_key_name` shall free any string previously used for the status description key name. ]*/
+        /* Codes_SRS_AMQP_MANAGEMENT_01_195: [ On success, `amqp_management_set_override_status_description_key_name` shall return 0. ]*/
         if (internal_set_status_description_key_name(amqp_management, override_status_description_key_name) != 0)
         {
-            /* Codes_SRS_AMQP_MANAGEMENT_01_180: [ If any error occurs in copying the `override_status_description_key_name` string, `amqp_management_set_override_status_description_key_name` shall fail and return a non-zero value. ]*/
+            /* Codes_SRS_AMQP_MANAGEMENT_01_198: [ If any error occurs in copying the `override_status_description_key_name` string, `amqp_management_set_override_status_description_key_name` shall fail and return a non-zero value. ]*/
             LogError("Cannot set status description key name");
             result = MU_FAILURE;
         }

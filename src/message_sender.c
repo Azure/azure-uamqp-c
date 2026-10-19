@@ -903,19 +903,26 @@ int messagesender_close(MESSAGE_SENDER_HANDLE message_sender)
 static void messagesender_send_cancel_handler(ASYNC_OPERATION_HANDLE send_operation)
 {
     MESSAGE_WITH_CALLBACK* message_with_callback = GET_ASYNC_OPERATION_CONTEXT(MESSAGE_WITH_CALLBACK, send_operation);
-    MESSAGE_SENDER_HANDLE messager_sender = message_with_callback->message_sender;
+    ON_MESSAGE_SEND_COMPLETE on_message_send_complete = message_with_callback->on_message_send_complete;
+    void* context = message_with_callback->context;
+    ASYNC_OPERATION_HANDLE transfer_async_operation = message_with_callback->transfer_async_operation;
 
-    if (message_with_callback->on_message_send_complete != NULL)
+    /* Cleared so the link settling the cancelled delivery does not complete this send again. */
+    message_with_callback->on_message_send_complete = NULL;
+    message_with_callback->transfer_async_operation = NULL;
+
+    if (transfer_async_operation != NULL)
     {
-        message_with_callback->on_message_send_complete(message_with_callback->context, MESSAGE_SEND_CANCELLED, NULL);
+        (void)async_operation_cancel(transfer_async_operation);
     }
 
-    if (message_with_callback->transfer_async_operation != NULL)
-    {
-        async_operation_cancel(message_with_callback->transfer_async_operation);
-    }
+    remove_pending_message(message_with_callback->message_sender, send_operation);
 
-    remove_pending_message(messager_sender, send_operation);
+    /* Called last: the callback may close or destroy the message sender. */
+    if (on_message_send_complete != NULL)
+    {
+        on_message_send_complete(context, MESSAGE_SEND_CANCELLED, NULL);
+    }
 }
 
 ASYNC_OPERATION_HANDLE messagesender_send_async(MESSAGE_SENDER_HANDLE message_sender, MESSAGE_HANDLE message, ON_MESSAGE_SEND_COMPLETE on_message_send_complete, void* callback_context, tickcounter_ms_t timeout)

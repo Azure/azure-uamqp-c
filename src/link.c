@@ -95,6 +95,18 @@ static void set_last_error_delivery_state(LINK_INSTANCE* link_instance, AMQP_VAL
     link_instance->last_error_delivery_state = delivery_state;
 }
 
+/** @brief Frees the partially reassembled incoming message and resets its size. */
+static void discard_received_payload(LINK_INSTANCE* link_instance)
+{
+    if (link_instance->received_payload != NULL)
+    {
+        free(link_instance->received_payload);
+        link_instance->received_payload = NULL;
+    }
+
+    link_instance->received_payload_size = 0;
+}
+
 static AMQP_VALUE create_rejected_delivery_state(ERROR_HANDLE error)
 {
     AMQP_VALUE result = NULL;
@@ -500,15 +512,18 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
 
                 if (!is_error)
                 {
-                    /* If this is a continuation transfer or if this is the first chunk of a multi frame transfer */
-                    if ((link_instance->received_payload_size > 0) || more)
+                    /* If this is a continuation transfer or if this is the first chunk of a multi frame transfer.
+                       Empty chunks add nothing and must not reach realloc, where a size of 0 may free the buffer. */
+                    if (((link_instance->received_payload_size > 0) || more) && (payload_size > 0))
                     {
-                        unsigned char* new_received_payload;;
+                        unsigned char* new_received_payload;
                         size_t realloc_size = safe_add_size_t((size_t)link_instance->received_payload_size, payload_size);
-                        if (realloc_size == SIZE_MAX ||
+                        if (realloc_size > UINT32_MAX ||
                             (new_received_payload = (unsigned char*)realloc(link_instance->received_payload, realloc_size)) == NULL)
                         {
                             LogError("Could not allocate memory for the received payload, size:%zu", realloc_size);
+                            discard_received_payload(link_instance);
+                            is_error = true;
                         }
                         else
                         {
@@ -518,7 +533,7 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                         }
                     }
 
-                    if (!more)
+                    if (!is_error && !more)
                     {
                         const unsigned char* indicate_payload_bytes;
                         uint32_t indicate_payload_size;
@@ -539,12 +554,7 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
 
                         delivery_state = link_instance->on_transfer_received(link_instance->callback_context, transfer_handle, indicate_payload_size, indicate_payload_bytes);
 
-                        if (link_instance->received_payload_size > 0)
-                        {
-                            free(link_instance->received_payload);
-                            link_instance->received_payload = NULL;
-                            link_instance->received_payload_size = 0;
-                        }
+                        discard_received_payload(link_instance);
 
                         if (delivery_state != NULL)
                         {
@@ -1013,10 +1023,7 @@ void link_destroy(LINK_HANDLE link)
             amqpvalue_destroy(link->attach_properties);
         }
 
-        if (link->received_payload != NULL)
-        {
-            free(link->received_payload);
-        }
+        discard_received_payload(link);
 
         if (link->last_error_delivery_state != NULL)
         {
@@ -1288,7 +1295,7 @@ int link_attach(LINK_HANDLE link, ON_TRANSFER_RECEIVED on_transfer_received, ON_
                 }
                 else
                 {
-                    link->received_payload_size = 0;
+                    discard_received_payload(link);
 
                     result = 0;
                 }

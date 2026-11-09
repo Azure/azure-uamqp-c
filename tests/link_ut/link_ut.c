@@ -2064,4 +2064,55 @@ TEST_FUNCTION(link_clear_callbacks_stops_transfer_received_notifications)
     link_destroy(link);
 }
 
+static void receive_transfer_frame(ON_ENDPOINT_FRAME_RECEIVED on_frame_received, LINK_HANDLE link, bool more, uint32_t payload_size, const unsigned char* payload_bytes)
+{
+    AMQP_VALUE performative = (AMQP_VALUE)0x5000;
+    AMQP_VALUE descriptor = (AMQP_VALUE)0x5001;
+    TRANSFER_HANDLE transfer = (TRANSFER_HANDLE)0x5003;
+
+    umock_c_reset_all_calls();
+    STRICT_EXPECTED_CALL(amqpvalue_get_inplace_descriptor(performative))
+        .SetReturn(descriptor);
+    STRICT_EXPECTED_CALL(is_attach_type_by_descriptor(IGNORED_ARG))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_flow_type_by_descriptor(IGNORED_ARG))
+        .SetReturn(false);
+    STRICT_EXPECTED_CALL(is_transfer_type_by_descriptor(IGNORED_ARG))
+        .SetReturn(true);
+    STRICT_EXPECTED_CALL(amqpvalue_get_transfer(IGNORED_ARG, IGNORED_ARG))
+        .CopyOutArgumentBuffer(2, &transfer, sizeof(transfer));
+    STRICT_EXPECTED_CALL(transfer_get_more(IGNORED_ARG, IGNORED_ARG))
+        .CopyOutArgumentBuffer(2, &more, sizeof(more));
+
+    on_frame_received(link, performative, payload_size, payload_bytes);
+}
+
+/* Empty more=1 TRANSFER frames neither free nor leak the reassembly buffer; later chunks are reassembled intact. */
+TEST_FUNCTION(link_receiver_empty_more_transfers_do_not_corrupt_reassembly)
+{
+    // arrange
+    LINK_HANDLE link = create_link(role_receiver);
+    ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
+    ON_SESSION_FLOW_ON on_session_flow_on = NULL;
+    ASSERT_ARE_EQUAL(int, 0, attach_link_with_context(link, &on_frame_received, &on_session_flow_on));
+    const unsigned char first_chunk[4] = { 1, 2, 3, 4 };
+    const unsigned char second_chunk[4] = { 5, 6, 7, 8 };
+    test_on_transfer_received_call_count = 0;
+
+    // act
+    receive_transfer_frame(on_frame_received, link, true, 0, first_chunk);
+    receive_transfer_frame(on_frame_received, link, true, 0, first_chunk);
+    receive_transfer_frame(on_frame_received, link, true, sizeof(first_chunk), first_chunk);
+    receive_transfer_frame(on_frame_received, link, true, 0, first_chunk);
+    receive_transfer_frame(on_frame_received, link, false, sizeof(second_chunk), second_chunk);
+
+    // assert
+    ASSERT_ARE_EQUAL(size_t, 1, test_on_transfer_received_call_count);
+    ASSERT_ARE_EQUAL(uint32_t, 8, test_on_transfer_received_payload_size);
+    ASSERT_ARE_EQUAL(int, 0, memcmp(test_on_transfer_received_payload_bytes, "\x01\x02\x03\x04\x05\x06\x07\x08", 8));
+
+    // cleanup
+    link_destroy(link);
+}
+
 END_TEST_SUITE(link_ut)

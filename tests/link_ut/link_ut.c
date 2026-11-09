@@ -29,8 +29,15 @@ static void* my_gballoc_calloc(size_t nmemb, size_t size)
     return calloc(nmemb, size);
 }
 
+static bool fail_next_gballoc_realloc;
 static void* my_gballoc_realloc(void* ptr, size_t size)
 {
+    if (fail_next_gballoc_realloc)
+    {
+        fail_next_gballoc_realloc = false;
+        return NULL;
+    }
+
     return realloc(ptr, size);
 }
 
@@ -2064,7 +2071,7 @@ TEST_FUNCTION(link_clear_callbacks_stops_transfer_received_notifications)
     link_destroy(link);
 }
 
-static void receive_transfer_frame(ON_ENDPOINT_FRAME_RECEIVED on_frame_received, LINK_HANDLE link, bool more, uint32_t payload_size, const unsigned char* payload_bytes)
+static void receive_transfer_frame(ON_ENDPOINT_FRAME_RECEIVED on_frame_received, LINK_HANDLE link, bool has_delivery_id, bool more, uint32_t payload_size, const unsigned char* payload_bytes)
 {
     AMQP_VALUE performative = (AMQP_VALUE)0x5000;
     AMQP_VALUE descriptor = (AMQP_VALUE)0x5001;
@@ -2083,6 +2090,8 @@ static void receive_transfer_frame(ON_ENDPOINT_FRAME_RECEIVED on_frame_received,
         .CopyOutArgumentBuffer(2, &transfer, sizeof(transfer));
     STRICT_EXPECTED_CALL(transfer_get_more(IGNORED_ARG, IGNORED_ARG))
         .CopyOutArgumentBuffer(2, &more, sizeof(more));
+    STRICT_EXPECTED_CALL(transfer_get_delivery_id(IGNORED_ARG, IGNORED_ARG))
+        .SetReturn(has_delivery_id ? 0 : 1);
 
     on_frame_received(link, performative, payload_size, payload_bytes);
 }
@@ -2100,16 +2109,49 @@ TEST_FUNCTION(link_receiver_empty_more_transfers_do_not_corrupt_reassembly)
     test_on_transfer_received_call_count = 0;
 
     // act
-    receive_transfer_frame(on_frame_received, link, true, 0, first_chunk);
-    receive_transfer_frame(on_frame_received, link, true, 0, first_chunk);
-    receive_transfer_frame(on_frame_received, link, true, sizeof(first_chunk), first_chunk);
-    receive_transfer_frame(on_frame_received, link, true, 0, first_chunk);
-    receive_transfer_frame(on_frame_received, link, false, sizeof(second_chunk), second_chunk);
+    receive_transfer_frame(on_frame_received, link, true, true, 0, first_chunk);
+    receive_transfer_frame(on_frame_received, link, true, true, 0, first_chunk);
+    receive_transfer_frame(on_frame_received, link, true, true, sizeof(first_chunk), first_chunk);
+    receive_transfer_frame(on_frame_received, link, true, true, 0, first_chunk);
+    receive_transfer_frame(on_frame_received, link, true, false, sizeof(second_chunk), second_chunk);
 
     // assert
     ASSERT_ARE_EQUAL(size_t, 1, test_on_transfer_received_call_count);
     ASSERT_ARE_EQUAL(uint32_t, 8, test_on_transfer_received_payload_size);
     ASSERT_ARE_EQUAL(int, 0, memcmp(test_on_transfer_received_payload_bytes, "\x01\x02\x03\x04\x05\x06\x07\x08", 8));
+
+    // cleanup
+    link_destroy(link);
+}
+
+/* A delivery whose buffer cannot grow is dropped through its last frame, and still consumes link credit. */
+TEST_FUNCTION(link_receiver_drops_delivery_after_allocation_failure_and_keeps_credit_accounting)
+{
+    // arrange
+    LINK_HANDLE link = create_link(role_receiver);
+    ASSERT_ARE_EQUAL(int, 0, link_set_max_link_credit(link, 3));
+    ON_ENDPOINT_FRAME_RECEIVED on_frame_received = NULL;
+    ON_SESSION_FLOW_ON on_session_flow_on = NULL;
+    ASSERT_ARE_EQUAL(int, 0, attach_link_with_context(link, &on_frame_received, &on_session_flow_on));
+    const unsigned char dropped_chunk[4] = { 1, 2, 3, 4 };
+    const unsigned char delivered_payload[2] = { 9, 9 };
+    test_on_transfer_received_call_count = 0;
+
+    // act
+    fail_next_gballoc_realloc = true;
+    receive_transfer_frame(on_frame_received, link, true, true, sizeof(dropped_chunk), dropped_chunk);
+    receive_transfer_frame(on_frame_received, link, true, true, sizeof(dropped_chunk), dropped_chunk);
+    receive_transfer_frame(on_frame_received, link, false, false, sizeof(dropped_chunk), dropped_chunk);
+    ASSERT_ARE_EQUAL(size_t, 0, test_on_transfer_received_call_count);
+
+    receive_transfer_frame(on_frame_received, link, true, false, sizeof(delivered_payload), delivered_payload);
+    receive_transfer_frame(on_frame_received, link, true, false, sizeof(delivered_payload), delivered_payload);
+
+    // assert
+    ASSERT_IS_NOT_NULL(strstr(umock_c_get_actual_calls(), "flow_create("), "credit was not replenished after the dropped delivery");
+    ASSERT_ARE_EQUAL(size_t, 2, test_on_transfer_received_call_count);
+    ASSERT_ARE_EQUAL(uint32_t, sizeof(delivered_payload), test_on_transfer_received_payload_size);
+    ASSERT_ARE_EQUAL(int, 0, memcmp(test_on_transfer_received_payload_bytes, delivered_payload, sizeof(delivered_payload)));
 
     // cleanup
     link_destroy(link);

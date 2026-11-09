@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <inttypes.h>
 #include <stdbool.h>
 #include "azure_c_shared_utility/gballoc.h"
 #include "macro_utils/macro_utils.h"
@@ -67,6 +68,7 @@ typedef struct LINK_INSTANCE_TAG
     bool is_closed;
     unsigned char* received_payload;
     uint32_t received_payload_size;
+    bool is_received_payload_discarded;
     delivery_number received_delivery_id;
     TICK_COUNTER_HANDLE tick_counter;
     ON_LINK_DETACH_EVENT_SUBSCRIPTION on_link_detach_received_event_subscription;
@@ -95,7 +97,7 @@ static void set_last_error_delivery_state(LINK_INSTANCE* link_instance, AMQP_VAL
     link_instance->last_error_delivery_state = delivery_state;
 }
 
-/** @brief Frees the partially reassembled incoming message and resets its size. */
+/** @brief Frees the partially reassembled incoming message and resets the reassembly state. */
 static void discard_received_payload(LINK_INSTANCE* link_instance)
 {
     if (link_instance->received_payload != NULL)
@@ -105,6 +107,7 @@ static void discard_received_payload(LINK_INSTANCE* link_instance)
     }
 
     link_instance->received_payload_size = 0;
+    link_instance->is_received_payload_discarded = false;
 }
 
 static AMQP_VALUE create_rejected_delivery_state(ERROR_HANDLE error)
@@ -503,7 +506,7 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                 if (transfer_get_delivery_id(transfer_handle, &link_instance->received_delivery_id) != 0)
                 {
                     /* is this not a continuation transfer? */
-                    if (link_instance->received_payload_size == 0)
+                    if ((link_instance->received_payload_size == 0) && !link_instance->is_received_payload_discarded)
                     {
                         LogError("Could not get the delivery Id from the transfer performative");
                         is_error = true;
@@ -514,7 +517,8 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                 {
                     /* If this is a continuation transfer or if this is the first chunk of a multi frame transfer.
                        Empty chunks add nothing and must not reach realloc, where a size of 0 may free the buffer. */
-                    if (((link_instance->received_payload_size > 0) || more) && (payload_size > 0))
+                    if (((link_instance->received_payload_size > 0) || more) && (payload_size > 0) &&
+                        !link_instance->is_received_payload_discarded)
                     {
                         unsigned char* new_received_payload;
                         size_t realloc_size = safe_add_size_t((size_t)link_instance->received_payload_size, payload_size);
@@ -523,7 +527,8 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                         {
                             LogError("Could not allocate memory for the received payload, size:%zu", realloc_size);
                             discard_received_payload(link_instance);
-                            is_error = true;
+                            /* Drop the remaining frames of this delivery too, so no partial message is reported. */
+                            link_instance->is_received_payload_discarded = true;
                         }
                         else
                         {
@@ -533,37 +538,46 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                         }
                     }
 
-                    if (!is_error && !more)
+                    if (!more)
                     {
-                        const unsigned char* indicate_payload_bytes;
-                        uint32_t indicate_payload_size;
-
                         link_instance->current_link_credit--;
                         link_instance->delivery_count++;
-                        /* if no previously stored chunks then simply report the current payload */
-                        if (link_instance->received_payload_size > 0)
+
+                        if (link_instance->is_received_payload_discarded)
                         {
-                            indicate_payload_size = link_instance->received_payload_size;
-                            indicate_payload_bytes = link_instance->received_payload;
+                            LogError("Dropped delivery %" PRIu32 ", its payload could not be stored", link_instance->received_delivery_id);
+                            link_instance->is_received_payload_discarded = false;
                         }
                         else
                         {
-                            indicate_payload_size = payload_size;
-                            indicate_payload_bytes = payload_bytes;
-                        }
+                            const unsigned char* indicate_payload_bytes;
+                            uint32_t indicate_payload_size;
 
-                        delivery_state = link_instance->on_transfer_received(link_instance->callback_context, transfer_handle, indicate_payload_size, indicate_payload_bytes);
-
-                        discard_received_payload(link_instance);
-
-                        if (delivery_state != NULL)
-                        {
-                            if (send_disposition(link_instance, link_instance->received_delivery_id, delivery_state) != 0)
+                            /* if no previously stored chunks then simply report the current payload */
+                            if (link_instance->received_payload_size > 0)
                             {
-                                LogError("Cannot send disposition frame");
+                                indicate_payload_size = link_instance->received_payload_size;
+                                indicate_payload_bytes = link_instance->received_payload;
+                            }
+                            else
+                            {
+                                indicate_payload_size = payload_size;
+                                indicate_payload_bytes = payload_bytes;
                             }
 
-                            amqpvalue_destroy(delivery_state);
+                            delivery_state = link_instance->on_transfer_received(link_instance->callback_context, transfer_handle, indicate_payload_size, indicate_payload_bytes);
+
+                            discard_received_payload(link_instance);
+
+                            if (delivery_state != NULL)
+                            {
+                                if (send_disposition(link_instance, link_instance->received_delivery_id, delivery_state) != 0)
+                                {
+                                    LogError("Cannot send disposition frame");
+                                }
+
+                                amqpvalue_destroy(delivery_state);
+                            }
                         }
                     }
                 }
@@ -846,6 +860,7 @@ LINK_HANDLE link_create(SESSION_HANDLE session, const char* name, role role, AMQ
         result->attach_properties = NULL;
         result->received_payload = NULL;
         result->received_payload_size = 0;
+        result->is_received_payload_discarded = false;
         result->received_delivery_id = 0;
         result->on_link_detach_received_event_subscription.on_link_detach_received = NULL;
         result->on_link_detach_received_event_subscription.context = NULL;
@@ -935,6 +950,7 @@ LINK_HANDLE link_create_from_endpoint(SESSION_HANDLE session, LINK_ENDPOINT_HAND
         result->attach_properties = NULL;
         result->received_payload = NULL;
         result->received_payload_size = 0;
+        result->is_received_payload_discarded = false;
         result->received_delivery_id = 0;
         result->source = amqpvalue_clone(target);
         result->target = amqpvalue_clone(source);

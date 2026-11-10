@@ -11,9 +11,6 @@
 #include "azure_uamqp_c/amqp_definitions.h"
 #include "azure_c_shared_utility/safe_math.h"
 
-/** @brief Value of a link endpoint's input handle while no peer handle is mapped to it. */
-#define LINK_ENDPOINT_INPUT_HANDLE_UNASSIGNED 0xFFFFFFFF
-
 typedef enum LINK_ENDPOINT_STATE_TAG
 {
     LINK_ENDPOINT_STATE_NOT_ATTACHED,
@@ -25,6 +22,8 @@ typedef struct LINK_ENDPOINT_INSTANCE_TAG
 {
     char* name;
     handle input_handle;
+    /** @brief true while @c input_handle holds the handle the peer assigned to this link (every handle value is valid, so none can mark "unmapped"). */
+    bool is_input_handle_mapped;
     handle output_handle;
     ON_ENDPOINT_FRAME_RECEIVED frame_received_callback;
     ON_SESSION_STATE_CHANGED on_session_state_changed;
@@ -354,7 +353,8 @@ static LINK_ENDPOINT_INSTANCE* find_link_endpoint_by_input_handle(SESSION_INSTAN
 
     for (i = 0; i < session->link_endpoint_count; i++)
     {
-        if (session->link_endpoints[i]->input_handle == input_handle)
+        if (session->link_endpoints[i]->is_input_handle_mapped &&
+            (session->link_endpoints[i]->input_handle == input_handle))
         {
             break;
         }
@@ -519,6 +519,7 @@ static void on_frame_received(void* context, AMQP_VALUE performative, uint32_t p
                         }
                         else
                         {
+                            new_link_endpoint->is_input_handle_mapped = true;
                             new_link_endpoint->link_endpoint_state = LINK_ENDPOINT_STATE_ATTACHED;
 
                             if (!session_instance->on_link_attached(session_instance->on_link_attached_callback_context, new_link_endpoint, name, role, source, target, properties))
@@ -545,6 +546,7 @@ static void on_frame_received(void* context, AMQP_VALUE performative, uint32_t p
                     }
                     else
                     {
+                        link_endpoint->is_input_handle_mapped = true;
                         link_endpoint->link_endpoint_state = LINK_ENDPOINT_STATE_ATTACHED;
 
                         if (session_instance->on_link_attached != NULL)
@@ -598,7 +600,7 @@ static void on_frame_received(void* context, AMQP_VALUE performative, uint32_t p
                         /* The peer releases its handle once it has detached, so it may reuse it for a new link
                            while this endpoint is still alive; unmap it so frames on that handle reach the new link.
                            Done before the callback, which may free the endpoint. */
-                        link_endpoint->input_handle = LINK_ENDPOINT_INPUT_HANDLE_UNASSIGNED;
+                        link_endpoint->is_input_handle_mapped = false;
                         link_endpoint->frame_received_callback(link_endpoint->callback_context, performative, payload_size, payload_bytes);
                     }
                     else
@@ -1176,7 +1178,8 @@ LINK_ENDPOINT_HANDLE session_create_link_endpoint(SESSION_HANDLE session, const 
             result->frame_received_callback = NULL;
             result->callback_context = NULL;
             result->output_handle = selected_handle;
-            result->input_handle = LINK_ENDPOINT_INPUT_HANDLE_UNASSIGNED;
+            result->input_handle = 0xFFFFFFFF;
+            result->is_input_handle_mapped = false;
             result->link_endpoint_state = LINK_ENDPOINT_STATE_NOT_ATTACHED;
             name_length = strlen(name);
             result->name = (char*)malloc(name_length + 1);

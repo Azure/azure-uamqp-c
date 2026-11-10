@@ -1110,6 +1110,32 @@ TEST_FUNCTION(flow_on_a_remote_handle_reused_after_peer_detach_is_routed_to_the_
 
     // cleanup
     session_destroy_link_endpoint(first_link_endpoint);
+    // The first call on an attached endpoint only starts the local detach; the second frees it.
+    session_destroy_link_endpoint(second_link_endpoint);
+    session_destroy_link_endpoint(second_link_endpoint);
+    session_destroy(session);
+}
+
+TEST_FUNCTION(flow_on_the_maximum_remote_handle_is_not_routed_to_a_link_endpoint_detached_by_the_peer)
+{
+    // arrange
+    LINK_ENDPOINT_HANDLE first_link_endpoint;
+    LINK_ENDPOINT_HANDLE second_link_endpoint;
+    SESSION_HANDLE session = create_session_with_two_link_endpoints(3, &first_link_endpoint, &second_link_endpoint);
+    deliver_peer_performative(TEST_PERFORMATIVE_TYPE_DETACH, 3, NULL);
+    deliver_peer_performative(TEST_PERFORMATIVE_TYPE_ATTACH, 0xFFFFFFFF, "second_link");
+    frame_received_count = 0;
+    last_frame_received_context = NULL;
+
+    // act
+    deliver_peer_performative(TEST_PERFORMATIVE_TYPE_FLOW, 0xFFFFFFFF, NULL);
+
+    // assert
+    ASSERT_ARE_EQUAL(size_t, 1, frame_received_count);
+    ASSERT_ARE_EQUAL(void_ptr, second_link_endpoint, last_frame_received_context);
+
+    // cleanup
+    session_destroy_link_endpoint(first_link_endpoint);
     session_destroy_link_endpoint(second_link_endpoint);
     session_destroy_link_endpoint(second_link_endpoint);
     session_destroy(session);

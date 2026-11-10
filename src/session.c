@@ -11,6 +11,9 @@
 #include "azure_uamqp_c/amqp_definitions.h"
 #include "azure_c_shared_utility/safe_math.h"
 
+/** @brief Value of a link endpoint's input handle while no peer handle is mapped to it. */
+#define LINK_ENDPOINT_INPUT_HANDLE_UNASSIGNED 0xFFFFFFFF
+
 typedef enum LINK_ENDPOINT_STATE_TAG
 {
     LINK_ENDPOINT_STATE_NOT_ATTACHED,
@@ -592,6 +595,10 @@ static void on_frame_received(void* context, AMQP_VALUE performative, uint32_t p
                     if (link_endpoint->link_endpoint_state != LINK_ENDPOINT_STATE_DETACHING)
                     {
                         link_endpoint->link_endpoint_state = LINK_ENDPOINT_STATE_DETACHING;
+                        /* The peer releases its handle once it has detached, so it may reuse it for a new link
+                           while this endpoint is still alive; unmap it so frames on that handle reach the new link.
+                           Done before the callback, which may free the endpoint. */
+                        link_endpoint->input_handle = LINK_ENDPOINT_INPUT_HANDLE_UNASSIGNED;
                         link_endpoint->frame_received_callback(link_endpoint->callback_context, performative, payload_size, payload_bytes);
                     }
                     else
@@ -1169,7 +1176,7 @@ LINK_ENDPOINT_HANDLE session_create_link_endpoint(SESSION_HANDLE session, const 
             result->frame_received_callback = NULL;
             result->callback_context = NULL;
             result->output_handle = selected_handle;
-            result->input_handle = 0xFFFFFFFF;
+            result->input_handle = LINK_ENDPOINT_INPUT_HANDLE_UNASSIGNED;
             result->link_endpoint_state = LINK_ENDPOINT_STATE_NOT_ATTACHED;
             name_length = strlen(name);
             result->name = (char*)malloc(name_length + 1);

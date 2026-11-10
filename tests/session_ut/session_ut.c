@@ -63,7 +63,24 @@ static uint32_t some_remote_max_frame_size = 512;
 
 static uint64_t performative_ulong;
 
+/** @brief Performative types the frame mocks below can report for an incoming frame. */
+typedef enum TEST_PERFORMATIVE_TYPE_TAG
+{
+    TEST_PERFORMATIVE_TYPE_NONE,
+    TEST_PERFORMATIVE_TYPE_ATTACH,
+    TEST_PERFORMATIVE_TYPE_DETACH,
+    TEST_PERFORMATIVE_TYPE_FLOW
+} TEST_PERFORMATIVE_TYPE;
+
+static TEST_PERFORMATIVE_TYPE incoming_performative_type;
+static handle incoming_performative_remote_handle;
+static const char* incoming_attach_link_name;
+static void* last_frame_received_context;
+static size_t frame_received_count;
+
 MOCK_FUNCTION_WITH_CODE(, void, test_frame_received_callback, void*, context, AMQP_VALUE, performative, uint32_t, frame_payload_size, const unsigned char*, payload_bytes)
+    last_frame_received_context = context;
+    frame_received_count++;
 MOCK_FUNCTION_END();
 MOCK_FUNCTION_WITH_CODE(, void, test_on_session_state_changed, void*, context, SESSION_STATE, new_session_state, SESSION_STATE, previous_session_state)
 MOCK_FUNCTION_END();
@@ -86,6 +103,116 @@ static int my_connection_start_endpoint(ENDPOINT_HANDLE endpoint, ON_ENDPOINT_FR
     saved_connection_state_changed_callback = on_connection_state_changed;
     saved_callback_context = context;
     return 0;
+}
+
+static bool my_is_attach_type_by_descriptor(AMQP_VALUE descriptor)
+{
+    (void)descriptor;
+    return incoming_performative_type == TEST_PERFORMATIVE_TYPE_ATTACH;
+}
+
+static bool my_is_detach_type_by_descriptor(AMQP_VALUE descriptor)
+{
+    (void)descriptor;
+    return incoming_performative_type == TEST_PERFORMATIVE_TYPE_DETACH;
+}
+
+static bool my_is_flow_type_by_descriptor(AMQP_VALUE descriptor)
+{
+    (void)descriptor;
+    return incoming_performative_type == TEST_PERFORMATIVE_TYPE_FLOW;
+}
+
+static int my_amqpvalue_get_attach(AMQP_VALUE value, ATTACH_HANDLE* attach_handle)
+{
+    (void)value;
+    *attach_handle = (ATTACH_HANDLE)0x7001;
+    return 0;
+}
+
+static int my_amqpvalue_get_detach(AMQP_VALUE value, DETACH_HANDLE* detach_handle)
+{
+    (void)value;
+    *detach_handle = (DETACH_HANDLE)0x7002;
+    return 0;
+}
+
+static int my_amqpvalue_get_flow(AMQP_VALUE value, FLOW_HANDLE* flow_handle)
+{
+    (void)value;
+    *flow_handle = (FLOW_HANDLE)0x7003;
+    return 0;
+}
+
+static int my_attach_get_name(ATTACH_HANDLE attach, const char** name_value)
+{
+    (void)attach;
+    *name_value = incoming_attach_link_name;
+    return 0;
+}
+
+static int my_attach_get_handle(ATTACH_HANDLE attach, handle* handle_value)
+{
+    (void)attach;
+    *handle_value = incoming_performative_remote_handle;
+    return 0;
+}
+
+static int my_attach_get_amqp_value(ATTACH_HANDLE attach, AMQP_VALUE* value)
+{
+    (void)attach;
+    *value = NULL;
+    return 0;
+}
+
+static int my_attach_get_properties(ATTACH_HANDLE attach, fields* properties_value)
+{
+    (void)attach;
+    *properties_value = NULL;
+    return 0;
+}
+
+static int my_detach_get_handle(DETACH_HANDLE detach, handle* handle_value)
+{
+    (void)detach;
+    *handle_value = incoming_performative_remote_handle;
+    return 0;
+}
+
+static int my_flow_get_handle(FLOW_HANDLE flow, handle* handle_value)
+{
+    (void)flow;
+    *handle_value = incoming_performative_remote_handle;
+    return 0;
+}
+
+static int my_flow_get_transfer_number(FLOW_HANDLE flow, transfer_number* value)
+{
+    (void)flow;
+    *value = 0;
+    return 0;
+}
+
+static int my_flow_get_incoming_window(FLOW_HANDLE flow, uint32_t* incoming_window_value)
+{
+    (void)flow;
+    *incoming_window_value = 0;
+    return 0;
+}
+
+/**
+ * @brief Delivers a performative from the peer to the session under test.
+ * @param type Performative type to deliver.
+ * @param remote_handle Peer's link handle carried by the performative.
+ * @param link_name Link name carried by an ATTACH; ignored for other types.
+ */
+static void deliver_peer_performative(TEST_PERFORMATIVE_TYPE type, handle remote_handle, const char* link_name)
+{
+    incoming_performative_type = type;
+    incoming_performative_remote_handle = remote_handle;
+    incoming_attach_link_name = link_name;
+    saved_frame_received_callback(saved_callback_context, TEST_DESCRIBED_AMQP_VALUE, 0, NULL);
+    incoming_performative_type = TEST_PERFORMATIVE_TYPE_NONE;
 }
 
 static TEST_MUTEX_HANDLE g_testByTest;
@@ -129,6 +256,22 @@ TEST_SUITE_INITIALIZE(suite_init)
     REGISTER_GLOBAL_MOCK_RETURN(connection_encode_frame, 0);
     REGISTER_GLOBAL_MOCK_RETURN(connection_get_remote_max_frame_size, 0);
     REGISTER_GLOBAL_MOCK_HOOK(connection_start_endpoint, my_connection_start_endpoint);
+    REGISTER_GLOBAL_MOCK_HOOK(is_attach_type_by_descriptor, my_is_attach_type_by_descriptor);
+    REGISTER_GLOBAL_MOCK_HOOK(is_detach_type_by_descriptor, my_is_detach_type_by_descriptor);
+    REGISTER_GLOBAL_MOCK_HOOK(is_flow_type_by_descriptor, my_is_flow_type_by_descriptor);
+    REGISTER_GLOBAL_MOCK_HOOK(amqpvalue_get_attach, my_amqpvalue_get_attach);
+    REGISTER_GLOBAL_MOCK_HOOK(amqpvalue_get_detach, my_amqpvalue_get_detach);
+    REGISTER_GLOBAL_MOCK_HOOK(amqpvalue_get_flow, my_amqpvalue_get_flow);
+    REGISTER_GLOBAL_MOCK_HOOK(attach_get_name, my_attach_get_name);
+    REGISTER_GLOBAL_MOCK_HOOK(attach_get_handle, my_attach_get_handle);
+    REGISTER_GLOBAL_MOCK_HOOK(attach_get_source, my_attach_get_amqp_value);
+    REGISTER_GLOBAL_MOCK_HOOK(attach_get_target, my_attach_get_amqp_value);
+    REGISTER_GLOBAL_MOCK_HOOK(attach_get_properties, my_attach_get_properties);
+    REGISTER_GLOBAL_MOCK_HOOK(detach_get_handle, my_detach_get_handle);
+    REGISTER_GLOBAL_MOCK_HOOK(flow_get_handle, my_flow_get_handle);
+    REGISTER_GLOBAL_MOCK_HOOK(flow_get_next_incoming_id, my_flow_get_transfer_number);
+    REGISTER_GLOBAL_MOCK_HOOK(flow_get_next_outgoing_id, my_flow_get_transfer_number);
+    REGISTER_GLOBAL_MOCK_HOOK(flow_get_incoming_window, my_flow_get_incoming_window);
 
     REGISTER_UMOCK_ALIAS_TYPE(SESSION_HANDLE, void*);
     REGISTER_UMOCK_ALIAS_TYPE(CONNECTION_HANDLE, void*);
@@ -150,6 +293,10 @@ TEST_FUNCTION_INITIALIZE(method_init)
     }
 
     umock_c_reset_all_calls();
+
+    incoming_performative_type = TEST_PERFORMATIVE_TYPE_NONE;
+    last_frame_received_context = NULL;
+    frame_received_count = 0;
 }
 
 TEST_FUNCTION_CLEANUP(method_cleanup)
@@ -921,6 +1068,76 @@ TEST_FUNCTION(when_if_sending_the_frame_to_the_connection_fails_the_next_outgoin
 }
 #endif
 
+/* Peer link handle reuse */
+
+/**
+ * @brief Begins a session and attaches two link endpoints, the first one with @p first_remote_handle.
+ * The second endpoint is created but not attached by the peer yet.
+ */
+static SESSION_HANDLE create_session_with_two_link_endpoints(handle first_remote_handle, LINK_ENDPOINT_HANDLE* first_link_endpoint, LINK_ENDPOINT_HANDLE* second_link_endpoint)
+{
+    SESSION_HANDLE session = session_create(TEST_CONNECTION_HANDLE, NULL, NULL);
+    ASSERT_ARE_EQUAL(int, 0, session_begin(session));
+
+    *first_link_endpoint = session_create_link_endpoint(session, "first_link");
+    *second_link_endpoint = session_create_link_endpoint(session, "second_link");
+    ASSERT_ARE_EQUAL(int, 0, session_start_link_endpoint(*first_link_endpoint, test_frame_received_callback, test_on_session_state_changed, test_on_flow_on, *first_link_endpoint));
+    ASSERT_ARE_EQUAL(int, 0, session_start_link_endpoint(*second_link_endpoint, test_frame_received_callback, test_on_session_state_changed, test_on_flow_on, *second_link_endpoint));
+
+    deliver_peer_performative(TEST_PERFORMATIVE_TYPE_ATTACH, first_remote_handle, "first_link");
+
+    return session;
+}
+
+TEST_FUNCTION(flow_on_a_remote_handle_reused_after_peer_detach_is_routed_to_the_new_link_endpoint)
+{
+    // arrange
+    LINK_ENDPOINT_HANDLE first_link_endpoint;
+    LINK_ENDPOINT_HANDLE second_link_endpoint;
+    SESSION_HANDLE session = create_session_with_two_link_endpoints(3, &first_link_endpoint, &second_link_endpoint);
+    // The peer detaches the first link (which stays alive until its owner destroys it) and reuses its handle.
+    deliver_peer_performative(TEST_PERFORMATIVE_TYPE_DETACH, 3, NULL);
+    deliver_peer_performative(TEST_PERFORMATIVE_TYPE_ATTACH, 3, "second_link");
+    frame_received_count = 0;
+    last_frame_received_context = NULL;
+
+    // act
+    deliver_peer_performative(TEST_PERFORMATIVE_TYPE_FLOW, 3, NULL);
+
+    // assert
+    ASSERT_ARE_EQUAL(size_t, 1, frame_received_count);
+    ASSERT_ARE_EQUAL(void_ptr, second_link_endpoint, last_frame_received_context);
+
+    // cleanup
+    session_destroy_link_endpoint(first_link_endpoint);
+    session_destroy_link_endpoint(second_link_endpoint);
+    session_destroy_link_endpoint(second_link_endpoint);
+    session_destroy(session);
+}
+
+TEST_FUNCTION(detach_on_a_remote_handle_reused_after_peer_detach_is_routed_to_the_new_link_endpoint)
+{
+    // arrange
+    LINK_ENDPOINT_HANDLE first_link_endpoint;
+    LINK_ENDPOINT_HANDLE second_link_endpoint;
+    SESSION_HANDLE session = create_session_with_two_link_endpoints(3, &first_link_endpoint, &second_link_endpoint);
+    deliver_peer_performative(TEST_PERFORMATIVE_TYPE_DETACH, 3, NULL);
+    deliver_peer_performative(TEST_PERFORMATIVE_TYPE_ATTACH, 3, "second_link");
+    frame_received_count = 0;
+    last_frame_received_context = NULL;
+
+    // act
+    deliver_peer_performative(TEST_PERFORMATIVE_TYPE_DETACH, 3, NULL);
+
+    // assert
+    ASSERT_ARE_EQUAL(size_t, 1, frame_received_count);
+    ASSERT_ARE_EQUAL(void_ptr, second_link_endpoint, last_frame_received_context);
+
+    // cleanup
+    session_destroy_link_endpoint(first_link_endpoint);
+    session_destroy_link_endpoint(second_link_endpoint);
+    session_destroy(session);
+}
 
 /* session_get_last_error */
 

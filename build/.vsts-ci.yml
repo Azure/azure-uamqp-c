@@ -533,7 +533,8 @@ stages:
   dependsOn:
   - Setup
   - Tests
-  condition: always()  # Run stage even if the pipeline run is cancelled.
+  # Run stage even if the pipeline run is cancelled, but not when Setup never ran (no resource group to delete).
+  condition: and(always(), ne(dependencies.Setup.result, 'Skipped'))
   jobs:
   - job: destroy_azure_resource_group
     condition: always()  # Run job even if the pipeline run is cancelled.
